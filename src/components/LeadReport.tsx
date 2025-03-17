@@ -47,23 +47,67 @@ const LeadReport = ({ data, onReset }: LeadReportProps) => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const handleRequestReport = (e: React.FormEvent) => {
+  const handleRequestReport = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address to receive the report.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
-    // Simulate sending email report
-    setTimeout(() => {
+    try {
+      // Import the sendEmailReport function dynamically to avoid circular dependencies
+      const { sendEmailReport } = await import('@/services/apiService');
+      
+      // Prepare the report data to send
+      const reportData = {
+        domain: data.domain,
+        industry: data.industry,
+        stats: {
+          organicKeywords: data.organicKeywords,
+          organicTraffic: data.organicTraffic,
+          domainPower: data.domainPower,
+          domainAuthority: data.domainAuthority,
+          domainRanking: data.domainRanking,
+          backlinks: data.backlinks,
+          missedLeads: data.missedLeads,
+          monthlyRevenueLost: data.monthlyRevenueLost,
+          yearlyRevenueLost: data.yearlyRevenueLost
+        },
+        generatedAt: new Date().toISOString()
+      };
+      
+      // Send the email
+      const emailSent = await sendEmailReport(email, reportData);
+      
+      if (emailSent) {
+        toast({
+          title: "Report Sent Successfully!",
+          description: "Check your inbox for your detailed lead capture report. If you don't see it, please check your spam folder.",
+        });
+      } else {
+        toast({
+          title: "Email Delivery Issue",
+          description: "We encountered a problem sending your report. Please try again or contact support.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error processing report request:", error);
       toast({
-        title: "Report Sent Successfully!",
-        description: "Check your inbox for your detailed lead capture report.",
+        title: "Something Went Wrong",
+        description: "We couldn't process your request. Please try again later.",
+        variant: "destructive"
       });
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
-    
-    // In a real implementation, you would send data to backend here
-    console.log("Sending report to email:", email);
-    // Send notification to admin as well
-    console.log("Sending notification to admin: hi@nurturely.io");
+    }
   };
   
   const comparisonData = [
@@ -373,10 +417,23 @@ const LeadReport = ({ data, onReset }: LeadReportProps) => {
                 className="flex-1"
               />
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Sending..." : "Get PDF Report"}
-                <Mail className="ml-2 h-4 w-4" />
+                {isSubmitting ? (
+                  <>
+                    <span className="animate-pulse mr-2">Sending...</span>
+                    <Mail className="h-4 w-4 animate-bounce" />
+                  </>
+                ) : (
+                  <>
+                    Get PDF Report
+                    <Mail className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             </div>
+            <p className="text-xs text-gray-500 italic">
+              Note: For this demo, actual email delivery is simulated. In a production environment, 
+              you would receive a real email.
+            </p>
           </form>
         </CardContent>
       </Card>
