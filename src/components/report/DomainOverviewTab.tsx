@@ -1,5 +1,5 @@
 
-import { HelpCircle, LineChart } from "lucide-react";
+import { HelpCircle, LineChart, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart,
@@ -11,6 +11,8 @@ import {
   Legend,
   ResponsiveContainer
 } from "recharts";
+import { getSpyFuUrl } from "@/services/spyfuService";
+import { Button } from "@/components/ui/button";
 
 interface DomainOverviewTabProps {
   domain: string;
@@ -41,14 +43,25 @@ const DomainOverviewTab = ({
   const totalTraffic = organicTraffic + paidTraffic;
   const organicPercentage = Math.round((organicTraffic / totalTraffic) * 100) || 0;
   const paidPercentage = Math.round((paidTraffic / totalTraffic) * 100) || 0;
+  
+  // Generate SpyFu URL for this domain
+  const spyfuUrl = getSpyFuUrl(domain);
 
   return (
     <Card className="bg-secondary">
       <CardHeader>
-        <CardTitle>Domain Performance</CardTitle>
-        <CardDescription className="text-gray-400">
-          Metrics for {domain}
-        </CardDescription>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>Domain Performance</CardTitle>
+            <CardDescription className="text-gray-400">
+              Metrics for {domain}
+            </CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => window.open(spyfuUrl, '_blank')} className="flex items-center gap-1">
+            <ExternalLink className="h-4 w-4" />
+            View on SpyFu
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
