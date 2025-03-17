@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -105,6 +104,9 @@ const Index = () => {
   
   const handleEditData = () => {
     setReportData(null);
+    if (!apiError) {
+      setApiError("Edit mode - all fields are editable");
+    }
     toast.info("Edit your information and submit again", {
       description: "Your previous entries have been preserved.",
       duration: 5000,

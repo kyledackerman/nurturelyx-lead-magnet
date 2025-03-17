@@ -130,14 +130,14 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
         <StatCard
           label="Missed Leads"
           value={data.missedLeads.toLocaleString()}
-          description="Monthly average based on 20% visitor identification"
+          description="Monthly average based on <strong>20% visitor identification</strong>"
           icon={Users}
         />
         
         <StatCard
           label="Lost Sales*"
           value={data.estimatedSalesLost.toLocaleString()}
-          description="Monthly average based on 1% lead conversion"
+          description="Monthly average based on <strong>1% lead conversion</strong>"
           icon={ShoppingCart}
         />
         
@@ -181,7 +181,7 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
         </Button>
       </div>
       
-      {/* Add print-specific styles - fixed the style tag that was causing the error */}
+      {/* Add print-specific styles */}
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           body * {
