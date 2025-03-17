@@ -23,6 +23,7 @@ const ReportTabs = ({ data }: ReportTabsProps) => {
           backlinks={data.backlinks}
           organicTraffic={data.organicTraffic}
           organicKeywords={data.organicKeywords}
+          paidTraffic={data.paidTraffic || data.monthlyVisitors}
         />
       </TabsContent>
       

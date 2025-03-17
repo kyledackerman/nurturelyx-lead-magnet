@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -49,7 +48,8 @@ const Index = () => {
       const metrics = calculateReportMetrics(
         paidTraffic,
         formData.avgTransactionValue,
-        apiData.organicTraffic
+        apiData.organicTraffic,
+        apiData.paidTraffic
       );
       
       const fullReportData: ReportData = {
@@ -67,7 +67,7 @@ const Index = () => {
         let dataSourceMessage = "";
         switch(apiData.dataSource) {
           case 'api':
-            dataSourceMessage = "using Google Search Console API data";
+            dataSourceMessage = "using Google Analytics data";
             break;
           case 'manual':
             dataSourceMessage = "using your manually entered data";
@@ -102,6 +102,7 @@ const Index = () => {
     setReportData(null);
     setApiError(null);
     setFormDataCache(null);
+    sessionStorage.removeItem('google_analytics_token');
     toast.success("All data cleared. You can start fresh!", {
       duration: 3000,
     });
@@ -131,7 +132,7 @@ const Index = () => {
                 <Loader2 className="h-12 w-12 animate-spin text-accent mx-auto mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Processing your domain data...</h2>
                 <p className="text-gray-400 mb-6">
-                  We're connecting to Google Search Console API to analyze your website domain.
+                  We're connecting to Google Analytics API to analyze your website domain.
                   This usually takes around 30 seconds.
                 </p>
                 
@@ -142,7 +143,7 @@ const Index = () => {
                 <p className="text-sm text-gray-500">
                   {calculationProgress < 30 && "Initializing search..."}
                   {calculationProgress >= 30 && calculationProgress < 60 && "Fetching domain statistics..."}
-                  {calculationProgress >= 60 && calculationProgress < 90 && "Analyzing organic traffic data..."}
+                  {calculationProgress >= 60 && calculationProgress < 90 && "Analyzing traffic data..."}
                   {calculationProgress >= 90 && "Calculating opportunity metrics..."}
                 </p>
               </div>

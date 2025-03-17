@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -5,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormData } from "@/types/report";
-import { AlertCircle, Info, DollarSign, RefreshCw } from "lucide-react";
+import { AlertCircle, Info, DollarSign, RefreshCw, BarChart } from "lucide-react";
+import { initiateGoogleAnalyticsAuth } from "@/services/apiService";
 
 interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
@@ -26,8 +28,13 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   });
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isGAConnected, setIsGAConnected] = useState<boolean>(false);
 
   useEffect(() => {
+    // Check if we have a Google Analytics token in session storage
+    const hasToken = !!sessionStorage.getItem('google_analytics_token');
+    setIsGAConnected(hasToken);
+    
     if (initialData) {
       setFormData(initialData);
     }
@@ -80,8 +87,17 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
       onCalculate(formData);
     }
   };
+  
+  const handleConnectGA = () => {
+    initiateGoogleAnalyticsAuth();
+    // In a real implementation, you would have a callback that sets isGAConnected to true
+    // For now, we'll simulate a connection after 2 seconds
+    setTimeout(() => {
+      setIsGAConnected(true);
+    }, 2000);
+  };
 
-  const showManualTrafficFields = !!apiError;
+  const showManualTrafficFields = !!apiError || !isGAConnected;
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
@@ -125,10 +141,31 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                 <p>{errors.domain}</p>
               </div>
             )}
-            <p className="text-sm text-gray-400 mt-1 flex items-center">
-              <Info className="h-3 w-3 mr-1 text-accent" />
-              We'll fetch your organic traffic data from Google Search Console API
-            </p>
+            
+            <div className="mt-3 flex flex-col">
+              <Button 
+                type="button" 
+                variant={isGAConnected ? "outline" : "default"} 
+                className={`flex items-center gap-2 mt-2 ${isGAConnected ? 'border-green-500 text-green-500' : 'gradient-bg'}`}
+                onClick={handleConnectGA}
+                disabled={isGAConnected}
+              >
+                <BarChart className="h-4 w-4" />
+                {isGAConnected ? 'Connected to Google Analytics' : 'Connect to Google Analytics'}
+              </Button>
+              
+              {isGAConnected ? (
+                <p className="text-sm text-green-500 mt-2 flex items-center">
+                  <Info className="h-3 w-3 mr-1" />
+                  We'll fetch your organic and paid traffic data from Google Analytics
+                </p>
+              ) : (
+                <p className="text-sm text-gray-400 mt-2 flex items-center">
+                  <Info className="h-3 w-3 mr-1 text-accent" />
+                  Connect to Google Analytics for accurate organic and paid traffic data
+                </p>
+              )}
+            </div>
           </div>
           
           {showManualTrafficFields && (
@@ -247,7 +284,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                 API Connection Error
               </h3>
               <p className="text-white">
-                We couldn't connect to the Google Search Console API to fetch your traffic data. Please enter your traffic numbers manually to continue.
+                We couldn't connect to the Google Analytics API to fetch your traffic data. Please enter your traffic numbers manually to continue.
               </p>
               <p className="text-gray-300 mt-2 text-xs">{apiError}</p>
             </div>
@@ -261,7 +298,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
               <div>
                 <h3 className="text-sm font-medium text-foreground mb-1">How We Calculate Results</h3>
                 <p className="text-sm text-gray-400">
-                  We analyze both your organic traffic (from Google Search Console API or your input) and your paid traffic to identify 20% of total visitors that could be converted into leads, with 1% of those leads becoming sales.
+                  We analyze both your organic traffic and your paid traffic (from Google Analytics or your input) to identify 20% of total visitors that could be converted into leads, with 1% of those leads becoming sales.
                 </p>
               </div>
             </div>

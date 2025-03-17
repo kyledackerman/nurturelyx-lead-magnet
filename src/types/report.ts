@@ -1,6 +1,4 @@
 
-import { MonthlyRevenueData } from "@/services/apiService";
-
 export interface FormData {
   domain: string;
   monthlyVisitors: number;
@@ -8,13 +6,15 @@ export interface FormData {
   isUnsureOrganic?: boolean;
   isUnsurePaid?: boolean;
   avgTransactionValue: number;
+  // Add more fields as needed
 }
 
 export interface ApiData {
-  organicKeywords: number;
   organicTraffic: number;
+  organicKeywords: number;
   domainPower: number;
   backlinks: number;
+  paidTraffic?: number; // Added paid traffic from Google Analytics
   dataSource: 'api' | 'manual' | 'both' | 'fallback';
 }
 
@@ -23,5 +23,14 @@ export interface ReportData extends FormData, ApiData {
   estimatedSalesLost: number;
   monthlyRevenueLost: number;
   yearlyRevenueLost: number;
-  monthlyRevenueData: MonthlyRevenueData[];
+  monthlyRevenueData: {
+    month: string;
+    year: number;
+    visitors: number;
+    organicVisitors: number;
+    paidVisitors: number;
+    leads: number;
+    sales: number;
+    revenueLost: number;
+  }[];
 }
