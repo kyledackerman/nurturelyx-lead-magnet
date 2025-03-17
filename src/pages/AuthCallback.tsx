@@ -49,7 +49,7 @@ const AuthCallback = () => {
         window.opener.postMessage({ type: "GOOGLE_ANALYTICS_AUTH_SUCCESS" }, window.location.origin);
         
         toast.success("Successfully connected to Google Analytics", {
-          description: "You can now select a domain and continue with your report."
+          description: "Now you can select one of your domains and continue with your report."
         });
         
         // Close the popup after successful authentication
@@ -59,7 +59,7 @@ const AuthCallback = () => {
       } else {
         // If not in a popup, redirect back to the main page
         toast.success("Successfully connected to Google Analytics", {
-          description: "You can now select a domain and continue with your report."
+          description: "Now you can select one of your domains and continue with your report."
         });
         
         setTimeout(() => {
@@ -114,7 +114,7 @@ const AuthCallback = () => {
         )}
         
         {status === 'error' && (
-          <p className="text-red-500">
+          <p className="text-red-500 bg-white p-2 rounded">
             You'll be redirected to the form to try again or enter your data manually.
           </p>
         )}

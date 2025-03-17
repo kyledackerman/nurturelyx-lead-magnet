@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormData } from "@/types/report";
-import { AlertCircle, Info, DollarSign, RefreshCw, BarChart, CheckCircle } from "lucide-react";
+import { AlertCircle, Info, DollarSign, RefreshCw, BarChart, CheckCircle, ChevronDown } from "lucide-react";
 import { initiateGoogleAnalyticsAuth, getAvailableDomains } from "@/services/apiService";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
@@ -35,6 +36,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   const [availableDomains, setAvailableDomains] = useState<string[]>([]);
   const [selectedDomain, setSelectedDomain] = useState<string>("");
   const [domainSelected, setDomainSelected] = useState<boolean>(false);
+  const [loadingDomains, setLoadingDomains] = useState<boolean>(false);
 
   useEffect(() => {
     // Check if we have a Google Analytics token in session storage
@@ -53,18 +55,20 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
 
   const fetchAvailableDomains = async () => {
     try {
+      setLoadingDomains(true);
       // In a real implementation, this would fetch domains from the Google Analytics API
       const domains = await getAvailableDomains();
       setAvailableDomains(domains);
+      setLoadingDomains(false);
       
       // If we have domains and no selection yet, select the first one
       if (domains.length > 0 && !selectedDomain) {
-        setSelectedDomain(domains[0]);
         toast.success("Connected to Google Analytics", {
           description: "Please select a domain and enter your average transaction value to continue.",
         });
       }
     } catch (error) {
+      setLoadingDomains(false);
       console.error("Error fetching domains:", error);
       toast.error("Failed to fetch domains", {
         description: "We had trouble retrieving your domains from Google Analytics."
@@ -196,41 +200,72 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
             
             {isGAConnected && !apiError && (
               <div className="space-y-4">
-                <div className="flex items-center justify-center gap-2 text-green-500">
+                <div className="flex items-center justify-center gap-2 text-green-500 mb-2">
                   <CheckCircle className="h-5 w-5" />
                   <p className="font-medium">Connected to Google Analytics</p>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="domain-select" className="text-lg">Select Website Domain</Label>
-                  <Select 
-                    value={selectedDomain} 
-                    onValueChange={handleDomainChange}
-                  >
-                    <SelectTrigger id="domain-select" className={errors.domain ? "border-red-300" : ""}>
-                      <SelectValue placeholder="Select a domain" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableDomains.map((domain) => (
-                        <SelectItem key={domain} value={domain}>
-                          {domain}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  {errors.domain && (
-                    <div className="flex items-center text-sm text-red-600 mt-1 bg-white p-1 rounded">
-                      <AlertCircle className="h-4 w-4 mr-1" />
-                      <p>{errors.domain}</p>
+                {selectedDomain && (
+                  <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium text-green-700">Selected Domain:</h3>
+                        <p className="text-lg font-bold text-green-800">{selectedDomain}</p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedDomain("")}
+                        className="text-green-700 border-green-300 hover:bg-green-100"
+                      >
+                        Change
+                      </Button>
                     </div>
-                  )}
-                  
-                  <p className="text-sm text-gray-400 mt-1 flex items-center">
-                    <Info className="h-3 w-3 mr-1 text-accent" />
-                    We'll analyze this domain's traffic data from Google Analytics
-                  </p>
-                </div>
+                  </div>
+                )}
+                
+                {!selectedDomain && (
+                  <div className="space-y-2">
+                    <Label htmlFor="domain-select" className="text-lg">Select Website Domain</Label>
+                    
+                    {loadingDomains ? (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <div className="animate-spin h-4 w-4 border-2 border-accent border-t-transparent rounded-full"></div>
+                        <span>Loading your domains...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <Select 
+                          value={selectedDomain} 
+                          onValueChange={handleDomainChange}
+                        >
+                          <SelectTrigger id="domain-select" className={`${errors.domain ? "border-red-300" : ""} bg-white`}>
+                            <SelectValue placeholder="Select a domain" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white">
+                            {availableDomains.map((domain) => (
+                              <SelectItem key={domain} value={domain}>
+                                {domain}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      
+                        {errors.domain && (
+                          <div className="flex items-center text-sm text-red-600 mt-1 bg-white p-1 rounded">
+                            <AlertCircle className="h-4 w-4 mr-1" />
+                            <p>{errors.domain}</p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    
+                    <p className="text-sm text-gray-400 mt-1 flex items-center">
+                      <Info className="h-3 w-3 mr-1 text-accent" />
+                      We'll analyze this domain's traffic data from Google Analytics
+                    </p>
+                  </div>
+                )}
               </div>
             )}
             
@@ -242,7 +277,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
             )}
             
             {errors.googleAnalytics && !apiError && (
-              <div className="flex items-center justify-center text-sm text-red-500 mt-2">
+              <div className="flex items-center justify-center text-sm text-red-500 mt-2 bg-white p-2 rounded">
                 <AlertCircle className="h-4 w-4 mr-1" />
                 <p>{errors.googleAnalytics}</p>
               </div>
