@@ -9,7 +9,7 @@ const SEARCH_ATLAS_API_KEY = "ce26ade2b8adac45db89c62c438d0a31";
 export const fetchDomainData = async (domain: string, industry: string): Promise<ApiData> => {
   console.log(`Using SearchAtlas API key: ${SEARCH_ATLAS_API_KEY} to fetch data for ${domain}`);
   
-  toast.loading(`Fetching data for ${domain}...`);
+  toast.loading(`Fetching data for ${domain}...`, { duration: 3000 });
   
   try {
     // For demo purposes, we're using a proxy to avoid CORS issues
@@ -41,8 +41,6 @@ export const fetchDomainData = async (domain: string, industry: string): Promise
       organicKeywords: data.keywords?.total || Math.floor(100 + (domain.length * 50)),
       organicTraffic: data.traffic?.monthly || Math.floor(500 + (domain.length * 200)),
       domainPower: data.metrics?.domain_score || Math.min(95, Math.floor(40 + (domain.length * 2))),
-      domainAuthority: data.metrics?.authority || Math.min(95, Math.floor(35 + (domain.length * 2.5))),
-      domainRanking: data.metrics?.ranking || Math.floor(10000 + (5000 * Math.random())),
       backlinks: data.backlinks?.total || Math.floor(100 + (domain.length * 100))
     };
   } catch (error) {
@@ -65,8 +63,6 @@ const generateFallbackData = (domain: string, industry: string): ApiData => {
     organicKeywords: Math.floor(100 + (domainLength * 50 * industryFactor)),
     organicTraffic: Math.floor(500 + (domainLength * 200 * industryFactor)),
     domainPower: Math.min(95, Math.floor(40 + (domainLength * 2))),
-    domainAuthority: Math.min(95, Math.floor(35 + (domainLength * 2.5))),
-    domainRanking: Math.floor(10000 + (5000 * Math.random())),
     backlinks: Math.floor(100 + (domainLength * 100 * industryFactor))
   };
 };
@@ -95,17 +91,24 @@ const getIndustryFactor = (industry: string): number => {
 export const calculateReportMetrics = (
   monthlyVisitors: number,
   avgTransactionValue: number
-): { missedLeads: number; monthlyRevenueLost: number; yearlyRevenueLost: number; monthlyRevenueData: MonthlyRevenueData[] } => {
-  const conversionRate = 0.2; // 20% capture rate
-  const missedLeads = Math.floor(monthlyVisitors * conversionRate);
-  const monthlyRevenueLost = missedLeads * avgTransactionValue;
+): { 
+  missedLeads: number; 
+  estimatedSalesLost: number;
+  monthlyRevenueLost: number; 
+  yearlyRevenueLost: number; 
+  monthlyRevenueData: MonthlyRevenueData[];
+} => {
+  const leadConversionRate = 0.2; // 20% visitor-to-lead capture rate
+  const salesConversionRate = 0.01; // 1% lead-to-sale conversion rate
+  
+  const missedLeads = Math.floor(monthlyVisitors * leadConversionRate);
+  const estimatedSalesLost = Math.floor(missedLeads * salesConversionRate);
+  const monthlyRevenueLost = estimatedSalesLost * avgTransactionValue;
   const yearlyRevenueLost = monthlyRevenueLost * 12;
   
   // Generate 6 months of historical data
   const today = new Date();
   const monthlyRevenueData: MonthlyRevenueData[] = [];
-  
-  let totalRevenueLost = 0;
   
   for (let i = 5; i >= 0; i--) {
     const monthDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
@@ -114,20 +117,25 @@ export const calculateReportMetrics = (
     
     // Add a little randomness to the data for each month (80-120% of base value)
     const variationFactor = 0.8 + (Math.random() * 0.4);
-    const monthRevenue = Math.floor(monthlyRevenueLost * variationFactor);
     
-    totalRevenueLost += monthRevenue;
+    const monthVisitors = Math.floor(monthlyVisitors * variationFactor);
+    const monthLeads = Math.floor(missedLeads * variationFactor);
+    const monthSales = Math.floor(estimatedSalesLost * variationFactor);
+    const monthRevenue = monthSales * avgTransactionValue;
     
     monthlyRevenueData.push({
       month,
       year,
-      revenueLost: monthRevenue,
-      leads: Math.floor(missedLeads * variationFactor)
+      visitors: monthVisitors,
+      leads: monthLeads,
+      sales: monthSales,
+      revenueLost: monthRevenue
     });
   }
   
   return {
     missedLeads,
+    estimatedSalesLost,
     monthlyRevenueLost,
     yearlyRevenueLost,
     monthlyRevenueData
@@ -137,6 +145,8 @@ export const calculateReportMetrics = (
 export interface MonthlyRevenueData {
   month: string;
   year: number;
-  revenueLost: number;
+  visitors: number;
   leads: number;
+  sales: number;
+  revenueLost: number;
 }

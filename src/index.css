@@ -15,7 +15,7 @@
     --popover-foreground: 0 0% 98%;
 
     --primary: 174 84% 68%; /* Teal #81e6d9 */
-    --primary-foreground: 0 0% 98%;
+    --primary-foreground: 0 0% 0%; /* Black text on teal */
 
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -24,7 +24,7 @@
     --muted-foreground: 240 5% 64.9%;
 
     --accent: 174 84% 68%; /* Teal */
-    --accent-foreground: 240 5.9% 10%;
+    --accent-foreground: 0 0% 0%; /* Black text on teal */
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
@@ -38,7 +38,7 @@
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 174 84% 68%; /* Teal */
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary-foreground: 0 0% 0%; /* Black text on teal */
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
@@ -57,7 +57,7 @@
   }
 
   .gradient-bg {
-    @apply bg-gradient-to-r from-accent to-accent/80;
+    @apply bg-gradient-to-r from-accent to-accent/80 text-accent-foreground;
   }
   
   .stat-card {
@@ -70,5 +70,31 @@
   
   .stat-label {
     @apply text-sm text-gray-400 font-medium;
+  }
+  
+  .methodology-card {
+    @apply p-4 bg-secondary/70 rounded-lg border border-border mt-4;
+  }
+  
+  .methodology-title {
+    @apply text-lg font-medium mb-2 text-foreground;
+  }
+  
+  .methodology-text {
+    @apply text-sm text-gray-400;
+  }
+  
+  /* Loading indicator animations */
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+  
+  .loading-pulse {
+    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 }

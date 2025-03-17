@@ -24,19 +24,23 @@ const formatCurrency = (value: number): string => {
 
 const MonthlyRevenueTable = ({ data }: MonthlyRevenueTableProps) => {
   // Calculate totals
+  const totalVisitors = data.reduce((acc, month) => acc + month.visitors, 0);
   const totalLeads = data.reduce((acc, month) => acc + month.leads, 0);
+  const totalSales = data.reduce((acc, month) => acc + month.sales, 0);
   const totalRevenue = data.reduce((acc, month) => acc + month.revenueLost, 0);
 
   return (
     <div className="overflow-x-auto">
       <Table>
         <TableCaption className="text-gray-400">
-          Estimated missed revenue over the last 6 months
+          Estimated missed opportunity over the last 6 months
         </TableCaption>
         <TableHeader>
           <TableRow className="border-b border-border">
             <TableHead className="text-left">Month</TableHead>
+            <TableHead className="text-right">Visitors</TableHead>
             <TableHead className="text-right">Missed Leads</TableHead>
+            <TableHead className="text-right">Lost Sales</TableHead>
             <TableHead className="text-right">Lost Revenue</TableHead>
           </TableRow>
         </TableHeader>
@@ -50,7 +54,13 @@ const MonthlyRevenueTable = ({ data }: MonthlyRevenueTableProps) => {
                 {month.month} {month.year}
               </TableCell>
               <TableCell className="text-right">
+                {month.visitors.toLocaleString()}
+              </TableCell>
+              <TableCell className="text-right">
                 {month.leads.toLocaleString()}
+              </TableCell>
+              <TableCell className="text-right">
+                {month.sales.toLocaleString()}
               </TableCell>
               <TableCell className="text-right text-accent font-mono">
                 {formatCurrency(month.revenueLost)}
@@ -60,7 +70,13 @@ const MonthlyRevenueTable = ({ data }: MonthlyRevenueTableProps) => {
           <TableRow className="bg-secondary/50 border-b border-border">
             <TableCell className="font-bold">TOTAL</TableCell>
             <TableCell className="text-right font-bold">
+              {totalVisitors.toLocaleString()}
+            </TableCell>
+            <TableCell className="text-right font-bold">
               {totalLeads.toLocaleString()}
+            </TableCell>
+            <TableCell className="text-right font-bold">
+              {totalSales.toLocaleString()}
             </TableCell>
             <TableCell className="text-right font-bold text-accent font-mono">
               {formatCurrency(totalRevenue)}

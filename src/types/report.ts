@@ -12,13 +12,12 @@ export interface ApiData {
   organicKeywords: number;
   organicTraffic: number;
   domainPower: number;
-  domainAuthority: number;
-  domainRanking: number;
   backlinks: number;
 }
 
 export interface ReportData extends FormData, ApiData {
   missedLeads: number;
+  estimatedSalesLost: number;
   monthlyRevenueLost: number;
   yearlyRevenueLost: number;
   monthlyRevenueData: MonthlyRevenueData[];

@@ -8,6 +8,7 @@ import { FormData, ReportData } from "@/types/report";
 import { fetchDomainData, calculateReportMetrics } from "@/services/apiService";
 import { ArrowRight, LineChart, Users, Zap } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
   const [isCalculating, setIsCalculating] = useState(false);
@@ -33,10 +34,13 @@ const Index = () => {
         ...metrics
       };
       
-      setReportData(fullReportData);
+      // Add a small delay to show loading state (can be removed in production)
+      setTimeout(() => {
+        setReportData(fullReportData);
+        setIsCalculating(false);
+      }, 800);
     } catch (error) {
       console.error("Error calculating report:", error);
-    } finally {
       setIsCalculating(false);
     }
   };
@@ -51,7 +55,25 @@ const Index = () => {
       <Header />
       
       <main className="flex-1 bg-background">
-        {!reportData ? (
+        {isCalculating ? (
+          <div className="container mx-auto px-4 py-16">
+            <div className="max-w-4xl mx-auto">
+              <div className="space-y-6">
+                <Skeleton className="h-8 w-3/4 mx-auto mb-4" />
+                <Skeleton className="h-4 w-1/2 mx-auto mb-8" />
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Skeleton className="h-32" />
+                  <Skeleton className="h-32" />
+                  <Skeleton className="h-32" />
+                </div>
+                
+                <Skeleton className="h-64 mt-8" />
+                <Skeleton className="h-40 mt-8" />
+              </div>
+            </div>
+          </div>
+        ) : !reportData ? (
           <>
             <section className="bg-gradient-to-r from-background to-secondary py-16 md:py-24">
               <div className="container mx-auto px-4">

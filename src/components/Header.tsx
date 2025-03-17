@@ -14,7 +14,7 @@ const Header = () => {
           </div>
         </div>
         
-        <Button className="gradient-bg text-background font-medium">
+        <Button className="gradient-bg text-accent-foreground font-medium">
           Apply for Beta
         </Button>
       </div>
