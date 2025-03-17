@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormData } from "@/types/report";
@@ -8,8 +9,6 @@ import { TrafficInputFields } from "./lead-calculator/TrafficInputFields";
 import { TransactionValueInput } from "./lead-calculator/TransactionValueInput";
 import { InfoSection } from "./lead-calculator/InfoSection";
 import { FormActions } from "./lead-calculator/FormActions";
-import { SpyFuApiKeyForm } from "./lead-calculator/SpyFuApiKeyForm";
-import { hasSpyFuApiKey } from "@/services/spyfuService";
 
 interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
@@ -30,13 +29,12 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   });
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [isSpyFuConnected, setIsSpyFuConnected] = useState<boolean>(hasSpyFuApiKey());
   const [canCalculate, setCanCalculate] = useState<boolean>(false);
-  const [showTrafficFields, setShowTrafficFields] = useState<boolean>(false);
+  const [showTrafficFields, setShowTrafficFields] = useState<boolean>(true); // Always show traffic fields now
 
   useEffect(() => {
     const domainIsValid = formData.domain.trim().length > 0;
-    const hasRequiredFields = domainIsValid && formData.avgTransactionValue >= 0;
+    const hasRequiredFields = domainIsValid && formData.avgTransactionValue > 0;
     
     setCanCalculate(hasRequiredFields);
   }, [formData]);
@@ -44,9 +42,6 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
-      if (initialData.domain) {
-        setShowTrafficFields(true);
-      }
     }
   }, [initialData]);
 
@@ -72,18 +67,16 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
       newErrors.domain = "Please enter a valid domain";
     }
     
-    if (showTrafficFields) {
-      if (formData.isUnsurePaid === false && (formData.monthlyVisitors === undefined || formData.monthlyVisitors < 0)) {
-        newErrors.monthlyVisitors = "Please enter a valid number of monthly paid visitors";
-      }
-      
-      if (formData.isUnsureOrganic === false && (formData.organicTrafficManual === undefined || formData.organicTrafficManual < 0)) {
-        newErrors.organicTrafficManual = "Please enter a valid number of monthly organic visitors";
-      }
+    if (formData.isUnsurePaid === false && (formData.monthlyVisitors === undefined || formData.monthlyVisitors < 0)) {
+      newErrors.monthlyVisitors = "Please enter a valid number of monthly paid visitors";
     }
     
-    if (formData.avgTransactionValue < 0) {
-      newErrors.avgTransactionValue = "Please enter a valid transaction value";
+    if (formData.isUnsureOrganic === false && (formData.organicTrafficManual === undefined || formData.organicTrafficManual < 0)) {
+      newErrors.organicTrafficManual = "Please enter a valid number of monthly organic visitors";
+    }
+    
+    if (formData.avgTransactionValue <= 0) {
+      newErrors.avgTransactionValue = "Please enter a valid transaction value greater than zero";
     }
     
     setErrors(newErrors);
@@ -103,10 +96,6 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
         description: "Some required information is missing or invalid."
       });
     }
-  };
-
-  const handleApiKeySet = () => {
-    setIsSpyFuConnected(true);
   };
 
   return (

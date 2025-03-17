@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -37,6 +38,7 @@ const Index = () => {
     }, 500);
     
     try {
+      // Fetch domain data from SpyFu
       const apiData = await fetchDomainData(
         domain, 
         formData.organicTrafficManual, 
@@ -69,13 +71,13 @@ const Index = () => {
         let dataSourceMessage = "";
         switch(apiData.dataSource) {
           case 'api':
-            dataSourceMessage = "using Google Analytics data";
+            dataSourceMessage = "using SpyFu data";
             break;
           case 'manual':
             dataSourceMessage = "using your manually entered data";
             break;
           case 'both':
-            dataSourceMessage = "using combined API and manual data";
+            dataSourceMessage = "using combined SpyFu and manual data";
             break;
           case 'fallback':
             dataSourceMessage = "using industry estimates (API unavailable)";
@@ -104,7 +106,6 @@ const Index = () => {
     setReportData(null);
     setApiError(null);
     setFormDataCache(null);
-    sessionStorage.removeItem('google_analytics_token');
     toast.success("All data cleared. You can start fresh!", {
       duration: 3000,
     });
@@ -134,7 +135,7 @@ const Index = () => {
                 <Loader2 className="h-12 w-12 animate-spin text-accent mx-auto mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Processing your domain data...</h2>
                 <p className="text-gray-400 mb-6">
-                  We're connecting to Google Analytics API to analyze your website domain.
+                  We're analyzing your website domain with SpyFu data.
                   This usually takes around 30 seconds.
                 </p>
                 

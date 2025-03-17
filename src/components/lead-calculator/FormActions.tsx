@@ -1,6 +1,5 @@
 
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
 
 interface FormActionsProps {
   onReset?: () => void;
