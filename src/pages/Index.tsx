@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -23,8 +22,7 @@ const Index = () => {
   const [formDataCache, setFormDataCache] = useState<FormData | null>(null);
   
   const handleCalculate = async (formData: FormData) => {
-    // Directly assign a default domain if not provided - helps with API that needs a domain identifier
-    const domain = formData.domain || "yourdomain.com";
+    const domain = formData.domain || "example.com";
     
     setIsCalculating(true);
     setApiError(null);

@@ -49,7 +49,7 @@ const AuthCallback = () => {
         window.opener.postMessage({ type: "GOOGLE_ANALYTICS_AUTH_SUCCESS" }, window.location.origin);
         
         toast.success("Successfully connected to Google Analytics", {
-          description: "You can now select one of your domains from the dropdown."
+          description: "Return to the main window to select a domain from your account."
         });
         
         // Close the popup after successful authentication
@@ -109,14 +109,24 @@ const AuthCallback = () => {
         
         {status === 'success' && (
           <p className="text-green-500 font-medium">
-            You'll be redirected to select a domain in a moment.
+            {window.opener 
+              ? "You can close this window and return to the main form."
+              : "You'll be redirected to select a domain in a moment."}
           </p>
         )}
         
         {status === 'error' && (
-          <p className="text-red-500 bg-white p-2 rounded">
-            You'll be redirected to the form to try again or enter your data manually.
-          </p>
+          <div className="space-y-2">
+            <p className="text-red-500 bg-white p-2 rounded">
+              You'll be redirected to the form to try again or enter your data manually.
+            </p>
+            <button 
+              onClick={() => navigate("/")}
+              className="px-4 py-2 bg-accent text-white rounded-md hover:bg-accent/80 transition-colors"
+            >
+              Return to Form
+            </button>
+          </div>
         )}
       </div>
     </div>

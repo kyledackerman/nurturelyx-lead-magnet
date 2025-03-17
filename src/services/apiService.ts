@@ -29,11 +29,25 @@ export const getAvailableDomains = async (): Promise<string[]> => {
   
   // In a real implementation, you would call the Google Analytics API to get the domains
   // For demonstration, we'll simulate an API call with a delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  // Log the domains we're returning for debugging
-  console.log("Returning mock domains:", MOCK_DOMAINS);
-  return MOCK_DOMAINS;
+  try {
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Occasionally return no domains to simulate error case (1/10 chance)
+    // Comment this out to always return domains
+    /*
+    if (Math.random() < 0.1) {
+      console.log("Simulating no domains found");
+      return [];
+    }
+    */
+    
+    // Log the domains we're returning for debugging
+    console.log("Returning mock domains:", MOCK_DOMAINS);
+    return MOCK_DOMAINS;
+  } catch (error) {
+    console.error("Error fetching domains:", error);
+    throw new Error("Failed to fetch domains from Google Analytics");
+  }
 };
 
 // Mock API response for development until OAuth flow is fully implemented
@@ -273,32 +287,57 @@ export const initiateGoogleAnalyticsAuth = () => {
   // Create OAuth URL with client ID, redirect URI, scope, and response type
   const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_ANALYTICS_CLIENT_ID}&redirect_uri=${encodeURIComponent(GOOGLE_ANALYTICS_REDIRECT_URI)}&scope=${encodeURIComponent(GOOGLE_ANALYTICS_API_SCOPE)}&response_type=code&access_type=offline&prompt=consent`;
   
+  console.log("Initiating Google Analytics OAuth with URL:", oauthUrl);
+  
   // Open the OAuth URL in a popup window
   const width = 600;
   const height = 700;
   const left = (window.innerWidth - width) / 2;
   const top = (window.innerHeight - height) / 2;
   
-  const popup = window.open(
-    oauthUrl,
-    "googleAnalyticsAuth",
-    `width=${width},height=${height},top=${top},left=${left},toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes`
-  );
-  
-  // Check if popup was blocked
-  if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-    toast.error("Popup blocked", {
-      description: "Please enable popups to connect to Google Analytics."
+  try {
+    const popup = window.open(
+      oauthUrl,
+      "googleAnalyticsAuth",
+      `width=${width},height=${height},top=${top},left=${left},toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes`
+    );
+    
+    // Check if popup was blocked
+    if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+      console.error("Popup was blocked by the browser");
+      toast.error("Popup blocked", {
+        description: "Please enable popups to connect to Google Analytics."
+      });
+      return false;
+    }
+    
+    console.log("OAuth popup opened successfully");
+    
+    // In a full implementation:
+    // 1. You'd need a callback page that receives the auth code
+    // 2. Exchange the code for an access token
+    // 3. Store the token securely and use it for API requests
+    
+    // Set up listener for messages from popup
+    window.addEventListener('message', (event) => {
+      if (event.origin !== window.location.origin) return;
+      
+      if (event.data.type === 'GOOGLE_ANALYTICS_AUTH_SUCCESS') {
+        console.log("Received successful auth message from popup");
+        toast.success("Connected to Google Analytics", {
+          description: "Authentication successful. Loading your domains..."
+        });
+      }
+    }, { once: true });
+    
+    return true;
+  } catch (error) {
+    console.error("Error opening OAuth popup:", error);
+    toast.error("Failed to open authentication popup", {
+      description: "Please ensure popups are allowed for this site and try again."
     });
     return false;
   }
-  
-  // In a full implementation:
-  // 1. You'd need a callback page that receives the auth code
-  // 2. Exchange the code for an access token
-  // 3. Store the token securely and use it for API requests
-  
-  return true;
 };
 
 export interface MonthlyRevenueData {

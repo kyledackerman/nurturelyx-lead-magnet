@@ -6,12 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormData } from "@/types/report";
-import { AlertCircle, Info, DollarSign, RefreshCw, BarChart, CheckCircle, ChevronDown } from "lucide-react";
+import { AlertCircle, Info, DollarSign, RefreshCw, BarChart, CheckCircle, ChevronDown, XCircle } from "lucide-react";
 import { initiateGoogleAnalyticsAuth, getAvailableDomains } from "@/services/apiService";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
@@ -28,7 +27,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
     organicTrafficManual: 0,
     isUnsureOrganic: false,
     isUnsurePaid: false,
-    avgTransactionValue: 500,
+    avgTransactionValue: 500, // Default to $500 instead of 0
   });
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -38,16 +37,31 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   const [domainSelected, setDomainSelected] = useState<boolean>(false);
   const [loadingDomains, setLoadingDomains] = useState<boolean>(false);
   const [domainsLoaded, setDomainsLoaded] = useState<boolean>(false);
+  const [connectionFailed, setConnectionFailed] = useState<boolean>(false);
+  const [connectionTimeout, setConnectionTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Check if we have a Google Analytics token in session storage
     const hasToken = !!sessionStorage.getItem('google_analytics_token');
+    
     if (hasToken !== isGAConnected) {
       setIsGAConnected(hasToken);
       
       // If we just became connected, show a success message
       if (hasToken && !isGAConnected) {
         toast.success("Successfully connected to Google Analytics");
+        
+        // Set a timeout to fetch domains or display an error
+        const timeout = setTimeout(() => {
+          if (!domainsLoaded && !loadingDomains) {
+            setConnectionFailed(true);
+            toast.error("Failed to load domains", {
+              description: "Connection timed out. Please try refreshing domains or disconnect and try again."
+            });
+          }
+        }, 10000); // 10-second timeout
+        
+        setConnectionTimeout(timeout);
       }
     }
     
@@ -62,16 +76,24 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
     }
 
     // If we have a token and domains haven't been loaded yet, fetch available domains
-    if (hasToken && !apiError && !domainsLoaded) {
+    if (hasToken && !apiError && !domainsLoaded && !loadingDomains) {
       fetchAvailableDomains();
     }
-  }, [initialData, apiError, isGAConnected, domainsLoaded]);
+    
+    return () => {
+      // Clear timeout on unmount
+      if (connectionTimeout) {
+        clearTimeout(connectionTimeout);
+      }
+    };
+  }, [initialData, apiError, isGAConnected, domainsLoaded, loadingDomains]);
 
   const fetchAvailableDomains = async () => {
     if (loadingDomains) return; // Prevent multiple simultaneous requests
     
     try {
       setLoadingDomains(true);
+      setConnectionFailed(false);
       console.log("Fetching available domains...");
       
       // In a real implementation, this would fetch domains from the Google Analytics API
@@ -82,21 +104,28 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
       setDomainsLoaded(true);
       setLoadingDomains(false);
       
+      // Clear any connection timeout
+      if (connectionTimeout) {
+        clearTimeout(connectionTimeout);
+        setConnectionTimeout(null);
+      }
+      
       // If we have domains and no selection yet, prompt the user to select
       if (domains.length > 0) {
-        toast.success("Connected to Google Analytics", {
+        toast.success("Domains loaded successfully", {
           description: "Please select a domain from the dropdown to continue.",
         });
       } else {
-        toast.error("No domains found", {
+        toast.warning("No domains found", {
           description: "Your Google Analytics account doesn't have any domains. Please add a domain or enter data manually.",
         });
       }
     } catch (error) {
       setLoadingDomains(false);
+      setConnectionFailed(true);
       console.error("Error fetching domains:", error);
       toast.error("Failed to fetch domains", {
-        description: "We had trouble retrieving your domains from Google Analytics."
+        description: "We had trouble retrieving your domains from Google Analytics. You can try refreshing or enter data manually."
       });
     }
   };
@@ -123,7 +152,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
       // Only check Google Analytics connection if there's no API error
       if (!isGAConnected) {
         newErrors.googleAnalytics = "Please connect to Google Analytics first";
-      } else if (!selectedDomain) {
+      } else if (!selectedDomain && !connectionFailed) {
         newErrors.domain = "Please select a domain";
       }
     }
@@ -151,7 +180,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
       // Update domain in form data
       const updatedFormData = {
         ...formData,
-        domain: selectedDomain || formData.domain
+        domain: selectedDomain || formData.domain || "example.com" // Fallback to example.com if no domain
       };
       onCalculate(updatedFormData);
       toast.success("Calculating your report", {
@@ -167,7 +196,12 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   
   const handleConnectGA = () => {
     toast.loading("Connecting to Google Analytics...");
-    initiateGoogleAnalyticsAuth();
+    const success = initiateGoogleAnalyticsAuth();
+    if (!success) {
+      toast.error("Failed to open authentication popup", {
+        description: "Please ensure popups are allowed for this site and try again."
+      });
+    }
     // The callback is handled in the AuthCallback component
   };
 
@@ -189,11 +223,31 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   const handleRefreshDomains = () => {
     setDomainsLoaded(false);
     setAvailableDomains([]);
+    setConnectionFailed(false);
     fetchAvailableDomains();
   };
+  
+  const handleDisconnect = () => {
+    sessionStorage.removeItem('google_analytics_token');
+    setIsGAConnected(false);
+    setDomainsLoaded(false);
+    setAvailableDomains([]);
+    setSelectedDomain("");
+    setDomainSelected(false);
+    setConnectionFailed(false);
+    
+    if (connectionTimeout) {
+      clearTimeout(connectionTimeout);
+      setConnectionTimeout(null);
+    }
+    
+    toast.info("Disconnected from Google Analytics", {
+      description: "You can reconnect at any time."
+    });
+  };
 
-  // Only show manual traffic fields if Google Analytics connection failed
-  const showManualTrafficFields = !!apiError;
+  // Only show manual traffic fields if Google Analytics connection failed or there's an API error
+  const showManualTrafficFields = !!apiError || connectionFailed;
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
@@ -239,11 +293,23 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
             
             {isGAConnected && !apiError && (
               <div className="space-y-4">
-                <div className="flex items-center justify-center gap-2 text-green-500 mb-2">
-                  <CheckCircle className="h-5 w-5" />
-                  <p className="font-medium">Connected to Google Analytics</p>
+                {/* Connection Status */}
+                <div className="flex items-center justify-between p-4 rounded-lg border border-green-200 bg-green-50">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <p className="font-medium">Connected to Google Analytics</p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleDisconnect}
+                    className="text-red-600 border-red-300 hover:bg-red-50"
+                  >
+                    Disconnect
+                  </Button>
                 </div>
                 
+                {/* Selected Domain Summary */}
                 {selectedDomain ? (
                   <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
                     <div className="flex items-center justify-between">
@@ -265,7 +331,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="domain-select" className="text-lg">Select Website Domain</Label>
-                      {domainsLoaded && availableDomains.length > 0 && (
+                      {domainsLoaded && (
                         <Button 
                           type="button" 
                           variant="ghost" 
@@ -279,10 +345,43 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                       )}
                     </div>
                     
-                    {loadingDomains ? (
-                      <div className="flex items-center gap-2 text-muted-foreground p-2 bg-muted rounded">
+                    {connectionFailed ? (
+                      <div className="flex flex-col gap-2">
+                        <Alert variant="error" className="bg-white">
+                          <XCircle className="h-4 w-4" />
+                          <AlertTitle>Domain Loading Failed</AlertTitle>
+                          <AlertDescription>
+                            We couldn't load domains from your Google Analytics account. 
+                            Please try refreshing or proceed with manual data entry.
+                          </AlertDescription>
+                        </Alert>
+                        <div className="flex gap-2 mt-2">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleRefreshDomains}
+                            className="flex items-center gap-1"
+                          >
+                            <RefreshCw className="h-3 w-3" />
+                            Retry
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleDisconnect}
+                            className="flex items-center gap-1 text-red-600 border-red-300 hover:bg-red-50"
+                          >
+                            <XCircle className="h-3 w-3" />
+                            Disconnect
+                          </Button>
+                        </div>
+                      </div>
+                    ) : loadingDomains ? (
+                      <div className="flex items-center gap-2 text-muted-foreground p-4 bg-muted rounded-lg border border-border">
                         <div className="animate-spin h-4 w-4 border-2 border-accent border-t-transparent rounded-full"></div>
-                        <span>Loading your domains...</span>
+                        <span className="font-medium">Loading your domains...</span>
                       </div>
                     ) : domainsLoaded && availableDomains.length === 0 ? (
                       <Alert variant="warning" className="bg-white">
@@ -319,7 +418,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                       </>
                     )}
                     
-                    <p className="text-sm text-gray-400 mt-1 flex items-center">
+                    <p className="text-sm text-gray-500 mt-1 flex items-center">
                       <Info className="h-3 w-3 mr-1 text-accent" />
                       We'll analyze this domain's traffic data from Google Analytics
                     </p>
@@ -329,7 +428,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
             )}
             
             {!isGAConnected && !apiError && (
-              <p className="text-sm text-center text-gray-400 mt-2 flex items-center justify-center">
+              <p className="text-sm text-center text-gray-500 mt-2 flex items-center justify-center">
                 <Info className="h-3 w-3 mr-1 text-accent" />
                 Connect to Google Analytics for accurate traffic data
               </p>
@@ -343,6 +442,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
             )}
           </div>
           
+          {/* Show manual fields if API error, connection failed, or user clicked "Enter Manually" */}
           {showManualTrafficFields && (
             <>
               <div className="space-y-2">
@@ -494,11 +594,11 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
               type="submit" 
               className={`${onReset ? 'w-3/4' : 'w-full'} gradient-bg text-xl py-6`}
               disabled={isCalculating || 
-                (!apiError && !isGAConnected) || 
-                (!apiError && isGAConnected && !selectedDomain) || 
+                (!apiError && !connectionFailed && !isGAConnected) || 
+                (!apiError && !connectionFailed && isGAConnected && !selectedDomain) || 
                 !formData.avgTransactionValue}
             >
-              {isCalculating ? "Connecting to API..." : "Calculate My Missing Leads"}
+              {isCalculating ? "Processing..." : "Calculate My Missing Leads"}
             </Button>
           </div>
           
