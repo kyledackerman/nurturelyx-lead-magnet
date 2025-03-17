@@ -26,7 +26,7 @@ export const FormActions = ({ onReset, isCalculating, canCalculate }: FormAction
         
         <Button 
           type="submit" 
-          className={`${onReset ? 'w-3/4' : 'w-full'} ${!canCalculate ? 'opacity-70' : ''} gradient-bg text-xl py-6`}
+          className={`${onReset ? 'w-3/4' : 'w-full'} ${!canCalculate ? 'opacity-70 cursor-not-allowed' : ''} gradient-bg text-xl py-6`}
           disabled={isCalculating || !canCalculate}
         >
           {isCalculating ? (

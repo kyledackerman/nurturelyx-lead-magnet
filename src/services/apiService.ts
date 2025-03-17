@@ -1,3 +1,4 @@
+
 import { ApiData } from "@/types/report";
 import { toast } from "sonner";
 
@@ -8,14 +9,14 @@ const GOOGLE_ANALYTICS_REDIRECT_URI = window.location.origin + "/auth/callback";
 
 // Mock web properties list for demonstration
 const MOCK_WEB_PROPERTIES = [
-  { id: "UA-12345-1", name: "My Website" },
-  { id: "UA-67890-1", name: "Business Site" },
-  { id: "UA-54321-1", name: "E-commerce Store" },
-  { id: "UA-98765-1", name: "Blog" }
+  { id: "UA-12345-1", name: "My Website", url: "https://mywebsite.com" },
+  { id: "UA-67890-1", name: "Business Site", url: "https://business-example.com" },
+  { id: "UA-54321-1", name: "E-commerce Store", url: "https://shop.example.com" },
+  { id: "UA-98765-1", name: "Blog", url: "https://blog.example.net" }
 ];
 
 // Function to get available web properties from Google Analytics
-export const getAvailableWebProperties = async (): Promise<{ id: string, name: string }[]> => {
+export const getAvailableWebProperties = async (): Promise<{ id: string, name: string, url: string }[]> => {
   // Check if we have a token
   const hasToken = !!sessionStorage.getItem('google_analytics_token');
   
@@ -315,7 +316,7 @@ export const initiateGoogleAnalyticsAuth = () => {
       if (event.data.type === 'GOOGLE_ANALYTICS_AUTH_SUCCESS') {
         console.log("Received successful auth message from popup");
         toast.success("Connected to Google Analytics", {
-          description: "Authentication successful. Loading your domains..."
+          description: "Authentication successful. Loading your website URLs..."
         });
       }
     }, { once: true });

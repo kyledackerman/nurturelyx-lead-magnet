@@ -1,9 +1,9 @@
 
 import { FormData } from "@/types/report";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { AlertCircle } from "lucide-react";
+import { InfoCircle } from "lucide-react";
 
 interface TrafficInputFieldsProps {
   formData: FormData;
@@ -13,95 +13,81 @@ interface TrafficInputFieldsProps {
 
 export const TrafficInputFields = ({ formData, handleChange, errors }: TrafficInputFieldsProps) => {
   return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-medium">Enter your traffic data manually</h3>
-      
-      {/* Paid Traffic Section */}
+    <div className="space-y-4">
       <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <Label htmlFor="monthlyVisitors" className="text-base">
-            Monthly Paid Search Traffic
-          </Label>
-          <div className="flex items-center gap-2">
+        <Label htmlFor="monthlyVisitors" className="block font-medium">
+          Monthly Paid Traffic
+        </Label>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="md:col-span-3">
+            <Input
+              id="monthlyVisitors"
+              type="number"
+              placeholder="e.g., 1000"
+              value={formData.monthlyVisitors}
+              onChange={(e) => handleChange("monthlyVisitors", Number(e.target.value))}
+              min="0"
+              className={`${errors.monthlyVisitors ? "border-red-300" : ""}`}
+              disabled={formData.isUnsurePaid}
+            />
+            {errors.monthlyVisitors && (
+              <p className="text-sm text-red-600 mt-1">{errors.monthlyVisitors}</p>
+            )}
+          </div>
+          <div className="md:col-span-2 flex items-center gap-2">
             <Checkbox 
               id="isUnsurePaid" 
               checked={formData.isUnsurePaid}
-              onCheckedChange={(checked) => {
-                // Explicitly convert to boolean
-                handleChange("isUnsurePaid", checked === true);
-              }}
+              onCheckedChange={(checked) => handleChange("isUnsurePaid", checked === true)}
+              className="mr-2 h-4 w-4" 
             />
-            <Label htmlFor="isUnsurePaid" className="text-sm cursor-pointer">
-              I'm not sure
+            <Label htmlFor="isUnsurePaid" className="text-sm text-gray-500 cursor-pointer">
+              I'm not sure about my paid traffic
             </Label>
           </div>
         </div>
-        
-        <Input
-          id="monthlyVisitors"
-          type="number"
-          min="0"
-          placeholder="Enter your monthly paid traffic"
-          value={formData.isUnsurePaid ? "" : formData.monthlyVisitors}
-          onChange={(e) => handleChange("monthlyVisitors", Number(e.target.value))}
-          disabled={formData.isUnsurePaid}
-          className={`${errors.monthlyVisitors ? "border-red-300" : ""}`}
-        />
-        
-        {errors.monthlyVisitors && (
-          <div className="flex items-center text-sm text-red-600 mt-1">
-            <AlertCircle className="h-4 w-4 mr-1" />
-            <p>{errors.monthlyVisitors}</p>
-          </div>
-        )}
-        
-        {formData.isUnsurePaid && (
-          <p className="text-sm text-gray-500 italic">We'll estimate this based on your domain size</p>
-        )}
+        <p className="text-xs text-gray-500 flex gap-1">
+          <InfoCircle className="h-3 w-3 text-accent" />
+          Traffic from paid ads (Google Ads, social media, etc.)
+        </p>
       </div>
-      
-      {/* Organic Traffic Section */}
+
       <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <Label htmlFor="organicTrafficManual" className="text-base">
-            Monthly Organic Search Traffic
-          </Label>
-          <div className="flex items-center gap-2">
+        <Label htmlFor="organicTrafficManual" className="block font-medium">
+          Monthly Organic Traffic 
+        </Label>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="md:col-span-3">
+            <Input
+              id="organicTrafficManual"
+              type="number"
+              placeholder="e.g., 5000"
+              value={formData.organicTrafficManual}
+              onChange={(e) => handleChange("organicTrafficManual", Number(e.target.value))}
+              min="0"
+              className={`${errors.organicTrafficManual ? "border-red-300" : ""}`}
+              disabled={formData.isUnsureOrganic}
+            />
+            {errors.organicTrafficManual && (
+              <p className="text-sm text-red-600 mt-1">{errors.organicTrafficManual}</p>
+            )}
+          </div>
+          <div className="md:col-span-2 flex items-center gap-2">
             <Checkbox 
               id="isUnsureOrganic" 
               checked={formData.isUnsureOrganic}
-              onCheckedChange={(checked) => {
-                // Explicitly convert to boolean
-                handleChange("isUnsureOrganic", checked === true);
-              }}
+              onCheckedChange={(checked) => handleChange("isUnsureOrganic", checked === true)}
+              className="mr-2 h-4 w-4" 
             />
-            <Label htmlFor="isUnsureOrganic" className="text-sm cursor-pointer">
-              I'm not sure
+            <Label htmlFor="isUnsureOrganic" className="text-sm text-gray-500 cursor-pointer">
+              I'm not sure about my organic traffic
             </Label>
           </div>
         </div>
-        
-        <Input
-          id="organicTrafficManual"
-          type="number"
-          min="0"
-          placeholder="Enter your monthly organic traffic"
-          value={formData.isUnsureOrganic ? "" : formData.organicTrafficManual}
-          onChange={(e) => handleChange("organicTrafficManual", Number(e.target.value))}
-          disabled={formData.isUnsureOrganic}
-          className={`${errors.organicTrafficManual ? "border-red-300" : ""}`}
-        />
-        
-        {errors.organicTrafficManual && (
-          <div className="flex items-center text-sm text-red-600 mt-1">
-            <AlertCircle className="h-4 w-4 mr-1" />
-            <p>{errors.organicTrafficManual}</p>
-          </div>
-        )}
-        
-        {formData.isUnsureOrganic && (
-          <p className="text-sm text-gray-500 italic">We'll estimate this based on your domain size</p>
-        )}
+        <p className="text-xs text-gray-500 flex gap-1">
+          <InfoCircle className="h-3 w-3 text-accent" />
+          Traffic from search engines (unpaid/SEO)
+        </p>
       </div>
     </div>
   );

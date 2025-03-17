@@ -30,11 +30,12 @@ export const GoogleAnalyticsConnector = ({
   connectionFailed,
   setConnectionFailed,
 }: GoogleAnalyticsConnectorProps) => {
-  const [availableProperties, setAvailableProperties] = useState<{ id: string, name: string }[]>([]);
+  const [availableProperties, setAvailableProperties] = useState<{ id: string, name: string, url: string }[]>([]);
   const [loadingProperties, setLoadingProperties] = useState<boolean>(false);
   const [propertiesLoaded, setPropertiesLoaded] = useState<boolean>(false);
   const [connectionTimeout, setConnectionTimeout] = useState<NodeJS.Timeout | null>(null);
   const [errors, setErrors] = useState<{ property?: string }>({});
+  const [testMode, setTestMode] = useState<boolean>(true); // Indicate test mode for now
 
   useEffect(() => {
     // Check if we have a Google Analytics token in session storage
@@ -99,7 +100,7 @@ export const GoogleAnalyticsConnector = ({
       // If we have properties and no selection yet, prompt the user to select
       if (properties.length > 0) {
         toast.success("Web properties loaded successfully", {
-          description: "Please select a web property from the dropdown to continue.",
+          description: "Please select a website URL from the dropdown to continue.",
         });
       } else {
         toast.warning("No web properties found", {
@@ -130,9 +131,9 @@ export const GoogleAnalyticsConnector = ({
     // Find the property name from the available properties
     const selectedProperty = availableProperties.find(prop => prop.id === propertyId);
     if (selectedProperty) {
-      setSelectedDomain(selectedProperty.name);
+      setSelectedDomain(selectedProperty.url || selectedProperty.name);
       setDomainSelected(true);
-      updateFormDomain(selectedProperty.name);
+      updateFormDomain(selectedProperty.url || selectedProperty.name);
       
       toast.success(`Web property selected: ${selectedProperty.name}`, {
         description: "Now please enter your average transaction value to continue."
@@ -178,19 +179,26 @@ export const GoogleAnalyticsConnector = ({
                 <h3 className="font-medium text-green-800">Connected to Google Analytics</h3>
                 {selectedDomain && (
                   <p className="text-green-700 text-sm">
-                    Selected property: <strong>{selectedDomain}</strong>
+                    Selected website: <strong>{selectedDomain}</strong>
                   </p>
                 )}
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleDisconnect}
-              className="text-red-600 border-red-300 hover:bg-red-50"
-            >
-              Disconnect
-            </Button>
+            <div className="flex items-center gap-2">
+              {testMode && (
+                <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">
+                  Test Mode
+                </span>
+              )}
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleDisconnect}
+                className="text-red-600 border-red-300 hover:bg-red-50"
+              >
+                Disconnect
+              </Button>
+            </div>
           </div>
         </div>
       ) : (
@@ -215,7 +223,7 @@ export const GoogleAnalyticsConnector = ({
       {isGAConnected && !apiError && !selectedDomain && (
         <div className="space-y-2 mt-4">
           <div className="flex items-center justify-between">
-            <div className="text-lg font-medium">Select Google Analytics Web Property</div>
+            <div className="text-lg font-medium">Select Website URL</div>
             {propertiesLoaded && (
               <Button 
                 type="button" 
@@ -234,7 +242,7 @@ export const GoogleAnalyticsConnector = ({
             <div className="flex flex-col gap-2">
               <Alert className="bg-white">
                 <XCircle className="h-4 w-4" />
-                <AlertTitle>Web Properties Loading Failed</AlertTitle>
+                <AlertTitle>Website URLs Loading Failed</AlertTitle>
                 <AlertDescription>
                   We couldn't load web properties from your Google Analytics account. 
                   Please try refreshing or proceed with manual data entry.
@@ -266,12 +274,12 @@ export const GoogleAnalyticsConnector = ({
           ) : loadingProperties ? (
             <div className="flex items-center gap-2 text-muted-foreground p-4 bg-muted rounded-lg border border-border">
               <div className="animate-spin h-4 w-4 border-2 border-accent border-t-transparent rounded-full"></div>
-              <span className="font-medium">Loading your web properties...</span>
+              <span className="font-medium">Loading your website URLs...</span>
             </div>
           ) : propertiesLoaded && availableProperties.length === 0 ? (
             <Alert className="bg-white">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>No web properties found</AlertTitle>
+              <AlertTitle>No website URLs found</AlertTitle>
               <AlertDescription>
                 No web properties were found in your Google Analytics account. Please check your account or enter data manually.
               </AlertDescription>
@@ -283,12 +291,12 @@ export const GoogleAnalyticsConnector = ({
                 onValueChange={handlePropertyChange}
               >
                 <SelectTrigger id="property-select" className={`${errors.property ? "border-red-300" : ""} bg-white`}>
-                  <SelectValue placeholder="Select a web property" />
+                  <SelectValue placeholder="Select a website URL" />
                 </SelectTrigger>
                 <SelectContent className="bg-white max-h-80">
                   {availableProperties.map((property) => (
                     <SelectItem key={property.id} value={property.id}>
-                      {property.name}
+                      {property.url || property.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -303,7 +311,7 @@ export const GoogleAnalyticsConnector = ({
               
               <p className="text-sm text-gray-500 mt-1 flex items-center">
                 <Info className="h-3 w-3 mr-1 text-accent" />
-                We'll analyze this web property's traffic data from Google Analytics
+                We'll analyze this website's traffic data from Google Analytics
               </p>
             </>
           )}
