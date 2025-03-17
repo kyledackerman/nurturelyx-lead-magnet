@@ -1,9 +1,8 @@
-
 import { ApiData } from "@/types/report";
 import { toast } from "sonner";
 
 // Google Analytics API configuration
-const GOOGLE_ANALYTICS_CLIENT_ID = "your-client-id"; // Replace with your actual OAuth client ID
+const GOOGLE_ANALYTICS_CLIENT_ID = "526234754484-83dp9h4prub4l9qoao4kaikef5s91kig.apps.googleusercontent.com";
 const GOOGLE_ANALYTICS_API_SCOPE = "https://www.googleapis.com/auth/analytics.readonly";
 const GOOGLE_ANALYTICS_REDIRECT_URI = window.location.origin + "/auth/callback";
 
