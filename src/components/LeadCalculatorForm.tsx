@@ -20,8 +20,8 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData, apiError 
     domain: "",
     monthlyVisitors: 1000,
     organicTrafficManual: 0,
-    isUnsureOrganic: true,
-    isUnsurePaid: true,
+    isUnsureOrganic: false, // Changed to false by default
+    isUnsurePaid: false, // Changed to false by default
     avgTransactionValue: 500,
   });
   
@@ -229,15 +229,15 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData, apiError 
           </div>
           
           {apiError && (
-            <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-sm">
-              <h3 className="font-semibold text-red-500 flex items-center mb-2">
+            <div className="bg-red-600/20 border border-red-600/50 rounded-lg p-4 text-sm">
+              <h3 className="font-semibold text-red-400 flex items-center mb-2">
                 <AlertCircle className="h-4 w-4 mr-1" />
                 API Connection Error
               </h3>
-              <p className="text-gray-400">
+              <p className="text-gray-300">
                 We couldn't connect to the SearchAtlas API to fetch your traffic data. Please enter your traffic numbers manually to continue.
               </p>
-              <p className="text-gray-500 mt-2 text-xs">{apiError}</p>
+              <p className="text-gray-400 mt-2 text-xs">{apiError}</p>
             </div>
           )}
           

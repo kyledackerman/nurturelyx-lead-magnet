@@ -181,8 +181,8 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
         </Button>
       </div>
       
-      {/* Add print-specific styles */}
-      <style jsx global>{`
+      {/* Add print-specific styles - fixed the style tag that was causing the error */}
+      <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           body * {
             visibility: hidden;
@@ -203,7 +203,7 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
             display: none !important;
           }
         }
-      `}</style>
+      `}} />
     </div>
   );
 };
