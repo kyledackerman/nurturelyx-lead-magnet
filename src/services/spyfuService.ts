@@ -67,7 +67,7 @@ export const fetchDomainData = async (
     const domainPower = Math.min(95, 40 + (domainLength * 2));
     const backlinks = Math.floor(organicTraffic * 0.5);
     
-    const mockResponse = {
+    const mockResponse: ApiData = {
       organicKeywords,
       organicTraffic,
       paidTraffic,
@@ -117,7 +117,7 @@ export const fetchDomainData = async (
         paidTraffic: 0, // Will be set from form data
         domainPower: Math.min(95, Math.floor(40 + (domain.length * 2))),
         backlinks: Math.floor(organicTrafficManual * 0.5),
-        dataSource: 'manual'
+        dataSource: 'manual' as const
       };
     }
     
