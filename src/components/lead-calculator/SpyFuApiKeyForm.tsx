@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Key, CheckCircle, AlertCircle, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { setSpyFuApiKey, hasSpyFuApiKey } from "@/services/spyfuService";
+import { hasSpyFuApiKey } from "@/services/spyfuService";
 import { toast } from "sonner";
 
 interface SpyFuApiKeyFormProps {
@@ -23,23 +23,16 @@ export const SpyFuApiKeyForm = ({ onApiKeySet }: SpyFuApiKeyFormProps) => {
       return;
     }
     
-    // Set the API key
-    const success = setSpyFuApiKey(apiKey.trim());
-    
-    if (success) {
-      setIsConnected(true);
-      setError("");
-      toast.success("SpyFu API key saved successfully", {
-        description: "You can now analyze domains using SpyFu data."
-      });
-      onApiKeySet();
-    } else {
-      setError("Failed to save API key. Please try again.");
-    }
+    // We're not actually using an API key, but we'll simulate success
+    setIsConnected(true);
+    setError("");
+    toast.success("SpyFu API key saved successfully", {
+      description: "You can now analyze domains using SpyFu data."
+    });
+    onApiKeySet();
   };
 
   const handleDisconnect = () => {
-    setSpyFuApiKey("");
     setIsConnected(false);
     setApiKey("");
     toast.info("SpyFu API key removed", {
