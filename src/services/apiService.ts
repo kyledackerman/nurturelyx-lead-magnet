@@ -21,13 +21,18 @@ export const getAvailableDomains = async (): Promise<string[]> => {
   const hasToken = !!sessionStorage.getItem('google_analytics_token');
   
   if (!hasToken) {
+    console.log("Not authenticated with Google Analytics");
     throw new Error("Not authenticated with Google Analytics");
   }
   
+  console.log("Fetching domains from Google Analytics");
+  
   // In a real implementation, you would call the Google Analytics API to get the domains
   // For demonstration, we'll simulate an API call with a delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise(resolve => setTimeout(resolve, 1500));
   
+  // Log the domains we're returning for debugging
+  console.log("Returning mock domains:", MOCK_DOMAINS);
   return MOCK_DOMAINS;
 };
 
@@ -274,11 +279,19 @@ export const initiateGoogleAnalyticsAuth = () => {
   const left = (window.innerWidth - width) / 2;
   const top = (window.innerHeight - height) / 2;
   
-  window.open(
+  const popup = window.open(
     oauthUrl,
     "googleAnalyticsAuth",
     `width=${width},height=${height},top=${top},left=${left},toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes`
   );
+  
+  // Check if popup was blocked
+  if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+    toast.error("Popup blocked", {
+      description: "Please enable popups to connect to Google Analytics."
+    });
+    return false;
+  }
   
   // In a full implementation:
   // 1. You'd need a callback page that receives the auth code

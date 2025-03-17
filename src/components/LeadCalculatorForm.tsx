@@ -37,34 +37,59 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   const [selectedDomain, setSelectedDomain] = useState<string>("");
   const [domainSelected, setDomainSelected] = useState<boolean>(false);
   const [loadingDomains, setLoadingDomains] = useState<boolean>(false);
+  const [domainsLoaded, setDomainsLoaded] = useState<boolean>(false);
 
   useEffect(() => {
     // Check if we have a Google Analytics token in session storage
     const hasToken = !!sessionStorage.getItem('google_analytics_token');
-    setIsGAConnected(hasToken);
+    if (hasToken !== isGAConnected) {
+      setIsGAConnected(hasToken);
+      
+      // If we just became connected, show a success message
+      if (hasToken && !isGAConnected) {
+        toast.success("Successfully connected to Google Analytics");
+      }
+    }
     
     if (initialData) {
       setFormData(initialData);
+      
+      // If there's a domain in initialData, select it
+      if (initialData.domain) {
+        setSelectedDomain(initialData.domain);
+        setDomainSelected(true);
+      }
     }
 
-    // If we have a token, fetch available domains
-    if (hasToken && !apiError) {
+    // If we have a token and domains haven't been loaded yet, fetch available domains
+    if (hasToken && !apiError && !domainsLoaded) {
       fetchAvailableDomains();
     }
-  }, [initialData, apiError]);
+  }, [initialData, apiError, isGAConnected, domainsLoaded]);
 
   const fetchAvailableDomains = async () => {
+    if (loadingDomains) return; // Prevent multiple simultaneous requests
+    
     try {
       setLoadingDomains(true);
+      console.log("Fetching available domains...");
+      
       // In a real implementation, this would fetch domains from the Google Analytics API
       const domains = await getAvailableDomains();
+      
+      console.log("Domains fetched:", domains);
       setAvailableDomains(domains);
+      setDomainsLoaded(true);
       setLoadingDomains(false);
       
-      // If we have domains and no selection yet, select the first one
-      if (domains.length > 0 && !selectedDomain) {
+      // If we have domains and no selection yet, prompt the user to select
+      if (domains.length > 0) {
         toast.success("Connected to Google Analytics", {
-          description: "Please select a domain and enter your average transaction value to continue.",
+          description: "Please select a domain from the dropdown to continue.",
+        });
+      } else {
+        toast.error("No domains found", {
+          description: "Your Google Analytics account doesn't have any domains. Please add a domain or enter data manually.",
         });
       }
     } catch (error) {
@@ -94,8 +119,13 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
     
-    if (!isGAConnected && !apiError) {
-      newErrors.googleAnalytics = "Please connect to Google Analytics first";
+    if (!apiError) {
+      // Only check Google Analytics connection if there's no API error
+      if (!isGAConnected) {
+        newErrors.googleAnalytics = "Please connect to Google Analytics first";
+      } else if (!selectedDomain) {
+        newErrors.domain = "Please select a domain";
+      }
     }
     
     if (apiError && formData.isUnsurePaid === false && (formData.monthlyVisitors === undefined || formData.monthlyVisitors < 0)) {
@@ -109,10 +139,6 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
     if (!formData.avgTransactionValue || formData.avgTransactionValue <= 0) {
       newErrors.avgTransactionValue = "Please enter a valid transaction value";
     }
-
-    if (isGAConnected && !apiError && !selectedDomain) {
-      newErrors.domain = "Please select a domain";
-    }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -125,7 +151,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
       // Update domain in form data
       const updatedFormData = {
         ...formData,
-        domain: selectedDomain
+        domain: selectedDomain || formData.domain
       };
       onCalculate(updatedFormData);
       toast.success("Calculating your report", {
@@ -148,9 +174,22 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   const handleDomainChange = (domain: string) => {
     setSelectedDomain(domain);
     setDomainSelected(true);
+    
+    // Update form data with selected domain
+    setFormData(prev => ({
+      ...prev,
+      domain
+    }));
+    
     toast.success(`Domain selected: ${domain}`, {
       description: "Now please enter your average transaction value to continue."
     });
+  };
+
+  const handleRefreshDomains = () => {
+    setDomainsLoaded(false);
+    setAvailableDomains([]);
+    fetchAvailableDomains();
   };
 
   // Only show manual traffic fields if Google Analytics connection failed
@@ -205,7 +244,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                   <p className="font-medium">Connected to Google Analytics</p>
                 </div>
                 
-                {selectedDomain && (
+                {selectedDomain ? (
                   <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -222,17 +261,37 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                       </Button>
                     </div>
                   </div>
-                )}
-                
-                {!selectedDomain && (
+                ) : (
                   <div className="space-y-2">
-                    <Label htmlFor="domain-select" className="text-lg">Select Website Domain</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="domain-select" className="text-lg">Select Website Domain</Label>
+                      {domainsLoaded && availableDomains.length > 0 && (
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={handleRefreshDomains}
+                          className="text-sm text-accent"
+                        >
+                          <RefreshCw className="h-3 w-3 mr-1" />
+                          Refresh
+                        </Button>
+                      )}
+                    </div>
                     
                     {loadingDomains ? (
-                      <div className="flex items-center gap-2 text-muted-foreground">
+                      <div className="flex items-center gap-2 text-muted-foreground p-2 bg-muted rounded">
                         <div className="animate-spin h-4 w-4 border-2 border-accent border-t-transparent rounded-full"></div>
                         <span>Loading your domains...</span>
                       </div>
+                    ) : domainsLoaded && availableDomains.length === 0 ? (
+                      <Alert variant="warning" className="bg-white">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>No domains found</AlertTitle>
+                        <AlertDescription>
+                          No domains were found in your Google Analytics account. Please check your account or enter data manually.
+                        </AlertDescription>
+                      </Alert>
                     ) : (
                       <>
                         <Select 
@@ -242,7 +301,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                           <SelectTrigger id="domain-select" className={`${errors.domain ? "border-red-300" : ""} bg-white`}>
                             <SelectValue placeholder="Select a domain" />
                           </SelectTrigger>
-                          <SelectContent className="bg-white">
+                          <SelectContent className="bg-white max-h-80">
                             {availableDomains.map((domain) => (
                               <SelectItem key={domain} value={domain}>
                                 {domain}
@@ -277,7 +336,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
             )}
             
             {errors.googleAnalytics && !apiError && (
-              <div className="flex items-center justify-center text-sm text-red-500 mt-2 bg-white p-2 rounded">
+              <div className="flex items-center justify-center text-sm text-red-600 mt-2 bg-white p-2 rounded">
                 <AlertCircle className="h-4 w-4 mr-1" />
                 <p>{errors.googleAnalytics}</p>
               </div>
@@ -394,7 +453,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
           </div>
           
           {apiError && (
-            <Alert variant="error" className="mt-4">
+            <Alert variant="error" className="mt-4 bg-white">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle className="text-red-800 font-semibold">API Connection Error</AlertTitle>
               <AlertDescription className="text-red-700">
@@ -434,7 +493,10 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
             <Button 
               type="submit" 
               className={`${onReset ? 'w-3/4' : 'w-full'} gradient-bg text-xl py-6`}
-              disabled={isCalculating || (!isGAConnected && !apiError) || (isGAConnected && !apiError && !selectedDomain) || !formData.avgTransactionValue}
+              disabled={isCalculating || 
+                (!apiError && !isGAConnected) || 
+                (!apiError && isGAConnected && !selectedDomain) || 
+                !formData.avgTransactionValue}
             >
               {isCalculating ? "Connecting to API..." : "Calculate My Missing Leads"}
             </Button>
