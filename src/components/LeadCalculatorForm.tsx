@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,10 @@ import { AlertCircle, Info, DollarSign } from "lucide-react";
 interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
   isCalculating: boolean;
+  initialData?: FormData | null;
 }
 
-const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormProps) => {
+const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData }: LeadCalculatorFormProps) => {
   const [formData, setFormData] = useState<FormData>({
     domain: "",
     monthlyVisitors: 1000,
@@ -24,6 +25,13 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
   });
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  // Use initialData if provided
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    }
+  }, [initialData]);
 
   const handleChange = (field: keyof FormData, value: string | number | boolean) => {
     setFormData((prev) => ({

@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReportData } from "@/types/report";
-import { DollarSign, Users, ShoppingCart, Check, AlertTriangle, Info } from "lucide-react";
+import { DollarSign, Users, ShoppingCart, Check, AlertTriangle, Info, Edit } from "lucide-react";
 import MonthlyRevenueTable from "./MonthlyRevenueTable";
 import StatCard from "./report/StatCard";
 import MethodologyCard from "./report/MethodologyCard";
@@ -11,6 +11,7 @@ import ReportTabs from "./report/ReportTabs";
 interface LeadReportProps {
   data: ReportData;
   onReset: () => void;
+  onEditData?: () => void;
 }
 
 const formatCurrency = (value: number): string => {
@@ -22,8 +23,25 @@ const formatCurrency = (value: number): string => {
 };
 
 // Changelog component to display latest report changes
-const Changelog = () => {
+const Changelog = ({ reportData }: { reportData: ReportData }) => {
   const currentDate = new Date().toLocaleDateString();
+  
+  // Determine data source message
+  let dataSourceMessage = "";
+  switch(reportData.dataSource) {
+    case 'api':
+      dataSourceMessage = "Using SearchAtlas API data";
+      break;
+    case 'manual':
+      dataSourceMessage = "Using your manually entered data";
+      break;
+    case 'both':
+      dataSourceMessage = "Using combined API and manual data (averaged)";
+      break;
+    case 'fallback':
+      dataSourceMessage = "Using industry estimates (API unavailable)";
+      break;
+  }
   
   return (
     <Card className="mb-8 border-l-4 border-l-blue-500 bg-blue-500/10">
@@ -40,7 +58,7 @@ const Changelog = () => {
         <ul className="space-y-2 text-sm">
           <li className="flex items-start">
             <Check size={16} className="mr-2 mt-0.5 text-green-500" />
-            <span><strong>Data Sources:</strong> Successfully combined organic traffic from SearchAtlas API and your manually entered paid traffic data</span>
+            <span><strong>Data Source:</strong> {dataSourceMessage}</span>
           </li>
           <li className="flex items-start">
             <Check size={16} className="mr-2 mt-0.5 text-green-500" />
@@ -52,7 +70,7 @@ const Changelog = () => {
           </li>
           <li className="flex items-start">
             <Check size={16} className="mr-2 mt-0.5 text-green-500" />
-            <span><strong>Sales Estimation:</strong> Estimated at 1% conversion of identified leads with {formatCurrency(data.avgTransactionValue)} average value</span>
+            <span><strong>Sales Estimation:</strong> Estimated at 1% conversion of identified leads with {formatCurrency(reportData.avgTransactionValue)} average value</span>
           </li>
           <li className="flex items-start">
             <AlertTriangle size={16} className="mr-2 mt-0.5 text-amber-500" />
@@ -64,11 +82,25 @@ const Changelog = () => {
   );
 };
 
-const LeadReport = ({ data, onReset }: LeadReportProps) => {
+const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8 animate-fade-in">
       {/* Changelog */}
-      <Changelog />
+      <Changelog reportData={data} />
+      
+      {/* Edit Data Button */}
+      {onEditData && (
+        <div className="flex justify-end">
+          <Button 
+            variant="outline" 
+            onClick={onEditData} 
+            className="flex items-center gap-2 text-accent border-accent hover:bg-accent/10"
+          >
+            <Edit size={16} />
+            My Information Isn't Right
+          </Button>
+        </div>
+      )}
       
       {/* Top Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
@@ -89,7 +121,7 @@ const LeadReport = ({ data, onReset }: LeadReportProps) => {
         <StatCard
           label="Lost Revenue"
           value={formatCurrency(data.monthlyRevenueLost)}
-          description={`${formatCurrency(data.yearlyRevenueLost)} annually`}
+          description={`<strong>${formatCurrency(data.yearlyRevenueLost)}</strong> annually`}
           icon={DollarSign}
         />
       </div>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -19,57 +18,50 @@ const Index = () => {
   const [calculationProgress, setCalculationProgress] = useState(0);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [formDataCache, setFormDataCache] = useState<FormData | null>(null);
   
   const handleCalculate = async (formData: FormData) => {
     setIsCalculating(true);
     setApiError(null);
     setCalculationProgress(0);
+    setFormDataCache(formData);
     
-    // Start progress simulation
     const progressInterval = setInterval(() => {
       setCalculationProgress(prev => {
-        // Don't go past 90% until we're done with API calls
         if (prev < 90) return prev + Math.random() * 15;
         return prev;
       });
     }, 500);
     
     try {
-      // Fetch domain data from API with manual organic traffic as a backup
       const apiData = await fetchDomainData(
         formData.domain, 
         formData.organicTrafficManual, 
         formData.isUnsureOrganic
       );
       
-      // Move progress to 95%
       setCalculationProgress(95);
       
-      // Determine the paid traffic value - use 0 if user is unsure
       const paidTraffic = formData.isUnsurePaid ? 0 : formData.monthlyVisitors;
       
-      // Calculate the report metrics using both paid and organic traffic
       const metrics = calculateReportMetrics(
         paidTraffic,
         formData.avgTransactionValue,
         apiData.organicTraffic
       );
       
-      // Combine all data
       const fullReportData: ReportData = {
         ...formData,
         ...apiData,
         ...metrics
       };
       
-      // Final progress and set data
       setCalculationProgress(100);
       setTimeout(() => {
         setReportData(fullReportData);
         setIsCalculating(false);
         clearInterval(progressInterval);
         
-        // Show a success toast with data source info
         let dataSourceMessage = "";
         switch(apiData.dataSource) {
           case 'api':
@@ -107,6 +99,15 @@ const Index = () => {
   const handleReset = () => {
     setReportData(null);
     setApiError(null);
+    setFormDataCache(null);
+  };
+  
+  const handleEditData = () => {
+    setReportData(null);
+    toast.info("Edit your information and submit again", {
+      description: "Your previous entries have been preserved.",
+      duration: 5000,
+    });
   };
   
   return (
@@ -204,7 +205,11 @@ const Index = () => {
                     </Alert>
                   </div>
                 )}
-                <LeadCalculatorForm onCalculate={handleCalculate} isCalculating={isCalculating} />
+                <LeadCalculatorForm 
+                  onCalculate={handleCalculate} 
+                  isCalculating={isCalculating} 
+                  initialData={formDataCache}
+                />
               </div>
             </section>
             
@@ -262,7 +267,11 @@ const Index = () => {
         ) : (
           <section className="py-12">
             <div className="container mx-auto px-4">
-              <LeadReport data={reportData} onReset={handleReset} />
+              <LeadReport 
+                data={reportData} 
+                onReset={handleReset} 
+                onEditData={handleEditData}
+              />
             </div>
           </section>
         )}
