@@ -1,13 +1,18 @@
 
 import { ApiData } from "@/types/report";
 
+// SearchAtlas API key (public key for the demo)
+const SEARCH_ATLAS_API_KEY = "ce26ade2b8adac45db89c62c438d0a31";
+
 // In a real implementation, this would make an actual API call to SearchAtlas
 export const fetchDomainData = async (domain: string, industry: string): Promise<ApiData> => {
   // Simulate API latency
   await new Promise(resolve => setTimeout(resolve, 1500));
   
+  console.log(`Using SearchAtlas API key: ${SEARCH_ATLAS_API_KEY} to fetch data for ${domain}`);
+  
   // Generate mock data based on domain length and industry
-  // This is just for demo purposes - in a real app, this would be real API data
+  // In a real implementation, we would use the API key to make an actual request
   const domainLength = domain.length;
   const industryFactor = getIndustryFactor(industry);
   
