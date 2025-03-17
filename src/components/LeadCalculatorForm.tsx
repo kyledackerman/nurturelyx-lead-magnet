@@ -4,9 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormData, industries } from "@/types/report";
-import { AlertCircle, Info } from "lucide-react";
+import { FormData } from "@/types/report";
+import { AlertCircle, Info, DollarSign } from "lucide-react";
 
 interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
@@ -18,7 +17,6 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
     domain: "",
     monthlyVisitors: 1000,
     avgTransactionValue: 500,
-    industry: "SaaS",
   });
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -54,10 +52,6 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
     
     if (!formData.avgTransactionValue || formData.avgTransactionValue <= 0) {
       newErrors.avgTransactionValue = "Please enter a valid transaction value";
-    }
-    
-    if (!formData.industry) {
-      newErrors.industry = "Please select an industry";
     }
     
     setErrors(newErrors);
@@ -146,31 +140,12 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
                 <p>{errors.avgTransactionValue}</p>
               </div>
             )}
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="industry">Industry</Label>
-            <Select
-              value={formData.industry}
-              onValueChange={(value) => handleChange("industry", value)}
-            >
-              <SelectTrigger className={errors.industry ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select your industry" />
-              </SelectTrigger>
-              <SelectContent>
-                {industries.map((industry) => (
-                  <SelectItem key={industry} value={industry}>
-                    {industry}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.industry && (
-              <div className="flex items-center text-sm text-red-500 mt-1">
-                <AlertCircle className="h-4 w-4 mr-1" />
-                <p>{errors.industry}</p>
-              </div>
-            )}
+            <div className="flex items-start gap-2 mt-2 bg-secondary/50 p-3 rounded-lg border border-border">
+              <DollarSign className="h-4 w-4 text-accent mt-0.5" />
+              <p className="text-xs text-gray-400">
+                <span className="font-medium text-gray-300">What is Average Transaction Value?</span> This is how much money your business makes from a typical sale. If you sell products, it's the average order value. If you provide services, it's your average contract or project value.
+              </p>
+            </div>
           </div>
           
           <div className="bg-secondary/50 p-4 rounded-lg border border-border mt-2">
@@ -181,7 +156,7 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
               <div>
                 <h3 className="text-sm font-medium text-foreground mb-1">How We Calculate Results</h3>
                 <p className="text-xs text-gray-400">
-                  We analyze both your organic traffic (from SearchAtlas API) and your paid traffic (entered above) to identify up to 20% of total visitors that could be converted into leads.
+                  We analyze both your organic traffic (from SearchAtlas API) and your paid traffic (entered above) to identify 20% of total visitors that could be converted into leads, with 1% of those leads becoming sales.
                 </p>
               </div>
             </div>
@@ -196,7 +171,7 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
           </Button>
           
           <p className="text-xs text-center text-gray-400 mt-2">
-            We identify up to 20% of both your organic and paid traffic
+            We identify 20% of both your organic and paid traffic
           </p>
         </form>
       </CardContent>

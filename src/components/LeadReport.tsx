@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,12 +7,9 @@ import {
   DollarSign, 
   Users, 
   ShoppingCart,
-  BarChart3, 
-  Check, 
-  Info,
-  HelpCircle 
+  HelpCircle,
+  Info
 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import MonthlyRevenueTable from "./MonthlyRevenueTable";
 
 interface LeadReportProps {
@@ -101,7 +97,7 @@ const LeadReport = ({ data, onReset }: LeadReportProps) => {
             </p>
             <p className="text-xs opacity-75 mt-2 border-t border-border pt-2">
               Data is based on your reported monthly visitor volume of {data.monthlyVisitors.toLocaleString()} 
-              and industry benchmarks for {data.industry}.
+              and organic traffic for {data.domain}.
             </p>
           </div>
         </CardContent>
@@ -263,3 +259,4 @@ const LeadReport = ({ data, onReset }: LeadReportProps) => {
 };
 
 export default LeadReport;
+

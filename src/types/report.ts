@@ -1,11 +1,9 @@
-
 import { MonthlyRevenueData } from "@/services/apiService";
 
 export interface FormData {
   domain: string;
   monthlyVisitors: number;
   avgTransactionValue: number;
-  industry: string;
 }
 
 export interface ApiData {

@@ -34,8 +34,8 @@ const Index = () => {
     }, 500);
     
     try {
-      // Fetch domain data from API
-      const apiData = await fetchDomainData(formData.domain, formData.industry);
+      // Fetch domain data from API - no industry parameter needed now
+      const apiData = await fetchDomainData(formData.domain);
       
       // Move progress to 95%
       setCalculationProgress(95);

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 const SEARCH_ATLAS_API_KEY = "ce26ade2b8adac45db89c62c438d0a31";
 
 // Make a real API call to SearchAtlas
-export const fetchDomainData = async (domain: string, industry: string): Promise<ApiData> => {
+export const fetchDomainData = async (domain: string): Promise<ApiData> => {
   console.log(`Using SearchAtlas API key: ${SEARCH_ATLAS_API_KEY} to fetch data for ${domain}`);
   
   const toastId = toast.loading(`Fetching data for ${domain}...`, {
@@ -43,7 +43,7 @@ export const fetchDomainData = async (domain: string, industry: string): Promise
         id: toastId,
         description: "Using generated fallback data."
       });
-      return generateFallbackData(domain, industry);
+      return generateFallbackData(domain);
     }
     
     // Parse the response content
@@ -59,7 +59,7 @@ export const fetchDomainData = async (domain: string, industry: string): Promise
           id: toastId,
           description: "Using generated fallback data as an estimate."
         });
-        return generateFallbackData(domain, industry);
+        return generateFallbackData(domain);
       }
       
       toast.success(`Successfully retrieved data for ${domain}`, { 
@@ -73,7 +73,7 @@ export const fetchDomainData = async (domain: string, industry: string): Promise
         description: "Using generated fallback data as an estimate."
       });
       // Fall back to generated data if parsing fails
-      return generateFallbackData(domain, industry);
+      return generateFallbackData(domain);
     }
     
     // Extract and map the data from the API response
@@ -90,47 +90,26 @@ export const fetchDomainData = async (domain: string, industry: string): Promise
       description: "Using generated fallback data as an estimate."
     });
     // Fall back to generated data if the API call fails
-    return generateFallbackData(domain, industry);
+    return generateFallbackData(domain);
   }
 };
 
-// Fallback data generator in case the API call fails
-const generateFallbackData = (domain: string, industry: string): ApiData => {
+// Simplified fallback data generator without industry factors
+const generateFallbackData = (domain: string): ApiData => {
   console.log("Using fallback data generation for", domain);
   toast.warning(`Using generated data for ${domain}. API connection failed.`, { 
     duration: 5000,
-    description: "The estimates are based on industry averages and domain name characteristics."
+    description: "The estimates are based on domain name characteristics."
   });
   
   const domainLength = domain.length;
-  const industryFactor = getIndustryFactor(industry);
   
   return {
-    organicKeywords: Math.floor(100 + (domainLength * 50 * industryFactor)),
-    organicTraffic: Math.floor(500 + (domainLength * 200 * industryFactor)),
+    organicKeywords: Math.floor(100 + (domainLength * 50)),
+    organicTraffic: Math.floor(500 + (domainLength * 200)),
     domainPower: Math.min(95, Math.floor(40 + (domainLength * 2))),
-    backlinks: Math.floor(100 + (domainLength * 100 * industryFactor))
+    backlinks: Math.floor(100 + (domainLength * 100))
   };
-};
-
-// Helper to generate different data based on industry
-const getIndustryFactor = (industry: string): number => {
-  const factors: Record<string, number> = {
-    "E-commerce": 1.5,
-    "SaaS": 2.0,
-    "Finance": 1.8,
-    "Healthcare": 1.3,
-    "Real Estate": 1.2,
-    "Education": 1.4,
-    "Technology": 1.9,
-    "Travel": 1.6,
-    "Manufacturing": 1.1,
-    "Professional Services": 1.3,
-    "Retail": 1.4,
-    "Media & Entertainment": 1.7
-  };
-  
-  return factors[industry] || 1.0;
 };
 
 // Calculate report metrics based on both organic and paid traffic
@@ -146,10 +125,10 @@ export const calculateReportMetrics = (
   monthlyRevenueData: MonthlyRevenueData[];
 } => {
   const totalTraffic = monthlyVisitors + organicTraffic;
-  const leadConversionRate = 0.2; // 20% visitor-to-lead capture rate
-  const salesConversionRate = 0.01; // 1% lead-to-sale conversion rate
+  const visitorIdentificationRate = 0.2; // 20% visitor identification rate
+  const salesConversionRate = 0.01; // 1% lead-to-sale conversion rate (1 per 100)
   
-  const missedLeads = Math.floor(totalTraffic * leadConversionRate);
+  const missedLeads = Math.floor(totalTraffic * visitorIdentificationRate);
   const estimatedSalesLost = Math.floor(missedLeads * salesConversionRate);
   const monthlyRevenueLost = estimatedSalesLost * avgTransactionValue;
   const yearlyRevenueLost = monthlyRevenueLost * 12;
