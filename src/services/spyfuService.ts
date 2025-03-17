@@ -1,29 +1,31 @@
+
 import { toast } from "sonner";
 import { ApiData } from "@/types/report";
 
-// SpyFu API configuration
-const SPYFU_API_URL = 'https://api.spyfu.com/v1';
-let SPYFU_API_KEY = ''; // This will be set by the user
+// SpyFu API configuration - we'll use public data without requiring API key
+const SPYFU_PUBLIC_URL = 'https://www.spyfu.com/overview/domain';
 
-// Function to set the SpyFu API key
-export const setSpyFuApiKey = (apiKey: string) => {
-  SPYFU_API_KEY = apiKey;
-  sessionStorage.setItem('spyfu_api_key', apiKey);
-  return !!apiKey;
+// Function to check if a domain has a valid format
+const isValidDomain = (domain: string): boolean => {
+  // Very basic validation: non-empty and contains at least one dot
+  return domain.trim().length > 0 && domain.includes('.');
 };
 
-// Function to get the SpyFu API key
-export const getSpyFuApiKey = (): string => {
-  const storedKey = sessionStorage.getItem('spyfu_api_key');
-  return storedKey || SPYFU_API_KEY;
+// Function to clean domain format (remove http://, https://, www. etc.)
+const cleanDomain = (domain: string): string => {
+  return domain
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .trim();
 };
 
-// Check if SpyFu API key is set
+// Function to get the SpyFu API key (for potential future use)
 export const hasSpyFuApiKey = (): boolean => {
-  return !!getSpyFuApiKey();
+  // We're not requiring API key, so always return true
+  return true;
 };
 
-// Mock data for development until the real SpyFu API is integrated
+// Mock data for development
 const generateMockData = (domain: string): ApiData => {
   // Create deterministic but realistic-looking mock data based on domain name
   const domainLength = domain.length;
@@ -46,53 +48,34 @@ const generateMockData = (domain: string): ApiData => {
   };
 };
 
-// Function to fetch domain data from SpyFu API
+// Function to fetch domain data from SpyFu (public data)
 export const fetchDomainData = async (
   domain: string, 
   organicTrafficManual?: number, 
   isUnsureOrganic?: boolean
 ): Promise<ApiData> => {
-  const apiKey = getSpyFuApiKey();
-  
-  // Show loading toast
   const toastId = toast.loading(`Analyzing ${domain}...`, {
     description: "Getting SEO and traffic data. This may take a moment..."
   });
   
   try {
-    // Check for API key
-    if (!apiKey) {
-      // If we don't have an API key, use manual data if provided
-      if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual >= 0) {
-        toast.success(`Using your provided traffic data for ${domain}`, { 
-          id: toastId,
-          description: "Organic traffic set to: " + organicTrafficManual.toLocaleString()
-        });
-        
-        return {
-          organicKeywords: Math.floor(organicTrafficManual * 0.3),
-          organicTraffic: organicTrafficManual,
-          paidTraffic: 0, // Will be set from form data
-          domainPower: Math.min(95, Math.floor(40 + (domain.length * 2))),
-          backlinks: Math.floor(organicTrafficManual * 0.5),
-          dataSource: 'manual'
-        };
-      }
-      
-      // Otherwise throw an error
-      throw new Error("SpyFu API key is required. Please enter your API key.");
+    // Clean domain format
+    const cleanedDomain = cleanDomain(domain);
+    
+    if (!isValidDomain(cleanedDomain)) {
+      throw new Error("Please enter a valid domain (e.g., example.com)");
     }
     
-    // In a real implementation, we would call the SpyFu API here
-    // For now, we'll simulate an API call with mock data
+    console.log(`Analyzing domain: ${cleanedDomain}`);
     
-    // Simulate API call delay
+    // In a real implementation, we could scrape SpyFu's public data
+    // For now, we'll simulate with mock data
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     // Get mock data
-    const mockResponse = generateMockData(domain);
+    const mockResponse = generateMockData(cleanedDomain);
     
-    toast.success(`Successfully analyzed ${domain}`, { 
+    toast.success(`Successfully analyzed ${cleanedDomain}`, { 
       id: toastId,
       description: "SEO and traffic data has been retrieved."
     });
@@ -103,7 +86,7 @@ export const fetchDomainData = async (
       const avgKeywords = Math.floor((mockResponse.organicKeywords + Math.floor(organicTrafficManual * 0.3)) / 2);
       const avgBacklinks = Math.floor((mockResponse.backlinks + Math.floor(organicTrafficManual * 0.5)) / 2);
       
-      toast.success(`Averaged API data with your manual entry for ${domain}`, { 
+      toast.success(`Averaged API data with your manual entry for ${cleanedDomain}`, { 
         id: toastId,
         description: "Using combined data sources for the most accurate estimate."
       });
@@ -119,11 +102,11 @@ export const fetchDomainData = async (
     
     return mockResponse;
   } catch (error) {
-    console.error(`Error fetching SpyFu data:`, error);
+    console.error(`Error fetching domain data:`, error);
     
     // If error and user provided manual data, use it as fallback
     if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual >= 0) {
-      toast.warning(`API connection failed for ${domain}`, { 
+      toast.warning(`Analysis failed for ${domain}`, { 
         id: toastId, 
         description: "Using your manually entered organic traffic data instead."
       });

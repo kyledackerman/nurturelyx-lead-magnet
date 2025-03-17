@@ -33,6 +33,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSpyFuConnected, setIsSpyFuConnected] = useState<boolean>(hasSpyFuApiKey());
   const [canCalculate, setCanCalculate] = useState<boolean>(false);
+  const [showTrafficFields, setShowTrafficFields] = useState<boolean>(false);
 
   useEffect(() => {
     // Validate form to enable/disable calculate button
@@ -45,6 +46,10 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
+      // Show traffic fields if we have initial data (which means we ran it before)
+      if (initialData.domain) {
+        setShowTrafficFields(true);
+      }
     }
   }, [initialData]);
 
@@ -70,12 +75,14 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
       newErrors.domain = "Please enter a valid domain";
     }
     
-    if (formData.isUnsurePaid === false && (formData.monthlyVisitors === undefined || formData.monthlyVisitors < 0)) {
-      newErrors.monthlyVisitors = "Please enter a valid number of monthly paid visitors";
-    }
-    
-    if (formData.isUnsureOrganic === false && (formData.organicTrafficManual === undefined || formData.organicTrafficManual < 0)) {
-      newErrors.organicTrafficManual = "Please enter a valid number of monthly organic visitors";
+    if (showTrafficFields) {
+      if (formData.isUnsurePaid === false && (formData.monthlyVisitors === undefined || formData.monthlyVisitors < 0)) {
+        newErrors.monthlyVisitors = "Please enter a valid number of monthly paid visitors";
+      }
+      
+      if (formData.isUnsureOrganic === false && (formData.organicTrafficManual === undefined || formData.organicTrafficManual < 0)) {
+        newErrors.organicTrafficManual = "Please enter a valid number of monthly organic visitors";
+      }
     }
     
     if (formData.avgTransactionValue < 0) {
@@ -115,7 +122,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
               Calculate Your Missing Lead Opportunity
             </CardTitle>
             <CardDescription className="text-center">
-              Connect to SpyFu and discover how many leads you're missing
+              Discover how many leads you're missing without requiring any technical setup
             </CardDescription>
           </div>
           {onReset && (
@@ -132,9 +139,6 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
         </div>
       </CardHeader>
       <CardContent>
-        {/* SpyFu API Key Form */}
-        <SpyFuApiKeyForm onApiKeySet={handleApiKeySet} />
-
         {apiError && (
           <div className="mb-6">
             <div className="flex items-center justify-center text-sm text-red-600 mt-2 bg-white p-2 rounded border border-red-200">
@@ -150,6 +154,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
             formData={formData}
             handleChange={handleChange}
             errors={errors}
+            showTrafficFields={showTrafficFields}
           />
           
           {/* Transaction Value Input */}
