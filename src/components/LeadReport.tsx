@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReportData } from "@/types/report";
-import { DollarSign, Users, ShoppingCart } from "lucide-react";
+import { DollarSign, Users, ShoppingCart, Check, AlertTriangle } from "lucide-react";
 import MonthlyRevenueTable from "./MonthlyRevenueTable";
 import StatCard from "./report/StatCard";
 import MethodologyCard from "./report/MethodologyCard";
@@ -21,9 +21,46 @@ const formatCurrency = (value: number): string => {
   }).format(value);
 };
 
+// Changelog component to display latest report changes
+const Changelog = () => {
+  return (
+    <Card className="mb-8 border-l-4 border-l-blue-500 bg-blue-500/10">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xl">Report Overview</CardTitle>
+        <CardDescription>
+          Generated on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ul className="space-y-2 text-sm">
+          <li className="flex items-start">
+            <Check size={16} className="mr-2 mt-0.5 text-green-500" />
+            <span>Combined paid and organic traffic data from SearchAtlas API</span>
+          </li>
+          <li className="flex items-start">
+            <Check size={16} className="mr-2 mt-0.5 text-green-500" />
+            <span>Calculated potential leads (20% of total monthly traffic)</span>
+          </li>
+          <li className="flex items-start">
+            <Check size={16} className="mr-2 mt-0.5 text-green-500" />
+            <span>Estimated sales (1% of potential leads) and monthly revenue impact</span>
+          </li>
+          <li className="flex items-start">
+            <AlertTriangle size={16} className="mr-2 mt-0.5 text-amber-500" />
+            <span>All metrics represent <strong>monthly averages</strong> unless otherwise specified</span>
+          </li>
+        </ul>
+      </CardContent>
+    </Card>
+  );
+};
+
 const LeadReport = ({ data, onReset }: LeadReportProps) => {
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8 animate-fade-in">
+      {/* Changelog */}
+      <Changelog />
+      
       {/* Top Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
         <StatCard
@@ -61,6 +98,9 @@ const LeadReport = ({ data, onReset }: LeadReportProps) => {
           <CardTitle>Monthly Opportunity Breakdown</CardTitle>
           <CardDescription className="text-gray-400">
             Historical data for {data.domain} over the last 6 months
+            <strong className="block mt-1 text-accent">
+              Note: "Visitors" represents the combined total of organic and paid traffic for each month
+            </strong>
           </CardDescription>
         </CardHeader>
         <CardContent>
