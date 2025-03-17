@@ -153,7 +153,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
         {/* Google Analytics Connection Status */}
         <GoogleAnalyticsConnector 
           isGAConnected={isGAConnected}
-          setIsGAConnected={setIsGAConnected}
+          setIsGAConnected={(value) => setIsGAConnected(!!value)} // Ensure boolean type
           selectedDomain={selectedDomain}
           setSelectedDomain={setSelectedDomain}
           setDomainSelected={setDomainSelected}

@@ -3,7 +3,7 @@ import { FormData } from "@/types/report";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { InfoCircle } from "lucide-react";
+import { Info } from "lucide-react";
 
 interface TrafficInputFieldsProps {
   formData: FormData;
@@ -47,7 +47,7 @@ export const TrafficInputFields = ({ formData, handleChange, errors }: TrafficIn
           </div>
         </div>
         <p className="text-xs text-gray-500 flex gap-1">
-          <InfoCircle className="h-3 w-3 text-accent" />
+          <Info className="h-3 w-3 text-accent" />
           Traffic from paid ads (Google Ads, social media, etc.)
         </p>
       </div>
@@ -85,7 +85,7 @@ export const TrafficInputFields = ({ formData, handleChange, errors }: TrafficIn
           </div>
         </div>
         <p className="text-xs text-gray-500 flex gap-1">
-          <InfoCircle className="h-3 w-3 text-accent" />
+          <Info className="h-3 w-3 text-accent" />
           Traffic from search engines (unpaid/SEO)
         </p>
       </div>
