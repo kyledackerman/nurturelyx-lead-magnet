@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormData } from "@/types/report";
@@ -36,7 +35,6 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   const [showTrafficFields, setShowTrafficFields] = useState<boolean>(false);
 
   useEffect(() => {
-    // Validate form to enable/disable calculate button
     const domainIsValid = formData.domain.trim().length > 0;
     const hasRequiredFields = domainIsValid && formData.avgTransactionValue >= 0;
     
@@ -46,7 +44,6 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
-      // Show traffic fields if we have initial data (which means we ran it before)
       if (initialData.domain) {
         setShowTrafficFields(true);
       }
@@ -102,7 +99,6 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
         description: "Processing your data to generate insights."
       });
     } else {
-      // Show toast for validation errors
       toast.error("Please fix the errors before continuing", {
         description: "Some required information is missing or invalid."
       });
@@ -130,6 +126,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
               variant="outline" 
               onClick={onReset}
               className="flex items-center gap-2 border-accent text-accent hover:bg-accent/10"
+              size="sm"
               type="button"
             >
               <RefreshCw size={16} />
@@ -142,14 +139,13 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
         {apiError && (
           <div className="mb-6">
             <div className="flex items-center justify-center text-sm text-red-600 mt-2 bg-white p-2 rounded border border-red-200">
-              <AlertCircle className="h-4 w-4 mr-1" />
+              <AlertCircle size={16} className="mr-1" />
               <p>{apiError}</p>
             </div>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Traffic Input Fields */}
           <TrafficInputFields 
             formData={formData}
             handleChange={handleChange}
@@ -157,19 +153,15 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
             showTrafficFields={showTrafficFields}
           />
           
-          {/* Transaction Value Input */}
           <TransactionValueInput 
             formData={formData}
             handleChange={handleChange}
             errors={errors}
           />
           
-          {/* Information Section */}
           <InfoSection apiError={apiError} />
           
-          {/* Form Actions */}
           <FormActions 
-            onReset={onReset}
             isCalculating={isCalculating}
             canCalculate={canCalculate}
           />

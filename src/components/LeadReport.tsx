@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReportData } from "@/types/report";
@@ -22,25 +21,17 @@ const formatCurrency = (value: number): string => {
   }).format(value);
 };
 
-// Function to handle printing the report
 const handlePrintReport = () => {
-  // Add a custom class to the body for print styling
   document.body.classList.add('printing-report');
-  
-  // Trigger the print dialog
   window.print();
-  
-  // Remove the class after printing
   setTimeout(() => {
     document.body.classList.remove('printing-report');
   }, 1000);
 };
 
-// Changelog component to display latest report changes
 const Changelog = ({ reportData }: { reportData: ReportData }) => {
   const currentDate = new Date().toLocaleDateString();
   
-  // Determine data source message
   let dataSourceMessage = "";
   switch(reportData.dataSource) {
     case 'api':
@@ -99,13 +90,13 @@ const Changelog = ({ reportData }: { reportData: ReportData }) => {
 const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8 animate-fade-in" id="leadReport">
-      {/* Top action buttons */}
       <div className="flex justify-between flex-wrap gap-4">
         {onEditData && (
           <Button 
             variant="outline" 
             onClick={onEditData} 
             className="flex items-center gap-2 text-accent border-accent hover:bg-accent/10"
+            size="sm"
           >
             <Edit size={16} />
             My Information Isn't Right
@@ -117,6 +108,7 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
             variant="outline"
             onClick={onReset}
             className="flex items-center gap-2 border-accent text-accent hover:bg-accent/10"
+            size="sm"
           >
             <RefreshCw size={16} />
             Restart
@@ -126,6 +118,7 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
             variant="outline"
             onClick={handlePrintReport}
             className="flex items-center gap-2"
+            size="sm"
           >
             <Printer size={16} />
             Save as PDF
@@ -133,10 +126,8 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
         </div>
       </div>
       
-      {/* Changelog */}
       <Changelog reportData={data} />
       
-      {/* Top Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
         <StatCard
           label="Missed Leads"
@@ -160,14 +151,12 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
         />
       </div>
       
-      {/* Methodology */}
       <MethodologyCard
         domain={data.domain}
         monthlyVisitors={data.monthlyVisitors}
         avgTransactionValue={data.avgTransactionValue}
       />
       
-      {/* Monthly revenue data table */}
       <Card className="bg-secondary animate-fade-in">
         <CardHeader>
           <CardTitle>Monthly Opportunity Breakdown</CardTitle>
@@ -183,12 +172,8 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
         </CardContent>
       </Card>
       
-      {/* Information and Charts */}
       <ReportTabs data={data} />
       
-      {/* We're removing the bottom button since we already have a Restart button at the top now */}
-      
-      {/* Add print-specific styles */}
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           body * {

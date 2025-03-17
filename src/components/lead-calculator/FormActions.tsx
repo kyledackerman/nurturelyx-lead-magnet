@@ -12,22 +12,10 @@ export const FormActions = ({ onReset, isCalculating, canCalculate }: FormAction
   return (
     <>
       <div className="flex gap-4">
-        {onReset && (
-          <Button 
-            type="button" 
-            variant="outline"
-            className="flex items-center gap-2 w-1/4 border-accent text-accent hover:bg-accent/10"
-            onClick={onReset}
-          >
-            <RefreshCw size={16} />
-            Restart
-          </Button>
-        )}
-        
         <Button 
           type="submit" 
-          className={`${onReset ? 'w-3/4' : 'w-full'} ${!canCalculate ? 'opacity-70 cursor-not-allowed' : ''} gradient-bg text-xl py-6`}
-          disabled={isCalculating || !canCalculate}
+          className={`w-full gradient-bg text-xl py-6`}
+          disabled={isCalculating}
         >
           {isCalculating ? (
             <span className="flex items-center gap-2">
