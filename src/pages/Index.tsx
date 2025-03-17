@@ -220,7 +220,7 @@ const Index = () => {
               <div className="container mx-auto px-4">
                 {apiError && (
                   <div className="mb-6 max-w-3xl mx-auto">
-                    <Alert variant="destructive">
+                    <Alert variant="error">
                       <Terminal className="h-4 w-4" />
                       <AlertTitle>API Error</AlertTitle>
                       <AlertDescription>

@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FormData } from "@/types/report";
 import { AlertCircle, Info, DollarSign, RefreshCw, BarChart } from "lucide-react";
 import { initiateGoogleAnalyticsAuth } from "@/services/apiService";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
@@ -187,11 +188,11 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                   placeholder="0"
                   value={formData.isUnsureOrganic ? "" : formData.organicTrafficManual}
                   onChange={(e) => handleChange("organicTrafficManual", parseInt(e.target.value) || 0)}
-                  className={errors.organicTrafficManual ? "border-red-500" : ""}
+                  className={errors.organicTrafficManual ? "border-red-300" : ""}
                   disabled={formData.isUnsureOrganic}
                 />
                 {errors.organicTrafficManual ? (
-                  <div className="flex items-center text-sm text-red-500 mt-1">
+                  <div className="flex items-center text-sm text-red-600 mt-1 bg-white/80 p-1 rounded">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     <p>{errors.organicTrafficManual}</p>
                   </div>
@@ -227,11 +228,11 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                   placeholder="1000"
                   value={formData.isUnsurePaid ? "" : formData.monthlyVisitors}
                   onChange={(e) => handleChange("monthlyVisitors", parseInt(e.target.value) || 0)}
-                  className={errors.monthlyVisitors ? "border-red-500" : ""}
+                  className={errors.monthlyVisitors ? "border-red-300" : ""}
                   disabled={formData.isUnsurePaid}
                 />
                 {errors.monthlyVisitors ? (
-                  <div className="flex items-center text-sm text-red-500 mt-1">
+                  <div className="flex items-center text-sm text-red-600 mt-1 bg-white/80 p-1 rounded">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     <p>{errors.monthlyVisitors}</p>
                   </div>
@@ -254,10 +255,10 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
               placeholder="500"
               value={formData.avgTransactionValue}
               onChange={(e) => handleChange("avgTransactionValue", parseInt(e.target.value) || 0)}
-              className={errors.avgTransactionValue ? "border-red-500" : ""}
+              className={errors.avgTransactionValue ? "border-red-300" : ""}
             />
             {errors.avgTransactionValue && (
-              <div className="flex items-center text-sm text-red-500 mt-1">
+              <div className="flex items-center text-sm text-red-600 mt-1 bg-white/80 p-1 rounded">
                 <AlertCircle className="h-4 w-4 mr-1" />
                 <p>{errors.avgTransactionValue}</p>
               </div>
@@ -271,16 +272,14 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
           </div>
           
           {apiError && (
-            <div className="bg-red-700/30 border-2 border-red-500 rounded-lg p-4 text-sm shadow-lg">
-              <h3 className="font-semibold text-red-300 flex items-center mb-2">
-                <AlertCircle className="h-4 w-4 mr-1" />
-                API Connection Error
-              </h3>
-              <p className="text-white">
+            <Alert variant="error" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle className="text-red-800 font-semibold">API Connection Error</AlertTitle>
+              <AlertDescription className="text-red-700">
                 We couldn't connect to the Google Analytics API to fetch your traffic data. Please enter your traffic numbers manually to continue.
-              </p>
-              <p className="text-gray-300 mt-2 text-xs">{apiError}</p>
-            </div>
+              </AlertDescription>
+              <p className="text-red-600 mt-2 text-xs">{apiError}</p>
+            </Alert>
           )}
           
           <div className="bg-secondary/50 p-4 rounded-lg border border-border mt-2">
