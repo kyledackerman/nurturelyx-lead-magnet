@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -20,14 +19,13 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData, apiError 
     domain: "",
     monthlyVisitors: 1000,
     organicTrafficManual: 0,
-    isUnsureOrganic: false, // Changed to false by default
-    isUnsurePaid: false, // Changed to false by default
+    isUnsureOrganic: false,
+    isUnsurePaid: false,
     avgTransactionValue: 500,
   });
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  // Use initialData if provided
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
@@ -40,7 +38,6 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData, apiError 
       [field]: value,
     }));
     
-    // Clear error when user fixes the field
     if (errors[field]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -83,7 +80,6 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData, apiError 
     }
   };
 
-  // Only show manual traffic fields if API error occurred
   const showManualTrafficFields = !!apiError;
 
   return (
@@ -229,15 +225,15 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData, apiError 
           </div>
           
           {apiError && (
-            <div className="bg-red-600/20 border border-red-600/50 rounded-lg p-4 text-sm">
-              <h3 className="font-semibold text-red-400 flex items-center mb-2">
+            <div className="bg-red-700/30 border-2 border-red-500 rounded-lg p-4 text-sm shadow-lg">
+              <h3 className="font-semibold text-red-300 flex items-center mb-2">
                 <AlertCircle className="h-4 w-4 mr-1" />
                 API Connection Error
               </h3>
-              <p className="text-gray-300">
+              <p className="text-white">
                 We couldn't connect to the SearchAtlas API to fetch your traffic data. Please enter your traffic numbers manually to continue.
               </p>
-              <p className="text-gray-400 mt-2 text-xs">{apiError}</p>
+              <p className="text-gray-300 mt-2 text-xs">{apiError}</p>
             </div>
           )}
           
