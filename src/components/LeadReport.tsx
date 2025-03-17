@@ -9,11 +9,9 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 import { ReportData } from "@/types/report";
-import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowUpRight, 
   DollarSign, 
@@ -21,8 +19,7 @@ import {
   TrendingUp, 
   BarChart3, 
   Check, 
-  FileText, 
-  Mail 
+  FileText 
 } from "lucide-react";
 
 interface LeadReportProps {
@@ -43,73 +40,6 @@ const percentFormatter = (value: number): string => {
 };
 
 const LeadReport = ({ data, onReset }: LeadReportProps) => {
-  const { toast } = useToast();
-  const [email, setEmail] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const handleRequestReport = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email) {
-      toast({
-        title: "Email Required",
-        description: "Please enter your email address to receive the report.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
-      // Import the sendEmailReport function dynamically to avoid circular dependencies
-      const { sendEmailReport } = await import('@/services/apiService');
-      
-      // Prepare the report data to send
-      const reportData = {
-        domain: data.domain,
-        industry: data.industry,
-        stats: {
-          organicKeywords: data.organicKeywords,
-          organicTraffic: data.organicTraffic,
-          domainPower: data.domainPower,
-          domainAuthority: data.domainAuthority,
-          domainRanking: data.domainRanking,
-          backlinks: data.backlinks,
-          missedLeads: data.missedLeads,
-          monthlyRevenueLost: data.monthlyRevenueLost,
-          yearlyRevenueLost: data.yearlyRevenueLost
-        },
-        generatedAt: new Date().toISOString()
-      };
-      
-      // Send the email
-      const emailSent = await sendEmailReport(email, reportData);
-      
-      if (emailSent) {
-        toast({
-          title: "Report Sent Successfully!",
-          description: "Check your inbox for your detailed lead capture report. If you don't see it, please check your spam folder.",
-        });
-      } else {
-        toast({
-          title: "Email Delivery Issue",
-          description: "We encountered a problem sending your report. Please try again or contact support.",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error("Error processing report request:", error);
-      toast({
-        title: "Something Went Wrong",
-        description: "We couldn't process your request. Please try again later.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  
   const comparisonData = [
     {
       name: "Traditional",
@@ -393,50 +323,6 @@ const LeadReport = ({ data, onReset }: LeadReportProps) => {
           </Card>
         </TabsContent>
       </Tabs>
-      
-      {/* Email Report Section */}
-      <Card className="border-2 border-dashed border-brand-purple border-opacity-30 bg-brand-purple bg-opacity-5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Get Your Full PDF Report
-          </CardTitle>
-          <CardDescription>
-            We'll email you a detailed PDF report with industry benchmarks and implementation guide
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleRequestReport} className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Input
-                type="email"
-                placeholder="Your email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="flex-1"
-              />
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <span className="animate-pulse mr-2">Sending...</span>
-                    <Mail className="h-4 w-4 animate-bounce" />
-                  </>
-                ) : (
-                  <>
-                    Get PDF Report
-                    <Mail className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 italic">
-              Note: For this demo, actual email delivery is simulated. In a production environment, 
-              you would receive a real email.
-            </p>
-          </form>
-        </CardContent>
-      </Card>
       
       <div className="flex justify-center mt-8">
         <Button variant="outline" onClick={onReset}>
