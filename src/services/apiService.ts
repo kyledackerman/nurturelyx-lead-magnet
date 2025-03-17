@@ -9,7 +9,7 @@ const SEARCH_ATLAS_API_KEY = "ce26ade2b8adac45db89c62c438d0a31";
 export const fetchDomainData = async (domain: string, industry: string): Promise<ApiData> => {
   console.log(`Using SearchAtlas API key: ${SEARCH_ATLAS_API_KEY} to fetch data for ${domain}`);
   
-  toast.loading(`Fetching data for ${domain}...`, { duration: 3000 });
+  const toastId = toast.loading(`Fetching data for ${domain}...`);
   
   try {
     // For demo purposes, we're using a proxy to avoid CORS issues
@@ -18,7 +18,10 @@ export const fetchDomainData = async (domain: string, industry: string): Promise
     )}`);
     
     if (!response.ok) {
-      throw new Error(`SearchAtlas API error: ${response.status}`);
+      const errorMessage = `SearchAtlas API error: ${response.status} ${response.statusText}`;
+      console.error(errorMessage);
+      toast.error(errorMessage, { id: toastId });
+      throw new Error(errorMessage);
     }
     
     const result = await response.json();
@@ -28,10 +31,10 @@ export const fetchDomainData = async (domain: string, industry: string): Promise
     let data;
     try {
       data = JSON.parse(result.contents);
-      toast.success(`Successfully retrieved data for ${domain}`);
+      toast.success(`Successfully retrieved data for ${domain}`, { id: toastId });
     } catch (e) {
       console.error("Failed to parse API response:", e);
-      toast.error(`Error parsing data for ${domain}`);
+      toast.error(`Error parsing data for ${domain}. Using generated fallback data.`, { id: toastId });
       // Fall back to generated data if parsing fails
       return generateFallbackData(domain, industry);
     }
@@ -45,7 +48,7 @@ export const fetchDomainData = async (domain: string, industry: string): Promise
     };
   } catch (error) {
     console.error("Error fetching SearchAtlas data:", error);
-    toast.error(`Error fetching data for ${domain}`);
+    toast.error(`Error fetching data for ${domain}. Using generated fallback data.`, { id: toastId });
     // Fall back to generated data if the API call fails
     return generateFallbackData(domain, industry);
   }
@@ -54,7 +57,10 @@ export const fetchDomainData = async (domain: string, industry: string): Promise
 // Fallback data generator in case the API call fails
 const generateFallbackData = (domain: string, industry: string): ApiData => {
   console.log("Using fallback data generation for", domain);
-  toast.warning(`Using generated data for ${domain}`);
+  toast.warning(`Using generated data for ${domain}. API connection failed.`, { 
+    duration: 5000,
+    description: "The estimates are based on industry averages and domain name characteristics."
+  });
   
   const domainLength = domain.length;
   const industryFactor = getIndustryFactor(industry);
@@ -87,10 +93,11 @@ const getIndustryFactor = (industry: string): number => {
   return factors[industry] || 1.0;
 };
 
-// Calculate report metrics
+// Calculate report metrics based on both organic and paid traffic
 export const calculateReportMetrics = (
   monthlyVisitors: number,
-  avgTransactionValue: number
+  avgTransactionValue: number,
+  organicTraffic: number
 ): { 
   missedLeads: number; 
   estimatedSalesLost: number;
@@ -98,10 +105,11 @@ export const calculateReportMetrics = (
   yearlyRevenueLost: number; 
   monthlyRevenueData: MonthlyRevenueData[];
 } => {
+  const totalTraffic = monthlyVisitors + organicTraffic;
   const leadConversionRate = 0.2; // 20% visitor-to-lead capture rate
   const salesConversionRate = 0.01; // 1% lead-to-sale conversion rate
   
-  const missedLeads = Math.floor(monthlyVisitors * leadConversionRate);
+  const missedLeads = Math.floor(totalTraffic * leadConversionRate);
   const estimatedSalesLost = Math.floor(missedLeads * salesConversionRate);
   const monthlyRevenueLost = estimatedSalesLost * avgTransactionValue;
   const yearlyRevenueLost = monthlyRevenueLost * 12;
@@ -118,7 +126,7 @@ export const calculateReportMetrics = (
     // Add a little randomness to the data for each month (80-120% of base value)
     const variationFactor = 0.8 + (Math.random() * 0.4);
     
-    const monthVisitors = Math.floor(monthlyVisitors * variationFactor);
+    const monthTotalVisitors = Math.floor(totalTraffic * variationFactor);
     const monthLeads = Math.floor(missedLeads * variationFactor);
     const monthSales = Math.floor(estimatedSalesLost * variationFactor);
     const monthRevenue = monthSales * avgTransactionValue;
@@ -126,7 +134,7 @@ export const calculateReportMetrics = (
     monthlyRevenueData.push({
       month,
       year,
-      visitors: monthVisitors,
+      visitors: monthTotalVisitors,
       leads: monthLeads,
       sales: monthSales,
       revenueLost: monthRevenue

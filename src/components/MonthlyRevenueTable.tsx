@@ -1,86 +1,57 @@
 
-import { 
-  Table, 
-  TableBody, 
-  TableCaption, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
 import { MonthlyRevenueData } from "@/services/apiService";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface MonthlyRevenueTableProps {
   data: MonthlyRevenueData[];
 }
 
-const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0
-  }).format(value);
-};
-
 const MonthlyRevenueTable = ({ data }: MonthlyRevenueTableProps) => {
   // Calculate totals
-  const totalVisitors = data.reduce((acc, month) => acc + month.visitors, 0);
-  const totalLeads = data.reduce((acc, month) => acc + month.leads, 0);
-  const totalSales = data.reduce((acc, month) => acc + month.sales, 0);
-  const totalRevenue = data.reduce((acc, month) => acc + month.revenueLost, 0);
+  const totalVisitors = data.reduce((sum, item) => sum + item.visitors, 0);
+  const totalLeads = data.reduce((sum, item) => sum + item.leads, 0);
+  const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
+  const totalRevenueLost = data.reduce((sum, item) => sum + item.revenueLost, 0);
+
+  // Format currency
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0
+    }).format(value);
+  };
 
   return (
-    <div className="overflow-x-auto">
+    <div className="rounded-md border border-border overflow-hidden">
       <Table>
-        <TableCaption className="text-gray-400">
-          Estimated missed opportunity over the last 6 months
-        </TableCaption>
-        <TableHeader>
-          <TableRow className="border-b border-border">
-            <TableHead className="text-left">Month</TableHead>
-            <TableHead className="text-right">Visitors</TableHead>
-            <TableHead className="text-right">Missed Leads</TableHead>
-            <TableHead className="text-right">Lost Sales</TableHead>
-            <TableHead className="text-right">Lost Revenue</TableHead>
+        <TableHeader className="bg-secondary">
+          <TableRow>
+            <TableHead className="font-medium text-foreground">Month</TableHead>
+            <TableHead className="font-medium text-foreground text-right">Visitors</TableHead>
+            <TableHead className="font-medium text-foreground text-right">Leads</TableHead>
+            <TableHead className="font-medium text-foreground text-right">Sales</TableHead>
+            <TableHead className="font-medium text-foreground text-right">Revenue Lost</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((month, index) => (
-            <TableRow 
-              key={index} 
-              className="border-b border-border hover:bg-secondary/50"
-            >
-              <TableCell className="font-medium text-left">
-                {month.month} {month.year}
+          {data.map((item, index) => (
+            <TableRow key={index} className="hover:bg-secondary/40">
+              <TableCell className="font-medium">
+                {item.month} {item.year}
               </TableCell>
-              <TableCell className="text-right">
-                {month.visitors.toLocaleString()}
-              </TableCell>
-              <TableCell className="text-right">
-                {month.leads.toLocaleString()}
-              </TableCell>
-              <TableCell className="text-right">
-                {month.sales.toLocaleString()}
-              </TableCell>
-              <TableCell className="text-right text-accent font-mono">
-                {formatCurrency(month.revenueLost)}
-              </TableCell>
+              <TableCell className="text-right">{item.visitors.toLocaleString()}</TableCell>
+              <TableCell className="text-right">{item.leads.toLocaleString()}</TableCell>
+              <TableCell className="text-right">{item.sales.toLocaleString()}</TableCell>
+              <TableCell className="text-right text-accent">{formatCurrency(item.revenueLost)}</TableCell>
             </TableRow>
           ))}
-          <TableRow className="bg-secondary/50 border-b border-border">
-            <TableCell className="font-bold">TOTAL</TableCell>
-            <TableCell className="text-right font-bold">
-              {totalVisitors.toLocaleString()}
-            </TableCell>
-            <TableCell className="text-right font-bold">
-              {totalLeads.toLocaleString()}
-            </TableCell>
-            <TableCell className="text-right font-bold">
-              {totalSales.toLocaleString()}
-            </TableCell>
-            <TableCell className="text-right font-bold text-accent font-mono">
-              {formatCurrency(totalRevenue)}
-            </TableCell>
+          <TableRow className="font-bold bg-secondary/50">
+            <TableCell>TOTAL (6 Months)</TableCell>
+            <TableCell className="text-right">{totalVisitors.toLocaleString()}</TableCell>
+            <TableCell className="text-right">{totalLeads.toLocaleString()}</TableCell>
+            <TableCell className="text-right">{totalSales.toLocaleString()}</TableCell>
+            <TableCell className="text-right text-accent">{formatCurrency(totalRevenueLost)}</TableCell>
           </TableRow>
         </TableBody>
       </Table>

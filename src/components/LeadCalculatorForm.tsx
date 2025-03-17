@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormData, industries } from "@/types/report";
+import { AlertCircle } from "lucide-react";
 
 interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
@@ -47,7 +48,7 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
       newErrors.domain = "Please enter a valid domain (e.g., example.com)";
     }
     
-    if (!formData.monthlyVisitors || formData.monthlyVisitors <= 0) {
+    if (formData.monthlyVisitors < 0) {
       newErrors.monthlyVisitors = "Please enter a valid number of monthly visitors";
     }
     
@@ -92,7 +93,12 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
               onChange={(e) => handleChange("domain", e.target.value)}
               className={errors.domain ? "border-red-500" : ""}
             />
-            {errors.domain && <p className="text-sm text-red-500">{errors.domain}</p>}
+            {errors.domain && (
+              <div className="flex items-center text-sm text-red-500 mt-1">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                <p>{errors.domain}</p>
+              </div>
+            )}
           </div>
           
           <div className="space-y-2">
@@ -100,13 +106,22 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
             <Input
               id="monthlyVisitors"
               type="number"
-              min="1"
+              min="0"
               placeholder="1000"
               value={formData.monthlyVisitors}
               onChange={(e) => handleChange("monthlyVisitors", parseInt(e.target.value) || 0)}
               className={errors.monthlyVisitors ? "border-red-500" : ""}
             />
-            {errors.monthlyVisitors && <p className="text-sm text-red-500">{errors.monthlyVisitors}</p>}
+            {errors.monthlyVisitors ? (
+              <div className="flex items-center text-sm text-red-500 mt-1">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                <p>{errors.monthlyVisitors}</p>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 mt-1">
+                We'll combine this with your organic traffic from SearchAtlas API
+              </p>
+            )}
           </div>
           
           <div className="space-y-2">
@@ -120,7 +135,12 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
               onChange={(e) => handleChange("avgTransactionValue", parseInt(e.target.value) || 0)}
               className={errors.avgTransactionValue ? "border-red-500" : ""}
             />
-            {errors.avgTransactionValue && <p className="text-sm text-red-500">{errors.avgTransactionValue}</p>}
+            {errors.avgTransactionValue && (
+              <div className="flex items-center text-sm text-red-500 mt-1">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                <p>{errors.avgTransactionValue}</p>
+              </div>
+            )}
           </div>
           
           <div className="space-y-2">
@@ -140,7 +160,12 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
                 ))}
               </SelectContent>
             </Select>
-            {errors.industry && <p className="text-sm text-red-500">{errors.industry}</p>}
+            {errors.industry && (
+              <div className="flex items-center text-sm text-red-500 mt-1">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                <p>{errors.industry}</p>
+              </div>
+            )}
           </div>
           
           <Button 
@@ -150,6 +175,10 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
           >
             {isCalculating ? "Calculating..." : "Calculate My Missing Leads"}
           </Button>
+          
+          <p className="text-xs text-center text-gray-400 mt-2">
+            We identify up to 20% of both your organic and paid traffic
+          </p>
         </form>
       </CardContent>
     </Card>

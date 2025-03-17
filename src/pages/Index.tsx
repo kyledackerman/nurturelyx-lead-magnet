@@ -9,22 +9,27 @@ import { fetchDomainData, calculateReportMetrics } from "@/services/apiService";
 import { ArrowRight, LineChart, Users, Zap } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Terminal } from "lucide-react";
 
 const Index = () => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
   
   const handleCalculate = async (formData: FormData) => {
     setIsCalculating(true);
+    setApiError(null);
     
     try {
       // Fetch domain data from API
       const apiData = await fetchDomainData(formData.domain, formData.industry);
       
-      // Calculate the report metrics
+      // Calculate the report metrics using both paid and organic traffic
       const metrics = calculateReportMetrics(
         formData.monthlyVisitors,
-        formData.avgTransactionValue
+        formData.avgTransactionValue,
+        apiData.organicTraffic
       );
       
       // Combine all data
@@ -41,12 +46,14 @@ const Index = () => {
       }, 800);
     } catch (error) {
       console.error("Error calculating report:", error);
+      setApiError(error instanceof Error ? error.message : "Unknown error occurred");
       setIsCalculating(false);
     }
   };
   
   const handleReset = () => {
     setReportData(null);
+    setApiError(null);
   };
   
   return (
@@ -113,6 +120,17 @@ const Index = () => {
             
             <section className="py-12">
               <div className="container mx-auto px-4">
+                {apiError && (
+                  <div className="mb-6 max-w-3xl mx-auto">
+                    <Alert variant="destructive">
+                      <Terminal className="h-4 w-4" />
+                      <AlertTitle>API Error</AlertTitle>
+                      <AlertDescription>
+                        {apiError}
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
                 <LeadCalculatorForm onCalculate={handleCalculate} isCalculating={isCalculating} />
               </div>
             </section>
