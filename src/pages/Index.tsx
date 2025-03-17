@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -22,10 +23,13 @@ const Index = () => {
   const [formDataCache, setFormDataCache] = useState<FormData | null>(null);
   
   const handleCalculate = async (formData: FormData) => {
+    // Directly assign a default domain if not provided - helps with API that needs a domain identifier
+    const domain = formData.domain || "yourdomain.com";
+    
     setIsCalculating(true);
     setApiError(null);
     setCalculationProgress(0);
-    setFormDataCache(formData);
+    setFormDataCache({...formData, domain});
     
     const progressInterval = setInterval(() => {
       setCalculationProgress(prev => {
@@ -36,7 +40,7 @@ const Index = () => {
     
     try {
       const apiData = await fetchDomainData(
-        formData.domain, 
+        domain, 
         formData.organicTrafficManual, 
         formData.isUnsureOrganic
       );

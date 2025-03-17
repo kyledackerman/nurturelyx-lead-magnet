@@ -58,10 +58,8 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
     
-    if (!formData.domain) {
-      newErrors.domain = "Domain is required";
-    } else if (!/^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/.test(formData.domain)) {
-      newErrors.domain = "Please enter a valid domain (e.g., example.com)";
+    if (!isGAConnected && !apiError) {
+      newErrors.googleAnalytics = "Please connect to Google Analytics first";
     }
     
     if (apiError && formData.isUnsurePaid === false && (formData.monthlyVisitors === undefined || formData.monthlyVisitors < 0)) {
@@ -97,7 +95,8 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
     }, 2000);
   };
 
-  const showManualTrafficFields = !!apiError || !isGAConnected;
+  // Only show manual traffic fields if Google Analytics connection failed
+  const showManualTrafficFields = !!apiError;
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
@@ -108,7 +107,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
               Calculate Your Missing Lead Opportunity
             </CardTitle>
             <CardDescription className="text-center">
-              Enter your website details to discover how many leads you're missing
+              Connect to Google Analytics and discover how many leads you're missing
             </CardDescription>
           </div>
           {onReset && (
@@ -126,46 +125,40 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="space-y-2">
-            <Label htmlFor="domain" className="text-lg">Website Domain</Label>
-            <Input
-              id="domain"
-              placeholder="example.com"
-              value={formData.domain}
-              onChange={(e) => handleChange("domain", e.target.value)}
-              className={errors.domain ? "border-red-500" : ""}
-            />
-            {errors.domain && (
-              <div className="flex items-center text-sm text-red-500 mt-1">
-                <AlertCircle className="h-4 w-4 mr-1" />
-                <p>{errors.domain}</p>
-              </div>
-            )}
-            
-            <div className="mt-3 flex flex-col">
+          <div className="space-y-4">
+            <div className="flex justify-center">
               <Button 
                 type="button" 
                 variant={isGAConnected ? "outline" : "default"} 
-                className={`flex items-center gap-2 mt-2 ${isGAConnected ? 'border-green-500 text-green-500' : 'gradient-bg'}`}
+                className={`flex items-center gap-2 py-6 px-8 w-full max-w-md ${isGAConnected ? 'border-green-500 text-green-500' : 'bg-[#4285F4] hover:bg-[#3367D6] text-white'}`}
                 onClick={handleConnectGA}
                 disabled={isGAConnected}
               >
-                <BarChart className="h-4 w-4" />
+                <BarChart className="h-5 w-5" />
                 {isGAConnected ? 'Connected to Google Analytics' : 'Connect to Google Analytics'}
               </Button>
-              
-              {isGAConnected ? (
-                <p className="text-sm text-green-500 mt-2 flex items-center">
-                  <Info className="h-3 w-3 mr-1" />
-                  We'll fetch your organic and paid traffic data from Google Analytics
-                </p>
-              ) : (
-                <p className="text-sm text-gray-400 mt-2 flex items-center">
-                  <Info className="h-3 w-3 mr-1 text-accent" />
-                  Connect to Google Analytics for accurate organic and paid traffic data
-                </p>
-              )}
             </div>
+            
+            {!isGAConnected && !apiError && (
+              <p className="text-sm text-center text-gray-400 mt-2 flex items-center justify-center">
+                <Info className="h-3 w-3 mr-1 text-accent" />
+                Connect to Google Analytics for accurate traffic data
+              </p>
+            )}
+            
+            {isGAConnected && (
+              <p className="text-sm text-center text-green-500 mt-2 flex items-center justify-center">
+                <Info className="h-3 w-3 mr-1" />
+                We'll fetch your organic and paid traffic data from Google Analytics
+              </p>
+            )}
+            
+            {errors.googleAnalytics && !apiError && (
+              <div className="flex items-center justify-center text-sm text-red-500 mt-2">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                <p>{errors.googleAnalytics}</p>
+              </div>
+            )}
           </div>
           
           {showManualTrafficFields && (
@@ -320,7 +313,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
             <Button 
               type="submit" 
               className={`${onReset ? 'w-3/4' : 'w-full'} gradient-bg text-xl py-6`}
-              disabled={isCalculating}
+              disabled={isCalculating || (!isGAConnected && !apiError)}
             >
               {isCalculating ? "Connecting to API..." : "Calculate My Missing Leads"}
             </Button>
