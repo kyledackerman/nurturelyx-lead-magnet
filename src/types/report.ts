@@ -1,4 +1,6 @@
 
+import { MonthlyRevenueData } from "@/services/apiService";
+
 export interface FormData {
   domain: string;
   monthlyVisitors: number;
@@ -19,6 +21,7 @@ export interface ReportData extends FormData, ApiData {
   missedLeads: number;
   monthlyRevenueLost: number;
   yearlyRevenueLost: number;
+  monthlyRevenueData: MonthlyRevenueData[];
 }
 
 export const industries = [

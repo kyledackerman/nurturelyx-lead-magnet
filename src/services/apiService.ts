@@ -1,5 +1,6 @@
 
 import { ApiData } from "@/types/report";
+import { toast } from "sonner";
 
 // SearchAtlas API key (public key for the demo)
 const SEARCH_ATLAS_API_KEY = "ce26ade2b8adac45db89c62c438d0a31";
@@ -7,6 +8,8 @@ const SEARCH_ATLAS_API_KEY = "ce26ade2b8adac45db89c62c438d0a31";
 // Make a real API call to SearchAtlas
 export const fetchDomainData = async (domain: string, industry: string): Promise<ApiData> => {
   console.log(`Using SearchAtlas API key: ${SEARCH_ATLAS_API_KEY} to fetch data for ${domain}`);
+  
+  toast.loading(`Fetching data for ${domain}...`);
   
   try {
     // For demo purposes, we're using a proxy to avoid CORS issues
@@ -25,8 +28,10 @@ export const fetchDomainData = async (domain: string, industry: string): Promise
     let data;
     try {
       data = JSON.parse(result.contents);
+      toast.success(`Successfully retrieved data for ${domain}`);
     } catch (e) {
       console.error("Failed to parse API response:", e);
+      toast.error(`Error parsing data for ${domain}`);
       // Fall back to generated data if parsing fails
       return generateFallbackData(domain, industry);
     }
@@ -42,6 +47,7 @@ export const fetchDomainData = async (domain: string, industry: string): Promise
     };
   } catch (error) {
     console.error("Error fetching SearchAtlas data:", error);
+    toast.error(`Error fetching data for ${domain}`);
     // Fall back to generated data if the API call fails
     return generateFallbackData(domain, industry);
   }
@@ -50,6 +56,8 @@ export const fetchDomainData = async (domain: string, industry: string): Promise
 // Fallback data generator in case the API call fails
 const generateFallbackData = (domain: string, industry: string): ApiData => {
   console.log("Using fallback data generation for", domain);
+  toast.warning(`Using generated data for ${domain}`);
+  
   const domainLength = domain.length;
   const industryFactor = getIndustryFactor(industry);
   
@@ -87,15 +95,48 @@ const getIndustryFactor = (industry: string): number => {
 export const calculateReportMetrics = (
   monthlyVisitors: number,
   avgTransactionValue: number
-): { missedLeads: number; monthlyRevenueLost: number; yearlyRevenueLost: number } => {
+): { missedLeads: number; monthlyRevenueLost: number; yearlyRevenueLost: number; monthlyRevenueData: MonthlyRevenueData[] } => {
   const conversionRate = 0.2; // 20% capture rate
   const missedLeads = Math.floor(monthlyVisitors * conversionRate);
   const monthlyRevenueLost = missedLeads * avgTransactionValue;
   const yearlyRevenueLost = monthlyRevenueLost * 12;
   
+  // Generate 6 months of historical data
+  const today = new Date();
+  const monthlyRevenueData: MonthlyRevenueData[] = [];
+  
+  let totalRevenueLost = 0;
+  
+  for (let i = 5; i >= 0; i--) {
+    const monthDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const month = monthDate.toLocaleString('default', { month: 'short' });
+    const year = monthDate.getFullYear();
+    
+    // Add a little randomness to the data for each month (80-120% of base value)
+    const variationFactor = 0.8 + (Math.random() * 0.4);
+    const monthRevenue = Math.floor(monthlyRevenueLost * variationFactor);
+    
+    totalRevenueLost += monthRevenue;
+    
+    monthlyRevenueData.push({
+      month,
+      year,
+      revenueLost: monthRevenue,
+      leads: Math.floor(missedLeads * variationFactor)
+    });
+  }
+  
   return {
     missedLeads,
     monthlyRevenueLost,
-    yearlyRevenueLost
+    yearlyRevenueLost,
+    monthlyRevenueData
   };
 };
+
+export interface MonthlyRevenueData {
+  month: string;
+  year: number;
+  revenueLost: number;
+  leads: number;
+}
