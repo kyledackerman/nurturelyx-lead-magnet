@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormData, industries } from "@/types/report";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Info } from "lucide-react";
 
 interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
@@ -99,6 +99,10 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
                 <p>{errors.domain}</p>
               </div>
             )}
+            <p className="text-xs text-gray-400 mt-1 flex items-center">
+              <Info className="h-3 w-3 mr-1 text-accent" />
+              We'll fetch your organic traffic data from SearchAtlas API
+            </p>
           </div>
           
           <div className="space-y-2">
@@ -118,8 +122,9 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
                 <p>{errors.monthlyVisitors}</p>
               </div>
             ) : (
-              <p className="text-xs text-gray-400 mt-1">
-                We'll combine this with your organic traffic from SearchAtlas API
+              <p className="text-xs text-gray-400 mt-1 flex items-center">
+                <Info className="h-3 w-3 mr-1 text-accent" />
+                Enter 0 if you don't have paid traffic - we'll use organic data only
               </p>
             )}
           </div>
@@ -168,12 +173,26 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
             )}
           </div>
           
+          <div className="bg-secondary/50 p-4 rounded-lg border border-border mt-2">
+            <div className="flex items-start gap-3">
+              <div className="mt-1 bg-accent/10 p-1 rounded-full">
+                <Info className="h-4 w-4 text-accent" />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-foreground mb-1">How We Calculate Results</h3>
+                <p className="text-xs text-gray-400">
+                  We analyze both your organic traffic (from SearchAtlas API) and your paid traffic (entered above) to identify up to 20% of total visitors that could be converted into leads.
+                </p>
+              </div>
+            </div>
+          </div>
+          
           <Button 
             type="submit" 
             className="w-full gradient-bg"
             disabled={isCalculating}
           >
-            {isCalculating ? "Calculating..." : "Calculate My Missing Leads"}
+            {isCalculating ? "Connecting to API..." : "Calculate My Missing Leads"}
           </Button>
           
           <p className="text-xs text-center text-gray-400 mt-2">

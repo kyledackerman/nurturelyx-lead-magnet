@@ -6,24 +6,39 @@ import LeadCalculatorForm from "@/components/LeadCalculatorForm";
 import LeadReport from "@/components/LeadReport";
 import { FormData, ReportData } from "@/types/report";
 import { fetchDomainData, calculateReportMetrics } from "@/services/apiService";
-import { ArrowRight, LineChart, Users, Zap } from "lucide-react";
+import { ArrowRight, LineChart, Users, Zap, Loader2 } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 const Index = () => {
   const [isCalculating, setIsCalculating] = useState(false);
+  const [calculationProgress, setCalculationProgress] = useState(0);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   
   const handleCalculate = async (formData: FormData) => {
     setIsCalculating(true);
     setApiError(null);
+    setCalculationProgress(0);
+    
+    // Start progress simulation
+    const progressInterval = setInterval(() => {
+      setCalculationProgress(prev => {
+        // Don't go past 90% until we're done with API calls
+        if (prev < 90) return prev + Math.random() * 15;
+        return prev;
+      });
+    }, 500);
     
     try {
       // Fetch domain data from API
       const apiData = await fetchDomainData(formData.domain, formData.industry);
+      
+      // Move progress to 95%
+      setCalculationProgress(95);
       
       // Calculate the report metrics using both paid and organic traffic
       const metrics = calculateReportMetrics(
@@ -39,15 +54,18 @@ const Index = () => {
         ...metrics
       };
       
-      // Add a small delay to show loading state (can be removed in production)
+      // Final progress and set data
+      setCalculationProgress(100);
       setTimeout(() => {
         setReportData(fullReportData);
         setIsCalculating(false);
-      }, 800);
+        clearInterval(progressInterval);
+      }, 500);
     } catch (error) {
       console.error("Error calculating report:", error);
       setApiError(error instanceof Error ? error.message : "Unknown error occurred");
       setIsCalculating(false);
+      clearInterval(progressInterval);
     }
   };
   
@@ -65,7 +83,27 @@ const Index = () => {
         {isCalculating ? (
           <div className="container mx-auto px-4 py-16">
             <div className="max-w-4xl mx-auto">
-              <div className="space-y-6">
+              <div className="text-center mb-8">
+                <Loader2 className="h-12 w-12 animate-spin text-accent mx-auto mb-4" />
+                <h2 className="text-2xl font-bold mb-2">Processing your domain data...</h2>
+                <p className="text-gray-400 mb-6">
+                  We're connecting to SearchAtlas API to analyze your website domain.
+                  This usually takes around 30 seconds.
+                </p>
+                
+                <div className="w-full max-w-md mx-auto mb-4">
+                  <Progress value={calculationProgress} className="h-2" />
+                </div>
+                
+                <p className="text-sm text-gray-500">
+                  {calculationProgress < 30 && "Initializing search..."}
+                  {calculationProgress >= 30 && calculationProgress < 60 && "Fetching domain statistics..."}
+                  {calculationProgress >= 60 && calculationProgress < 90 && "Analyzing organic traffic data..."}
+                  {calculationProgress >= 90 && "Calculating opportunity metrics..."}
+                </p>
+              </div>
+              
+              <div className="space-y-6 animate-pulse">
                 <Skeleton className="h-8 w-3/4 mx-auto mb-4" />
                 <Skeleton className="h-4 w-1/2 mx-auto mb-8" />
                 

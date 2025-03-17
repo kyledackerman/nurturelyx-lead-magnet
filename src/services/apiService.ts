@@ -9,7 +9,9 @@ const SEARCH_ATLAS_API_KEY = "ce26ade2b8adac45db89c62c438d0a31";
 export const fetchDomainData = async (domain: string, industry: string): Promise<ApiData> => {
   console.log(`Using SearchAtlas API key: ${SEARCH_ATLAS_API_KEY} to fetch data for ${domain}`);
   
-  const toastId = toast.loading(`Fetching data for ${domain}...`);
+  const toastId = toast.loading(`Fetching data for ${domain}...`, {
+    description: "Connecting to SearchAtlas API. This may take a moment..."
+  });
   
   try {
     // For demo purposes, we're using a proxy to avoid CORS issues
@@ -20,21 +22,56 @@ export const fetchDomainData = async (domain: string, industry: string): Promise
     if (!response.ok) {
       const errorMessage = `SearchAtlas API error: ${response.status} ${response.statusText}`;
       console.error(errorMessage);
-      toast.error(errorMessage, { id: toastId });
+      toast.error(errorMessage, { 
+        id: toastId,
+        description: "Try again or check your domain spelling."
+      });
       throw new Error(errorMessage);
     }
     
+    // Create artificial delay to simulate real API response time (remove in production)
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
     const result = await response.json();
     console.log("SearchAtlas API response:", result);
+    
+    // Check if we got an actual result or an error message
+    if (result.status && result.status.http_code >= 400) {
+      const errorMessage = `SearchAtlas API error: ${result.status.http_code} - ${result.status.message || "Unknown error"}`;
+      console.error(errorMessage);
+      toast.error(errorMessage, { 
+        id: toastId,
+        description: "Using generated fallback data."
+      });
+      return generateFallbackData(domain, industry);
+    }
     
     // Parse the response content
     let data;
     try {
       data = JSON.parse(result.contents);
-      toast.success(`Successfully retrieved data for ${domain}`, { id: toastId });
+      
+      // Check if SearchAtlas returned an error message in their response
+      if (data.error || (data.status && data.status.http_code >= 400)) {
+        const errorMsg = data.error || data.status?.message || "Unknown API error";
+        console.error("SearchAtlas API returned an error:", errorMsg);
+        toast.error(`SearchAtlas API error: ${errorMsg}`, { 
+          id: toastId,
+          description: "Using generated fallback data as an estimate."
+        });
+        return generateFallbackData(domain, industry);
+      }
+      
+      toast.success(`Successfully retrieved data for ${domain}`, { 
+        id: toastId,
+        description: "Data has been fetched from SearchAtlas."
+      });
     } catch (e) {
       console.error("Failed to parse API response:", e);
-      toast.error(`Error parsing data for ${domain}. Using generated fallback data.`, { id: toastId });
+      toast.error(`Error parsing data for ${domain}`, { 
+        id: toastId,
+        description: "Using generated fallback data as an estimate."
+      });
       // Fall back to generated data if parsing fails
       return generateFallbackData(domain, industry);
     }
@@ -48,7 +85,10 @@ export const fetchDomainData = async (domain: string, industry: string): Promise
     };
   } catch (error) {
     console.error("Error fetching SearchAtlas data:", error);
-    toast.error(`Error fetching data for ${domain}. Using generated fallback data.`, { id: toastId });
+    toast.error(`Error fetching data for ${domain}`, { 
+      id: toastId,
+      description: "Using generated fallback data as an estimate."
+    });
     // Fall back to generated data if the API call fails
     return generateFallbackData(domain, industry);
   }
