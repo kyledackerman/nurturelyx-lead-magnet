@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,7 +9,8 @@ import {
   Users, 
   ShoppingCart,
   HelpCircle,
-  Info
+  Info,
+  Check
 } from "lucide-react";
 import MonthlyRevenueTable from "./MonthlyRevenueTable";
 
@@ -259,4 +261,3 @@ const LeadReport = ({ data, onReset }: LeadReportProps) => {
 };
 
 export default LeadReport;
-
