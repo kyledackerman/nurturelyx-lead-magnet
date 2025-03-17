@@ -12,15 +12,16 @@ interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
   isCalculating: boolean;
   initialData?: FormData | null;
+  apiError?: string | null;
 }
 
-const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData }: LeadCalculatorFormProps) => {
+const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData, apiError }: LeadCalculatorFormProps) => {
   const [formData, setFormData] = useState<FormData>({
     domain: "",
     monthlyVisitors: 1000,
     organicTrafficManual: 0,
-    isUnsureOrganic: false,
-    isUnsurePaid: false,
+    isUnsureOrganic: true,
+    isUnsurePaid: true,
     avgTransactionValue: 500,
   });
   
@@ -58,11 +59,11 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData }: LeadCal
       newErrors.domain = "Please enter a valid domain (e.g., example.com)";
     }
     
-    if (formData.isUnsurePaid === false && (formData.monthlyVisitors === undefined || formData.monthlyVisitors < 0)) {
+    if (apiError && formData.isUnsurePaid === false && (formData.monthlyVisitors === undefined || formData.monthlyVisitors < 0)) {
       newErrors.monthlyVisitors = "Please enter a valid number of monthly paid visitors";
     }
     
-    if (formData.isUnsureOrganic === false && (formData.organicTrafficManual === undefined || formData.organicTrafficManual < 0)) {
+    if (apiError && formData.isUnsureOrganic === false && (formData.organicTrafficManual === undefined || formData.organicTrafficManual < 0)) {
       newErrors.organicTrafficManual = "Please enter a valid number of monthly organic visitors";
     }
     
@@ -81,6 +82,9 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData }: LeadCal
       onCalculate(formData);
     }
   };
+
+  // Only show manual traffic fields if API error occurred
+  const showManualTrafficFields = !!apiError;
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
@@ -115,85 +119,89 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData }: LeadCal
             </p>
           </div>
           
-          <div className="space-y-2">
-            <div>
-              <Label htmlFor="organicTrafficManual" className="text-lg">Monthly Organic Visitors</Label>
-              <div className="flex items-center space-x-2 mt-1">
-                <Checkbox 
-                  id="isUnsureOrganic" 
-                  checked={formData.isUnsureOrganic}
-                  onCheckedChange={(checked) => {
-                    handleChange("isUnsureOrganic", checked === true);
-                  }}
+          {showManualTrafficFields && (
+            <>
+              <div className="space-y-2">
+                <div>
+                  <Label htmlFor="organicTrafficManual" className="text-lg">Monthly Organic Visitors</Label>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Checkbox 
+                      id="isUnsureOrganic" 
+                      checked={formData.isUnsureOrganic}
+                      onCheckedChange={(checked) => {
+                        handleChange("isUnsureOrganic", checked === true);
+                      }}
+                    />
+                    <label htmlFor="isUnsureOrganic" className="text-sm text-gray-400 cursor-pointer">
+                      I'm not sure (we'll try to fetch this data for you)
+                    </label>
+                  </div>
+                </div>
+                
+                <Input
+                  id="organicTrafficManual"
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={formData.isUnsureOrganic ? "" : formData.organicTrafficManual}
+                  onChange={(e) => handleChange("organicTrafficManual", parseInt(e.target.value) || 0)}
+                  className={errors.organicTrafficManual ? "border-red-500" : ""}
+                  disabled={formData.isUnsureOrganic}
                 />
-                <label htmlFor="isUnsureOrganic" className="text-sm text-gray-400 cursor-pointer">
-                  I'm not sure (we'll try to fetch this data for you)
-                </label>
+                {errors.organicTrafficManual ? (
+                  <div className="flex items-center text-sm text-red-500 mt-1">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    <p>{errors.organicTrafficManual}</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 mt-1 flex items-center">
+                    <Info className="h-3 w-3 mr-1 text-accent" />
+                    This is your estimated monthly organic search traffic
+                  </p>
+                )}
               </div>
-            </div>
-            
-            <Input
-              id="organicTrafficManual"
-              type="number"
-              min="0"
-              placeholder="0"
-              value={formData.isUnsureOrganic ? "" : formData.organicTrafficManual}
-              onChange={(e) => handleChange("organicTrafficManual", parseInt(e.target.value) || 0)}
-              className={errors.organicTrafficManual ? "border-red-500" : ""}
-              disabled={formData.isUnsureOrganic}
-            />
-            {errors.organicTrafficManual ? (
-              <div className="flex items-center text-sm text-red-500 mt-1">
-                <AlertCircle className="h-4 w-4 mr-1" />
-                <p>{errors.organicTrafficManual}</p>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-400 mt-1 flex items-center">
-                <Info className="h-3 w-3 mr-1 text-accent" />
-                This is your estimated monthly organic search traffic
-              </p>
-            )}
-          </div>
-          
-          <div className="space-y-2">
-            <div>
-              <Label htmlFor="monthlyVisitors" className="text-lg">Monthly Paid Visitors</Label>
-              <div className="flex items-center space-x-2 mt-1">
-                <Checkbox 
-                  id="isUnsurePaid" 
-                  checked={formData.isUnsurePaid}
-                  onCheckedChange={(checked) => {
-                    handleChange("isUnsurePaid", checked === true);
-                  }}
+              
+              <div className="space-y-2">
+                <div>
+                  <Label htmlFor="monthlyVisitors" className="text-lg">Monthly Paid Visitors</Label>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Checkbox 
+                      id="isUnsurePaid" 
+                      checked={formData.isUnsurePaid}
+                      onCheckedChange={(checked) => {
+                        handleChange("isUnsurePaid", checked === true);
+                      }}
+                    />
+                    <label htmlFor="isUnsurePaid" className="text-sm text-gray-400 cursor-pointer">
+                      I'm not sure (enter 0 if you don't run paid campaigns)
+                    </label>
+                  </div>
+                </div>
+                
+                <Input
+                  id="monthlyVisitors"
+                  type="number"
+                  min="0"
+                  placeholder="1000"
+                  value={formData.isUnsurePaid ? "" : formData.monthlyVisitors}
+                  onChange={(e) => handleChange("monthlyVisitors", parseInt(e.target.value) || 0)}
+                  className={errors.monthlyVisitors ? "border-red-500" : ""}
+                  disabled={formData.isUnsurePaid}
                 />
-                <label htmlFor="isUnsurePaid" className="text-sm text-gray-400 cursor-pointer">
-                  I'm not sure (enter 0 if you don't run paid campaigns)
-                </label>
+                {errors.monthlyVisitors ? (
+                  <div className="flex items-center text-sm text-red-500 mt-1">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    <p>{errors.monthlyVisitors}</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 mt-1 flex items-center">
+                    <Info className="h-3 w-3 mr-1 text-accent" />
+                    This is your estimated monthly paid traffic from all sources
+                  </p>
+                )}
               </div>
-            </div>
-            
-            <Input
-              id="monthlyVisitors"
-              type="number"
-              min="0"
-              placeholder="1000"
-              value={formData.isUnsurePaid ? "" : formData.monthlyVisitors}
-              onChange={(e) => handleChange("monthlyVisitors", parseInt(e.target.value) || 0)}
-              className={errors.monthlyVisitors ? "border-red-500" : ""}
-              disabled={formData.isUnsurePaid}
-            />
-            {errors.monthlyVisitors ? (
-              <div className="flex items-center text-sm text-red-500 mt-1">
-                <AlertCircle className="h-4 w-4 mr-1" />
-                <p>{errors.monthlyVisitors}</p>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-400 mt-1 flex items-center">
-                <Info className="h-3 w-3 mr-1 text-accent" />
-                This is your estimated monthly paid traffic from all sources
-              </p>
-            )}
-          </div>
+            </>
+          )}
           
           <div className="space-y-2">
             <Label htmlFor="avgTransactionValue" className="text-lg">Average Transaction Value ($)</Label>
@@ -219,6 +227,19 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData }: LeadCal
               </p>
             </div>
           </div>
+          
+          {apiError && (
+            <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-sm">
+              <h3 className="font-semibold text-red-500 flex items-center mb-2">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                API Connection Error
+              </h3>
+              <p className="text-gray-400">
+                We couldn't connect to the SearchAtlas API to fetch your traffic data. Please enter your traffic numbers manually to continue.
+              </p>
+              <p className="text-gray-500 mt-2 text-xs">{apiError}</p>
+            </div>
+          )}
           
           <div className="bg-secondary/50 p-4 rounded-lg border border-border mt-2">
             <div className="flex items-start gap-3">

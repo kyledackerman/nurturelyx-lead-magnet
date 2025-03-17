@@ -1,4 +1,3 @@
-
 import { ApiData } from "@/types/report";
 import { toast } from "sonner";
 
@@ -131,8 +130,8 @@ export const fetchDomainData = async (domain: string, organicTrafficManual?: num
     return apiData;
   }
   
-  // If all API attempts failed but user provided organic traffic manually
-  if (organicTrafficManual !== undefined && organicTrafficManual >= 0) {
+  // If all API attempts failed and user is not unsure about organic traffic
+  if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual >= 0) {
     // Use manual data as fallback
     console.log("Using manual data as fallback after API failure");
     
@@ -150,32 +149,13 @@ export const fetchDomainData = async (domain: string, organicTrafficManual?: num
     };
   }
   
-  // If all API attempts failed and no manual data, generate industry estimates but clearly mark as such
-  if (isUnsureOrganic || !organicTrafficManual) {
-    toast.warning(`Using industry estimates for ${domain}`, { 
-      id: toastId, 
-      description: "We couldn't connect to the API and you didn't provide organic traffic data."
-    });
-    
-    // Create industry estimates based on domain characteristics
-    const estimatedTraffic = Math.floor(1000 + (domain.length * 200));
-    
-    return {
-      organicKeywords: Math.floor(estimatedTraffic * 0.3),
-      organicTraffic: estimatedTraffic,
-      domainPower: Math.min(95, Math.floor(40 + (domain.length * 2))),
-      backlinks: Math.floor(estimatedTraffic * 0.5),
-      dataSource: 'fallback'
-    };
-  }
-  
-  // This is a complete failure case - API failed and no manual data
+  // If all API attempts failed, throw an error - we need manual input
   toast.error(`Failed to generate report for ${domain}`, { 
     id: toastId, 
-    description: "Please try again with manual traffic data."
+    description: "Please enter your traffic data manually to continue."
   });
   
-  throw new Error(`Could not retrieve data for ${domain}. Please enter your organic traffic manually.`);
+  throw new Error(`Could not retrieve data for ${domain}. Please enter your traffic data manually.`);
 };
 
 // Helper function to map API response to our data structure
@@ -212,22 +192,34 @@ export const calculateReportMetrics = (
   const monthlyRevenueLost = estimatedSalesLost * avgTransactionValue;
   const yearlyRevenueLost = monthlyRevenueLost * 12;
   
-  // Generate 6 months of historical data
+  // Generate 6 months of historical data with 20% overall growth
   const today = new Date();
   const monthlyRevenueData: MonthlyRevenueData[] = [];
+  
+  // Calculate base values and growth factors
+  const currentVisitors = totalTraffic;
+  const growthRatio = Math.pow(0.8, 1/5); // To achieve 20% decline from current to 6 months ago
   
   for (let i = 5; i >= 0; i--) {
     const monthDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
     const month = monthDate.toLocaleString('default', { month: 'short' });
     const year = monthDate.getFullYear();
     
-    // Add a little randomness to the data for each month (80-120% of base value)
-    const variationFactor = 0.8 + (Math.random() * 0.4);
+    // Calculate growth factor for this month (earlier months have lower values)
+    const monthGrowthFactor = Math.pow(growthRatio, i);
     
-    // Calculate monthly metrics with variation
-    const monthOrganic = Math.floor(organicTraffic * variationFactor);
-    const monthPaid = Math.floor(monthlyVisitors * variationFactor);
-    const monthTotalVisitors = monthOrganic + monthPaid;
+    // Add a little randomness to the data for each month (95-105% variation)
+    const randomVariation = 0.95 + (Math.random() * 0.1);
+    
+    // Apply growth factor and random variation
+    const monthTotalVisitors = Math.floor(currentVisitors * monthGrowthFactor * randomVariation);
+    
+    // Split between organic and paid with some variation
+    const organicRatio = Math.random() * 0.1 + 0.65; // Between 65-75% organic
+    const monthOrganic = Math.floor(monthTotalVisitors * organicRatio);
+    const monthPaid = monthTotalVisitors - monthOrganic;
+    
+    // Calculate derived metrics
     const monthLeads = Math.floor(monthTotalVisitors * visitorIdentificationRate);
     const monthSales = Math.floor(monthLeads * salesConversionRate);
     const monthRevenue = monthSales * avgTransactionValue;

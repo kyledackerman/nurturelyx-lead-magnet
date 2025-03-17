@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReportData } from "@/types/report";
-import { DollarSign, Users, ShoppingCart, Check, AlertTriangle, Info, Edit } from "lucide-react";
+import { DollarSign, Users, ShoppingCart, Check, AlertTriangle, Info, Edit, Printer } from "lucide-react";
 import MonthlyRevenueTable from "./MonthlyRevenueTable";
 import StatCard from "./report/StatCard";
 import MethodologyCard from "./report/MethodologyCard";
@@ -20,6 +20,20 @@ const formatCurrency = (value: number): string => {
     currency: 'USD',
     maximumFractionDigits: 0
   }).format(value);
+};
+
+// Function to handle printing the report
+const handlePrintReport = () => {
+  // Add a custom class to the body for print styling
+  document.body.classList.add('printing-report');
+  
+  // Trigger the print dialog
+  window.print();
+  
+  // Remove the class after printing
+  setTimeout(() => {
+    document.body.classList.remove('printing-report');
+  }, 1000);
 };
 
 // Changelog component to display latest report changes
@@ -84,13 +98,10 @@ const Changelog = ({ reportData }: { reportData: ReportData }) => {
 
 const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 animate-fade-in">
-      {/* Changelog */}
-      <Changelog reportData={data} />
-      
-      {/* Edit Data Button */}
-      {onEditData && (
-        <div className="flex justify-end">
+    <div className="w-full max-w-6xl mx-auto space-y-8 animate-fade-in" id="leadReport">
+      {/* Top action buttons */}
+      <div className="flex justify-between flex-wrap gap-4">
+        {onEditData && (
           <Button 
             variant="outline" 
             onClick={onEditData} 
@@ -99,8 +110,20 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
             <Edit size={16} />
             My Information Isn't Right
           </Button>
-        </div>
-      )}
+        )}
+        
+        <Button
+          variant="outline"
+          onClick={handlePrintReport}
+          className="flex items-center gap-2 ml-auto"
+        >
+          <Printer size={16} />
+          Save as PDF
+        </Button>
+      </div>
+      
+      {/* Changelog */}
+      <Changelog reportData={data} />
       
       {/* Top Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
@@ -157,6 +180,30 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
           Start a New Calculation
         </Button>
       </div>
+      
+      {/* Add print-specific styles */}
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          
+          #leadReport, #leadReport * {
+            visibility: visible;
+          }
+          
+          #leadReport {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+          
+          button {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

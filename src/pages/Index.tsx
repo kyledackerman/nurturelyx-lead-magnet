@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -90,7 +91,7 @@ const Index = () => {
       clearInterval(progressInterval);
       
       toast.error("Failed to generate report", {
-        description: errorMsg,
+        description: "Please provide your traffic data manually to continue.",
         duration: 8000,
       });
     }
@@ -209,6 +210,7 @@ const Index = () => {
                   onCalculate={handleCalculate} 
                   isCalculating={isCalculating} 
                   initialData={formDataCache}
+                  apiError={apiError}
                 />
               </div>
             </section>
