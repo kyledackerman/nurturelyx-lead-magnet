@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReportData } from "@/types/report";
-import { DollarSign, Users, ShoppingCart, Check, AlertTriangle, Info, Edit, Printer } from "lucide-react";
+import { DollarSign, Users, ShoppingCart, Check, AlertTriangle, Info, Edit, Printer, RefreshCw } from "lucide-react";
 import MonthlyRevenueTable from "./MonthlyRevenueTable";
 import StatCard from "./report/StatCard";
 import MethodologyCard from "./report/MethodologyCard";
@@ -112,14 +112,25 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
           </Button>
         )}
         
-        <Button
-          variant="outline"
-          onClick={handlePrintReport}
-          className="flex items-center gap-2 ml-auto"
-        >
-          <Printer size={16} />
-          Save as PDF
-        </Button>
+        <div className="flex gap-2 ml-auto">
+          <Button
+            variant="outline"
+            onClick={onReset}
+            className="flex items-center gap-2 border-accent text-accent hover:bg-accent/10"
+          >
+            <RefreshCw size={16} />
+            Restart
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={handlePrintReport}
+            className="flex items-center gap-2"
+          >
+            <Printer size={16} />
+            Save as PDF
+          </Button>
+        </div>
       </div>
       
       {/* Changelog */}
@@ -175,11 +186,7 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
       {/* Information and Charts */}
       <ReportTabs data={data} />
       
-      <div className="flex justify-center mt-8">
-        <Button variant="outline" onClick={onReset} className="border-accent text-accent hover:text-accent">
-          Start a New Calculation
-        </Button>
-      </div>
+      {/* We're removing the bottom button since we already have a Restart button at the top now */}
       
       {/* Add print-specific styles */}
       <style dangerouslySetInnerHTML={{ __html: `

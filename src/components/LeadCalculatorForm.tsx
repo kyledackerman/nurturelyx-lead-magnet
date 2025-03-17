@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -5,16 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormData } from "@/types/report";
-import { AlertCircle, Info, DollarSign } from "lucide-react";
+import { AlertCircle, Info, DollarSign, RefreshCw } from "lucide-react";
 
 interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
+  onReset?: () => void;
   isCalculating: boolean;
   initialData?: FormData | null;
   apiError?: string | null;
 }
 
-const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData, apiError }: LeadCalculatorFormProps) => {
+const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, apiError }: LeadCalculatorFormProps) => {
   const [formData, setFormData] = useState<FormData>({
     domain: "",
     monthlyVisitors: 1000,
@@ -85,12 +87,27 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData, apiError 
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">
-          Calculate Your Missing Lead Opportunity
-        </CardTitle>
-        <CardDescription className="text-center">
-          Enter your website details to discover how many leads you're missing
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-2xl font-bold text-center">
+              Calculate Your Missing Lead Opportunity
+            </CardTitle>
+            <CardDescription className="text-center">
+              Enter your website details to discover how many leads you're missing
+            </CardDescription>
+          </div>
+          {onReset && (
+            <Button 
+              variant="outline" 
+              onClick={onReset}
+              className="flex items-center gap-2 border-accent text-accent hover:bg-accent/10"
+              type="button"
+            >
+              <RefreshCw size={16} />
+              Restart
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -251,13 +268,27 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating, initialData, apiError 
             </div>
           </div>
           
-          <Button 
-            type="submit" 
-            className="w-full gradient-bg text-xl py-6"
-            disabled={isCalculating}
-          >
-            {isCalculating ? "Connecting to API..." : "Calculate My Missing Leads"}
-          </Button>
+          <div className="flex gap-4">
+            {onReset && (
+              <Button 
+                type="button" 
+                variant="outline"
+                className="flex items-center gap-2 w-1/4 border-accent text-accent hover:bg-accent/10"
+                onClick={onReset}
+              >
+                <RefreshCw size={16} />
+                Restart
+              </Button>
+            )}
+            
+            <Button 
+              type="submit" 
+              className={`${onReset ? 'w-3/4' : 'w-full'} gradient-bg text-xl py-6`}
+              disabled={isCalculating}
+            >
+              {isCalculating ? "Connecting to API..." : "Calculate My Missing Leads"}
+            </Button>
+          </div>
           
           <p className="text-xs text-center text-gray-400 mt-2">
             We identify 20% of your combined organic and paid traffic

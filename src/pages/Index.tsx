@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -5,13 +6,14 @@ import LeadCalculatorForm from "@/components/LeadCalculatorForm";
 import LeadReport from "@/components/LeadReport";
 import { FormData, ReportData } from "@/types/report";
 import { fetchDomainData, calculateReportMetrics } from "@/services/apiService";
-import { ArrowRight, LineChart, Users, Zap, Loader2 } from "lucide-react";
+import { ArrowRight, LineChart, Users, Zap, Loader2, RefreshCw } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [isCalculating, setIsCalculating] = useState(false);
@@ -100,6 +102,9 @@ const Index = () => {
     setReportData(null);
     setApiError(null);
     setFormDataCache(null);
+    toast.success("All data cleared. You can start fresh!", {
+      duration: 3000,
+    });
   };
   
   const handleEditData = () => {
@@ -154,6 +159,17 @@ const Index = () => {
                 
                 <Skeleton className="h-64 mt-8" />
                 <Skeleton className="h-40 mt-8" />
+              </div>
+              
+              <div className="text-center mt-12">
+                <Button 
+                  variant="outline" 
+                  onClick={handleReset}
+                  className="flex items-center gap-2 border-accent text-accent hover:bg-accent/10"
+                >
+                  <RefreshCw size={16} />
+                  Restart Calculation
+                </Button>
               </div>
             </div>
           </div>
@@ -210,6 +226,7 @@ const Index = () => {
                 )}
                 <LeadCalculatorForm 
                   onCalculate={handleCalculate} 
+                  onReset={handleReset}
                   isCalculating={isCalculating} 
                   initialData={formDataCache}
                   apiError={apiError}
