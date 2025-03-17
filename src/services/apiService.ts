@@ -1,3 +1,4 @@
+
 import { ApiData } from "@/types/report";
 import { toast } from "sonner";
 
@@ -5,6 +6,30 @@ import { toast } from "sonner";
 const GOOGLE_ANALYTICS_CLIENT_ID = "526234754484-83dp9h4prub4l9qoao4kaikef5s91kig.apps.googleusercontent.com";
 const GOOGLE_ANALYTICS_API_SCOPE = "https://www.googleapis.com/auth/analytics.readonly";
 const GOOGLE_ANALYTICS_REDIRECT_URI = window.location.origin + "/auth/callback";
+
+// Mock domain list for demonstration
+const MOCK_DOMAINS = [
+  "example.com",
+  "yourbusiness.org", 
+  "yourstore.net",
+  "yourcompany.io"
+];
+
+// Function to get available domains from Google Analytics
+export const getAvailableDomains = async (): Promise<string[]> => {
+  // Check if we have a token
+  const hasToken = !!sessionStorage.getItem('google_analytics_token');
+  
+  if (!hasToken) {
+    throw new Error("Not authenticated with Google Analytics");
+  }
+  
+  // In a real implementation, you would call the Google Analytics API to get the domains
+  // For demonstration, we'll simulate an API call with a delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  return MOCK_DOMAINS;
+};
 
 // Mock API response for development until OAuth flow is fully implemented
 export const fetchDomainData = async (domain: string, organicTrafficManual?: number, isUnsureOrganic?: boolean): Promise<ApiData> => {

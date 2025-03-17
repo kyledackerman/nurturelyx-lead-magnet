@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormData } from "@/types/report";
-import { AlertCircle, Info, DollarSign, RefreshCw, BarChart } from "lucide-react";
-import { initiateGoogleAnalyticsAuth } from "@/services/apiService";
+import { AlertCircle, Info, DollarSign, RefreshCw, BarChart, CheckCircle } from "lucide-react";
+import { initiateGoogleAnalyticsAuth, getAvailableDomains } from "@/services/apiService";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
@@ -30,6 +32,9 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isGAConnected, setIsGAConnected] = useState<boolean>(false);
+  const [availableDomains, setAvailableDomains] = useState<string[]>([]);
+  const [selectedDomain, setSelectedDomain] = useState<string>("");
+  const [domainSelected, setDomainSelected] = useState<boolean>(false);
 
   useEffect(() => {
     // Check if we have a Google Analytics token in session storage
@@ -39,7 +44,33 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
     if (initialData) {
       setFormData(initialData);
     }
-  }, [initialData]);
+
+    // If we have a token, fetch available domains
+    if (hasToken && !apiError) {
+      fetchAvailableDomains();
+    }
+  }, [initialData, apiError]);
+
+  const fetchAvailableDomains = async () => {
+    try {
+      // In a real implementation, this would fetch domains from the Google Analytics API
+      const domains = await getAvailableDomains();
+      setAvailableDomains(domains);
+      
+      // If we have domains and no selection yet, select the first one
+      if (domains.length > 0 && !selectedDomain) {
+        setSelectedDomain(domains[0]);
+        toast.success("Connected to Google Analytics", {
+          description: "Please select a domain and enter your average transaction value to continue.",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching domains:", error);
+      toast.error("Failed to fetch domains", {
+        description: "We had trouble retrieving your domains from Google Analytics."
+      });
+    }
+  };
 
   const handleChange = (field: keyof FormData, value: string | number | boolean) => {
     setFormData((prev) => ({
@@ -74,6 +105,10 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
     if (!formData.avgTransactionValue || formData.avgTransactionValue <= 0) {
       newErrors.avgTransactionValue = "Please enter a valid transaction value";
     }
+
+    if (isGAConnected && !apiError && !selectedDomain) {
+      newErrors.domain = "Please select a domain";
+    }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -83,17 +118,35 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
     e.preventDefault();
     
     if (validateForm()) {
-      onCalculate(formData);
+      // Update domain in form data
+      const updatedFormData = {
+        ...formData,
+        domain: selectedDomain
+      };
+      onCalculate(updatedFormData);
+      toast.success("Calculating your report", {
+        description: "Processing your data to generate insights."
+      });
+    } else {
+      // Show toast for validation errors
+      toast.error("Please fix the errors before continuing", {
+        description: "Some required information is missing or invalid."
+      });
     }
   };
   
   const handleConnectGA = () => {
+    toast.loading("Connecting to Google Analytics...");
     initiateGoogleAnalyticsAuth();
-    // In a real implementation, you would have a callback that sets isGAConnected to true
-    // For now, we'll simulate a connection after 2 seconds
-    setTimeout(() => {
-      setIsGAConnected(true);
-    }, 2000);
+    // The callback is handled in the AuthCallback component
+  };
+
+  const handleDomainChange = (domain: string) => {
+    setSelectedDomain(domain);
+    setDomainSelected(true);
+    toast.success(`Domain selected: ${domain}`, {
+      description: "Now please enter your average transaction value to continue."
+    });
   };
 
   // Only show manual traffic fields if Google Analytics connection failed
@@ -127,30 +180,64 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-4">
-            <div className="flex justify-center">
-              <Button 
-                type="button" 
-                variant={isGAConnected ? "outline" : "default"} 
-                className={`flex items-center gap-2 py-6 px-8 w-full max-w-md ${isGAConnected ? 'border-green-500 text-green-500' : 'bg-[#4285F4] hover:bg-[#3367D6] text-white'}`}
-                onClick={handleConnectGA}
-                disabled={isGAConnected}
-              >
-                <BarChart className="h-5 w-5" />
-                {isGAConnected ? 'Connected to Google Analytics' : 'Connect to Google Analytics'}
-              </Button>
-            </div>
+            {!isGAConnected && !apiError && (
+              <div className="flex justify-center">
+                <Button 
+                  type="button" 
+                  variant="default"
+                  className="flex items-center gap-2 py-6 px-8 w-full max-w-md bg-[#4285F4] hover:bg-[#3367D6] text-white"
+                  onClick={handleConnectGA}
+                >
+                  <BarChart className="h-5 w-5" />
+                  Connect to Google Analytics
+                </Button>
+              </div>
+            )}
+            
+            {isGAConnected && !apiError && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-center gap-2 text-green-500">
+                  <CheckCircle className="h-5 w-5" />
+                  <p className="font-medium">Connected to Google Analytics</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="domain-select" className="text-lg">Select Website Domain</Label>
+                  <Select 
+                    value={selectedDomain} 
+                    onValueChange={handleDomainChange}
+                  >
+                    <SelectTrigger id="domain-select" className={errors.domain ? "border-red-300" : ""}>
+                      <SelectValue placeholder="Select a domain" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableDomains.map((domain) => (
+                        <SelectItem key={domain} value={domain}>
+                          {domain}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {errors.domain && (
+                    <div className="flex items-center text-sm text-red-600 mt-1 bg-white p-1 rounded">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      <p>{errors.domain}</p>
+                    </div>
+                  )}
+                  
+                  <p className="text-sm text-gray-400 mt-1 flex items-center">
+                    <Info className="h-3 w-3 mr-1 text-accent" />
+                    We'll analyze this domain's traffic data from Google Analytics
+                  </p>
+                </div>
+              </div>
+            )}
             
             {!isGAConnected && !apiError && (
               <p className="text-sm text-center text-gray-400 mt-2 flex items-center justify-center">
                 <Info className="h-3 w-3 mr-1 text-accent" />
                 Connect to Google Analytics for accurate traffic data
-              </p>
-            )}
-            
-            {isGAConnected && (
-              <p className="text-sm text-center text-green-500 mt-2 flex items-center justify-center">
-                <Info className="h-3 w-3 mr-1" />
-                We'll fetch your organic and paid traffic data from Google Analytics
               </p>
             )}
             
@@ -192,7 +279,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                   disabled={formData.isUnsureOrganic}
                 />
                 {errors.organicTrafficManual ? (
-                  <div className="flex items-center text-sm text-red-600 mt-1 bg-white/80 p-1 rounded">
+                  <div className="flex items-center text-sm text-red-600 mt-1 bg-white p-1 rounded">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     <p>{errors.organicTrafficManual}</p>
                   </div>
@@ -232,7 +319,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                   disabled={formData.isUnsurePaid}
                 />
                 {errors.monthlyVisitors ? (
-                  <div className="flex items-center text-sm text-red-600 mt-1 bg-white/80 p-1 rounded">
+                  <div className="flex items-center text-sm text-red-600 mt-1 bg-white p-1 rounded">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     <p>{errors.monthlyVisitors}</p>
                   </div>
@@ -258,7 +345,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
               className={errors.avgTransactionValue ? "border-red-300" : ""}
             />
             {errors.avgTransactionValue && (
-              <div className="flex items-center text-sm text-red-600 mt-1 bg-white/80 p-1 rounded">
+              <div className="flex items-center text-sm text-red-600 mt-1 bg-white p-1 rounded">
                 <AlertCircle className="h-4 w-4 mr-1" />
                 <p>{errors.avgTransactionValue}</p>
               </div>
@@ -312,7 +399,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
             <Button 
               type="submit" 
               className={`${onReset ? 'w-3/4' : 'w-full'} gradient-bg text-xl py-6`}
-              disabled={isCalculating || (!isGAConnected && !apiError)}
+              disabled={isCalculating || (!isGAConnected && !apiError) || (isGAConnected && !apiError && !selectedDomain) || !formData.avgTransactionValue}
             >
               {isCalculating ? "Connecting to API..." : "Calculate My Missing Leads"}
             </Button>
