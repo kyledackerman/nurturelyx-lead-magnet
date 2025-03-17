@@ -21,7 +21,7 @@ interface LeadCalculatorFormProps {
 const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, apiError }: LeadCalculatorFormProps) => {
   const [formData, setFormData] = useState<FormData>({
     domain: "",
-    monthlyVisitors: 1000,
+    monthlyVisitors: 0,
     organicTrafficManual: 0,
     isUnsureOrganic: false,
     isUnsurePaid: false,
@@ -30,14 +30,25 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [canCalculate, setCanCalculate] = useState<boolean>(false);
-  const [showTrafficFields, setShowTrafficFields] = useState<boolean>(true); // Always show traffic fields now
+  const [showTrafficFields, setShowTrafficFields] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Show traffic fields only when there's an API error
+    setShowTrafficFields(!!apiError);
+  }, [apiError]);
 
   useEffect(() => {
     const domainIsValid = formData.domain.trim().length > 0;
-    const hasRequiredFields = domainIsValid && formData.avgTransactionValue > 0;
+    
+    // Require traffic fields only if we're showing them (API failed)
+    const hasRequiredTraffic = !showTrafficFields || 
+      (formData.isUnsurePaid || formData.monthlyVisitors > 0) && 
+      (formData.isUnsureOrganic || formData.organicTrafficManual > 0);
+    
+    const hasRequiredFields = domainIsValid && formData.avgTransactionValue > 0 && hasRequiredTraffic;
     
     setCanCalculate(hasRequiredFields);
-  }, [formData]);
+  }, [formData, showTrafficFields]);
 
   useEffect(() => {
     if (initialData) {
@@ -67,12 +78,15 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
       newErrors.domain = "Please enter a valid domain";
     }
     
-    if (formData.isUnsurePaid === false && (formData.monthlyVisitors === undefined || formData.monthlyVisitors < 0)) {
-      newErrors.monthlyVisitors = "Please enter a valid number of monthly paid visitors";
-    }
-    
-    if (formData.isUnsureOrganic === false && (formData.organicTrafficManual === undefined || formData.organicTrafficManual < 0)) {
-      newErrors.organicTrafficManual = "Please enter a valid number of monthly organic visitors";
+    // Only validate traffic fields if they're showing
+    if (showTrafficFields) {
+      if (formData.isUnsurePaid === false && (!formData.monthlyVisitors || formData.monthlyVisitors < 0)) {
+        newErrors.monthlyVisitors = "Please enter a valid number of monthly paid visitors";
+      }
+      
+      if (formData.isUnsureOrganic === false && (!formData.organicTrafficManual || formData.organicTrafficManual < 0)) {
+        newErrors.organicTrafficManual = "Please enter a valid number of monthly organic visitors";
+      }
     }
     
     if (formData.avgTransactionValue <= 0) {

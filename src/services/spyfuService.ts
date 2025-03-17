@@ -25,29 +25,6 @@ export const hasSpyFuApiKey = (): boolean => {
   return true;
 };
 
-// Mock data for development
-const generateMockData = (domain: string): ApiData => {
-  // Create deterministic but realistic-looking mock data based on domain name
-  const domainLength = domain.length;
-  const domainHash = Array.from(domain).reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  
-  // Calculate values based on domain characteristics
-  const organicTraffic = 5000 + (domainHash % 15000);
-  const paidTraffic = 1000 + (domainHash % 5000);
-  const organicKeywords = Math.floor(organicTraffic * 0.3);
-  const domainPower = Math.min(95, 40 + (domainLength * 2));
-  const backlinks = Math.floor(organicTraffic * 0.5);
-  
-  return {
-    organicKeywords,
-    organicTraffic,
-    paidTraffic,
-    domainPower,
-    backlinks,
-    dataSource: 'api'
-  };
-};
-
 // Function to fetch domain data from SpyFu (public data)
 export const fetchDomainData = async (
   domain: string, 
@@ -68,12 +45,36 @@ export const fetchDomainData = async (
     
     console.log(`Analyzing domain: ${cleanedDomain}`);
     
-    // In a real implementation, we could scrape SpyFu's public data
-    // For now, we'll simulate with mock data
+    // In a real implementation, we would fetch from SpyFu's public data
+    // For now, we'll simulate with a 30% chance of failure to show how manual entry works
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Get mock data
-    const mockResponse = generateMockData(cleanedDomain);
+    // Simulate API failure randomly (30% chance) - for demonstration only
+    const shouldFail = Math.random() < 0.3;
+    
+    if (shouldFail) {
+      throw new Error("Unable to retrieve data from SpyFu for this domain. Please provide your traffic manually.");
+    }
+    
+    // Generate deterministic but realistic-looking mock data based on domain name
+    const domainLength = cleanedDomain.length;
+    const domainHash = Array.from(cleanedDomain).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    
+    // Calculate values based on domain characteristics
+    const organicTraffic = 5000 + (domainHash % 15000);
+    const paidTraffic = 1000 + (domainHash % 5000);
+    const organicKeywords = Math.floor(organicTraffic * 0.3);
+    const domainPower = Math.min(95, 40 + (domainLength * 2));
+    const backlinks = Math.floor(organicTraffic * 0.5);
+    
+    const mockResponse = {
+      organicKeywords,
+      organicTraffic,
+      paidTraffic,
+      domainPower,
+      backlinks,
+      dataSource: 'api'
+    };
     
     toast.success(`Successfully analyzed ${cleanedDomain}`, { 
       id: toastId,
@@ -81,13 +82,12 @@ export const fetchDomainData = async (
     });
     
     // If user also provided manual organic traffic and is not unsure, average them for better accuracy
-    if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual >= 0) {
+    if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual > 0) {
       const avgTraffic = Math.floor((mockResponse.organicTraffic + organicTrafficManual) / 2);
       const avgKeywords = Math.floor((mockResponse.organicKeywords + Math.floor(organicTrafficManual * 0.3)) / 2);
       const avgBacklinks = Math.floor((mockResponse.backlinks + Math.floor(organicTrafficManual * 0.5)) / 2);
       
       toast.success(`Averaged API data with your manual entry for ${cleanedDomain}`, { 
-        id: toastId,
         description: "Using combined data sources for the most accurate estimate."
       });
       
@@ -105,7 +105,7 @@ export const fetchDomainData = async (
     console.error(`Error fetching domain data:`, error);
     
     // If error and user provided manual data, use it as fallback
-    if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual >= 0) {
+    if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual > 0) {
       toast.warning(`Analysis failed for ${domain}`, { 
         id: toastId, 
         description: "Using your manually entered organic traffic data instead."
@@ -127,7 +127,7 @@ export const fetchDomainData = async (
       description: error instanceof Error ? error.message : "Please enter your traffic data manually to continue."
     });
     
-    throw error;
+    throw new Error("Unable to retrieve data from SpyFu. Please provide your traffic data manually.");
   }
 };
 
