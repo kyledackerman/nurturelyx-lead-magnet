@@ -27,7 +27,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
     organicTrafficManual: 0,
     isUnsureOrganic: false,
     isUnsurePaid: false,
-    avgTransactionValue: 500, // Default to $500 instead of 0
+    avgTransactionValue: 0, // Changed default to 0
   });
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -39,6 +39,16 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
   const [domainsLoaded, setDomainsLoaded] = useState<boolean>(false);
   const [connectionFailed, setConnectionFailed] = useState<boolean>(false);
   const [connectionTimeout, setConnectionTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [canCalculate, setCanCalculate] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Validate form to enable/disable calculate button
+    const hasRequiredFields = formData.avgTransactionValue >= 0 && 
+      ((apiError || connectionFailed) || // API error or connection failed - manual mode
+       (isGAConnected && selectedDomain)); // Connected with domain selected
+    
+    setCanCalculate(hasRequiredFields);
+  }, [formData, apiError, connectionFailed, isGAConnected, selectedDomain]);
 
   useEffect(() => {
     // Check if we have a Google Analytics token in session storage
@@ -165,7 +175,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
       newErrors.organicTrafficManual = "Please enter a valid number of monthly organic visitors";
     }
     
-    if (!formData.avgTransactionValue || formData.avgTransactionValue <= 0) {
+    if (formData.avgTransactionValue < 0) {
       newErrors.avgTransactionValue = "Please enter a valid transaction value";
     }
     
@@ -275,163 +285,150 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
         </div>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="space-y-4">
-            {!isGAConnected && !apiError && (
-              <div className="flex justify-center">
+        {/* Connection Status Banner - Always shown at the top */}
+        <div className="mb-6 border rounded-lg overflow-hidden">
+          {isGAConnected ? (
+            <div className="bg-green-50 p-4 border-l-4 border-green-500">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                  <div>
+                    <h3 className="font-medium text-green-800">Connected to Google Analytics</h3>
+                    {selectedDomain && (
+                      <p className="text-green-700 text-sm">
+                        Selected domain: <strong>{selectedDomain}</strong>
+                      </p>
+                    )}
+                  </div>
+                </div>
                 <Button 
-                  type="button" 
-                  variant="default"
-                  className="flex items-center gap-2 py-6 px-8 w-full max-w-md bg-[#4285F4] hover:bg-[#3367D6] text-white"
-                  onClick={handleConnectGA}
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleDisconnect}
+                  className="text-red-600 border-red-300 hover:bg-red-50"
                 >
-                  <BarChart className="h-5 w-5" />
-                  Connect to Google Analytics
+                  Disconnect
                 </Button>
               </div>
-            )}
-            
-            {isGAConnected && !apiError && (
-              <div className="space-y-4">
-                {/* Connection Status */}
-                <div className="flex items-center justify-between p-4 rounded-lg border border-green-200 bg-green-50">
-                  <div className="flex items-center gap-2 text-green-700">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <p className="font-medium">Connected to Google Analytics</p>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleDisconnect}
-                    className="text-red-600 border-red-300 hover:bg-red-50"
-                  >
-                    Disconnect
-                  </Button>
+            </div>
+          ) : (
+            <div className="bg-blue-50 p-4 border-l-4 border-blue-500">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Info className="h-6 w-6 text-blue-500" />
+                  <h3 className="font-medium text-blue-800">Not connected to Google Analytics</h3>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="bg-[#4285F4] hover:bg-[#3367D6] text-white"
+                  onClick={handleConnectGA}
+                >
+                  Connect Now
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="space-y-4">
+            {isGAConnected && !apiError && !selectedDomain && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="domain-select" className="text-lg">Select Website Domain</Label>
+                  {domainsLoaded && (
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={handleRefreshDomains}
+                      className="text-sm text-accent"
+                    >
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      Refresh
+                    </Button>
+                  )}
                 </div>
                 
-                {/* Selected Domain Summary */}
-                {selectedDomain ? (
-                  <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium text-green-700">Selected Domain:</h3>
-                        <p className="text-lg font-bold text-green-800">{selectedDomain}</p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedDomain("")}
-                        className="text-green-700 border-green-300 hover:bg-green-100"
+                {connectionFailed ? (
+                  <div className="flex flex-col gap-2">
+                    <Alert variant="error" className="bg-white">
+                      <XCircle className="h-4 w-4" />
+                      <AlertTitle>Domain Loading Failed</AlertTitle>
+                      <AlertDescription>
+                        We couldn't load domains from your Google Analytics account. 
+                        Please try refreshing or proceed with manual data entry.
+                      </AlertDescription>
+                    </Alert>
+                    <div className="flex gap-2 mt-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleRefreshDomains}
+                        className="flex items-center gap-1"
                       >
-                        Change
+                        <RefreshCw className="h-3 w-3" />
+                        Retry
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleDisconnect}
+                        className="flex items-center gap-1 text-red-600 border-red-300 hover:bg-red-50"
+                      >
+                        <XCircle className="h-3 w-3" />
+                        Disconnect
                       </Button>
                     </div>
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="domain-select" className="text-lg">Select Website Domain</Label>
-                      {domainsLoaded && (
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={handleRefreshDomains}
-                          className="text-sm text-accent"
-                        >
-                          <RefreshCw className="h-3 w-3 mr-1" />
-                          Refresh
-                        </Button>
-                      )}
-                    </div>
-                    
-                    {connectionFailed ? (
-                      <div className="flex flex-col gap-2">
-                        <Alert variant="error" className="bg-white">
-                          <XCircle className="h-4 w-4" />
-                          <AlertTitle>Domain Loading Failed</AlertTitle>
-                          <AlertDescription>
-                            We couldn't load domains from your Google Analytics account. 
-                            Please try refreshing or proceed with manual data entry.
-                          </AlertDescription>
-                        </Alert>
-                        <div className="flex gap-2 mt-2">
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={handleRefreshDomains}
-                            className="flex items-center gap-1"
-                          >
-                            <RefreshCw className="h-3 w-3" />
-                            Retry
-                          </Button>
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={handleDisconnect}
-                            className="flex items-center gap-1 text-red-600 border-red-300 hover:bg-red-50"
-                          >
-                            <XCircle className="h-3 w-3" />
-                            Disconnect
-                          </Button>
-                        </div>
-                      </div>
-                    ) : loadingDomains ? (
-                      <div className="flex items-center gap-2 text-muted-foreground p-4 bg-muted rounded-lg border border-border">
-                        <div className="animate-spin h-4 w-4 border-2 border-accent border-t-transparent rounded-full"></div>
-                        <span className="font-medium">Loading your domains...</span>
-                      </div>
-                    ) : domainsLoaded && availableDomains.length === 0 ? (
-                      <Alert variant="warning" className="bg-white">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>No domains found</AlertTitle>
-                        <AlertDescription>
-                          No domains were found in your Google Analytics account. Please check your account or enter data manually.
-                        </AlertDescription>
-                      </Alert>
-                    ) : (
-                      <>
-                        <Select 
-                          value={selectedDomain} 
-                          onValueChange={handleDomainChange}
-                        >
-                          <SelectTrigger id="domain-select" className={`${errors.domain ? "border-red-300" : ""} bg-white`}>
-                            <SelectValue placeholder="Select a domain" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-white max-h-80">
-                            {availableDomains.map((domain) => (
-                              <SelectItem key={domain} value={domain}>
-                                {domain}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      
-                        {errors.domain && (
-                          <div className="flex items-center text-sm text-red-600 mt-1 bg-white p-1 rounded">
-                            <AlertCircle className="h-4 w-4 mr-1" />
-                            <p>{errors.domain}</p>
-                          </div>
-                        )}
-                      </>
-                    )}
-                    
-                    <p className="text-sm text-gray-500 mt-1 flex items-center">
-                      <Info className="h-3 w-3 mr-1 text-accent" />
-                      We'll analyze this domain's traffic data from Google Analytics
-                    </p>
+                ) : loadingDomains ? (
+                  <div className="flex items-center gap-2 text-muted-foreground p-4 bg-muted rounded-lg border border-border">
+                    <div className="animate-spin h-4 w-4 border-2 border-accent border-t-transparent rounded-full"></div>
+                    <span className="font-medium">Loading your domains...</span>
                   </div>
+                ) : domainsLoaded && availableDomains.length === 0 ? (
+                  <Alert variant="warning" className="bg-white">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>No domains found</AlertTitle>
+                    <AlertDescription>
+                      No domains were found in your Google Analytics account. Please check your account or enter data manually.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <>
+                    <Select 
+                      value={selectedDomain} 
+                      onValueChange={handleDomainChange}
+                    >
+                      <SelectTrigger id="domain-select" className={`${errors.domain ? "border-red-300" : ""} bg-white`}>
+                        <SelectValue placeholder="Select a domain" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white max-h-80">
+                        {availableDomains.map((domain) => (
+                          <SelectItem key={domain} value={domain}>
+                            {domain}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  
+                    {errors.domain && (
+                      <div className="flex items-center text-sm text-red-600 mt-1 bg-white p-1 rounded">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        <p>{errors.domain}</p>
+                      </div>
+                    )}
+                  </>
                 )}
+                
+                <p className="text-sm text-gray-500 mt-1 flex items-center">
+                  <Info className="h-3 w-3 mr-1 text-accent" />
+                  We'll analyze this domain's traffic data from Google Analytics
+                </p>
               </div>
-            )}
-            
-            {!isGAConnected && !apiError && (
-              <p className="text-sm text-center text-gray-500 mt-2 flex items-center justify-center">
-                <Info className="h-3 w-3 mr-1 text-accent" />
-                Connect to Google Analytics for accurate traffic data
-              </p>
             )}
             
             {errors.googleAnalytics && !apiError && (
@@ -532,8 +529,8 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
             <Input
               id="avgTransactionValue"
               type="number"
-              min="1"
-              placeholder="500"
+              min="0"
+              placeholder="0"
               value={formData.avgTransactionValue}
               onChange={(e) => handleChange("avgTransactionValue", parseInt(e.target.value) || 0)}
               className={errors.avgTransactionValue ? "border-red-300" : ""}
@@ -545,7 +542,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
               </div>
             )}
             <div className="flex items-start gap-2 mt-2 bg-secondary/50 p-3 rounded-lg border border-border">
-              <DollarSign className="h-4 w-4 text-accent mt-0.5" />
+              <DollarSign className="h-10 w-10 text-accent mt-0.5" /> {/* Increased icon size */}
               <p className="text-sm text-gray-400">
                 <span className="font-medium text-gray-300">What is Average Transaction Value?</span> This is how much money your business makes from a typical sale. If you sell products, it's the average order value. If you provide services, it's your average contract or project value.
               </p>
@@ -566,7 +563,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
           <div className="bg-secondary/50 p-4 rounded-lg border border-border mt-2">
             <div className="flex items-start gap-3">
               <div className="mt-1 bg-accent/10 p-1 rounded-full">
-                <Info className="h-4 w-4 text-accent" />
+                <Info className="h-10 w-10 text-accent" /> {/* Increased icon size */}
               </div>
               <div>
                 <h3 className="text-sm font-medium text-foreground mb-1">How We Calculate Results</h3>
@@ -593,10 +590,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
             <Button 
               type="submit" 
               className={`${onReset ? 'w-3/4' : 'w-full'} gradient-bg text-xl py-6`}
-              disabled={isCalculating || 
-                (!apiError && !connectionFailed && !isGAConnected) || 
-                (!apiError && !connectionFailed && isGAConnected && !selectedDomain) || 
-                !formData.avgTransactionValue}
+              disabled={isCalculating || !canCalculate}
             >
               {isCalculating ? "Processing..." : "Calculate My Missing Leads"}
             </Button>
@@ -612,3 +606,4 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
 };
 
 export default LeadCalculatorForm;
+

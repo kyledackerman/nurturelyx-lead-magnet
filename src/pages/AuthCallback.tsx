@@ -44,6 +44,9 @@ const AuthCallback = () => {
       setMessage("Successfully authenticated with Google Analytics");
       sessionStorage.setItem("google_analytics_token", "mock_token_from_oauth");
       
+      // Log to help with debugging
+      console.log("Authentication successful! Token stored in sessionStorage");
+      
       // Notify the opener window (if this was opened as a popup)
       if (window.opener) {
         window.opener.postMessage({ type: "GOOGLE_ANALYTICS_AUTH_SUCCESS" }, window.location.origin);
@@ -110,7 +113,7 @@ const AuthCallback = () => {
         {status === 'success' && (
           <p className="text-green-500 font-medium">
             {window.opener 
-              ? "You can close this window and return to the main form."
+              ? "You can close this window and return to the main form to select your domain."
               : "You'll be redirected to select a domain in a moment."}
           </p>
         )}
