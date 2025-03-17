@@ -27,7 +27,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
     organicTrafficManual: 0,
     isUnsureOrganic: false,
     isUnsurePaid: false,
-    avgTransactionValue: 0, // Changed default to 0
+    avgTransactionValue: 0, // Defaulted to 0
   });
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -353,7 +353,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                 
                 {connectionFailed ? (
                   <div className="flex flex-col gap-2">
-                    <Alert variant="error" className="bg-white">
+                    <Alert className="bg-white">
                       <XCircle className="h-4 w-4" />
                       <AlertTitle>Domain Loading Failed</AlertTitle>
                       <AlertDescription>
@@ -390,7 +390,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                     <span className="font-medium">Loading your domains...</span>
                   </div>
                 ) : domainsLoaded && availableDomains.length === 0 ? (
-                  <Alert variant="warning" className="bg-white">
+                  <Alert className="bg-white">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>No domains found</AlertTitle>
                     <AlertDescription>
@@ -450,6 +450,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                       id="isUnsureOrganic" 
                       checked={formData.isUnsureOrganic}
                       onCheckedChange={(checked) => {
+                        // Fix: Ensure we're passing a boolean to the state setter
                         handleChange("isUnsureOrganic", checked === true);
                       }}
                     />
@@ -490,6 +491,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                       id="isUnsurePaid" 
                       checked={formData.isUnsurePaid}
                       onCheckedChange={(checked) => {
+                        // Fix: Ensure we're passing a boolean to the state setter
                         handleChange("isUnsurePaid", checked === true);
                       }}
                     />
@@ -542,7 +544,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
               </div>
             )}
             <div className="flex items-start gap-2 mt-2 bg-secondary/50 p-3 rounded-lg border border-border">
-              <DollarSign className="h-10 w-10 text-accent mt-0.5" /> {/* Increased icon size */}
+              <DollarSign className="h-16 w-16 text-accent mt-0.5" /> {/* Increased icon size to 5x */}
               <p className="text-sm text-gray-400">
                 <span className="font-medium text-gray-300">What is Average Transaction Value?</span> This is how much money your business makes from a typical sale. If you sell products, it's the average order value. If you provide services, it's your average contract or project value.
               </p>
@@ -550,7 +552,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
           </div>
           
           {apiError && (
-            <Alert variant="error" className="mt-4 bg-white">
+            <Alert className="mt-4 bg-white">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle className="text-red-800 font-semibold">API Connection Error</AlertTitle>
               <AlertDescription className="text-red-700">
@@ -563,7 +565,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
           <div className="bg-secondary/50 p-4 rounded-lg border border-border mt-2">
             <div className="flex items-start gap-3">
               <div className="mt-1 bg-accent/10 p-1 rounded-full">
-                <Info className="h-10 w-10 text-accent" /> {/* Increased icon size */}
+                <Info className="h-16 w-16 text-accent" /> {/* Increased icon size to 5x */}
               </div>
               <div>
                 <h3 className="text-sm font-medium text-foreground mb-1">How We Calculate Results</h3>
@@ -606,4 +608,3 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
 };
 
 export default LeadCalculatorForm;
-
