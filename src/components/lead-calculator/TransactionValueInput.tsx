@@ -1,5 +1,5 @@
 
-import { AlertCircle, DollarSign, Info } from "lucide-react";
+import { AlertCircle, DollarSign } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { FormData } from "@/types/report";
@@ -30,7 +30,9 @@ export const TransactionValueInput = ({ formData, handleChange, errors }: Transa
         </div>
       )}
       <div className="flex items-start gap-2 mt-2 bg-secondary/50 p-3 rounded-lg border border-border">
-        <DollarSign className="h-16 w-16 text-accent mt-0.5" />
+        <div className="bg-accent/10 p-2 rounded-full">
+          <DollarSign className="h-6 w-6 text-accent" />
+        </div>
         <p className="text-sm text-gray-400">
           <span className="font-medium text-gray-300">What is Average Transaction Value?</span> This is how much money your business makes from a typical sale. If you sell products, it's the average order value. If you provide services, it's your average contract or project value.
         </p>

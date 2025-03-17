@@ -1,5 +1,5 @@
 
-import { Info } from "lucide-react";
+import { LineChart } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
@@ -23,8 +23,8 @@ export const InfoSection = ({ apiError }: InfoSectionProps) => {
       
       <div className="bg-secondary/50 p-4 rounded-lg border border-border mt-2">
         <div className="flex items-start gap-3">
-          <div className="mt-1 bg-accent/10 p-1 rounded-full">
-            <Info className="h-16 w-16 text-accent" />
+          <div className="mt-1 bg-accent/10 p-2 rounded-full">
+            <LineChart className="h-6 w-6 text-accent" />
           </div>
           <div>
             <h3 className="text-sm font-medium text-foreground mb-1">How We Calculate Results</h3>
