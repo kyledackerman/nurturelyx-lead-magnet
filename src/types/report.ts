@@ -4,6 +4,9 @@ import { MonthlyRevenueData } from "@/services/apiService";
 export interface FormData {
   domain: string;
   monthlyVisitors: number;
+  organicTrafficManual?: number;
+  isUnsureOrganic?: boolean;
+  isUnsurePaid?: boolean;
   avgTransactionValue: number;
 }
 
@@ -12,6 +15,7 @@ export interface ApiData {
   organicTraffic: number;
   domainPower: number;
   backlinks: number;
+  dataSource: 'api' | 'manual' | 'both' | 'fallback';
 }
 
 export interface ReportData extends FormData, ApiData {

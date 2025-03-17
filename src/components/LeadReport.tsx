@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReportData } from "@/types/report";
-import { DollarSign, Users, ShoppingCart, Check, AlertTriangle } from "lucide-react";
+import { DollarSign, Users, ShoppingCart, Check, AlertTriangle, Info } from "lucide-react";
 import MonthlyRevenueTable from "./MonthlyRevenueTable";
 import StatCard from "./report/StatCard";
 import MethodologyCard from "./report/MethodologyCard";
@@ -23,31 +23,40 @@ const formatCurrency = (value: number): string => {
 
 // Changelog component to display latest report changes
 const Changelog = () => {
+  const currentDate = new Date().toLocaleDateString();
+  
   return (
     <Card className="mb-8 border-l-4 border-l-blue-500 bg-blue-500/10">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xl">Report Overview</CardTitle>
+        <CardTitle className="text-xl flex items-center">
+          <Info className="mr-2" size={20} />
+          Report Summary & Changelog
+        </CardTitle>
         <CardDescription>
-          Generated on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
+          Generated on {currentDate} at {new Date().toLocaleTimeString()}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <ul className="space-y-2 text-sm">
           <li className="flex items-start">
             <Check size={16} className="mr-2 mt-0.5 text-green-500" />
-            <span>Combined paid and organic traffic data from SearchAtlas API</span>
+            <span><strong>Data Sources:</strong> Successfully combined organic traffic from SearchAtlas API and your manually entered paid traffic data</span>
           </li>
           <li className="flex items-start">
             <Check size={16} className="mr-2 mt-0.5 text-green-500" />
-            <span>Calculated potential leads (20% of total monthly traffic)</span>
+            <span><strong>Monthly Metrics:</strong> All values represent <strong>monthly averages</strong> unless otherwise stated</span>
           </li>
           <li className="flex items-start">
             <Check size={16} className="mr-2 mt-0.5 text-green-500" />
-            <span>Estimated sales (1% of potential leads) and monthly revenue impact</span>
+            <span><strong>Leads Calculation:</strong> Potential leads are based on 20% of your total monthly traffic (organic + paid)</span>
+          </li>
+          <li className="flex items-start">
+            <Check size={16} className="mr-2 mt-0.5 text-green-500" />
+            <span><strong>Sales Estimation:</strong> Estimated at 1% conversion of identified leads with {formatCurrency(data.avgTransactionValue)} average value</span>
           </li>
           <li className="flex items-start">
             <AlertTriangle size={16} className="mr-2 mt-0.5 text-amber-500" />
-            <span>All metrics represent <strong>monthly averages</strong> unless otherwise specified</span>
+            <span>The revenue figures represent <strong>additional potential</strong> beyond your current performance</span>
           </li>
         </ul>
       </CardContent>
@@ -64,21 +73,21 @@ const LeadReport = ({ data, onReset }: LeadReportProps) => {
       {/* Top Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
         <StatCard
-          label="Missed Leads Per Month"
+          label="Missed Leads"
           value={data.missedLeads.toLocaleString()}
-          description="Based on a 20% visitor identification rate"
+          description="Monthly average based on 20% visitor identification"
           icon={Users}
         />
         
         <StatCard
-          label="Estimated Lost Sales"
+          label="Lost Sales*"
           value={data.estimatedSalesLost.toLocaleString()}
-          description="Based on a 1% lead-to-sale conversion rate"
+          description="Monthly average based on 1% lead conversion"
           icon={ShoppingCart}
         />
         
         <StatCard
-          label="Lost Revenue Per Month"
+          label="Lost Revenue"
           value={formatCurrency(data.monthlyRevenueLost)}
           description={`${formatCurrency(data.yearlyRevenueLost)} annually`}
           icon={DollarSign}

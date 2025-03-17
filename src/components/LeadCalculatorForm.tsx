@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { FormData } from "@/types/report";
 import { AlertCircle, Info, DollarSign } from "lucide-react";
 
@@ -16,12 +17,15 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
   const [formData, setFormData] = useState<FormData>({
     domain: "",
     monthlyVisitors: 1000,
+    organicTrafficManual: 0,
+    isUnsureOrganic: false,
+    isUnsurePaid: false,
     avgTransactionValue: 500,
   });
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const handleChange = (field: keyof FormData, value: string | number) => {
+  const handleChange = (field: keyof FormData, value: string | number | boolean) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -46,8 +50,12 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
       newErrors.domain = "Please enter a valid domain (e.g., example.com)";
     }
     
-    if (formData.monthlyVisitors < 0) {
-      newErrors.monthlyVisitors = "Please enter a valid number of monthly visitors";
+    if (formData.isUnsurePaid === false && (formData.monthlyVisitors === undefined || formData.monthlyVisitors < 0)) {
+      newErrors.monthlyVisitors = "Please enter a valid number of monthly paid visitors";
+    }
+    
+    if (formData.isUnsureOrganic === false && (formData.organicTrafficManual === undefined || formData.organicTrafficManual < 0)) {
+      newErrors.organicTrafficManual = "Please enter a valid number of monthly organic visitors";
     }
     
     if (!formData.avgTransactionValue || formData.avgTransactionValue <= 0) {
@@ -77,9 +85,9 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-2">
-            <Label htmlFor="domain">Website Domain</Label>
+            <Label htmlFor="domain" className="text-lg">Website Domain</Label>
             <Input
               id="domain"
               placeholder="example.com"
@@ -93,22 +101,78 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
                 <p>{errors.domain}</p>
               </div>
             )}
-            <p className="text-xs text-gray-400 mt-1 flex items-center">
+            <p className="text-sm text-gray-400 mt-1 flex items-center">
               <Info className="h-3 w-3 mr-1 text-accent" />
               We'll fetch your organic traffic data from SearchAtlas API
             </p>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="monthlyVisitors">Estimated Monthly Paid Visitors</Label>
+            <div>
+              <Label htmlFor="organicTrafficManual" className="text-lg">Monthly Organic Visitors</Label>
+              <div className="flex items-center space-x-2 mt-1">
+                <Checkbox 
+                  id="isUnsureOrganic" 
+                  checked={formData.isUnsureOrganic}
+                  onCheckedChange={(checked) => {
+                    handleChange("isUnsureOrganic", checked === true);
+                  }}
+                />
+                <label htmlFor="isUnsureOrganic" className="text-sm text-gray-400 cursor-pointer">
+                  I'm not sure (we'll try to fetch this data for you)
+                </label>
+              </div>
+            </div>
+            
+            <Input
+              id="organicTrafficManual"
+              type="number"
+              min="0"
+              placeholder="0"
+              value={formData.isUnsureOrganic ? "" : formData.organicTrafficManual}
+              onChange={(e) => handleChange("organicTrafficManual", parseInt(e.target.value) || 0)}
+              className={errors.organicTrafficManual ? "border-red-500" : ""}
+              disabled={formData.isUnsureOrganic}
+            />
+            {errors.organicTrafficManual ? (
+              <div className="flex items-center text-sm text-red-500 mt-1">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                <p>{errors.organicTrafficManual}</p>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 mt-1 flex items-center">
+                <Info className="h-3 w-3 mr-1 text-accent" />
+                This is your estimated monthly organic search traffic
+              </p>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <div>
+              <Label htmlFor="monthlyVisitors" className="text-lg">Monthly Paid Visitors</Label>
+              <div className="flex items-center space-x-2 mt-1">
+                <Checkbox 
+                  id="isUnsurePaid" 
+                  checked={formData.isUnsurePaid}
+                  onCheckedChange={(checked) => {
+                    handleChange("isUnsurePaid", checked === true);
+                  }}
+                />
+                <label htmlFor="isUnsurePaid" className="text-sm text-gray-400 cursor-pointer">
+                  I'm not sure (enter 0 if you don't run paid campaigns)
+                </label>
+              </div>
+            </div>
+            
             <Input
               id="monthlyVisitors"
               type="number"
               min="0"
               placeholder="1000"
-              value={formData.monthlyVisitors}
+              value={formData.isUnsurePaid ? "" : formData.monthlyVisitors}
               onChange={(e) => handleChange("monthlyVisitors", parseInt(e.target.value) || 0)}
               className={errors.monthlyVisitors ? "border-red-500" : ""}
+              disabled={formData.isUnsurePaid}
             />
             {errors.monthlyVisitors ? (
               <div className="flex items-center text-sm text-red-500 mt-1">
@@ -116,15 +180,15 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
                 <p>{errors.monthlyVisitors}</p>
               </div>
             ) : (
-              <p className="text-xs text-gray-400 mt-1 flex items-center">
+              <p className="text-sm text-gray-400 mt-1 flex items-center">
                 <Info className="h-3 w-3 mr-1 text-accent" />
-                Enter 0 if you don't have paid traffic - we'll use organic data only
+                This is your estimated monthly paid traffic from all sources
               </p>
             )}
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="avgTransactionValue">Average Transaction Value ($)</Label>
+            <Label htmlFor="avgTransactionValue" className="text-lg">Average Transaction Value ($)</Label>
             <Input
               id="avgTransactionValue"
               type="number"
@@ -142,7 +206,7 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
             )}
             <div className="flex items-start gap-2 mt-2 bg-secondary/50 p-3 rounded-lg border border-border">
               <DollarSign className="h-4 w-4 text-accent mt-0.5" />
-              <p className="text-xs text-gray-400">
+              <p className="text-sm text-gray-400">
                 <span className="font-medium text-gray-300">What is Average Transaction Value?</span> This is how much money your business makes from a typical sale. If you sell products, it's the average order value. If you provide services, it's your average contract or project value.
               </p>
             </div>
@@ -155,8 +219,8 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
               </div>
               <div>
                 <h3 className="text-sm font-medium text-foreground mb-1">How We Calculate Results</h3>
-                <p className="text-xs text-gray-400">
-                  We analyze both your organic traffic (from SearchAtlas API) and your paid traffic (entered above) to identify 20% of total visitors that could be converted into leads, with 1% of those leads becoming sales.
+                <p className="text-sm text-gray-400">
+                  We analyze both your organic traffic (from SearchAtlas API or your input) and your paid traffic to identify 20% of total visitors that could be converted into leads, with 1% of those leads becoming sales.
                 </p>
               </div>
             </div>
@@ -164,14 +228,14 @@ const LeadCalculatorForm = ({ onCalculate, isCalculating }: LeadCalculatorFormPr
           
           <Button 
             type="submit" 
-            className="w-full gradient-bg"
+            className="w-full gradient-bg text-xl py-6"
             disabled={isCalculating}
           >
             {isCalculating ? "Connecting to API..." : "Calculate My Missing Leads"}
           </Button>
           
           <p className="text-xs text-center text-gray-400 mt-2">
-            We identify 20% of both your organic and paid traffic
+            We identify 20% of your combined organic and paid traffic
           </p>
         </form>
       </CardContent>

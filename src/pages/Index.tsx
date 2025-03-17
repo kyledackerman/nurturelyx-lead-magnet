@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
 
 const Index = () => {
   const [isCalculating, setIsCalculating] = useState(false);
@@ -34,15 +35,22 @@ const Index = () => {
     }, 500);
     
     try {
-      // Fetch domain data from API - no industry parameter needed now
-      const apiData = await fetchDomainData(formData.domain);
+      // Fetch domain data from API with manual organic traffic as a backup
+      const apiData = await fetchDomainData(
+        formData.domain, 
+        formData.organicTrafficManual, 
+        formData.isUnsureOrganic
+      );
       
       // Move progress to 95%
       setCalculationProgress(95);
       
+      // Determine the paid traffic value - use 0 if user is unsure
+      const paidTraffic = formData.isUnsurePaid ? 0 : formData.monthlyVisitors;
+      
       // Calculate the report metrics using both paid and organic traffic
       const metrics = calculateReportMetrics(
-        formData.monthlyVisitors,
+        paidTraffic,
         formData.avgTransactionValue,
         apiData.organicTraffic
       );
@@ -60,12 +68,39 @@ const Index = () => {
         setReportData(fullReportData);
         setIsCalculating(false);
         clearInterval(progressInterval);
+        
+        // Show a success toast with data source info
+        let dataSourceMessage = "";
+        switch(apiData.dataSource) {
+          case 'api':
+            dataSourceMessage = "using SearchAtlas API data";
+            break;
+          case 'manual':
+            dataSourceMessage = "using your manually entered data";
+            break;
+          case 'both':
+            dataSourceMessage = "using combined API and manual data";
+            break;
+          case 'fallback':
+            dataSourceMessage = "using industry estimates (API unavailable)";
+            break;
+        }
+        
+        toast.success(`Report generated successfully ${dataSourceMessage}`, {
+          duration: 5000,
+        });
       }, 500);
     } catch (error) {
       console.error("Error calculating report:", error);
-      setApiError(error instanceof Error ? error.message : "Unknown error occurred");
+      const errorMsg = error instanceof Error ? error.message : "Unknown error occurred";
+      setApiError(errorMsg);
       setIsCalculating(false);
       clearInterval(progressInterval);
+      
+      toast.error("Failed to generate report", {
+        description: errorMsg,
+        duration: 8000,
+      });
     }
   };
   
