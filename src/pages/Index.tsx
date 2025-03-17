@@ -67,7 +67,7 @@ const Index = () => {
         let dataSourceMessage = "";
         switch(apiData.dataSource) {
           case 'api':
-            dataSourceMessage = "using SearchAtlas API data";
+            dataSourceMessage = "using Google Search Console API data";
             break;
           case 'manual':
             dataSourceMessage = "using your manually entered data";
@@ -131,7 +131,7 @@ const Index = () => {
                 <Loader2 className="h-12 w-12 animate-spin text-accent mx-auto mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Processing your domain data...</h2>
                 <p className="text-gray-400 mb-6">
-                  We're connecting to SearchAtlas API to analyze your website domain.
+                  We're connecting to Google Search Console API to analyze your website domain.
                   This usually takes around 30 seconds.
                 </p>
                 

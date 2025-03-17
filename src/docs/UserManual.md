@@ -38,7 +38,7 @@ A table showing a 6-month breakdown of:
 ## Troubleshooting
 
 ### API Connection Issues
-If you see error messages related to the SearchAtlas API:
+If you see error messages related to the Google Search Console API:
 1. Check your internet connection
 2. Verify that the domain you entered is valid and correctly formatted
 3. Try refreshing the page and attempting your calculation again
@@ -59,7 +59,7 @@ If you see error messages related to the SearchAtlas API:
 ## Methodology
 
 ### Visitor Identification
-NurturelyX uses proprietary technology to identify up to 20% of anonymous website visitors without requiring opt-in. This is applied to the total of your organic traffic (retrieved from SearchAtlas) plus any paid traffic you enter.
+NurturelyX uses proprietary technology to identify up to 20% of anonymous website visitors without requiring opt-in. This is applied to the total of your organic traffic (retrieved from Google Search Console) plus any paid traffic you enter.
 
 ### Lead-to-Sale Conversion
 We calculate potential sales using an industry-standard 1% conversion rate from identified leads to actual sales.
@@ -72,9 +72,9 @@ Revenue impact is calculated by multiplying potential sales by your average tran
 For administrators or self-hosted instances:
 
 ### API Integration
-- The application uses the SearchAtlas API to retrieve domain data
-- Default API key: `ce26ade2b8adac45db89c62c438d0a31`
-- To use a custom API key, modify the `SEARCH_ATLAS_API_KEY` constant in the apiService.ts file
+- The application uses the Google Search Console API to retrieve domain data
+- Default API key: `your-google-api-key`
+- To use a custom API key, modify the `GOOGLE_SEARCH_CONSOLE_API_KEY` constant in the apiService.ts file
 
 ### Customization Options
 - Conversion rates can be adjusted in the `calculateReportMetrics` function

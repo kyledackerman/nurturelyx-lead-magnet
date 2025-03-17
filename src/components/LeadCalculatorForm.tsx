@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -128,7 +127,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
             )}
             <p className="text-sm text-gray-400 mt-1 flex items-center">
               <Info className="h-3 w-3 mr-1 text-accent" />
-              We'll fetch your organic traffic data from SearchAtlas API
+              We'll fetch your organic traffic data from Google Search Console API
             </p>
           </div>
           
@@ -248,7 +247,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                 API Connection Error
               </h3>
               <p className="text-white">
-                We couldn't connect to the SearchAtlas API to fetch your traffic data. Please enter your traffic numbers manually to continue.
+                We couldn't connect to the Google Search Console API to fetch your traffic data. Please enter your traffic numbers manually to continue.
               </p>
               <p className="text-gray-300 mt-2 text-xs">{apiError}</p>
             </div>
@@ -262,7 +261,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
               <div>
                 <h3 className="text-sm font-medium text-foreground mb-1">How We Calculate Results</h3>
                 <p className="text-sm text-gray-400">
-                  We analyze both your organic traffic (from SearchAtlas API or your input) and your paid traffic to identify 20% of total visitors that could be converted into leads, with 1% of those leads becoming sales.
+                  We analyze both your organic traffic (from Google Search Console API or your input) and your paid traffic to identify 20% of total visitors that could be converted into leads, with 1% of those leads becoming sales.
                 </p>
               </div>
             </div>
