@@ -1,4 +1,3 @@
-
 import { ApiData } from "@/types/report";
 import { toast } from "sonner";
 
@@ -7,16 +6,16 @@ const GOOGLE_ANALYTICS_CLIENT_ID = "526234754484-83dp9h4prub4l9qoao4kaikef5s91ki
 const GOOGLE_ANALYTICS_API_SCOPE = "https://www.googleapis.com/auth/analytics.readonly";
 const GOOGLE_ANALYTICS_REDIRECT_URI = window.location.origin + "/auth/callback";
 
-// Mock domain list for demonstration
-const MOCK_DOMAINS = [
-  "example.com",
-  "yourbusiness.org", 
-  "yourstore.net",
-  "yourcompany.io"
+// Mock web properties list for demonstration
+const MOCK_WEB_PROPERTIES = [
+  { id: "UA-12345-1", name: "My Website" },
+  { id: "UA-67890-1", name: "Business Site" },
+  { id: "UA-54321-1", name: "E-commerce Store" },
+  { id: "UA-98765-1", name: "Blog" }
 ];
 
-// Function to get available domains from Google Analytics
-export const getAvailableDomains = async (): Promise<string[]> => {
+// Function to get available web properties from Google Analytics
+export const getAvailableWebProperties = async (): Promise<{ id: string, name: string }[]> => {
   // Check if we have a token
   const hasToken = !!sessionStorage.getItem('google_analytics_token');
   
@@ -25,28 +24,19 @@ export const getAvailableDomains = async (): Promise<string[]> => {
     throw new Error("Not authenticated with Google Analytics");
   }
   
-  console.log("Fetching domains from Google Analytics");
+  console.log("Fetching web properties from Google Analytics");
   
-  // In a real implementation, you would call the Google Analytics API to get the domains
+  // In a real implementation, you would call the Google Analytics API to get the web properties
   // For demonstration, we'll simulate an API call with a delay
   try {
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Occasionally return no domains to simulate error case (1/10 chance)
-    // Comment this out to always return domains
-    /*
-    if (Math.random() < 0.1) {
-      console.log("Simulating no domains found");
-      return [];
-    }
-    */
-    
-    // Log the domains we're returning for debugging
-    console.log("Returning mock domains:", MOCK_DOMAINS);
-    return MOCK_DOMAINS;
+    // Log the web properties we're returning for debugging
+    console.log("Returning mock web properties:", MOCK_WEB_PROPERTIES);
+    return MOCK_WEB_PROPERTIES;
   } catch (error) {
-    console.error("Error fetching domains:", error);
-    throw new Error("Failed to fetch domains from Google Analytics");
+    console.error("Error fetching web properties:", error);
+    throw new Error("Failed to fetch web properties from Google Analytics");
   }
 };
 

@@ -1,7 +1,7 @@
 
 import { AlertCircle, CheckCircle, Info, RefreshCw, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { initiateGoogleAnalyticsAuth, getAvailableDomains } from "@/services/apiService";
+import { initiateGoogleAnalyticsAuth, getAvailableWebProperties } from "@/services/apiService";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -30,11 +30,11 @@ export const GoogleAnalyticsConnector = ({
   connectionFailed,
   setConnectionFailed,
 }: GoogleAnalyticsConnectorProps) => {
-  const [availableDomains, setAvailableDomains] = useState<string[]>([]);
-  const [loadingDomains, setLoadingDomains] = useState<boolean>(false);
-  const [domainsLoaded, setDomainsLoaded] = useState<boolean>(false);
+  const [availableProperties, setAvailableProperties] = useState<{ id: string, name: string }[]>([]);
+  const [loadingProperties, setLoadingProperties] = useState<boolean>(false);
+  const [propertiesLoaded, setPropertiesLoaded] = useState<boolean>(false);
   const [connectionTimeout, setConnectionTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [errors, setErrors] = useState<{ domain?: string }>({});
+  const [errors, setErrors] = useState<{ property?: string }>({});
 
   useEffect(() => {
     // Check if we have a Google Analytics token in session storage
@@ -47,12 +47,12 @@ export const GoogleAnalyticsConnector = ({
       if (hasToken && !isGAConnected) {
         toast.success("Successfully connected to Google Analytics");
         
-        // Set a timeout to fetch domains or display an error
+        // Set a timeout to fetch properties or display an error
         const timeout = setTimeout(() => {
-          if (!domainsLoaded && !loadingDomains) {
+          if (!propertiesLoaded && !loadingProperties) {
             setConnectionFailed(true);
-            toast.error("Failed to load domains", {
-              description: "Connection timed out. Please try refreshing domains or disconnect and try again."
+            toast.error("Failed to load web properties", {
+              description: "Connection timed out. Please try refreshing or disconnect and try again."
             });
           }
         }, 10000); // 10-second timeout
@@ -61,9 +61,9 @@ export const GoogleAnalyticsConnector = ({
       }
     }
     
-    // If we have a token and domains haven't been loaded yet, fetch available domains
-    if (hasToken && !apiError && !domainsLoaded && !loadingDomains) {
-      fetchAvailableDomains();
+    // If we have a token and properties haven't been loaded yet, fetch available properties
+    if (hasToken && !apiError && !propertiesLoaded && !loadingProperties) {
+      fetchAvailableWebProperties();
     }
     
     return () => {
@@ -72,23 +72,23 @@ export const GoogleAnalyticsConnector = ({
         clearTimeout(connectionTimeout);
       }
     };
-  }, [isGAConnected, apiError, domainsLoaded, loadingDomains]);
+  }, [isGAConnected, apiError, propertiesLoaded, loadingProperties]);
 
-  const fetchAvailableDomains = async () => {
-    if (loadingDomains) return; // Prevent multiple simultaneous requests
+  const fetchAvailableWebProperties = async () => {
+    if (loadingProperties) return; // Prevent multiple simultaneous requests
     
     try {
-      setLoadingDomains(true);
+      setLoadingProperties(true);
       setConnectionFailed(false);
-      console.log("Fetching available domains...");
+      console.log("Fetching available web properties...");
       
-      // In a real implementation, this would fetch domains from the Google Analytics API
-      const domains = await getAvailableDomains();
+      // Fetch web properties from the Google Analytics API
+      const properties = await getAvailableWebProperties();
       
-      console.log("Domains fetched:", domains);
-      setAvailableDomains(domains);
-      setDomainsLoaded(true);
-      setLoadingDomains(false);
+      console.log("Web properties fetched:", properties);
+      setAvailableProperties(properties);
+      setPropertiesLoaded(true);
+      setLoadingProperties(false);
       
       // Clear any connection timeout
       if (connectionTimeout) {
@@ -96,22 +96,22 @@ export const GoogleAnalyticsConnector = ({
         setConnectionTimeout(null);
       }
       
-      // If we have domains and no selection yet, prompt the user to select
-      if (domains.length > 0) {
-        toast.success("Domains loaded successfully", {
-          description: "Please select a domain from the dropdown to continue.",
+      // If we have properties and no selection yet, prompt the user to select
+      if (properties.length > 0) {
+        toast.success("Web properties loaded successfully", {
+          description: "Please select a web property from the dropdown to continue.",
         });
       } else {
-        toast.warning("No domains found", {
-          description: "Your Google Analytics account doesn't have any domains. Please add a domain or enter data manually.",
+        toast.warning("No web properties found", {
+          description: "Your Google Analytics account doesn't have any web properties. Please add a property or enter data manually.",
         });
       }
     } catch (error) {
-      setLoadingDomains(false);
+      setLoadingProperties(false);
       setConnectionFailed(true);
-      console.error("Error fetching domains:", error);
-      toast.error("Failed to fetch domains", {
-        description: "We had trouble retrieving your domains from Google Analytics. You can try refreshing or enter data manually."
+      console.error("Error fetching web properties:", error);
+      toast.error("Failed to fetch web properties", {
+        description: "We had trouble retrieving your web properties from Google Analytics. You can try refreshing or enter data manually."
       });
     }
   };
@@ -126,28 +126,32 @@ export const GoogleAnalyticsConnector = ({
     }
   };
 
-  const handleDomainChange = (domain: string) => {
-    setSelectedDomain(domain);
-    setDomainSelected(true);
-    updateFormDomain(domain);
-    
-    toast.success(`Domain selected: ${domain}`, {
-      description: "Now please enter your average transaction value to continue."
-    });
+  const handlePropertyChange = (propertyId: string) => {
+    // Find the property name from the available properties
+    const selectedProperty = availableProperties.find(prop => prop.id === propertyId);
+    if (selectedProperty) {
+      setSelectedDomain(selectedProperty.name);
+      setDomainSelected(true);
+      updateFormDomain(selectedProperty.name);
+      
+      toast.success(`Web property selected: ${selectedProperty.name}`, {
+        description: "Now please enter your average transaction value to continue."
+      });
+    }
   };
 
-  const handleRefreshDomains = () => {
-    setDomainsLoaded(false);
-    setAvailableDomains([]);
+  const handleRefreshProperties = () => {
+    setPropertiesLoaded(false);
+    setAvailableProperties([]);
     setConnectionFailed(false);
-    fetchAvailableDomains();
+    fetchAvailableWebProperties();
   };
   
   const handleDisconnect = () => {
     sessionStorage.removeItem('google_analytics_token');
     setIsGAConnected(false);
-    setDomainsLoaded(false);
-    setAvailableDomains([]);
+    setPropertiesLoaded(false);
+    setAvailableProperties([]);
     setSelectedDomain("");
     setDomainSelected(false);
     setConnectionFailed(false);
@@ -174,7 +178,7 @@ export const GoogleAnalyticsConnector = ({
                 <h3 className="font-medium text-green-800">Connected to Google Analytics</h3>
                 {selectedDomain && (
                   <p className="text-green-700 text-sm">
-                    Selected domain: <strong>{selectedDomain}</strong>
+                    Selected property: <strong>{selectedDomain}</strong>
                   </p>
                 )}
               </div>
@@ -211,13 +215,13 @@ export const GoogleAnalyticsConnector = ({
       {isGAConnected && !apiError && !selectedDomain && (
         <div className="space-y-2 mt-4">
           <div className="flex items-center justify-between">
-            <div className="text-lg font-medium">Select Website Domain</div>
-            {domainsLoaded && (
+            <div className="text-lg font-medium">Select Google Analytics Web Property</div>
+            {propertiesLoaded && (
               <Button 
                 type="button" 
                 variant="ghost" 
                 size="sm" 
-                onClick={handleRefreshDomains}
+                onClick={handleRefreshProperties}
                 className="text-sm text-accent"
               >
                 <RefreshCw className="h-3 w-3 mr-1" />
@@ -230,9 +234,9 @@ export const GoogleAnalyticsConnector = ({
             <div className="flex flex-col gap-2">
               <Alert className="bg-white">
                 <XCircle className="h-4 w-4" />
-                <AlertTitle>Domain Loading Failed</AlertTitle>
+                <AlertTitle>Web Properties Loading Failed</AlertTitle>
                 <AlertDescription>
-                  We couldn't load domains from your Google Analytics account. 
+                  We couldn't load web properties from your Google Analytics account. 
                   Please try refreshing or proceed with manual data entry.
                 </AlertDescription>
               </Alert>
@@ -241,7 +245,7 @@ export const GoogleAnalyticsConnector = ({
                   type="button" 
                   variant="outline" 
                   size="sm" 
-                  onClick={handleRefreshDomains}
+                  onClick={handleRefreshProperties}
                   className="flex items-center gap-1"
                 >
                   <RefreshCw className="h-3 w-3" />
@@ -259,47 +263,47 @@ export const GoogleAnalyticsConnector = ({
                 </Button>
               </div>
             </div>
-          ) : loadingDomains ? (
+          ) : loadingProperties ? (
             <div className="flex items-center gap-2 text-muted-foreground p-4 bg-muted rounded-lg border border-border">
               <div className="animate-spin h-4 w-4 border-2 border-accent border-t-transparent rounded-full"></div>
-              <span className="font-medium">Loading your domains...</span>
+              <span className="font-medium">Loading your web properties...</span>
             </div>
-          ) : domainsLoaded && availableDomains.length === 0 ? (
+          ) : propertiesLoaded && availableProperties.length === 0 ? (
             <Alert className="bg-white">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>No domains found</AlertTitle>
+              <AlertTitle>No web properties found</AlertTitle>
               <AlertDescription>
-                No domains were found in your Google Analytics account. Please check your account or enter data manually.
+                No web properties were found in your Google Analytics account. Please check your account or enter data manually.
               </AlertDescription>
             </Alert>
           ) : (
             <>
               <Select 
                 value={selectedDomain} 
-                onValueChange={handleDomainChange}
+                onValueChange={handlePropertyChange}
               >
-                <SelectTrigger id="domain-select" className={`${errors.domain ? "border-red-300" : ""} bg-white`}>
-                  <SelectValue placeholder="Select a domain" />
+                <SelectTrigger id="property-select" className={`${errors.property ? "border-red-300" : ""} bg-white`}>
+                  <SelectValue placeholder="Select a web property" />
                 </SelectTrigger>
                 <SelectContent className="bg-white max-h-80">
-                  {availableDomains.map((domain) => (
-                    <SelectItem key={domain} value={domain}>
-                      {domain}
+                  {availableProperties.map((property) => (
+                    <SelectItem key={property.id} value={property.id}>
+                      {property.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             
-              {errors.domain && (
+              {errors.property && (
                 <div className="flex items-center text-sm text-red-600 mt-1 bg-white p-1 rounded">
                   <AlertCircle className="h-4 w-4 mr-1" />
-                  <p>{errors.domain}</p>
+                  <p>{errors.property}</p>
                 </div>
               )}
               
               <p className="text-sm text-gray-500 mt-1 flex items-center">
                 <Info className="h-3 w-3 mr-1 text-accent" />
-                We'll analyze this domain's traffic data from Google Analytics
+                We'll analyze this web property's traffic data from Google Analytics
               </p>
             </>
           )}

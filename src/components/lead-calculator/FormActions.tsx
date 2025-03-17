@@ -26,10 +26,17 @@ export const FormActions = ({ onReset, isCalculating, canCalculate }: FormAction
         
         <Button 
           type="submit" 
-          className={`${onReset ? 'w-3/4' : 'w-full'} gradient-bg text-xl py-6`}
+          className={`${onReset ? 'w-3/4' : 'w-full'} ${!canCalculate ? 'opacity-70' : ''} gradient-bg text-xl py-6`}
           disabled={isCalculating || !canCalculate}
         >
-          {isCalculating ? "Processing..." : "Calculate My Missing Leads"}
+          {isCalculating ? (
+            <span className="flex items-center gap-2">
+              <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+              Processing...
+            </span>
+          ) : (
+            "Calculate My Missing Leads"
+          )}
         </Button>
       </div>
       
