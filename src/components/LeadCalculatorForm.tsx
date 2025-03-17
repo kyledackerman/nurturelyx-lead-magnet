@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -450,7 +449,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                       id="isUnsureOrganic" 
                       checked={formData.isUnsureOrganic}
                       onCheckedChange={(checked) => {
-                        // Fix: Ensure we're passing a boolean to the state setter
+                        // Fix: Convert checked to boolean explicitly
                         handleChange("isUnsureOrganic", checked === true);
                       }}
                     />
@@ -491,7 +490,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
                       id="isUnsurePaid" 
                       checked={formData.isUnsurePaid}
                       onCheckedChange={(checked) => {
-                        // Fix: Ensure we're passing a boolean to the state setter
+                        // Fix: Convert checked to boolean explicitly
                         handleChange("isUnsurePaid", checked === true);
                       }}
                     />
