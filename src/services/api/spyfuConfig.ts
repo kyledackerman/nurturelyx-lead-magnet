@@ -2,7 +2,7 @@
 // SpyFu API configuration
 export const SPYFU_API_BASE_URL = 'https://www.spyfu.com/apis/domain_stats_api/v2';
 
-// SpyFu API credentials
+// SpyFu API credentials - verified 
 export const SPYFU_API_USERNAME = 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
 export const SPYFU_API_KEY = 'VESAPD8P';
 

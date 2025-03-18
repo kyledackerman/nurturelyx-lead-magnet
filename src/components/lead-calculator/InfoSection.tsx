@@ -13,9 +13,9 @@ export const InfoSection = ({ apiError }: InfoSectionProps) => {
       {apiError && (
         <Alert className="mt-4 bg-white" variant="error">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle className="text-red-800 font-semibold">API Connection Error</AlertTitle>
+          <AlertTitle className="text-red-800 font-semibold">SpyFu API Connection Error</AlertTitle>
           <AlertDescription className="text-red-700">
-            We couldn't connect to the SpyFu API to fetch your traffic data. Please enter your traffic numbers manually to continue.
+            We couldn't connect to the SpyFu API to fetch your traffic data. This could be due to network restrictions or CORS issues. Please enter your traffic numbers manually to continue.
           </AlertDescription>
           <p className="text-red-600 mt-2 text-xs">{apiError}</p>
         </Alert>
