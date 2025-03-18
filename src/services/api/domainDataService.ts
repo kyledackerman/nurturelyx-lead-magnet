@@ -4,8 +4,8 @@ import { ApiData } from "@/types/report";
 import { isValidDomain, cleanDomain } from "./spyfuConfig";
 import { generateFallbackData } from "./fallbackDataService";
 
-// Hardcoded Railway URL for maximum reliability
-const RAILWAY_URL = "https://nurture-lead-vision-production.up.railway.app";
+// Hardcoded direct Railway URL for maximum reliability - NO function calls
+const DIRECT_RAILWAY_URL = "https://nurture-lead-vision-production.up.railway.app";
 
 // Function to fetch domain data from SpyFu API via proxy
 export const fetchDomainData = async (
@@ -43,30 +43,11 @@ export const fetchDomainData = async (
       };
     }
     
-    // Try to get real data from the SpyFu API
+    // Try to get real data from the SpyFu API via our proxy
     try {
-      // First, verify the proxy server is accessible
-      console.log("Testing Railway connection...");
-      
-      // Ping the Railway server with a simple request
-      const testResponse = await fetch(`${RAILWAY_URL}/`, {
-        method: 'GET',
-        headers: { 
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache'
-        },
-        cache: 'no-store',
-        mode: 'cors'
-      });
-      
-      if (!testResponse.ok) {
-        console.error("Proxy server test failed with status:", testResponse.status);
-        throw new Error(`Proxy server responded with ${testResponse.status}`);
-      }
-      
-      // Proxy is available, get real data for the domain
-      console.log(`Fetching real data for ${cleanedDomain} via Railway`);
-      const proxyUrl = `${RAILWAY_URL}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
+      // Directly construct the proxy URL without any function calls that might fail
+      const proxyUrl = `${DIRECT_RAILWAY_URL}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
+      console.log(`Fetching real data via direct Railway URL: ${proxyUrl}`);
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
@@ -74,12 +55,14 @@ export const fetchDomainData = async (
       const response = await fetch(proxyUrl, {
         method: 'GET',
         headers: { 
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache'
+          'Accept': '*/*',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive'
         },
         signal: controller.signal,
         cache: 'no-store',
-        mode: 'cors'
+        mode: 'cors',
+        credentials: 'omit'
       });
       
       clearTimeout(timeoutId);

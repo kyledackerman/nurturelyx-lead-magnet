@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
@@ -7,39 +6,47 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ✅ CORS configuration - Allow all origins but with proper headers
+// ✅ SUPER PERMISSIVE CORS configuration - Accept ALL origins with ALL methods
 app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  credentials: false,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
-// ✅ Ensure CORS headers on Every Response
+// ✅ Ensure CORS headers on EVERY Response
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(204).send();
+  }
+  
   next();
 });
 
 // ✅ Middleware to parse JSON requests
 app.use(express.json());
 
-// ✅ Root Route (Confirms API is Running)
+// ✅ Root Route (Confirms API is Running) - Keep this super simple
 app.get("/", (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
   res.json({ 
     message: "SpyFu Proxy Server is running!", 
-    status: "OK",
-    endpoints: {
-      spyfu: "/proxy/spyfu?domain=example.com",
-      debug: "/debug-headers"
-    }
+    status: "OK"
   });
 });
 
 // ✅ SpyFu Proxy API Route
 app.get("/proxy/spyfu", async (req, res) => {
+  // Ensure CORS headers for this specific route
+  res.header('Access-Control-Allow-Origin', '*');
+  
   const { domain } = req.query;
 
   if (!domain) {
@@ -47,8 +54,8 @@ app.get("/proxy/spyfu", async (req, res) => {
   }
 
   // ✅ Use environment variables for SpyFu API credentials
-  const username = process.env.SPYFU_API_USERNAME;
-  const apiKey = process.env.SPYFU_API_KEY;
+  const username = process.env.SPYFU_API_USERNAME || 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
+  const apiKey = process.env.SPYFU_API_KEY || 'VESAPD8P';
 
   if (!username || !apiKey) {
     console.error("SpyFu API credentials are missing");
@@ -88,6 +95,7 @@ app.get("/proxy/spyfu", async (req, res) => {
 
 // ✅ Debug Route to Check CORS
 app.get("/debug-headers", (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
   res.json({
     headers: req.headers,
     message: "CORS Debugging - Headers Confirmed.",
@@ -96,9 +104,13 @@ app.get("/debug-headers", (req, res) => {
 
 // ✅ Health Check Route
 app.get("/health", (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  
   const credentials = {
     hasApiUsername: !!process.env.SPYFU_API_USERNAME,
-    hasApiKey: !!process.env.SPYFU_API_KEY
+    hasApiKey: !!process.env.SPYFU_API_KEY,
+    fallbackUsername: 'bd5d70b5-7793-4c6e-b012-2a62616bf1af',
+    fallbackKeyAvailable: true
   };
   
   res.json({
@@ -110,6 +122,7 @@ app.get("/health", (req, res) => {
 
 // ✅ Catch-All Route for Undefined Endpoints
 app.use((req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
   res.status(404).json({ error: "Not Found" });
 });
 

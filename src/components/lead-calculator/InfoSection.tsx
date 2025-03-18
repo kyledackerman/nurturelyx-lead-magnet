@@ -38,10 +38,10 @@ export const InfoSection = ({
     return (
       <Alert className="mt-4 bg-white" variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle className="text-red-800 font-semibold">API Error</AlertTitle>
+        <AlertTitle className="text-red-800 font-semibold">Traffic Data Unavailable</AlertTitle>
         <AlertDescription className="text-red-700">
           <p>{apiError}</p>
-          <p className="text-sm mt-2">To continue calculating your results, please enter your traffic data manually below.</p>
+          <p className="text-sm mt-2 font-medium">Enter your traffic data below to continue. Your report will still be accurate.</p>
           {onRetryConnection && (
             <Button 
               variant="outline" 
@@ -63,11 +63,11 @@ export const InfoSection = ({
     return (
       <Alert className="mt-4 bg-white" variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle className="text-red-800 font-semibold">Connection Error</AlertTitle>
+        <AlertTitle className="text-red-800 font-semibold">Connection Issue</AlertTitle>
         <AlertDescription className="text-red-700">
           <div className="flex flex-col">
             <p>{connectionError}</p>
-            <p className="text-sm mt-2">Please enter your traffic data manually below to continue.</p>
+            <p className="text-sm mt-2 font-medium">Enter your traffic data below to continue with the calculator.</p>
             {onRetryConnection && (
               <Button 
                 variant="outline" 
@@ -110,7 +110,7 @@ export const InfoSection = ({
     <>
       <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded-md mt-4">
         <AlertCircle size={16} className="flex-shrink-0" />
-        <span>Cannot connect to traffic data API. Enter traffic information below.</span>
+        <span>Enter your traffic information below to continue.</span>
         {onRetryConnection && (
           <Button 
             variant="outline" 
@@ -119,7 +119,7 @@ export const InfoSection = ({
             onClick={onRetryConnection}
           >
             <RefreshCw size={14} className="mr-1" />
-            Retry Connection
+            Try to Connect
           </Button>
         )}
       </div>
