@@ -1,79 +1,48 @@
 
-const cors = require('cors');
 const express = require('express');
+const cors = require('cors');
 const fetch = require('node-fetch');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ✅ Allow Lovable, Railway, and lovableproject domains
+// ✅ Allow Lovable & Railway
 const allowedOrigins = [
-  'https://nurture-lead-vision.lovable.app',  
-  'https://nurture-lead-vision-production.up.railway.app',
-  // Add the lovableproject.com domain pattern
-  /^https:\/\/.*\.lovableproject\.com$/
+  'https://nurture-lead-vision.lovable.app',
+  'https://nurture-lead-vision-production.up.railway.app'
 ];
 
-// Comprehensive CORS configuration
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl requests)
-    if (!origin) {
-      callback(null, true);
-      return;
-    }
-    
-    // Check if the origin matches our allowed list
-    const isAllowed = allowedOrigins.some(allowedOrigin => {
-      if (allowedOrigin instanceof RegExp) {
-        return allowedOrigin.test(origin);
-      }
-      return allowedOrigin === origin;
-    });
-    
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      console.warn(`CORS blocked request from origin: ${origin}`);
-      // For debugging purposes, we'll still allow it but log the warning
-      callback(null, true);
-    }
-  },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
-  credentials: false,
-  maxAge: 86400 // Cache preflight for 24 hours
-}));
+app.use(cors());
 
-// ✅ Explicitly handle preflight OPTIONS requests
-app.options('*', (req, res) => {
-  const origin = req.headers.origin;
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Origin, X-Requested-With");
-  res.status(204).end();
-});
-
-// ✅ Backup CORS headers for all responses
+// ✅ Ensure CORS Headers are Always Applied
 app.use((req, res, next) => {
-  // Allow any origin - this is less secure but ensures functionality
-  res.header("Access-Control-Allow-Origin", "*");
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+  } else {
+    res.header("Access-Control-Allow-Origin", "*");
+  }
   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Origin, X-Requested-With");
-  
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
 });
 
-app.use(express.json());
+// ✅ Debugging Endpoint (This should work now)
+app.get('/debug-headers', (req, res) => {
+  res.json({
+    headers: req.headers,
+    message: "CORS Debugging - Headers Confirmed."
+  });
+});
 
+// ✅ Test Root Route
 app.get('/', (req, res) => {
   res.json({
     message: 'SpyFu Proxy Server is running!',
     status: 'OK',
     endpoints: {
       spyfu: '/proxy/spyfu?domain=example.com',
-      cors_test: '/cors-test',
       debug: '/debug-headers'
     }
   });
@@ -134,15 +103,9 @@ app.get('/cors-test', (req, res) => {
   });
 });
 
-// Debug endpoint to see all request headers
-app.get('/debug-headers', (req, res) => {
-  res.json({
-    headers: req.headers,
-    origin: req.headers.origin || 'No origin header',
-    host: req.headers.host,
-    referer: req.headers.referer || 'No referer',
-    message: "Debug endpoint to check request headers."
-  });
+// ✅ Handle Undefined Routes (Prevents "Page Not Found")
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not Found', message: 'This route does not exist' });
 });
 
 app.listen(PORT, () => console.log(`Proxy server running on port ${PORT}`));
