@@ -22,13 +22,12 @@ export function useProxyConnection() {
       
       // Try the API endpoint with a shorter timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
       
       try {
         // Force no-cache for this request
         const response = await fetch('/api/check', {
           method: 'GET',
-          mode: 'cors',
           signal: controller.signal,
           credentials: 'omit',
           cache: 'no-cache',
@@ -46,13 +45,18 @@ export function useProxyConnection() {
           throw new Error("Server returned no response");
         }
         
+        // Log response properties for debugging
+        console.log(`API response status: ${response.status}, ok: ${response.ok}, headers:`, 
+          Object.fromEntries([...response.headers.entries()]));
+        
         // Get response text first to verify if it's actually JSON
-        let responseText;
+        let responseText = '';
         try {
           responseText = await response.text();
+          console.log("API response text:", responseText ? responseText.substring(0, 100) + "..." : "[empty]");
         } catch (textError) {
           console.error("Failed to get response text:", textError);
-          throw new Error("Failed to read server response");
+          throw new Error(`Failed to read server response: ${textError.message}`);
         }
         
         // Check if empty response
@@ -122,7 +126,7 @@ export function useProxyConnection() {
             statusText: response.statusText
           });
           
-          throw new Error("Server returned non-JSON response");
+          throw new Error(`Server returned non-JSON response: ${parseError.message}`);
         }
       } catch (fetchError) {
         // Catch fetch errors separately to provide better diagnostics

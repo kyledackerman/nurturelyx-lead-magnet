@@ -56,7 +56,28 @@ app.use((req, res, next) => {
 });
 
 // ----- API ROUTES SECTION -----
-// IMPORTANT: Define all API routes BEFORE serving static files
+
+// Special route to explicitly check if API is working and returning JSON
+// Place this before any other routes to make sure it gets priority
+app.get("/api/check", (req, res) => {
+  try {
+    console.log("API check endpoint called");
+    
+    // Force content type to be JSON
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Return a simple JSON response with a timestamp
+    res.json({
+      status: "ok",
+      message: "API is working correctly and returning JSON",
+      timestamp: new Date().toISOString(),
+      router: "Express"
+    });
+  } catch (error) {
+    console.error("Error in /api/check route:", error);
+    res.status(500).json({ error: "Internal server error", details: error.message });
+  }
+});
 
 // Root Route (Confirms API is Running)
 app.get("/api", (req, res) => {
@@ -171,23 +192,6 @@ app.get("/debug-headers", (req, res) => {
     });
   } catch (error) {
     console.error("Error in /debug-headers route:", error);
-    res.status(500).json({ error: "Internal server error", details: error.message });
-  }
-});
-
-// Special route to explicitly check if API is working and returning JSON
-app.get("/api/check", (req, res) => {
-  try {
-    console.log("API check endpoint called");
-    // Force content type to be JSON
-    res.setHeader('Content-Type', 'application/json');
-    res.json({
-      status: "ok",
-      message: "API is working correctly and returning JSON",
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error("Error in /api/check route:", error);
     res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });
