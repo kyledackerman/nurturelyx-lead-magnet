@@ -7,38 +7,31 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS configuration - allow requests from ANY origin (needed for development)
-app.use(cors({
-  origin: '*',  // Allow any origin
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],
-  credentials: false
-}));
+// ✅ Trust Railway proxy
+app.set('trust proxy', 1);
 
-// Set proper headers for CORS
+// ✅ Force CORS Headers for Every Response
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "*");
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
 });
 
-// Root endpoint
+// ✅ Explicitly Handle OPTIONS Preflight Requests
+app.options('*', (req, res) => {
+  res.status(200).end();
+});
+
+// ✅ Root Route - Check if Server is Running
 app.get('/', (req, res) => {
-  res.json({
-    message: 'SpyFu Proxy Server is running!',
-    status: 'OK',
-    endpoints: {
-      spyfu: '/proxy/spyfu?domain=example.com'
-    }
+  res.json({ 
+    message: 'SpyFu Proxy Server is running!', 
+    status: 'OK' 
   });
 });
 
-// SpyFu Proxy Endpoint
+// ✅ Proxy Route to SpyFu API
 app.get('/proxy/spyfu', async (req, res) => {
   const { domain } = req.query;
 
@@ -46,45 +39,29 @@ app.get('/proxy/spyfu', async (req, res) => {
     return res.status(400).json({ error: 'Domain parameter is required' });
   }
 
-  // Get credentials with fallbacks for testing
-  const username = process.env.SPYFU_API_USERNAME || 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
-  const apiKey = process.env.SPYFU_API_KEY || 'VESAPD8P';
-
+  const username = process.env.SPYFU_API_USERNAME;
+  const apiKey = process.env.SPYFU_API_KEY;
+  
   const url = `https://www.spyfu.com/apis/domain_stats_api/v2/getDomainStatsForExactDate?domain=${domain}&month=3&year=2023&countryCode=US&api_username=${username}&api_key=${apiKey}`;
 
   try {
-    console.log(`Making request to SpyFu API for domain: ${domain}`);
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`SpyFu API returned status: ${response.status} ${response.statusText}`);
-    }
-    
+    console.log(`Making request to: ${url}`);
+    const response = await fetch(url);
     const data = await response.json();
-    console.log('SpyFu API response successful');
-    
-    // Set CORS headers explicitly on the response
+
+    // ✅ Enforce CORS on API response
     res.header("Access-Control-Allow-Origin", "*");
     res.json(data);
   } catch (error) {
     console.error('SpyFu API Request Failed:', error.message);
-    res.status(500).json({ 
-      error: 'SpyFu API request failed', 
-      details: error.message
-    });
+    res.status(500).json({ error: 'SpyFu API request failed', details: error.message });
   }
 });
 
-// Catch-all for undefined routes
+// ✅ 404 Catch-All
 app.use((req, res) => {
-  res.status(404).json({ error: 'Not Found', message: 'This route does not exist' });
+  res.status(404).json({ error: 'Not Found' });
 });
 
+// ✅ Start Server
 app.listen(PORT, () => console.log(`Proxy server running on port ${PORT}`));
