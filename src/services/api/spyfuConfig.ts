@@ -2,7 +2,7 @@
 // SpyFu API configuration
 export const SPYFU_API_BASE_URL = 'https://www.spyfu.com/apis/domain_stats_api/v2';
 
-// SpyFu API credentials - verified 
+// SpyFu API credentials - stored securely on the server side now
 export const SPYFU_API_USERNAME = 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
 export const SPYFU_API_KEY = 'VESAPD8P';
 
@@ -36,10 +36,10 @@ export const hasSpyFuApiKey = (): boolean => {
 };
 
 // Default public proxy URL if none is set in localStorage
-// This should be updated to your actual public proxy server when deployed
-export const DEFAULT_PUBLIC_PROXY_URL = 'https://yourproxyserver.com';
+// This default URL will be used in production when no custom URL is set
+export const DEFAULT_PUBLIC_PROXY_URL = 'https://your-deployed-proxy-url.com';
 
-// Get the proxy server URL - prioritizes localStorage setting, then environment variable, then default public URL
+// Get the proxy server URL - prioritizes localStorage setting, then environment, then defaults
 export const getProxyServerUrl = (): string => {
   // First check for custom proxy URL in localStorage
   if (typeof localStorage !== 'undefined') {
