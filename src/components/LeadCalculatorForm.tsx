@@ -23,7 +23,7 @@ const LeadCalculatorForm = ({
   onReset, 
   isCalculating, 
   initialData, 
-  apiError 
+  apiError: externalApiError 
 }: LeadCalculatorFormProps) => {
   const {
     formData,
@@ -36,10 +36,11 @@ const LeadCalculatorForm = ({
     diagnosticInfo,
     retryConnection,
     handleChange,
+    validateAndSubmit,
     validateForm,
     setShowTrafficFields,
     resetForm
-  } = useLeadCalculatorForm(initialData, apiError);
+  } = useLeadCalculatorForm(initialData);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +70,8 @@ const LeadCalculatorForm = ({
       onReset(); // Call parent reset function
     }
   };
+
+  const apiError = externalApiError || connectionError;
 
   return (
     <Card className="w-full max-w-2xl mx-auto">

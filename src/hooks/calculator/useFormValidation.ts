@@ -6,6 +6,7 @@ export function useFormValidation(formData: FormData, showTrafficFields: boolean
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [canCalculate, setCanCalculate] = useState<boolean>(true);
 
+  // Clear error for a specific field
   const clearFieldError = (field: string) => {
     if (errors[field]) {
       setErrors((prev) => {
@@ -16,6 +17,7 @@ export function useFormValidation(formData: FormData, showTrafficFields: boolean
     }
   };
 
+  // Validate the form
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
     
@@ -40,6 +42,21 @@ export function useFormValidation(formData: FormData, showTrafficFields: boolean
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  // Update canCalculate based on validation status
+  useEffect(() => {
+    // Basic validation check for important fields
+    const isValid = Boolean(
+      formData.domain.trim() && 
+      formData.avgTransactionValue > 0 &&
+      (!showTrafficFields || 
+        (formData.isUnsurePaid || formData.monthlyVisitors > 0) &&
+        (formData.isUnsureOrganic || (formData.organicTrafficManual && formData.organicTrafficManual > 0))
+      )
+    );
+    
+    setCanCalculate(isValid);
+  }, [formData, showTrafficFields]);
 
   return {
     errors,

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useFormState } from "@/hooks/calculator/useFormState";
 import { fetchDomainData } from "@/services/spyfuService";
@@ -34,30 +35,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null) {
     retryConnection
   } = useProxyConnection();
 
-  // Form validation and submission state
-  const {
-    isValidDomain,
-    isValidAvgTransactionValue,
-    domainError,
-    avgTransactionValueError,
-    validateForm,
-    isDomainValid,
-    isAvgTransactionValueValid,
-    setDomainError,
-    setAvgTransactionValueError
-  } = useFormValidation(formData, validateAndSubmit);
-
-  // When there's an API error or connection error, prepare to show traffic fields
-  const [shouldShowTrafficFields, setShouldShowTrafficFields] = useState<boolean>(false);
-  const apiError = connectionError ? connectionError : null;
-
-  // IMPORTANT: Never show traffic fields regardless of errors
-  useEffect(() => {
-    setShouldShowTrafficFields(false);
-    setShowTrafficFields(false); // Pass false here since the function expects a boolean argument
-  }, [connectionError, apiError, setShowTrafficFields]);
-
-  // Function to validate the form and submit data
+  // Define validateAndSubmit first to avoid the reference error
   const validateAndSubmit = useCallback(async () => {
     if (!validateForm()) {
       return;
@@ -92,6 +70,24 @@ export function useLeadCalculatorForm(initialData?: FormData | null) {
     }
   }, [formData, validateForm]);
 
+  // Form validation state (now properly referencing validateAndSubmit)
+  const {
+    errors,
+    canCalculate,
+    validateForm,
+    clearFieldError,
+  } = useFormValidation(formData, showTrafficFields);
+
+  // When there's an API error or connection error, prepare to show traffic fields
+  const [shouldShowTrafficFields, setShouldShowTrafficFields] = useState<boolean>(false);
+  const apiError = connectionError ? connectionError : null;
+
+  // IMPORTANT: Never show traffic fields regardless of errors
+  useEffect(() => {
+    setShouldShowTrafficFields(false);
+    setShowTrafficFields(false);
+  }, [connectionError, apiError, setShowTrafficFields]);
+
   return {
     formData,
     showTrafficFields,
@@ -108,14 +104,9 @@ export function useLeadCalculatorForm(initialData?: FormData | null) {
     diagnosticInfo,
     resetConnectionState,
     retryConnection,
-    isValidDomain,
-    isValidAvgTransactionValue,
-    domainError,
-    avgTransactionValueError,
-    isDomainValid,
-    isAvgTransactionValueValid,
-    setDomainError,
-    setAvgTransactionValueError,
+    errors,
+    canCalculate,
+    validateForm,
     setShowTrafficFields
   };
 }
