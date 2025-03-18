@@ -18,14 +18,14 @@ export function useProxyConnection() {
     setConnectionError(null);
     
     try {
-      console.log(`Testing API connection at: /api`);
+      console.log(`Testing API connection at: /api/check`);
       
       // Try the API endpoint with a shorter timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      // Use a simple GET request to the API endpoint
-      const pingResponse = await fetch('/api', {
+      // Use our special JSON-check endpoint
+      const pingResponse = await fetch('/api/check', {
         method: 'GET',
         mode: 'cors',
         signal: controller.signal,
@@ -39,36 +39,36 @@ export function useProxyConnection() {
       
       clearTimeout(timeoutId);
       
-      // Save the response for diagnostics
-      let responseText;
-      try {
-        responseText = await pingResponse.text();
-        console.log("API response text:", responseText.substring(0, 100));
-      } catch (e) {
-        console.error("Error reading response text:", e);
-        responseText = "Error reading response";
+      // First check if the response is actually JSON
+      const contentType = pingResponse.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error(`Server returned non-JSON content type: ${contentType}`);
+        const responseText = await pingResponse.text();
+        setDiagnosticInfo({
+          error: "Server returned non-JSON content type",
+          contentType: contentType,
+          responseText: responseText.substring(0, 250),
+          htmlDetected: responseText.includes("<!DOCTYPE") || responseText.includes("<html"),
+          status: pingResponse.status,
+          statusText: pingResponse.statusText
+        });
+        throw new Error(`Server returned non-JSON content: ${contentType}`);
       }
       
-      // Try to parse it as JSON
-      let jsonData = null;
-      try {
-        jsonData = JSON.parse(responseText);
-        console.log("API endpoint returned valid JSON:", jsonData);
-      } catch (e) {
-        console.error("API endpoint did not return valid JSON. Got:", responseText.substring(0, 100));
-        setDiagnosticInfo({
-          error: "Invalid JSON response",
-          responseText: responseText.substring(0, 250),
-          htmlDetected: responseText.includes("<!DOCTYPE") || responseText.includes("<html")
-        });
-        throw new Error(`Server returned HTML instead of JSON: ${responseText.substring(0, 50)}...`);
-      }
+      // Now safely parse the JSON response
+      const jsonData = await pingResponse.json();
+      console.log("API endpoint returned valid JSON:", jsonData);
       
       if (pingResponse.ok && jsonData) {
         console.log("✅ API connection successful!");
         setProxyConnected(true);
         setConnectionError(null);
-        setDiagnosticInfo(jsonData);
+        setDiagnosticInfo({
+          ...jsonData,
+          contentType,
+          status: pingResponse.status,
+          headers: Object.fromEntries([...pingResponse.headers.entries()])
+        });
       } else {
         throw new Error(`API endpoint responded with status: ${pingResponse.status}`);
       }
@@ -79,8 +79,8 @@ export function useProxyConnection() {
       
       if (error.name === "AbortError") {
         errorMessage = "Connection timed out. The server might be down or your network might be blocking the connection.";
-      } else if (error.message.includes("HTML") || error.message.includes("<!DOCTYPE")) {
-        errorMessage = "The server is returning HTML instead of JSON. This happens when only the frontend is running, not the API server.";
+      } else if (error.message && (error.message.includes("HTML") || error.message.includes("<!DOCTYPE") || error.message.includes("non-JSON"))) {
+        errorMessage = "The server is returning HTML instead of JSON. This usually means the Express API routes are not being handled correctly.";
       } else if (error.message) {
         errorMessage = `Connection error: ${error.message}`;
       }
@@ -92,7 +92,7 @@ export function useProxyConnection() {
         error: error.message || "Unknown error",
         name: error.name || "Error",
         isAbortError: error.name === "AbortError",
-        isHtmlResponse: error.message.includes("HTML") || error.message.includes("<!DOCTYPE")
+        isHtmlResponse: error.message && (error.message.includes("HTML") || error.message.includes("<!DOCTYPE") || error.message.includes("non-JSON"))
       });
     } finally {
       setIsCheckingConnection(false);

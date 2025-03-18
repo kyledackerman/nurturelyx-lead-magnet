@@ -55,10 +55,15 @@ app.use((req, res, next) => {
   next();
 });
 
+// ----- API ROUTES SECTION -----
+// IMPORTANT: Define all API routes BEFORE serving static files
+
 // Root Route (Confirms API is Running)
 app.get("/api", (req, res) => {
   try {
     console.log("API root endpoint called");
+    // Force content type to be JSON
+    res.setHeader('Content-Type', 'application/json');
     res.json({ 
       message: "SpyFu Proxy Server is running!", 
       status: "OK",
@@ -76,6 +81,8 @@ app.get("/health", (req, res) => {
     const memoryUsage = process.memoryUsage();
     console.log("Health check called");
     
+    // Force content type to be JSON
+    res.setHeader('Content-Type', 'application/json');
     res.json({
       status: "healthy",
       serverTime: new Date().toISOString(),
@@ -140,6 +147,8 @@ app.get("/proxy/spyfu", async (req, res) => {
 
     const data = await response.json();
     console.log("SpyFu API call successful");
+    // Force content type to be JSON
+    res.setHeader('Content-Type', 'application/json');
     res.json(data);
   } catch (error) {
     console.error("SpyFu API Fetch Error:", error.message);
@@ -154,6 +163,8 @@ app.get("/proxy/spyfu", async (req, res) => {
 app.get("/debug-headers", (req, res) => {
   try {
     console.log("Debug headers endpoint called");
+    // Force content type to be JSON
+    res.setHeader('Content-Type', 'application/json');
     res.json({
       headers: req.headers,
       message: "CORS Debugging - Headers Confirmed"
@@ -163,6 +174,25 @@ app.get("/debug-headers", (req, res) => {
     res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });
+
+// Special route to explicitly check if API is working and returning JSON
+app.get("/api/check", (req, res) => {
+  try {
+    console.log("API check endpoint called");
+    // Force content type to be JSON
+    res.setHeader('Content-Type', 'application/json');
+    res.json({
+      status: "ok",
+      message: "API is working correctly and returning JSON",
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Error in /api/check route:", error);
+    res.status(500).json({ error: "Internal server error", details: error.message });
+  }
+});
+
+// ----- END OF API ROUTES SECTION -----
 
 // Log the dist directory contents
 try {
@@ -181,14 +211,37 @@ try {
   console.error("Error checking dist directory:", error);
 }
 
+// ----- STATIC FILES SECTION -----
+// IMPORTANT: This section must come AFTER all API routes
+console.log("Setting up static file serving for dist directory");
+
 // Serve static files from the dist directory
 app.use(express.static(path.join(__dirname, 'dist'), {
-  fallthrough: true,
-  index: 'index.html'
+  fallthrough: true,  // Allow falling through to next middleware if file not found
+  index: 'index.html',
+  // Set proper cache headers
+  setHeaders: (res, filepath) => {
+    // Set proper content types
+    if (filepath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (filepath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    } else if (filepath.endsWith('.html')) {
+      res.setHeader('Content-Type', 'text/html');
+    } else if (filepath.endsWith('.json')) {
+      res.setHeader('Content-Type', 'application/json');
+    }
+  }
 }));
 
-// Any routes not matched by API endpoints should serve the index.html
-app.get('*', (req, res) => {
+// This wildcard route should only catch non-API routes
+app.get('*', (req, res, next) => {
+  // Skip this handler for API routes
+  if (req.path.startsWith('/api') || req.path.startsWith('/proxy') || req.path === '/health' || req.path === '/debug-headers') {
+    console.log(`Skipping wildcard handler for API path: ${req.path}`);
+    return next();
+  }
+  
   try {
     console.log(`Serving frontend for path: ${req.path}`);
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
@@ -198,6 +251,8 @@ app.get('*', (req, res) => {
   }
 });
 
+// ----- START SERVER SECTION -----
+
 // Start Server with better error handling
 const server = app.listen(PORT, () => {
   console.log(`
@@ -205,6 +260,7 @@ const server = app.listen(PORT, () => {
 📁 Serving static files from: ${path.join(__dirname, 'dist')}
 🔌 API endpoints:
    - /api (Server status)
+   - /api/check (JSON response check)
    - /health (Health check)
    - /proxy/spyfu (SpyFu proxy)
    - /debug-headers (CORS debugging)
