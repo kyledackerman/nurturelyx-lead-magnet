@@ -24,9 +24,7 @@ const FormSection = ({ apiError, formDataCache, onCalculate, onReset, isCalculat
               <AlertDescription>
                 <p className="text-red-700">{apiError}</p>
                 <p className="mt-2 font-medium text-red-800">
-                  {apiError.includes("browser's security policy") 
-                    ? "Please enter your traffic data manually to continue." 
-                    : "You can enter your traffic data manually to continue."}
+                  Please enter your traffic data manually to continue.
                 </p>
               </AlertDescription>
             </Alert>

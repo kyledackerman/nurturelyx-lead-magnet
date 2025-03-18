@@ -7,6 +7,7 @@ export function useProxyConnection() {
   const [proxyConnected, setProxyConnected] = useState<boolean>(false);
   const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
   const [connectionAttempted, setConnectionAttempted] = useState<boolean>(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   useEffect(() => {
     const checkProxyConnection = async () => {
@@ -30,7 +31,10 @@ export function useProxyConnection() {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          signal: controller.signal
+          signal: controller.signal,
+          // Explicitly disable credentials and set mode to cors
+          credentials: 'omit',
+          mode: 'cors'
         });
         
         clearTimeout(timeoutId);
@@ -42,6 +46,7 @@ export function useProxyConnection() {
           if (data && data.message && data.message.includes('SpyFu Proxy Server')) {
             console.log("✅ Proxy server is running at:", proxyUrl);
             setProxyConnected(true);
+            setConnectionError(null);
             
             toast.success("API connection established", {
               id: connectionToastId
@@ -55,6 +60,18 @@ export function useProxyConnection() {
       } catch (error) {
         console.error("Proxy connection error:", error);
         setProxyConnected(false);
+        
+        // Set error message based on error type
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const isCorsError = errorMessage.toLowerCase().includes('cors') || 
+                           errorMessage.toLowerCase().includes('network') ||
+                           errorMessage.toLowerCase().includes('failed to fetch');
+        
+        if (isCorsError) {
+          setConnectionError("Browser security restrictions (CORS) are preventing API connection");
+        } else {
+          setConnectionError(`Connection failed: ${errorMessage}`);
+        }
         
         toast.error("API connection failed", {
           id: connectionToastId,
@@ -73,11 +90,13 @@ export function useProxyConnection() {
 
   const resetConnectionState = () => {
     setConnectionAttempted(false);
+    setConnectionError(null);
   };
 
   return {
     proxyConnected,
     isUsingRailway: true, // Always true, we only use Railway
+    connectionError,
     resetConnectionState
   };
 }

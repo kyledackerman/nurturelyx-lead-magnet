@@ -45,7 +45,7 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-medium text-foreground text-white">How We Calculate Results</h3>
+              <h3 className="text-sm font-medium text-foreground">How We Calculate Results</h3>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
