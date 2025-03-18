@@ -18,49 +18,82 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   const [canCalculate, setCanCalculate] = useState<boolean>(false);
   const [showTrafficFields, setShowTrafficFields] = useState<boolean>(false);
   const [proxyConnected, setProxyConnected] = useState<boolean>(false);
+  const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
 
   useEffect(() => {
     const checkProxyConnection = async () => {
+      // Only check if we're not already checking to avoid multiple parallel requests
+      if (isCheckingConnection) return;
+      
+      setIsCheckingConnection(true);
       try {
+        console.log("Testing proxy connection to:", `${PROXY_SERVER_URL}/proxy/spyfu?domain=ping`);
+        
         const response = await fetch(`${PROXY_SERVER_URL}/proxy/spyfu?domain=ping`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
-          signal: AbortSignal.timeout(3000),
+          // Use a shorter timeout for better UX
+          signal: AbortSignal.timeout(5000),
         });
         
-        setProxyConnected(true);
-        console.log("✅ Proxy server is running at:", PROXY_SERVER_URL);
-        
-        toast.success("Proxy server connected", {
-          description: "SpyFu API requests will now be processed through your local proxy",
-          duration: 5000,
-        });
+        if (response.ok) {
+          setProxyConnected(true);
+          setShowTrafficFields(false);
+          console.log("✅ Proxy server is running at:", PROXY_SERVER_URL);
+          
+          // Only show toast when connection changes from disconnected to connected
+          if (!proxyConnected) {
+            toast.success("Proxy server connected", {
+              description: "SpyFu API requests will now be processed through your proxy server",
+              duration: 5000,
+            });
+          }
+        } else {
+          throw new Error(`Proxy server returned status: ${response.status}`);
+        }
       } catch (error) {
         setProxyConnected(false);
+        setShowTrafficFields(true);
         console.log("❌ Proxy server connection failed. Make sure it's running at:", PROXY_SERVER_URL);
         console.error("Proxy connection error:", error);
         
-        if (apiError) {
+        // Only show toast on initial failure or when explicitly requested
+        if (apiError && !showTrafficFields) {
           toast.error("Proxy server not detected", {
-            description: "Make sure your Express server is running on port 3001",
+            description: "Make sure your proxy server is running. Manual traffic data input is now enabled.",
             duration: 8000,
           });
         }
+      } finally {
+        setIsCheckingConnection(false);
       }
     };
     
     if (hasSpyFuApiKey()) {
+      // Check connection immediately
       checkProxyConnection();
       
-      const intervalId = setInterval(checkProxyConnection, 15000);
+      // Then check periodically but less frequently (every 30 seconds)
+      const intervalId = setInterval(checkProxyConnection, 30000);
       return () => clearInterval(intervalId);
     }
-  }, [apiError]);
+  }, [apiError, proxyConnected, isCheckingConnection]);
   
+  // Update showTrafficFields when API error occurs or proxy is disconnected
   useEffect(() => {
-    setShowTrafficFields(!!apiError || !proxyConnected);
+    const shouldShow = !!apiError || !proxyConnected;
+    setShowTrafficFields(shouldShow);
+    
+    // If we need to show manual fields and there's an API error,
+    // make sure the user is aware they need to provide data manually
+    if (shouldShow && apiError) {
+      toast.info("Please enter your traffic data manually", {
+        description: "We couldn't connect to the SpyFu API. Manual input is required to continue.",
+        duration: 5000,
+      });
+    }
   }, [apiError, proxyConnected]);
 
   useEffect(() => {

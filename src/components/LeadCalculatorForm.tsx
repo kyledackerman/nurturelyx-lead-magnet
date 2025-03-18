@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormData } from "@/types/report";
 import { RefreshCw, AlertCircle } from "lucide-react";
@@ -57,7 +56,21 @@ const LeadCalculatorForm = ({
         <FormHeader onReset={onReset} />
       </CardHeader>
       <CardContent>
-        {apiError && <ApiErrorMessage apiError={apiError} />}
+        {apiError && (
+          <div className="mb-6">
+            <div className="flex items-start text-sm text-red-600 mt-2 bg-white p-2 rounded border border-red-200">
+              <AlertCircle size={16} className="mr-1 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium">SpyFu API Connection Error</p>
+                <p className="text-xs text-red-500">
+                  {apiError === "Edit mode - all fields are editable" 
+                    ? "You can edit all fields and recalculate your report." 
+                    : "Please provide traffic data manually to continue."}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <TrafficInputFields 
@@ -73,7 +86,10 @@ const LeadCalculatorForm = ({
             errors={errors}
           />
           
-          <InfoSection apiError={apiError} proxyConnected={proxyConnected} />
+          <InfoSection 
+            apiError={apiError} 
+            proxyConnected={proxyConnected} 
+          />
           
           <FormActions 
             isCalculating={isCalculating}
@@ -109,16 +125,6 @@ const FormHeader = ({ onReset }: { onReset?: () => void }) => (
         Restart
       </Button>
     )}
-  </div>
-);
-
-// API Error message component
-const ApiErrorMessage = ({ apiError }: { apiError: string }) => (
-  <div className="mb-6">
-    <div className="flex items-center justify-center text-sm text-red-600 mt-2 bg-white p-2 rounded border border-red-200">
-      <AlertCircle size={16} className="mr-1" />
-      <p dangerouslySetInnerHTML={{ __html: apiError }}></p>
-    </div>
   </div>
 );
 
