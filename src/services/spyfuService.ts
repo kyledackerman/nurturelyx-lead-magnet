@@ -2,7 +2,7 @@
 import { toast } from "sonner";
 import { ApiData } from "@/types/report";
 
-// SpyFu API configuration
+// SpyFu API configuration - UPDATE: switched to using the domain stats endpoint with correct path
 const SPYFU_API_BASE_URL = 'https://www.spyfu.com/apis/domain_stats_api/v2';
 
 // SpyFu API credentials
@@ -72,15 +72,22 @@ export const fetchDomainData = async (
     
     console.log(`Analyzing domain: ${cleanedDomain}`);
     
+    // Attempt to get current date for exact date endpoint
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+    const currentYear = now.getFullYear();
+    
     // Create auth header using Basic Authentication
     const authHeader = `Basic ${btoa(`${SPYFU_API_USERNAME}:${SPYFU_API_KEY}`)}`;
     
     try {
-      // Set a longer timeout for the API request (15 seconds)
+      // Set a longer timeout for the API request (20 seconds)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
       
-      const apiUrl = `${SPYFU_API_BASE_URL}/getLatestDomainStats?domain=${encodeURIComponent(cleanedDomain)}&countryCode=US`;
+      // UPDATED: Use getDomainStatsForExactDate endpoint instead 
+      // This endpoint is more reliable as shown in the documentation
+      const apiUrl = `${SPYFU_API_BASE_URL}/getDomainStatsForExactDate?month=${currentMonth}&year=${currentYear}&domain=${encodeURIComponent(cleanedDomain)}&countryCode=US`;
       console.log(`Making API request to: ${apiUrl}`);
       
       const response = await fetch(apiUrl, {
@@ -91,8 +98,9 @@ export const fetchDomainData = async (
           'Accept': 'application/json'
         },
         signal: controller.signal,
-        // Improve cache handling
-        cache: 'no-cache'
+        mode: 'cors', // Explicitly set CORS mode
+        cache: 'no-cache',
+        credentials: 'omit' // Don't send cookies
       });
       
       clearTimeout(timeoutId);
@@ -151,13 +159,14 @@ export const fetchDomainData = async (
     } catch (apiError) {
       console.error("SpyFu API request failed:", apiError);
       
-      // If SpyFu API call fails, use our fallback data generation
+      // If SpyFu API call fails, try a direct fallback
+      toast.warning(`SpyFu API connection issue for ${domain}`, { 
+        id: toastId, 
+        description: `Using estimated data instead. Enter your traffic manually for better accuracy.`,
+      });
+      
+      // If manual data provided, use it
       if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual > 0) {
-        toast.warning(`SpyFu API call failed for ${domain}`, { 
-          id: toastId, 
-          description: `Using your manually entered data instead.`,
-        });
-        
         return {
           organicKeywords: Math.floor(organicTrafficManual * 0.3),
           organicTraffic: organicTrafficManual,
@@ -167,15 +176,8 @@ export const fetchDomainData = async (
           dataSource: 'manual' as const
         };
       } else {
-        // Generate fallback data if no manual data provided
-        const fallbackData = generateFallbackData(domain, organicTrafficManual);
-        
-        toast.warning(`SpyFu API unavailable`, { 
-          id: toastId, 
-          description: `Using estimated data for ${domain}. Enter traffic manually for better accuracy.`,
-        });
-        
-        return fallbackData;
+        // Generate fallback data when API and manual data unavailable
+        return generateFallbackData(domain, organicTrafficManual);
       }
     }
   } catch (error) {
@@ -183,7 +185,7 @@ export const fetchDomainData = async (
     
     // If user provided manual data, use it as fallback
     if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual > 0) {
-      toast.warning(`SpyFu API call failed for ${domain}`, { 
+      toast.warning(`SpyFu API unavailable for ${domain}`, { 
         id: toastId, 
         description: `Using your manually entered data instead.`,
       });
