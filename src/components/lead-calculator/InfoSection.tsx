@@ -15,7 +15,7 @@ export const InfoSection = ({ apiError }: InfoSectionProps) => {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle className="text-red-800 font-semibold">API Connection Error</AlertTitle>
           <AlertDescription className="text-red-700">
-            We couldn't connect to the Google Analytics API to fetch your traffic data. Please enter your traffic numbers manually to continue.
+            We couldn't connect to the SpyFu API to fetch your traffic data. Please enter your traffic numbers manually to continue.
           </AlertDescription>
           <p className="text-red-600 mt-2 text-xs">{apiError}</p>
         </Alert>
@@ -29,7 +29,7 @@ export const InfoSection = ({ apiError }: InfoSectionProps) => {
           <div>
             <h3 className="text-sm font-medium text-foreground mb-1">How We Calculate Results</h3>
             <p className="text-sm text-gray-400">
-              We analyze both your organic traffic and your paid traffic (from Google Analytics or your input) to identify 20% of total visitors that could be converted into leads, with 1% of those leads becoming sales.
+              We analyze both your organic traffic and your paid traffic (from SpyFu data or your input) to identify 20% of total visitors that could be converted into leads, with 1% of those leads becoming sales.
             </p>
           </div>
         </div>

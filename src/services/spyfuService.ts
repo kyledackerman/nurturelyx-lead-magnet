@@ -34,6 +34,24 @@ export const hasSpyFuApiKey = (): boolean => {
   return true;
 };
 
+// Generate fallback data for domains when API fails
+const generateFallbackData = (domain: string, organicTrafficManual?: number): ApiData => {
+  // If user provided organic traffic, use it as base
+  const baseTraffic = organicTrafficManual && organicTrafficManual > 0 
+    ? organicTrafficManual 
+    : Math.floor(1000 + (domain.length * 200));
+  
+  // Generate reasonable fallback values based on domain length and provided traffic
+  return {
+    organicTraffic: baseTraffic,
+    paidTraffic: Math.floor(baseTraffic * 0.3),
+    organicKeywords: Math.floor(baseTraffic * 0.4),
+    domainPower: Math.min(95, Math.floor(40 + (domain.length * 1.5))),
+    backlinks: Math.floor(baseTraffic * 0.5),
+    dataSource: 'fallback' as const
+  };
+};
+
 // Function to fetch domain data from SpyFu API
 export const fetchDomainData = async (
   domain: string, 
@@ -57,75 +75,107 @@ export const fetchDomainData = async (
     // Create auth header using Basic Authentication
     const authHeader = `Basic ${btoa(`${SPYFU_API_USERNAME}:${SPYFU_API_KEY}`)}`;
     
-    // Make the request to SpyFu API for the latest domain stats
-    const response = await fetch(
-      `${SPYFU_API_BASE_URL}/getLatestDomainStats?domain=${encodeURIComponent(cleanedDomain)}&countryCode=US`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': authHeader,
-          'Content-Type': 'application/json',
-        }
-      }
-    );
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('SpyFu API error:', errorData);
-      throw new Error(`SpyFu API error: ${response.status} ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    
-    // Extract the relevant stats from the API response
-    if (!data.results || data.results.length === 0) {
-      throw new Error(`No data found for domain: ${cleanedDomain}`);
-    }
-    
-    const domainStats = data.results[0];
-    
-    // Map API response to our ApiData format
-    const apiData: ApiData = {
-      organicTraffic: Math.floor(domainStats.monthlyOrganicClicks || 0),
-      paidTraffic: Math.floor(domainStats.monthlyPaidClicks || 0),
-      organicKeywords: domainStats.totalOrganicResults || 0,
-      domainPower: domainStats.strength || Math.min(95, Math.round((domainStats.totalOrganicResults || 0) / 5000)),
-      backlinks: Math.floor((domainStats.totalOrganicResults || 0) * 0.5), // Estimate backlinks based on keywords count
-      dataSource: 'api' as const
-    };
-    
-    toast.success(`Successfully analyzed ${cleanedDomain}`, { 
-      id: toastId,
-      description: `SpyFu data retrieved successfully.`,
-    });
-    
-    // If user also provided manual organic traffic and is not unsure, average them for better accuracy
-    if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual > 0) {
-      const avgTraffic = Math.floor((apiData.organicTraffic + organicTrafficManual) / 2);
-      const avgKeywords = Math.floor((apiData.organicKeywords + Math.floor(organicTrafficManual * 0.3)) / 2);
-      const avgBacklinks = Math.floor((apiData.backlinks + Math.floor(organicTrafficManual * 0.5)) / 2);
+    try {
+      // Make the request to SpyFu API for the latest domain stats with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
-      toast.success(`Averaged API data with your manual entry for ${cleanedDomain}`, { 
-        description: `Using combined data sources for the most accurate estimate.`,
+      const response = await fetch(
+        `${SPYFU_API_BASE_URL}/getLatestDomainStats?domain=${encodeURIComponent(cleanedDomain)}&countryCode=US`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': authHeader,
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal
+        }
+      );
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`SpyFu API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Extract the relevant stats from the API response
+      if (!data.results || data.results.length === 0) {
+        throw new Error(`No data found for domain: ${cleanedDomain}`);
+      }
+      
+      const domainStats = data.results[0];
+      
+      // Map API response to our ApiData format
+      const apiData: ApiData = {
+        organicTraffic: Math.floor(domainStats.monthlyOrganicClicks || 0),
+        paidTraffic: Math.floor(domainStats.monthlyPaidClicks || 0),
+        organicKeywords: domainStats.totalOrganicResults || 0,
+        domainPower: domainStats.strength || Math.min(95, Math.round((domainStats.totalOrganicResults || 0) / 5000)),
+        backlinks: Math.floor((domainStats.totalOrganicResults || 0) * 0.5), // Estimate backlinks based on keywords count
+        dataSource: 'api' as const
+      };
+      
+      toast.success(`Successfully analyzed ${cleanedDomain}`, { 
+        id: toastId,
+        description: `SpyFu data retrieved successfully.`,
       });
       
-      return {
-        ...apiData,
-        organicTraffic: avgTraffic,
-        organicKeywords: avgKeywords,
-        backlinks: avgBacklinks,
-        dataSource: 'both' as const
-      };
+      // If user also provided manual organic traffic and is not unsure, average them for better accuracy
+      if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual > 0) {
+        const avgTraffic = Math.floor((apiData.organicTraffic + organicTrafficManual) / 2);
+        const avgKeywords = Math.floor((apiData.organicKeywords + Math.floor(organicTrafficManual * 0.3)) / 2);
+        const avgBacklinks = Math.floor((apiData.backlinks + Math.floor(organicTrafficManual * 0.5)) / 2);
+        
+        toast.success(`Averaged API data with your manual entry for ${cleanedDomain}`, { 
+          description: `Using combined data sources for the most accurate estimate.`,
+        });
+        
+        return {
+          ...apiData,
+          organicTraffic: avgTraffic,
+          organicKeywords: avgKeywords,
+          backlinks: avgBacklinks,
+          dataSource: 'both' as const
+        };
+      }
+      
+      return apiData;
+    } catch (apiError) {
+      console.error("SpyFu API request failed:", apiError);
+      
+      // If SpyFu API call fails, use our fallback data generation
+      if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual > 0) {
+        toast.warning(`SpyFu API call failed for ${domain}`, { 
+          id: toastId, 
+          description: `Using your manually entered data instead.`,
+        });
+        
+        return {
+          organicKeywords: Math.floor(organicTrafficManual * 0.3),
+          organicTraffic: organicTrafficManual,
+          paidTraffic: 0, // Will be set from form data
+          domainPower: Math.min(95, Math.floor(40 + (domain.length * 2))),
+          backlinks: Math.floor(organicTrafficManual * 0.5),
+          dataSource: 'manual' as const
+        };
+      } else {
+        // Generate fallback data if no manual data provided
+        const fallbackData = generateFallbackData(domain, organicTrafficManual);
+        
+        toast.warning(`SpyFu API unavailable`, { 
+          id: toastId, 
+          description: `Using estimated data for ${domain}. Enter traffic manually for better accuracy.`,
+        });
+        
+        return fallbackData;
+      }
     }
-    
-    return apiData;
   } catch (error) {
     console.error(`Error fetching domain data:`, error);
     
-    // Get SpyFu URL for the domain
-    const spyfuUrl = getSpyFuUrl(domain);
-    
-    // If API call failed but user provided manual data, use it as fallback
+    // If user provided manual data, use it as fallback
     if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual > 0) {
       toast.warning(`SpyFu API call failed for ${domain}`, { 
         id: toastId, 
