@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PROXY_SERVER_URL, saveCustomProxyUrl } from "@/services/spyfuService";
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { PROXY_SERVER_URL, saveCustomProxyUrl } from "@/services/api/spyfuConfig";
+import { AlertTriangle, CheckCircle2, Globe, Server } from "lucide-react";
 
 interface ProxyConfigFormProps {
   onClose: () => void;
@@ -14,11 +14,15 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
   const [isValidUrl, setIsValidUrl] = useState<boolean>(true);
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState<string>('');
+  const [isPublicUrl, setIsPublicUrl] = useState<boolean>(!proxyUrl.includes('localhost') && !proxyUrl.includes('127.0.0.1'));
 
   useEffect(() => {
     // Validate URL whenever it changes
     const isValid = proxyUrl.startsWith('http://') || proxyUrl.startsWith('https://');
     setIsValidUrl(isValid);
+    
+    // Check if it's a public URL (not localhost)
+    setIsPublicUrl(!proxyUrl.includes('localhost') && !proxyUrl.includes('127.0.0.1'));
 
     // Reset test status when URL changes
     if (testStatus !== 'idle') {
@@ -45,7 +49,7 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        signal: AbortSignal.timeout(5000), // 5 second timeout (increased from 3)
+        signal: AbortSignal.timeout(8000), // 8 second timeout
       });
       
       if (response.ok) {
@@ -72,7 +76,7 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
         // More helpful error for CORS or network issues
         if (proxyUrl.includes('localhost')) {
-          setTestMessage(`Cannot connect to localhost. If you're using this in production, use your server's IP address instead.`);
+          setTestMessage(`Cannot connect to localhost from browser. For production use, you need a publicly accessible proxy server URL.`);
         } else {
           setTestMessage(`Network error: Could not connect to the proxy server. Check for CORS issues or server availability.`);
         }
@@ -95,7 +99,7 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
       (window.location.hostname === 'localhost' || 
        window.location.hostname === '127.0.0.1');
     
-    const defaultUrl = isLocalHost ? 'http://localhost:3001' : 'http://65.184.26.60:3001';
+    const defaultUrl = isLocalHost ? 'http://localhost:3001' : 'https://yourproxyserver.com';
     setProxyUrl(defaultUrl);
     setTestStatus('idle');
     setTestMessage('');
@@ -104,17 +108,33 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
   return (
     <div className="p-4 border rounded-lg bg-gray-50 mt-4">
       <h3 className="font-medium mb-2">Configure Proxy Server URL</h3>
-      <p className="text-sm text-gray-600 mb-4">
-        Enter your proxy server address:
-      </p>
+      
+      <div className="p-3 bg-blue-50 text-blue-700 rounded-md mb-4 text-sm">
+        <div className="flex items-start gap-2">
+          <Globe size={18} className="mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="font-medium">Public Proxy Server Setup</p>
+            <p className="text-sm mt-1">
+              For production use, you need a publicly accessible proxy server instead of localhost. 
+              Your proxy server must:
+            </p>
+            <ul className="list-disc ml-5 mt-1 text-xs space-y-1">
+              <li>Be accessible over the internet (not localhost)</li>
+              <li>Have CORS enabled to allow requests from your website</li>
+              <li>Implement the same API endpoints as your local proxy</li>
+            </ul>
+          </div>
+        </div>
+      </div>
       
       <div className="space-y-4">
         <div>
+          <label className="text-sm font-medium mb-1 block">Proxy Server URL</label>
           <Input
             type="text"
             value={proxyUrl}
             onChange={handleUrlChange}
-            placeholder="http://localhost:3001"
+            placeholder="https://yourproxyserver.com"
             className={!isValidUrl ? "border-red-500" : ""}
           />
           {!isValidUrl && (
@@ -122,10 +142,19 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
               Please enter a valid URL starting with http:// or https://
             </p>
           )}
-          <p className="text-xs text-gray-500 mt-1">
+          {!isPublicUrl && (
+            <div className="mt-2 text-xs text-amber-600 flex items-start gap-1.5 bg-amber-50 p-2 rounded">
+              <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
+              <span>
+                <strong>Warning:</strong> Using localhost will only work when developing locally. 
+                For production use, please enter a publicly accessible URL.
+              </span>
+            </div>
+          )}
+          <p className="text-xs text-gray-500 mt-2">
             Examples: 
-            <code className="bg-gray-200 px-1 rounded mx-1">http://localhost:3001</code> or 
-            <code className="bg-gray-200 px-1 rounded mx-1">http://65.184.26.60:3001</code>
+            <code className="bg-gray-200 px-1 rounded mx-1">https://yourproxyserver.com</code> or 
+            <code className="bg-gray-200 px-1 rounded mx-1">http://your-domain.com:3001</code>
           </p>
         </div>
 
@@ -136,9 +165,9 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
             'bg-red-50 text-red-700'
           }`}>
             {testStatus === 'success' ? (
-              <CheckCircle2 size={16} className="mt-0.5 text-green-500" />
+              <CheckCircle2 size={16} className="mt-0.5 text-green-500 flex-shrink-0" />
             ) : (
-              <AlertTriangle size={16} className="mt-0.5 text-amber-500" />
+              <AlertTriangle size={16} className="mt-0.5 text-amber-500 flex-shrink-0" />
             )}
             <span>{testMessage}</span>
           </div>

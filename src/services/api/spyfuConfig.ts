@@ -35,18 +35,30 @@ export const hasSpyFuApiKey = (): boolean => {
   return SPYFU_API_USERNAME.length > 0 && SPYFU_API_KEY.length > 0;
 };
 
-// Always prioritize localhost for development
+// Default public proxy URL if none is set in localStorage
+// This should be updated to your actual public proxy server when deployed
+export const DEFAULT_PUBLIC_PROXY_URL = 'https://yourproxyserver.com';
+
+// Get the proxy server URL - prioritizes localStorage setting, then environment variable, then default public URL
 export const getProxyServerUrl = (): string => {
   // First check for custom proxy URL in localStorage
   if (typeof localStorage !== 'undefined') {
     const customProxyUrl = localStorage.getItem('custom_proxy_url');
     if (customProxyUrl) {
+      console.log('Using custom proxy URL from localStorage:', customProxyUrl);
       return customProxyUrl;
     }
   }
   
-  // Always prefer localhost:3001 as the default
-  return 'http://localhost:3001';
+  // If we're in development and no custom URL is set, use localhost
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Development environment detected, using localhost:3001');
+    return 'http://localhost:3001';
+  }
+  
+  // In production with no custom URL, use the default public URL
+  console.log('Production environment detected, using default public proxy URL');
+  return DEFAULT_PUBLIC_PROXY_URL;
 };
 
 // Proxy server URL - dynamically retrieved
@@ -57,6 +69,7 @@ export const saveCustomProxyUrl = (url: string): void => {
   if (typeof localStorage !== 'undefined') {
     // Basic validation to ensure it's a URL
     if (url.startsWith('http://') || url.startsWith('https://')) {
+      console.log('Saving custom proxy URL to localStorage:', url);
       localStorage.setItem('custom_proxy_url', url);
       // Force a page reload to apply the new URL
       window.location.reload();
