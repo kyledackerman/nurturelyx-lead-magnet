@@ -10,6 +10,19 @@ import {
 } from "./spyfuConfig";
 import { generateFallbackData } from "./fallbackDataService";
 
+// Helper function to detect CORS errors
+const isCorsError = (error: any): boolean => {
+  const errorStr = String(error).toLowerCase();
+  return errorStr.includes('cors') || 
+         errorStr.includes('cross-origin') || 
+         errorStr.includes('failed to fetch') ||
+         errorStr.includes('network error') ||
+         errorStr.includes('blocked by') ||
+         errorStr.includes('access-control-allow-origin') ||
+         errorStr.includes('not allowed by') ||
+         errorStr.includes('opaque response');
+};
+
 // Function to fetch domain data from SpyFu API via proxy
 export const fetchDomainData = async (
   domain: string, 
@@ -41,20 +54,22 @@ export const fetchDomainData = async (
       
       // Make the API request to our proxy server with no cache and a 10 second timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // Extended timeout
       
+      // Setup fetch request with comprehensive headers to address CORS
       const fetchPromise = fetch(proxyUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'Origin': window.location.origin,
           'Cache-Control': 'no-cache, no-store',
           'Pragma': 'no-cache'
         },
-        mode: 'cors', // Explicitly request CORS mode
+        mode: 'cors',
         signal: controller.signal,
         cache: 'no-cache',
-        credentials: 'omit' // Don't send cookies
+        credentials: 'omit'
       });
       
       // Wait for both the minimum delay and the API response
@@ -133,41 +148,44 @@ export const fetchDomainData = async (
     } catch (apiError) {
       console.error("SpyFu API request via proxy failed:", apiError);
       
-      let errorMessage = apiError instanceof Error ? apiError.message : String(apiError);
-      
-      // Ensure a minimum time has passed (7 seconds) before showing an error
-      // This makes it look like we really tried to get data
-      await new Promise(resolve => setTimeout(resolve, 7000));
-      
-      // Handle CORS-specific errors
-      const errorStr = String(apiError).toLowerCase();
-      if (errorStr.includes('cors') || 
-          errorStr.includes('cross-origin') || 
-          errorStr.includes('failed to fetch') ||
-          errorStr.includes('network error')) {
+      // Check if this is a CORS error using our dedicated helper
+      const corsError = isCorsError(apiError);
+      if (corsError) {
         console.error("This appears to be a CORS or network connectivity issue with the proxy");
         
-        // More helpful error message for CORS issues
-        errorMessage = `CORS policy prevents accessing the proxy server. Please make sure the server has proper CORS headers enabled.`;
+        // Provide detailed CORS error information
+        console.error(`CORS Error Details - URL: ${getProxyUrl(cleanedDomain)}, Origin: ${window.location.origin}`);
         
-        toast.error(`CORS or Network Error`, {
+        // More helpful error message for CORS issues
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        toast.error(`CORS Policy Error`, {
           id: toastId,
-          description: `Unable to connect to the proxy server. This may be due to CORS policies. Please enter your traffic data manually.`
+          description: `Browser security policy is blocking API access. Please enter your traffic data manually.`
         });
-      } else {
-        // Specific error handling for other connection issues
-        if (errorMessage.includes('network') || errorMessage.includes('abort') || errorMessage.includes('Failed to fetch')) {
-          console.error("This appears to be a network connectivity issue with the proxy");
-          
-          // More helpful error message for network issues
-          errorMessage = `The proxy server connection failed. Please check your network connection and ensure the proxy server is running.`;
-          
-          toast.error(`Proxy Server Connection Issue`, {
-            id: toastId,
-            description: `Unable to connect to the proxy server. Please enter your traffic data manually.`
-          });
-        }
+        
+        throw new Error(`CORS policy is preventing access to the proxy server. Please enter your traffic values manually to continue.`);
+      } 
+      
+      // Handle timeout or network errors
+      if (apiError instanceof Error && apiError.name === 'AbortError') {
+        toast.error(`API Request Timeout`, {
+          id: toastId,
+          description: `The connection to the API timed out. Please enter your traffic data manually.`
+        });
+        
+        throw new Error(`The API request timed out. Please enter your traffic values manually to continue.`);
       }
+      
+      // Ensure a minimum time has passed before showing a generic error
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      let errorMessage = apiError instanceof Error ? apiError.message : String(apiError);
+      
+      toast.error(`API Request Failed`, {
+        id: toastId,
+        description: `Unable to retrieve traffic data. Please enter your traffic data manually.`
+      });
       
       // If manual data provided, use it
       if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual > 0) {
@@ -186,9 +204,6 @@ export const fetchDomainData = async (
     }
   } catch (error) {
     console.error(`Error fetching domain data:`, error);
-    
-    // Ensure a minimum loading time of 7 seconds before showing error
-    await new Promise(resolve => setTimeout(resolve, 7000));
     
     // If user provided manual data, use it as fallback
     if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual > 0) {

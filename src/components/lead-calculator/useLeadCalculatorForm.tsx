@@ -35,14 +35,44 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
         
         setIsUsingRailway(proxyUrl === DEFAULT_PUBLIC_PROXY_URL);
         
-        // First, try a simple connection to the root endpoint instead of the SpyFu endpoint
-        // This might have less chance of CORS issues
-        const minDelayPromise = new Promise(resolve => setTimeout(resolve, 3000));
+        // Minimum delay to avoid flashing toasts too quickly
+        const minDelayPromise = new Promise(resolve => setTimeout(resolve, 2000));
         
+        // Test endpoint with a specific test query
+        // Using a special endpoint first that just returns cors headers - less prone to errors
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
         
-        const fetchPromise = fetch(`${proxyUrl}/`, {
+        const corsTestUrl = `${proxyUrl}/cors-test`;
+        console.log("Testing CORS configuration first:", corsTestUrl);
+        
+        try {
+          const corsResponse = await fetch(corsTestUrl, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Cache-Control': 'no-cache, no-store',
+              'Pragma': 'no-cache'
+            },
+            mode: 'cors',
+            signal: controller.signal,
+            cache: 'no-cache',
+            credentials: 'omit'
+          });
+          
+          if (corsResponse.ok) {
+            console.log("✅ CORS test endpoint successful, CORS is properly configured");
+          } else {
+            console.log("⚠️ CORS test endpoint failed, but continuing with root endpoint test");
+          }
+        } catch (corsError) {
+          // If CORS test fails, try the root endpoint instead
+          console.log("⚠️ CORS test endpoint error:", corsError);
+        }
+        
+        // Now try the root endpoint
+        const response = await fetch(`${proxyUrl}/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -50,18 +80,16 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
             'Cache-Control': 'no-cache, no-store',
             'Pragma': 'no-cache'
           },
-          mode: 'cors', // Explicitly request CORS mode
+          mode: 'cors',
           signal: controller.signal,
           cache: 'no-cache',
-          credentials: 'omit' // Don't send cookies
+          credentials: 'omit'
         });
         
-        const [response] = await Promise.all([
-          fetchPromise,
-          minDelayPromise
-        ]);
-        
         clearTimeout(timeoutId);
+        
+        // Ensure minimum delay for toast visibility
+        await minDelayPromise;
         
         if (response.ok) {
           console.log("✅ Proxy server root endpoint is running at:", proxyUrl);
@@ -83,17 +111,24 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
         console.error("Proxy connection error:", error);
         setProxyConnected(false);
         
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // Ensure a minimum display time for the loading toast
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
-        // Check if error is CORS-related
+        // Check if error is CORS-related with extensive pattern matching
         const errorStr = String(error).toLowerCase();
-        if (errorStr.includes('cors') || 
-            errorStr.includes('cross-origin') || 
-            errorStr.includes('failed to fetch') ||
-            errorStr.includes('network error')) {
+        const isCorsError = errorStr.includes('cors') || 
+                           errorStr.includes('cross-origin') || 
+                           errorStr.includes('failed to fetch') ||
+                           errorStr.includes('network error') ||
+                           errorStr.includes('blocked by') ||
+                           errorStr.includes('access-control-allow-origin') ||
+                           errorStr.includes('not allowed by') ||
+                           errorStr.includes('opaque response');
+        
+        if (isCorsError) {
           toast.error("CORS Policy Blocked API Connection", {
             id: connectionToastId,
-            description: "The browser blocked the connection due to CORS policy. You can enter traffic data manually to continue."
+            description: "The browser's security policy is preventing connection to the API. You can enter traffic data manually to continue."
           });
         } else {
           toast.error("SpyFu API connection failed", {
