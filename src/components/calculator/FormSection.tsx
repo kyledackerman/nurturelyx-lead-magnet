@@ -15,9 +15,9 @@ interface FormSectionProps {
 const FormSection = ({ apiError, formDataCache, onCalculate, onReset, isCalculating }: FormSectionProps) => {
   return (
     <section className="py-12">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 max-w-4xl">
         {apiError && (
-          <div className="mb-6 max-w-3xl mx-auto">
+          <div className="mb-6 max-w-2xl mx-auto">
             <Alert variant="error">
               <Terminal className="h-4 w-4" />
               <AlertTitle>API Error</AlertTitle>
