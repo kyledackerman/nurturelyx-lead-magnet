@@ -17,10 +17,11 @@ export function useProxyConnection() {
       const connectionToastId = toast.loading("Checking API connection...");
       
       try {
-        const proxyUrl = PROXY_SERVER_URL();
+        // Force use of the Railway URL to avoid user-configured URLs that may fail
+        const proxyUrl = DEFAULT_PUBLIC_PROXY_URL;
         console.log("Testing proxy connection to:", `${proxyUrl}/`);
         
-        setIsUsingRailway(proxyUrl === DEFAULT_PUBLIC_PROXY_URL);
+        setIsUsingRailway(true);
         
         // Test the root endpoint with a timeout
         const controller = new AbortController();
@@ -38,12 +39,19 @@ export function useProxyConnection() {
         clearTimeout(timeoutId);
         
         if (response.ok) {
-          console.log("✅ Proxy server is running at:", proxyUrl);
-          setProxyConnected(true);
+          // Verify the response is actually from our API
+          const data = await response.json();
           
-          toast.success("API connection established", {
-            id: connectionToastId
-          });
+          if (data && data.message && data.message.includes('SpyFu Proxy Server')) {
+            console.log("✅ Proxy server is running at:", proxyUrl);
+            setProxyConnected(true);
+            
+            toast.success("API connection established", {
+              id: connectionToastId
+            });
+          } else {
+            throw new Error("Invalid proxy server response");
+          }
         } else {
           throw new Error(`Proxy server returned status: ${response.status}`);
         }
@@ -56,8 +64,7 @@ export function useProxyConnection() {
           description: "You can enter traffic data manually to continue."
         });
         
-        const proxyUrl = PROXY_SERVER_URL();
-        console.log("❌ Proxy server connection failed at:", proxyUrl);
+        console.log("❌ Proxy server connection failed at:", DEFAULT_PUBLIC_PROXY_URL);
       } finally {
         setIsCheckingConnection(false);
         setConnectionAttempted(true);
@@ -73,7 +80,7 @@ export function useProxyConnection() {
 
   return {
     proxyConnected,
-    isUsingRailway,
+    isUsingRailway: true, // Always return true to force Railway usage
     resetConnectionState
   };
 }

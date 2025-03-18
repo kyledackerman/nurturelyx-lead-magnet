@@ -1,196 +1,39 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DEFAULT_PUBLIC_PROXY_URL, PROXY_SERVER_URL, saveCustomProxyUrl } from "@/services/api/spyfuConfig";
-import { AlertTriangle, CheckCircle2, Server } from "lucide-react";
+import { DEFAULT_PUBLIC_PROXY_URL } from "@/services/api/spyfuConfig";
+import { AlertTriangle, CheckCircle2, Info, Server } from "lucide-react";
 
 interface ProxyConfigFormProps {
   onClose: () => void;
 }
 
 export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
-  const [proxyUrl, setProxyUrl] = useState<string>(PROXY_SERVER_URL());
-  const [isValidUrl, setIsValidUrl] = useState<boolean>(true);
-  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
-  const [testMessage, setTestMessage] = useState<string>('');
-  const [isProduction, setIsProduction] = useState<boolean>(false);
-
-  useEffect(() => {
-    // Check if we're in production
-    const hostname = window.location.hostname;
-    const isDev = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('.local');
-    setIsProduction(!isDev);
-    
-    // Validate URL whenever it changes
-    const isValid = proxyUrl.startsWith('http://') || proxyUrl.startsWith('https://');
-    setIsValidUrl(isValid);
-    
-    // Reset test status when URL changes
-    if (testStatus !== 'idle') {
-      setTestStatus('idle');
-      setTestMessage('');
-    }
-  }, [proxyUrl, testStatus]);
-
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const url = e.target.value;
-    setProxyUrl(url);
-  };
-
-  const testConnection = async () => {
-    setTestStatus('testing');
-    setTestMessage('Testing connection...');
-    
-    try {
-      const testUrl = `${proxyUrl}/proxy/spyfu?domain=ping`;
-      console.log(`Testing connection to: ${testUrl}`);
-      
-      const response = await fetch(testUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(8000), // 8 second timeout
-      });
-      
-      if (response.ok) {
-        try {
-          const data = await response.json();
-          setTestStatus('success');
-          setTestMessage('Connection successful! Proxy server is responding with valid data.');
-          console.log("✅ Connection test successful with data:", data);
-        } catch (error) {
-          // Response was OK but not valid JSON
-          setTestStatus('success');
-          setTestMessage('Connection successful! Proxy server is responding.');
-          console.log("✅ Connection test successful (no valid JSON)");
-        }
-      } else {
-        setTestStatus('error');
-        setTestMessage(`Connection failed with status: ${response.status} ${response.statusText}`);
-        console.error(`❌ Connection test failed with status: ${response.status}`);
-      }
-    } catch (error) {
-      console.error("Proxy test connection error:", error);
-      setTestStatus('error');
-      
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        setTestMessage(`Network error: Could not connect to the proxy server. Check for CORS issues or server availability.`);
-      } else {
-        setTestMessage(`Connection failed: ${error instanceof Error ? error.message : String(error)}`);
-      }
-    }
-  };
-
-  const handleSave = () => {
-    if (isValidUrl) {
-      saveCustomProxyUrl(proxyUrl);
-      onClose();
-    }
-  };
-
-  const resetToDefault = () => {
-    // Use the Railway URL as the default
-    setProxyUrl(DEFAULT_PUBLIC_PROXY_URL);
-    setTestStatus('idle');
-    setTestMessage('');
-  };
-
   return (
     <div className="p-4 border rounded-lg bg-gray-50 mt-4">
       <h3 className="font-medium mb-2 flex items-center gap-2">
         <Server size={16} />
-        Admin Proxy Server Configuration
+        Proxy Server Configuration
       </h3>
       
       <div className="p-3 bg-blue-50 text-blue-700 rounded-md mb-4 text-sm">
         <div className="flex items-start gap-2">
-          <Server size={18} className="mt-0.5 flex-shrink-0" />
+          <Info size={18} className="mt-0.5 flex-shrink-0" />
           <div>
             <p className="font-medium">Railway Proxy Server</p>
             <p className="text-xs bg-white p-1.5 rounded mt-1 font-mono">
               {DEFAULT_PUBLIC_PROXY_URL}
             </p>
             <p className="text-xs mt-2">
-              This is the default server URL. {isProduction 
-                ? "Custom proxy URLs are disabled in production for security." 
-                : "As an admin, you can configure a different URL for testing."}
+              For reliability, we always use the Railway proxy server. Custom proxy configuration has been disabled.
             </p>
           </div>
         </div>
       </div>
       
-      <div className="space-y-4">
-        <div>
-          <label className="text-sm font-medium mb-1 block">Proxy Server URL</label>
-          <Input
-            type="text"
-            value={proxyUrl}
-            onChange={handleUrlChange}
-            placeholder="https://yourproxyserver.com"
-            className={!isValidUrl ? "border-red-500" : ""}
-            disabled={isProduction}
-          />
-          {!isValidUrl && (
-            <p className="text-red-500 text-xs mt-1">
-              Please enter a valid URL starting with http:// or https://
-            </p>
-          )}
-          {isProduction && (
-            <p className="text-amber-600 text-xs mt-1">
-              Custom proxy URLs are disabled in production. Railway URL is always used.
-            </p>
-          )}
-        </div>
-
-        {testStatus !== 'idle' && (
-          <div className={`text-sm p-2 rounded flex items-start gap-2 ${
-            testStatus === 'testing' ? 'bg-blue-50 text-blue-700' :
-            testStatus === 'success' ? 'bg-green-50 text-green-700' :
-            'bg-red-50 text-red-700'
-          }`}>
-            {testStatus === 'success' ? (
-              <CheckCircle2 size={16} className="mt-0.5 text-green-500 flex-shrink-0" />
-            ) : (
-              <AlertTriangle size={16} className="mt-0.5 text-amber-500 flex-shrink-0" />
-            )}
-            <span>{testMessage}</span>
-          </div>
-        )}
-        
-        <div className="flex flex-wrap gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={testConnection}
-            disabled={!isValidUrl || testStatus === 'testing' || isProduction}
-            className="text-xs"
-          >
-            {testStatus === 'testing' ? 'Testing...' : 'Test Connection'}
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            onClick={resetToDefault} 
-            size="sm"
-            disabled={isProduction}
-            className="text-xs"
-          >
-            Reset to Railway URL
-          </Button>
-        </div>
-        
-        <div className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button 
-            onClick={handleSave} 
-            disabled={!isValidUrl || isProduction}
-            className="bg-accent hover:bg-accent/90"
-          >
-            Save & Reload
-          </Button>
-        </div>
+      <div className="flex justify-end">
+        <Button variant="outline" onClick={onClose}>Close</Button>
       </div>
     </div>
   );

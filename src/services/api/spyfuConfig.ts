@@ -24,51 +24,13 @@ export const getSpyFuUrl = (domain: string): string => {
   return `https://www.spyfu.com/overview/domain?query=${encodeURIComponent(cleanedDomain)}`;
 };
 
-// PUBLIC CORS PROXY SERVICES - use these as fallbacks
-const CORS_PROXIES = [
-  'https://nurture-lead-vision-production.up.railway.app', // Railway (primary)
-  'https://corsproxy.io/', // CORS Proxy (fallback 1)
-  'https://cors-anywhere.herokuapp.com/', // CORS Anywhere (fallback 2)
-  'http://localhost:3001', // Local development
-];
+// PRIMARY RAILWAY PROXY URL - this is the only URL we should use
+export const DEFAULT_PUBLIC_PROXY_URL = 'https://nurture-lead-vision-production.up.railway.app';
 
-// Railway deployment URL - our primary proxy server
-export const DEFAULT_PUBLIC_PROXY_URL = CORS_PROXIES[0];
-
-// Super simplified environment detection
-const isDevelopmentEnvironment = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  const hostname = window.location.hostname;
-  return hostname === 'localhost' || 
-         hostname === '127.0.0.1' || 
-         hostname.includes('.local') ||
-         hostname.includes('lovableproject.com'); // Include Lovable preview domains
-};
-
-// Get the proxy server URL - try multiple fallbacks
+// Get the proxy server URL - ALWAYS return the Railway URL
 export const getProxyServerUrl = (): string => {
-  const isDev = isDevelopmentEnvironment();
-  
-  // Check for custom proxy URL in localStorage (admin only)
-  if (typeof localStorage !== 'undefined') {
-    const customProxyUrl = localStorage.getItem('custom_proxy_url');
-    if (customProxyUrl) {
-      console.log('Using custom proxy URL:', customProxyUrl);
-      return customProxyUrl;
-    }
-  }
-  
-  // In development, try localhost first
-  if (isDev) {
-    // Allow override for use with local server
-    if (typeof localStorage !== 'undefined' && localStorage.getItem('use_local_proxy') === 'true') {
-      console.log('Using local proxy server');
-      return CORS_PROXIES[3]; // localhost
-    }
-  }
-
-  // Default to Railway proxy (or first available proxy)
-  console.log('Using default proxy URL:', DEFAULT_PUBLIC_PROXY_URL);
+  // Always use the Railway URL for reliability
+  console.log('Using Railway proxy URL:', DEFAULT_PUBLIC_PROXY_URL);
   return DEFAULT_PUBLIC_PROXY_URL;
 };
 
@@ -78,48 +40,26 @@ export const PROXY_SERVER_URL = getProxyServerUrl;
 // Function to get the proxy URL for SpyFu API requests
 export const getProxyUrl = (domain: string): string => {
   const cleanedDomain = cleanDomain(domain);
-  const baseUrl = getProxyServerUrl();
+  const baseUrl = DEFAULT_PUBLIC_PROXY_URL;
   
-  // For CORS proxy services, we need to encode the full SpyFu API URL
-  if (baseUrl.includes('corsproxy.io')) {
-    const spyfuApiUrl = `https://www.spyfu.com/apis/domain_stats_api/v2/getDomainStatsForExactDate?domain=${cleanedDomain}&month=3&year=2023&countryCode=US&api_username=${SPYFU_API_USERNAME}&api_key=${SPYFU_API_KEY}`;
-    return `${baseUrl}?${encodeURIComponent(spyfuApiUrl)}`;
-  } else if (baseUrl.includes('cors-anywhere')) {
-    return `${baseUrl}/https://www.spyfu.com/apis/domain_stats_api/v2/getDomainStatsForExactDate?domain=${cleanedDomain}&month=3&year=2023&countryCode=US&api_username=${SPYFU_API_USERNAME}&api_key=${SPYFU_API_KEY}`;
-  } else {
-    // Our custom proxy endpoint
-    return `${baseUrl}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
-  }
+  // Our custom proxy endpoint
+  return `${baseUrl}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
 };
 
 // Function to get a test URL for the proxy
 export const getProxyTestUrl = (): string => {
-  const baseUrl = getProxyServerUrl();
-  if (baseUrl.includes('corsproxy.io')) {
-    return `${baseUrl}?${encodeURIComponent('https://httpbin.org/get')}`;
-  } else if (baseUrl.includes('cors-anywhere')) {
-    return `${baseUrl}/https://httpbin.org/get`;
-  } else {
-    return `${baseUrl}/`;
-  }
+  return `${DEFAULT_PUBLIC_PROXY_URL}/`;
 };
 
-// Function to save a custom proxy URL (admin only)
+// These functions no longer do anything - we always use the Railway URL
 export const saveCustomProxyUrl = (url: string): void => {
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem('custom_proxy_url', url);
-    // Force reload to apply the new proxy URL
-    window.location.reload();
-  }
+  // No-op: Always use Railway URL
+  console.log('Custom proxy URLs are disabled for reliability');
 };
 
-// Function to toggle local proxy usage
 export const toggleLocalProxy = (useLocal: boolean): void => {
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem('use_local_proxy', useLocal ? 'true' : 'false');
-    // Force reload to apply the change
-    window.location.reload();
-  }
+  // No-op: Always use Railway URL
+  console.log('Local proxy usage is disabled for reliability');
 };
 
 // Function to check if SpyFu API key is available
