@@ -46,13 +46,13 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     resetConnectionState();
   };
 
-  // ALWAYS show traffic fields if there are connection issues or API errors
+  // Only show traffic fields if explicitly set or if there are connection issues or API errors
   // This is a computed value that shouldn't be directly set
   const shouldShowTrafficFields = showTrafficFields || !proxyConnected || !!connectionError || !!apiError;
   
   // Use useEffect to handle traffic fields visibility based on connection status
   useEffect(() => {
-    // Force traffic fields to be visible if there are any connection issues
+    // Force traffic fields to be visible only if there are connection issues
     if (!proxyConnected || !!connectionError || !!apiError) {
       setShowTrafficFields(true);
     }
