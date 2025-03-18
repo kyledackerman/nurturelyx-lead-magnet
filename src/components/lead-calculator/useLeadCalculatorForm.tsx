@@ -20,7 +20,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   const [proxyConnected, setProxyConnected] = useState<boolean>(false);
   const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
   const [connectionAttempted, setConnectionAttempted] = useState<boolean>(false);
-  const [isUsingRailway, setIsUsingRailway] = useState<boolean>(PROXY_SERVER_URL === DEFAULT_PUBLIC_PROXY_URL);
+  const [isUsingRailway, setIsUsingRailway] = useState<boolean>(PROXY_SERVER_URL() === DEFAULT_PUBLIC_PROXY_URL);
 
   // Check proxy connection only once on initial load
   useEffect(() => {
@@ -31,13 +31,14 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
       const connectionToastId = toast.loading("Checking SpyFu API connection...");
       
       try {
-        console.log("Testing proxy connection to:", `${PROXY_SERVER_URL}/proxy/spyfu?domain=ping`);
+        const proxyUrl = PROXY_SERVER_URL();
+        console.log("Testing proxy connection to:", `${proxyUrl}/proxy/spyfu?domain=ping`);
         
         // Update the isUsingRailway state
-        setIsUsingRailway(PROXY_SERVER_URL === DEFAULT_PUBLIC_PROXY_URL);
+        setIsUsingRailway(proxyUrl === DEFAULT_PUBLIC_PROXY_URL);
         
-        // Show the loading toast for at least 2 seconds
-        const connectionPromise = fetch(`${PROXY_SERVER_URL}/proxy/spyfu?domain=ping`, {
+        // Show the loading toast for at least 7 seconds to give API time to respond
+        const connectionPromise = fetch(`${proxyUrl}/proxy/spyfu?domain=ping`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -45,27 +46,27 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
             'Pragma': 'no-cache'
           },
           // Use a timeout for better UX
-          signal: AbortSignal.timeout(7000),
+          signal: AbortSignal.timeout(10000),
         });
         
-        // Ensure we show the loading state for at least 2 seconds
+        // Ensure we show the loading state for at least 7 seconds
         const [response] = await Promise.all([
           connectionPromise,
-          new Promise(resolve => setTimeout(resolve, 2000))
+          new Promise(resolve => setTimeout(resolve, 7000))
         ]);
         
         if (response.ok) {
-          console.log("✅ Proxy server is running at:", PROXY_SERVER_URL);
+          console.log("✅ Proxy server is running at:", proxyUrl);
           setProxyConnected(true);
           
           toast.success("SpyFu API connection established", {
             id: connectionToastId
           });
           
-          if (PROXY_SERVER_URL === DEFAULT_PUBLIC_PROXY_URL) {
+          if (proxyUrl === DEFAULT_PUBLIC_PROXY_URL) {
             console.log("✅ Using Railway deployment:", DEFAULT_PUBLIC_PROXY_URL);
           } else {
-            console.log("⚠️ Using custom proxy URL instead of Railway:", PROXY_SERVER_URL);
+            console.log("⚠️ Using custom proxy URL instead of Railway:", proxyUrl);
           }
         } else {
           throw new Error(`Proxy server returned status: ${response.status}`);
@@ -74,18 +75,19 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
         console.error("Proxy connection error:", error);
         setProxyConnected(false);
         
-        // Wait a minimum of 3 seconds before showing the error
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // Wait a minimum of 7 seconds before showing the error to show we really tried
+        await new Promise(resolve => setTimeout(resolve, 7000));
         
         toast.error("SpyFu API connection failed", {
           id: connectionToastId,
           description: "You can enter traffic data manually to continue."
         });
         
-        if (PROXY_SERVER_URL === DEFAULT_PUBLIC_PROXY_URL) {
+        const proxyUrl = PROXY_SERVER_URL();
+        if (proxyUrl === DEFAULT_PUBLIC_PROXY_URL) {
           console.log("❌ Railway proxy connection failed:", DEFAULT_PUBLIC_PROXY_URL);
         } else {
-          console.log("❌ Proxy server connection failed at:", PROXY_SERVER_URL);
+          console.log("❌ Proxy server connection failed at:", proxyUrl);
         }
       } finally {
         setIsCheckingConnection(false);

@@ -17,7 +17,7 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
   
   // Restrict proxy config to admin only via localStorage flag
   const isAdmin = typeof localStorage !== 'undefined' && localStorage.getItem('admin_access') === 'true';
-  const isUsingRailway = PROXY_SERVER_URL === DEFAULT_PUBLIC_PROXY_URL;
+  const isUsingRailway = PROXY_SERVER_URL() === DEFAULT_PUBLIC_PROXY_URL;
 
   return (
     <>
@@ -54,7 +54,7 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
             <details className="mt-2">
               <summary className="text-xs text-red-600 cursor-pointer">Technical details (admin only)</summary>
               <p className="text-xs text-red-600 mt-1 bg-gray-50 p-1 rounded">{apiError}</p>
-              <p className="text-xs text-red-700 mt-1">Current proxy URL: {PROXY_SERVER_URL}</p>
+              <p className="text-xs text-red-700 mt-1">Current proxy URL: {PROXY_SERVER_URL()}</p>
             </details>
           )}
         </Alert>

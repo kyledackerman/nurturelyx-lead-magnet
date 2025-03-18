@@ -49,21 +49,24 @@ const hasAdminAccess = (): boolean => {
 // Determine if we're running in a development environment
 const isDevelopmentEnvironment = (): boolean => {
   // Check for development environment markers
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  const port = typeof window !== 'undefined' ? window.location.port : '';
+  
   return (
     process.env.NODE_ENV === 'development' || 
-    window.location.hostname === 'localhost' ||
-    window.location.hostname.includes('.local') ||
-    window.location.port === '3000' ||
-    window.location.port === '5173'
+    hostname === 'localhost' ||
+    hostname.includes('.local') ||
+    port === '3000' ||
+    port === '5173'
   );
 };
 
 // Get the proxy server URL with improved logic
 export const getProxyServerUrl = (): string => {
-  console.log('Getting proxy server URL...');
+  console.log('Getting proxy server URL with process.env.NODE_ENV =', process.env.NODE_ENV);
   
   // Only check for custom proxy URL in localStorage if admin access is granted
-  if (hasAdminAccess() && typeof localStorage !== 'undefined') {
+  if (hasAdminAccess() && typeof localStorage !== 'undefined' && typeof window !== 'undefined') {
     const customProxyUrl = localStorage.getItem('custom_proxy_url');
     if (customProxyUrl) {
       console.log('Admin using custom proxy URL from localStorage:', customProxyUrl);
@@ -82,8 +85,20 @@ export const getProxyServerUrl = (): string => {
   return DEFAULT_PUBLIC_PROXY_URL;
 };
 
-// Proxy server URL - dynamically retrieved
-export const PROXY_SERVER_URL = getProxyServerUrl();
+// Initialize the proxy server URL once on module load, but make it reactive to changes
+let currentProxyUrl = getProxyServerUrl();
+
+// Function to get the current proxy URL (with potential to update)
+export const PROXY_SERVER_URL = (): string => {
+  // Check if admin has set a custom URL since initialization
+  if (hasAdminAccess() && typeof localStorage !== 'undefined') {
+    const storedUrl = localStorage.getItem('custom_proxy_url');
+    if (storedUrl && storedUrl.trim() !== currentProxyUrl) {
+      currentProxyUrl = storedUrl.trim();
+    }
+  }
+  return currentProxyUrl;
+};
 
 // Function to save a custom proxy URL - admin access required
 export const saveCustomProxyUrl = (url: string): void => {
@@ -97,6 +112,7 @@ export const saveCustomProxyUrl = (url: string): void => {
     if (url.startsWith('http://') || url.startsWith('https://')) {
       console.log('Admin saving custom proxy URL to localStorage:', url);
       localStorage.setItem('custom_proxy_url', url.trim());
+      currentProxyUrl = url.trim(); // Update the current proxy URL
       // Force a page reload to apply the new URL
       window.location.reload();
     }
@@ -106,10 +122,10 @@ export const saveCustomProxyUrl = (url: string): void => {
 // Function to get the proxy URL for SpyFu API requests
 export const getProxyUrl = (domain: string): string => {
   const cleanedDomain = cleanDomain(domain);
-  return `${PROXY_SERVER_URL}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
+  return `${PROXY_SERVER_URL()}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
 };
 
 // Function to get the test URL for the proxy server
 export const getProxyTestUrl = (): string => {
-  return `${PROXY_SERVER_URL}/`;
+  return `${PROXY_SERVER_URL()}/`;
 };

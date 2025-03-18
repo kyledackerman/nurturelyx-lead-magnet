@@ -50,8 +50,14 @@ const LeadCalculatorForm = ({
           });
           
           try {
-            // Try fetching data from API first
-            await fetchDomainData(formData.domain);
+            // Try fetching data from API first with a timeout promise
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error("API request timed out after 15 seconds")), 15000)
+            );
+            
+            const fetchPromise = fetchDomainData(formData.domain);
+            await Promise.race([fetchPromise, timeoutPromise]);
+            
             // If successful, continue with form submission
             onCalculate(formData);
             toast.success("Calculating your report", {
