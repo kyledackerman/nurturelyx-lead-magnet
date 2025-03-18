@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormData } from "@/types/report";
 import { RefreshCw, AlertCircle, ServerOff } from "lucide-react";
@@ -43,71 +42,11 @@ const LeadCalculatorForm = ({
     
     if (validateForm()) {
       try {
-        // Check if we should try API first
-        if (!showTrafficFields && formData.domain) {
-          const toastId = toast.loading("Analyzing domain...", {
-            description: "Fetching traffic data from SpyFu API"
-          });
-          
-          try {
-            // Create a promise that resolves with a minimum delay of 7 seconds
-            const minDelayPromise = new Promise(resolve => setTimeout(resolve, 7000));
-            
-            // Try fetching data from API with a timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-            
-            // Make the API request
-            const fetchPromise = fetchDomainData(formData.domain);
-            
-            // Wait for both the minimum delay and the API response (or timeout)
-            try {
-              await Promise.all([fetchPromise, minDelayPromise]);
-              clearTimeout(timeoutId);
-              
-              // If successful, continue with form submission
-              onCalculate(formData);
-              toast.success("Calculating your report", {
-                id: toastId,
-                description: "Processing your data to generate insights."
-              });
-            } catch (error) {
-              clearTimeout(timeoutId);
-              throw error; // Re-throw to be caught by outer catch
-            }
-          } catch (error) {
-            // If API fails after minimum delay, show traffic fields and ask for manual input
-            console.error("API fetch failed:", error);
-            setShowTrafficFields(true);
-            
-            // Ensure a minimum loading time before showing error
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // More descriptive error message
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            const isCorsError = errorMessage.toLowerCase().includes('cors') || 
-                               errorMessage.toLowerCase().includes('network') ||
-                               errorMessage.toLowerCase().includes('failed to fetch');
-            
-            if (isCorsError) {
-              toast.error("CORS Security Restriction", {
-                id: toastId,
-                description: "The browser's security policy is preventing connection to the API. Please enter your traffic data manually."
-              });
-            } else {
-              toast.error("API Connection Issue", {
-                id: toastId,
-                description: "Please enter your traffic data manually to continue."
-              });
-            }
-          }
-        } else {
-          // Traffic fields are already visible, just submit the form
-          onCalculate(formData);
-          toast.success("Calculating your report", {
-            description: "Processing your data to generate insights."
-          });
-        }
+        // Skip API connection attempt - go straight to form submission
+        onCalculate(formData);
+        toast.success("Calculating your report", {
+          description: "Processing your data to generate insights."
+        });
       } catch (error) {
         toast.error("Error submitting form", {
           description: "Please check your inputs and try again."
@@ -135,15 +74,12 @@ const LeadCalculatorForm = ({
       <CardContent>
         {apiError && (
           <div className="mb-6">
-            <div className="flex items-start text-sm bg-red-50 text-red-800 p-3 rounded border border-red-200">
-              <ServerOff size={18} className="mr-2 mt-0.5 text-red-600 shrink-0" />
+            <div className="flex items-start text-sm bg-amber-50 text-amber-800 p-3 rounded border border-amber-200">
+              <AlertCircle size={18} className="mr-2 mt-0.5 text-amber-600 shrink-0" />
               <div>
-                <p className="font-medium">API Connection Error</p>
-                <p className="text-sm text-red-700 mt-1">
-                  {apiError}
-                </p>
-                <p className="text-sm font-medium mt-1">
-                  Please provide traffic data manually below to continue.
+                <p className="font-medium">API Connection Unavailable</p>
+                <p className="text-sm text-amber-700 mt-1">
+                  Don't worry! You can still get accurate results by entering your traffic data below.
                 </p>
               </div>
             </div>
@@ -155,7 +91,7 @@ const LeadCalculatorForm = ({
             formData={formData}
             handleChange={handleChange}
             errors={errors}
-            showTrafficFields={showTrafficFields || !!apiError}
+            showTrafficFields={true} // Always show traffic fields
           />
           
           <TransactionValueInput 
@@ -166,7 +102,7 @@ const LeadCalculatorForm = ({
           
           <InfoSection 
             apiError={apiError} 
-            proxyConnected={proxyConnected} 
+            proxyConnected={false} // Always show as not connected
           />
           
           <FormActions 

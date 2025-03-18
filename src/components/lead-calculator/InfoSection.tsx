@@ -18,21 +18,26 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
   return (
     <>
       {apiError ? (
-        <Alert className="mt-4 bg-white" variant="destructive">
+        <Alert className="mt-4 bg-white" variant="warning">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle className="text-red-800 font-semibold">API Connection Error</AlertTitle>
-          <AlertDescription className="text-red-700">
-            <p>We couldn't connect to the SpyFu API. Please enter your traffic data manually to continue.</p>
-            <p className="text-sm mt-2 text-gray-600">Enter your traffic data manually to continue without the API.</p>
+          <AlertTitle className="text-amber-800 font-semibold">API Not Available</AlertTitle>
+          <AlertDescription className="text-amber-700">
+            <p>To continue calculating your results, please enter your traffic data manually below.</p>
+            <p className="text-sm mt-2 text-gray-600">The calculator will work perfectly with your manually entered data.</p>
           </AlertDescription>
         </Alert>
       ) : (
-        // Display Railway connection status when no error
+        // Display connection information
         <>
-          {proxyConnected && (
+          {proxyConnected ? (
             <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded-md mt-4">
               <CheckCircle2 size={16} className="flex-shrink-0" />
-              <span>Connected to SpyFu API via Railway proxy</span>
+              <span>Connected to traffic data service</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-2 rounded-md mt-4">
+              <AlertCircle size={16} className="flex-shrink-0" />
+              <span>Using manual data mode. Enter your traffic information below.</span>
             </div>
           )}
         </>

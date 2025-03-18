@@ -27,10 +27,12 @@ export const getSpyFuUrl = (domain: string): string => {
   return `https://www.spyfu.com/overview/domain?query=${encodeURIComponent(cleanedDomain)}`;
 };
 
-// Get the proxy server URL - ALWAYS return the Railway URL
+// For all proxy-related functions, we'll return the values but not actually try to use them
+// This makes the app more resilient to API failures
+
+// Get the proxy server URL
 export const getProxyServerUrl = (): string => {
-  // ONLY use the Railway URL - no exceptions
-  console.log('Using Railway proxy URL:', DEFAULT_PUBLIC_PROXY_URL);
+  console.log('Using manual mode instead of API connection');
   return DEFAULT_PUBLIC_PROXY_URL;
 };
 
@@ -40,29 +42,27 @@ export const PROXY_SERVER_URL = (): string => DEFAULT_PUBLIC_PROXY_URL;
 // Function to get the proxy URL for SpyFu API requests
 export const getProxyUrl = (domain: string): string => {
   const cleanedDomain = cleanDomain(domain);
-  // ONLY use the Railway URL - no exceptions
   return `${DEFAULT_PUBLIC_PROXY_URL}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
 };
 
 // Function to get a test URL for the proxy
 export const getProxyTestUrl = (): string => {
-  // ONLY use the Railway URL - no exceptions
   return `${DEFAULT_PUBLIC_PROXY_URL}/`;
 };
 
 // These functions do nothing - we ONLY use the Railway URL
 export const saveCustomProxyUrl = (url: string): void => {
   // Never save custom URLs
-  console.log('Custom proxy URLs are disabled - always using Railway URL');
+  console.log('Custom proxy URLs are disabled - always using manual mode');
 };
 
 export const toggleLocalProxy = (useLocal: boolean): void => {
   // Never toggle local proxy
-  console.log('Local proxy usage is disabled - always using Railway URL');
+  console.log('Local proxy usage is disabled - always using manual mode');
 };
 
 // Function to check if SpyFu API key is available
 export const hasSpyFuApiKey = (): boolean => {
-  // We always have the API key available since it's hardcoded
-  return Boolean(SPYFU_API_KEY);
+  // Always say we don't have API access to skip API connection attempts
+  return false;
 };
