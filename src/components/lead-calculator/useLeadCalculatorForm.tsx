@@ -9,13 +9,12 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   // Use our specialized hooks
   const {
     formData,
-    showTrafficFields: formStateShowTrafficFields,
     handleChange,
     setShowTrafficFields,
     resetForm
   } = useFormState(initialData, apiError);
 
-  // Explicitly track traffic field visibility in this component
+  // Always set traffic fields to false
   const [shouldShowTrafficFields, setShouldShowTrafficFields] = useState<boolean>(false);
 
   const {
@@ -25,7 +24,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     clearFieldError,
     setErrors,
     setCanCalculate
-  } = useFormValidation(formData, shouldShowTrafficFields);
+  } = useFormValidation(formData, false); // Always pass false here
 
   const {
     proxyConnected,
@@ -51,26 +50,16 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     setShouldShowTrafficFields(false);
   };
   
-  // IMPORTANT: Only show traffic fields when there's a connection or API error
-  // We use useEffect to avoid showing fields during initial render
+  // IMPORTANT: Never show traffic fields regardless of errors
   useEffect(() => {
-    const hasError = Boolean(connectionError || apiError);
-    
-    if (hasError) {
-      console.log("Error detected, showing traffic fields:", { connectionError, apiError });
-      setShouldShowTrafficFields(true);
-      setShowTrafficFields(true);
-    } else {
-      // Default to always hiding traffic fields unless there's an error
-      setShouldShowTrafficFields(false);
-      setShowTrafficFields(false);
-    }
+    setShouldShowTrafficFields(false);
+    setShowTrafficFields(false);
   }, [connectionError, apiError, setShowTrafficFields]);
 
   return {
     // Form state
     formData,
-    showTrafficFields: shouldShowTrafficFields, // Use our explicit state, not from formState
+    showTrafficFields: false, // Always return false
     
     // Form validation
     errors,
@@ -88,7 +77,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     handleChange: handleFormChange,
     validateForm,
     setCanCalculate,
-    setShowTrafficFields: setShouldShowTrafficFields, // Use our explicit setter
+    setShowTrafficFields: () => {}, // Empty function
     resetForm: resetFormCompletely
   };
 }

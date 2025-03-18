@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { FormData } from "@/types/report";
 
@@ -14,6 +13,7 @@ export const DEFAULT_FORM_STATE: FormData = {
 
 export function useFormState(initialData?: FormData | null, apiError?: string | null) {
   const [formData, setFormData] = useState<FormData>(initialData || DEFAULT_FORM_STATE);
+  // Always keep traffic fields hidden
   const [showTrafficFields, setShowTrafficFields] = useState<boolean>(false);
 
   // Reset to initial data when provided
@@ -23,12 +23,9 @@ export function useFormState(initialData?: FormData | null, apiError?: string | 
     }
   }, [initialData]);
   
-  // ONLY show traffic fields when API error occurs - NEVER on initial render
+  // Never show traffic fields, regardless of API errors
   useEffect(() => {
-    if (apiError) {
-      console.log("API error detected, showing traffic fields:", apiError);
-      setShowTrafficFields(true);
-    }
+    setShowTrafficFields(false);
   }, [apiError]);
 
   const handleChange = (field: keyof FormData, value: string | number | boolean) => {
@@ -46,10 +43,10 @@ export function useFormState(initialData?: FormData | null, apiError?: string | 
 
   return {
     formData,
-    showTrafficFields,
+    showTrafficFields: false, // Always return false
     setFormData,
     handleChange,
-    setShowTrafficFields,
+    setShowTrafficFields: () => {}, // Empty function
     resetForm
   };
 }
