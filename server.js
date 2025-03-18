@@ -7,12 +7,12 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ✅ Expanded allowed origins list to include all Lovable domains
+// ✅ Allow Lovable, Railway, and lovableproject domains
 const allowedOrigins = [
   'https://nurture-lead-vision.lovable.app',  
   'https://nurture-lead-vision-production.up.railway.app',
   // Add the lovableproject.com domain pattern
-  /https:\/\/.*\.lovableproject\.com$/
+  /^https:\/\/.*\.lovableproject\.com$/
 ];
 
 // Comprehensive CORS configuration
@@ -35,8 +35,8 @@ app.use(cors({
     if (isAllowed) {
       callback(null, true);
     } else {
-      console.log(`CORS blocked request from origin: ${origin}`);
-      // Still allow the request but log it
+      console.warn(`CORS blocked request from origin: ${origin}`);
+      // For debugging purposes, we'll still allow it but log the warning
       callback(null, true);
     }
   },
@@ -46,21 +46,21 @@ app.use(cors({
   maxAge: 86400 // Cache preflight for 24 hours
 }));
 
+// ✅ Explicitly handle preflight OPTIONS requests
+app.options('*', (req, res) => {
+  const origin = req.headers.origin;
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Origin, X-Requested-With");
+  res.status(204).end();
+});
+
 // ✅ Backup CORS headers for all responses
 app.use((req, res, next) => {
-  // Get the origin from the request headers
-  const origin = req.headers.origin;
-  
   // Allow any origin - this is less secure but ensures functionality
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Origin, X-Requested-With");
-  
-  // Handle preflight OPTIONS requests explicitly
-  if (req.method === 'OPTIONS') {
-    res.status(204).end();
-    return;
-  }
   
   next();
 });
@@ -72,7 +72,9 @@ app.get('/', (req, res) => {
     message: 'SpyFu Proxy Server is running!',
     status: 'OK',
     endpoints: {
-      spyfu: '/proxy/spyfu?domain=example.com'
+      spyfu: '/proxy/spyfu?domain=example.com',
+      cors_test: '/cors-test',
+      debug: '/debug-headers'
     }
   });
 });
@@ -132,13 +134,14 @@ app.get('/cors-test', (req, res) => {
   });
 });
 
-// Add a special debug endpoint to see all request headers
+// Debug endpoint to see all request headers
 app.get('/debug-headers', (req, res) => {
   res.json({
     headers: req.headers,
     origin: req.headers.origin || 'No origin header',
     host: req.headers.host,
-    referer: req.headers.referer || 'No referer'
+    referer: req.headers.referer || 'No referer',
+    message: "Debug endpoint to check request headers."
   });
 });
 
