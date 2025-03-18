@@ -35,7 +35,25 @@ export function useLeadCalculatorForm(initialData?: FormData | null) {
     retryConnection
   } = useProxyConnection();
 
-  // Define validateAndSubmit first to avoid the reference error
+  // Form validation hook
+  const {
+    errors,
+    canCalculate,
+    validateForm,
+    clearFieldError,
+  } = useFormValidation(formData, showTrafficFields);
+
+  // When there's an API error or connection error, prepare to show traffic fields
+  const [shouldShowTrafficFields, setShouldShowTrafficFields] = useState<boolean>(false);
+  const apiError = connectionError ? connectionError : null;
+
+  // IMPORTANT: Never show traffic fields regardless of errors
+  useEffect(() => {
+    setShouldShowTrafficFields(false);
+    setShowTrafficFields(false);
+  }, [connectionError, apiError, setShowTrafficFields]);
+
+  // Define validateAndSubmit using the validateForm from useFormValidation
   const validateAndSubmit = useCallback(async () => {
     if (!validateForm()) {
       return;
@@ -69,24 +87,6 @@ export function useLeadCalculatorForm(initialData?: FormData | null) {
       setIsLoading(false);
     }
   }, [formData, validateForm]);
-
-  // Form validation state (now properly referencing validateAndSubmit)
-  const {
-    errors,
-    canCalculate,
-    validateForm,
-    clearFieldError,
-  } = useFormValidation(formData, showTrafficFields);
-
-  // When there's an API error or connection error, prepare to show traffic fields
-  const [shouldShowTrafficFields, setShouldShowTrafficFields] = useState<boolean>(false);
-  const apiError = connectionError ? connectionError : null;
-
-  // IMPORTANT: Never show traffic fields regardless of errors
-  useEffect(() => {
-    setShouldShowTrafficFields(false);
-    setShowTrafficFields(false);
-  }, [connectionError, apiError, setShowTrafficFields]);
 
   return {
     formData,

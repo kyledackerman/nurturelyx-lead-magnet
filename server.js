@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
@@ -6,6 +7,17 @@ require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Add error handling for uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('UNCAUGHT EXCEPTION:', error);
+  // Don't exit the process as Railway will restart it anyway
+});
+
+// Add error handling for unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('UNHANDLED REJECTION:', reason);
+});
 
 // ✅ SUPER PERMISSIVE CORS configuration - Accept ALL origins with ALL methods
 app.use(cors({
@@ -36,39 +48,78 @@ app.use(express.json());
 
 // ✅ Root Route (Confirms API is Running) - Keep this super simple
 app.get("/api", (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.json({ 
-    message: "SpyFu Proxy Server is running!", 
-    status: "OK"
-  });
+  try {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.json({ 
+      message: "SpyFu Proxy Server is running!", 
+      status: "OK",
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Error in /api route:", error);
+    res.status(500).json({ error: "Internal server error", details: error.message });
+  }
+});
+
+// ✅ Health check route to diagnose the server
+app.get("/health", (req, res) => {
+  try {
+    const memoryUsage = process.memoryUsage();
+    const uptime = process.uptime();
+    
+    res.json({
+      status: "healthy",
+      serverTime: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      port: PORT,
+      uptime: `${Math.floor(uptime / 60)} minutes, ${Math.floor(uptime % 60)} seconds`,
+      memory: {
+        rss: `${Math.round(memoryUsage.rss / 1024 / 1024)} MB`,
+        heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)} MB`,
+        heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)} MB`
+      },
+      spyfuCredentials: {
+        hasApiUsername: !!process.env.SPYFU_API_USERNAME,
+        hasApiKey: !!process.env.SPYFU_API_KEY,
+        usingFallbacks: true
+      }
+    });
+  } catch (error) {
+    console.error("Error in /health route:", error);
+    res.status(500).json({ error: "Internal server error", details: error.message });
+  }
 });
 
 // ✅ SpyFu Proxy API Route
 app.get("/proxy/spyfu", async (req, res) => {
-  // Ensure CORS headers for this specific route
-  res.header('Access-Control-Allow-Origin', '*');
-  
-  const { domain } = req.query;
-
-  if (!domain) {
-    return res.status(400).json({ error: "Domain parameter is required" });
-  }
-
-  // ✅ Use environment variables for SpyFu API credentials
-  const username = process.env.SPYFU_API_USERNAME || 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
-  const apiKey = process.env.SPYFU_API_KEY || 'VESAPD8P';
-
-  if (!username || !apiKey) {
-    console.error("SpyFu API credentials are missing");
-    return res.status(500).json({ error: "SpyFu API credentials are missing" });
-  }
-
-  const url = `https://www.spyfu.com/apis/domain_stats_api/v2/getDomainStatsForExactDate?domain=${domain}&month=3&year=2023&countryCode=US&api_username=${username}&api_key=${apiKey}`;
-
   try {
+    // Ensure CORS headers for this specific route
+    res.header('Access-Control-Allow-Origin', '*');
+    
+    const { domain } = req.query;
+
+    if (!domain) {
+      return res.status(400).json({ error: "Domain parameter is required" });
+    }
+
+    // ✅ Use environment variables for SpyFu API credentials
+    const username = process.env.SPYFU_API_USERNAME || 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
+    const apiKey = process.env.SPYFU_API_KEY || 'VESAPD8P';
+
+    if (!username || !apiKey) {
+      console.error("SpyFu API credentials are missing");
+      return res.status(500).json({ error: "SpyFu API credentials are missing" });
+    }
+
+    const url = `https://www.spyfu.com/apis/domain_stats_api/v2/getDomainStatsForExactDate?domain=${domain}&month=3&year=2023&countryCode=US&api_username=${username}&api_key=${apiKey}`;
+
     console.log(`Fetching SpyFu API: ${url}`);
     const response = await fetch(url, {
-      timeout: 10000, // 10 second timeout
+      timeout: 15000, // 15 second timeout
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; RailwayApp/1.0)'
+      }
     });
     
     if (!response.ok) {
@@ -89,47 +140,48 @@ app.get("/proxy/spyfu", async (req, res) => {
     console.error("SpyFu API Fetch Error:", error.message);
     res.status(500).json({
       error: "SpyFu API request failed",
-      details: error.message,
+      details: error.message || 'Unknown error occurred'
     });
   }
 });
 
 // ✅ Debug Route to Check CORS
 app.get("/debug-headers", (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.json({
-    headers: req.headers,
-    message: "CORS Debugging - Headers Confirmed.",
-  });
+  try {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.json({
+      headers: req.headers,
+      message: "CORS Debugging - Headers Confirmed.",
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Error in /debug-headers route:", error);
+    res.status(500).json({ error: "Internal server error", details: error.message });
+  }
 });
 
-// ✅ Health Check Route
-app.get("/health", (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  
-  const credentials = {
-    hasApiUsername: !!process.env.SPYFU_API_USERNAME,
-    hasApiKey: !!process.env.SPYFU_API_KEY,
-    fallbackUsername: 'bd5d70b5-7793-4c6e-b012-2a62616bf1af',
-    fallbackKeyAvailable: true
-  };
-  
-  res.json({
-    status: "healthy",
-    serverTime: new Date().toISOString(),
-    credentials
-  });
-});
-
-// Serve static files from the 'dist' directory (Vite build output)
-app.use(express.static(path.join(__dirname, 'dist')));
+// Improved error handling for static files
+app.use(express.static(path.join(__dirname, 'dist'), {
+  fallthrough: true,
+  index: 'index.html'
+}));
 
 // Any routes not matched by API endpoints should serve the index.html
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  try {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  } catch (error) {
+    console.error("Error serving index.html:", error);
+    res.status(500).send("Error serving application. Please try again later.");
+  }
 });
 
-// ✅ Start Server
-app.listen(PORT, () =>
-  console.log(`🚀 Server running on port ${PORT}, serving both API and frontend`)
-);
+// ✅ Start Server with error handling
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}, serving both API and frontend`);
+  console.log(`API endpoint available at: http://localhost:${PORT}/api`);
+  console.log(`SpyFu proxy available at: http://localhost:${PORT}/proxy/spyfu?domain=example.com`);
+  console.log(`Frontend served from: ${path.join(__dirname, 'dist')}`);
+}).on('error', (error) => {
+  console.error('SERVER START ERROR:', error);
+});
