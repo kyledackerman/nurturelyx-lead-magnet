@@ -1,8 +1,9 @@
+
 import { ApiData } from "@/types/report";
 import { toast } from "sonner";
 
 // Re-export the SpyFu URL function
-export { getSpyFuUrl } from './spyfuService';
+export { getSpyFuUrl } from './api/spyfuConfig';
 
 // Calculate report metrics based on both organic and paid traffic
 export const calculateReportMetrics = (
@@ -94,7 +95,7 @@ export interface MonthlyRevenueData {
   revenueLost: number;
 }
 
-// This function will be defined in spyfuService.ts and imported by users
+// This function will be defined in domainDataService.ts and imported by users
 export const fetchDomainData = async (
   domain: string, 
   organicTrafficManual?: number, 
