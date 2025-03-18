@@ -11,7 +11,7 @@ import {
   Legend,
   ResponsiveContainer
 } from "recharts";
-import { getSpyFuUrl } from "@/services/apiService";
+import { getSpyFuUrl } from "@/services/spyfuService";
 import { Button } from "@/components/ui/button";
 
 interface DomainOverviewTabProps {

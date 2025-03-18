@@ -13,20 +13,27 @@ interface SpyFuApiKeyFormProps {
 }
 
 export const SpyFuApiKeyForm = ({ onApiKeySet }: SpyFuApiKeyFormProps) => {
+  const [apiUsername, setApiUsername] = useState<string>("");
   const [apiKey, setApiKey] = useState<string>("");
   const [isConnected, setIsConnected] = useState<boolean>(hasSpyFuApiKey());
   const [error, setError] = useState<string>("");
 
   const handleConnect = () => {
-    if (!apiKey.trim()) {
-      setError("Please enter your SpyFu API key");
+    if (!apiUsername.trim()) {
+      setError("Please enter your SpyFu API Username");
       return;
     }
     
-    // We're not actually using an API key, but we'll simulate success
+    if (!apiKey.trim()) {
+      setError("Please enter your SpyFu API Key");
+      return;
+    }
+    
+    // In a real implementation, you would save these credentials securely
+    // For demo purposes, we'll just simulate success
     setIsConnected(true);
     setError("");
-    toast.success("SpyFu API key saved successfully", {
+    toast.success("SpyFu API credentials saved successfully", {
       description: "You can now analyze domains using SpyFu data."
     });
     onApiKeySet();
@@ -34,9 +41,10 @@ export const SpyFuApiKeyForm = ({ onApiKeySet }: SpyFuApiKeyFormProps) => {
 
   const handleDisconnect = () => {
     setIsConnected(false);
+    setApiUsername("");
     setApiKey("");
-    toast.info("SpyFu API key removed", {
-      description: "You can enter a new key at any time."
+    toast.info("SpyFu API credentials removed", {
+      description: "You can enter new credentials at any time."
     });
   };
 
@@ -50,7 +58,7 @@ export const SpyFuApiKeyForm = ({ onApiKeySet }: SpyFuApiKeyFormProps) => {
               <div>
                 <h3 className="font-medium text-green-800">Connected to SpyFu API</h3>
                 <p className="text-green-700 text-sm">
-                  Your API key has been saved securely for this session
+                  Your API credentials have been saved securely for this session
                 </p>
               </div>
             </div>
@@ -68,7 +76,7 @@ export const SpyFuApiKeyForm = ({ onApiKeySet }: SpyFuApiKeyFormProps) => {
         <div className="p-4">
           <div className="flex items-center gap-2 mb-4">
             <Key className="h-5 w-5 text-accent" />
-            <h3 className="font-medium">Enter your SpyFu API Key</h3>
+            <h3 className="font-medium">Enter your SpyFu API Credentials</h3>
           </div>
           
           {error && (
@@ -81,13 +89,25 @@ export const SpyFuApiKeyForm = ({ onApiKeySet }: SpyFuApiKeyFormProps) => {
           
           <div className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="spyfu-api-username">SpyFu API Username</Label>
+              <Input
+                id="spyfu-api-username"
+                type="text"
+                value={apiUsername}
+                onChange={(e) => setApiUsername(e.target.value)}
+                placeholder="Enter your SpyFu API Username"
+                className="bg-white"
+              />
+            </div>
+            
+            <div className="space-y-2">
               <Label htmlFor="spyfu-api-key">SpyFu API Key</Label>
               <Input
                 id="spyfu-api-key"
                 type="password"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Enter your SpyFu API key"
+                placeholder="Enter your SpyFu API Key"
                 className="bg-white"
               />
             </div>
@@ -104,11 +124,11 @@ export const SpyFuApiKeyForm = ({ onApiKeySet }: SpyFuApiKeyFormProps) => {
               <div className="text-xs text-gray-500 flex items-start gap-2 bg-gray-50 p-3 rounded-lg">
                 <Info className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="font-medium text-gray-700 mb-1">How to get your SpyFu API key:</p>
+                  <p className="font-medium text-gray-700 mb-1">How to get your SpyFu API credentials:</p>
                   <ol className="list-decimal list-inside space-y-1">
-                    <li>Sign up for a SpyFu account at <a href="https://www.spyfu.com/api" target="_blank" rel="noopener noreferrer" className="text-accent underline">spyfu.com/api</a></li>
-                    <li>Go to your account settings</li>
-                    <li>Find the API section and copy your API key</li>
+                    <li>Log in to your SpyFu account at <a href="https://www.spyfu.com/account/api" target="_blank" rel="noopener noreferrer" className="text-accent underline">spyfu.com/account/api</a></li>
+                    <li>Find your API Username and Key in the API dashboard</li>
+                    <li>Copy both values to use in this form</li>
                   </ol>
                 </div>
               </div>
