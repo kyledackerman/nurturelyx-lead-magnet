@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { LineChart, AlertCircle, HelpCircle, Server, CheckCircle2, Loader2, RefreshCw, TerminalSquare } from "lucide-react";
+import { LineChart, AlertCircle, HelpCircle, Server, CheckCircle2, Loader2, RefreshCw, TerminalSquare, ExternalLink } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ProxyConfigForm } from "./ProxyConfigForm";
@@ -25,6 +25,13 @@ export const InfoSection = ({
 }: InfoSectionProps) => {
   const [showProxyConfig, setShowProxyConfig] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  
+  const railwayUrl = "https://nurture-lead-vision-production.up.railway.app";
+
+  // Is the error related to HTML response?
+  const isHtmlError = connectionError?.includes("HTML") || 
+                     (diagnosticInfo?.htmlDetected === true) ||
+                     (diagnosticInfo?.isHtmlResponse === true);
 
   // Show loading when checking connection
   if (isCheckingConnection) {
@@ -70,8 +77,15 @@ export const InfoSection = ({
         <AlertDescription className="text-red-700">
           <div className="flex flex-col">
             <p>{connectionError}</p>
+            {isHtmlError && (
+              <p className="text-sm mt-1">
+                <strong>Problem detected:</strong> The server is returning HTML instead of JSON. 
+                This usually means there's a proxy, CDN, or firewall in the path.
+              </p>
+            )}
             <p className="text-sm mt-2 font-medium">Enter your traffic data below to continue with the calculator.</p>
-            <div className="flex gap-2 mt-2">
+            
+            <div className="flex flex-wrap gap-2 mt-2">
               {onRetryConnection && (
                 <Button 
                   variant="outline" 
@@ -83,6 +97,7 @@ export const InfoSection = ({
                   Retry Connection
                 </Button>
               )}
+              
               <Button
                 variant="ghost"
                 size="sm"
@@ -90,13 +105,35 @@ export const InfoSection = ({
                 onClick={() => setShowDiagnostics(!showDiagnostics)}
               >
                 <TerminalSquare className="h-3 w-3 mr-1" />
-                Diagnostics
+                {showDiagnostics ? "Hide Diagnostics" : "Show Diagnostics"}
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm" 
+                className="text-xs text-red-800 hover:text-red-900 hover:bg-red-100 p-1 h-auto"
+                onClick={() => window.open(railwayUrl, '_blank')}
+              >
+                <ExternalLink className="h-3 w-3 mr-1" />
+                Test Server Directly
               </Button>
             </div>
             
             {showDiagnostics && diagnosticInfo && (
               <div className="mt-3 p-2 bg-gray-900 text-gray-200 rounded text-xs font-mono overflow-x-auto">
                 <pre>{JSON.stringify(diagnosticInfo, null, 2)}</pre>
+              </div>
+            )}
+            
+            {isHtmlError && showDiagnostics && (
+              <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                <p className="font-semibold text-yellow-800">Troubleshooting HTML Response:</p>
+                <ul className="list-disc pl-5 mt-1 text-yellow-700 space-y-1">
+                  <li>The API is returning HTML instead of JSON</li>
+                  <li>This typically happens when there's a proxy, CDN, or security service intercepting requests</li>
+                  <li>Try visiting the API directly in a new tab to see what happens</li>
+                  <li>You can still use the calculator by manually entering your traffic data</li>
+                </ul>
               </div>
             )}
           </div>
@@ -130,7 +167,7 @@ export const InfoSection = ({
     <>
       <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded-md mt-4">
         <AlertCircle size={16} className="flex-shrink-0" />
-        <span>Enter your traffic information below to continue.</span>
+        <span>Enter your website URL to continue. If connection fails, you can enter traffic data manually.</span>
         {onRetryConnection && (
           <Button 
             variant="outline" 

@@ -70,12 +70,6 @@ const LeadCalculatorForm = ({
     }
   };
 
-  // If we have a connection error or aren't connected, always show traffic fields
-  const shouldShowTrafficFields = showTrafficFields || 
-                                !proxyConnected || 
-                                !!apiError || 
-                                !!connectionError;
-
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
@@ -101,7 +95,7 @@ const LeadCalculatorForm = ({
             formData={formData}
             handleChange={handleChange}
             errors={errors}
-            showTrafficFields={shouldShowTrafficFields} 
+            showTrafficFields={showTrafficFields} 
           />
           
           <TransactionValueInput 
