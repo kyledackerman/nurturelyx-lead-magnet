@@ -26,6 +26,8 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   const {
     proxyConnected,
     isUsingRailway,
+    connectionError,
+    isCheckingConnection,
     resetConnectionState
   } = useProxyConnection();
 
@@ -54,6 +56,8 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     // Connection status
     proxyConnected,
     isUsingRailway,
+    isCheckingConnection,
+    connectionError,
     
     // Methods
     handleChange: handleFormChange,
