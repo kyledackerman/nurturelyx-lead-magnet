@@ -51,6 +51,7 @@ export const fetchDomainData = async (
           'Cache-Control': 'no-cache, no-store',
           'Pragma': 'no-cache'
         },
+        mode: 'cors', // Explicitly request CORS mode
         signal: controller.signal,
         cache: 'no-cache',
         credentials: 'omit' // Don't send cookies
@@ -138,17 +139,34 @@ export const fetchDomainData = async (
       // This makes it look like we really tried to get data
       await new Promise(resolve => setTimeout(resolve, 7000));
       
-      // Specific error handling for connection issues
-      if (errorMessage.includes('network') || errorMessage.includes('abort') || errorMessage.includes('Failed to fetch')) {
-        console.error("This appears to be a network connectivity issue with the proxy");
+      // Handle CORS-specific errors
+      const errorStr = String(apiError).toLowerCase();
+      if (errorStr.includes('cors') || 
+          errorStr.includes('cross-origin') || 
+          errorStr.includes('failed to fetch') ||
+          errorStr.includes('network error')) {
+        console.error("This appears to be a CORS or network connectivity issue with the proxy");
         
-        // More helpful error message for network issues
-        errorMessage = `The proxy server connection failed. Please check your network connection and ensure the proxy server is running.`;
+        // More helpful error message for CORS issues
+        errorMessage = `CORS policy prevents accessing the proxy server. Please make sure the server has proper CORS headers enabled.`;
         
-        toast.error(`Proxy Server Connection Issue`, {
+        toast.error(`CORS or Network Error`, {
           id: toastId,
-          description: `Unable to connect to the proxy server. Please enter your traffic data manually.`
+          description: `Unable to connect to the proxy server. This may be due to CORS policies. Please enter your traffic data manually.`
         });
+      } else {
+        // Specific error handling for other connection issues
+        if (errorMessage.includes('network') || errorMessage.includes('abort') || errorMessage.includes('Failed to fetch')) {
+          console.error("This appears to be a network connectivity issue with the proxy");
+          
+          // More helpful error message for network issues
+          errorMessage = `The proxy server connection failed. Please check your network connection and ensure the proxy server is running.`;
+          
+          toast.error(`Proxy Server Connection Issue`, {
+            id: toastId,
+            description: `Unable to connect to the proxy server. Please enter your traffic data manually.`
+          });
+        }
       }
       
       // If manual data provided, use it

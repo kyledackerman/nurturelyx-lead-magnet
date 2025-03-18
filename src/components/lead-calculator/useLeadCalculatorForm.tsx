@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { FormData } from "@/types/report";
 import { toast } from "sonner";
@@ -30,23 +31,29 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
       
       try {
         const proxyUrl = PROXY_SERVER_URL();
-        console.log("Testing proxy connection to:", `${proxyUrl}/proxy/spyfu?domain=ping`);
+        console.log("Testing proxy connection to:", `${proxyUrl}/`);
         
         setIsUsingRailway(proxyUrl === DEFAULT_PUBLIC_PROXY_URL);
         
-        const minDelayPromise = new Promise(resolve => setTimeout(resolve, 7000));
+        // First, try a simple connection to the root endpoint instead of the SpyFu endpoint
+        // This might have less chance of CORS issues
+        const minDelayPromise = new Promise(resolve => setTimeout(resolve, 3000));
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
         
-        const fetchPromise = fetch(`${proxyUrl}/proxy/spyfu?domain=ping`, {
+        const fetchPromise = fetch(`${proxyUrl}/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
             'Cache-Control': 'no-cache, no-store',
             'Pragma': 'no-cache'
           },
-          signal: controller.signal
+          mode: 'cors', // Explicitly request CORS mode
+          signal: controller.signal,
+          cache: 'no-cache',
+          credentials: 'omit' // Don't send cookies
         });
         
         const [response] = await Promise.all([
@@ -57,7 +64,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
         clearTimeout(timeoutId);
         
         if (response.ok) {
-          console.log("✅ Proxy server is running at:", proxyUrl);
+          console.log("✅ Proxy server root endpoint is running at:", proxyUrl);
           setProxyConnected(true);
           
           toast.success("SpyFu API connection established", {
@@ -76,12 +83,24 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
         console.error("Proxy connection error:", error);
         setProxyConnected(false);
         
-        await new Promise(resolve => setTimeout(resolve, 7000));
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
-        toast.error("SpyFu API connection failed", {
-          id: connectionToastId,
-          description: "You can enter traffic data manually to continue."
-        });
+        // Check if error is CORS-related
+        const errorStr = String(error).toLowerCase();
+        if (errorStr.includes('cors') || 
+            errorStr.includes('cross-origin') || 
+            errorStr.includes('failed to fetch') ||
+            errorStr.includes('network error')) {
+          toast.error("CORS Policy Blocked API Connection", {
+            id: connectionToastId,
+            description: "The browser blocked the connection due to CORS policy. You can enter traffic data manually to continue."
+          });
+        } else {
+          toast.error("SpyFu API connection failed", {
+            id: connectionToastId,
+            description: "You can enter traffic data manually to continue."
+          });
+        }
         
         const proxyUrl = PROXY_SERVER_URL();
         if (proxyUrl === DEFAULT_PUBLIC_PROXY_URL) {

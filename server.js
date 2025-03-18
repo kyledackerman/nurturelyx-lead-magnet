@@ -7,10 +7,13 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Enable CORS for frontend access
+// Enable CORS for all origins with proper configuration
 app.use(cors({
-  origin: '*', // Allows requests from anywhere (adjust as needed)
-  methods: 'GET'
+  origin: '*', // Allow all origins
+  methods: ['GET'], // Only allow GET methods
+  allowedHeaders: ['Content-Type', 'Accept'],
+  credentials: false, // Don't send cookies
+  maxAge: 86400 // Cache preflight requests for 24 hours
 }));
 
 app.use(express.json());
@@ -44,6 +47,12 @@ app.get('/proxy/spyfu', async (req, res) => {
     const response = await fetch(url);
     const data = await response.json();
     console.log('SpyFu API response received');
+    
+    // Add CORS headers explicitly in the response
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
+    
     res.json(data);
   } catch (error) {
     console.error('SpyFu API Request Failed:', error.message);
