@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { FormData } from "@/types/report";
 import { toast } from "sonner";
@@ -22,7 +21,6 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   const [connectionAttempted, setConnectionAttempted] = useState<boolean>(false);
   const [isUsingRailway, setIsUsingRailway] = useState<boolean>(true);
 
-  // Check proxy connection only once on initial load
   useEffect(() => {
     const checkProxyConnection = async () => {
       if (isCheckingConnection || connectionAttempted) return;
@@ -31,17 +29,13 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
       const connectionToastId = toast.loading("Checking SpyFu API connection...");
       
       try {
-        // Ensure we're using the current proxy URL
         const proxyUrl = PROXY_SERVER_URL();
         console.log("Testing proxy connection to:", `${proxyUrl}/proxy/spyfu?domain=ping`);
         
-        // Update the isUsingRailway state
         setIsUsingRailway(proxyUrl === DEFAULT_PUBLIC_PROXY_URL);
         
-        // Create a promise that resolves with a minimum delay of 7 seconds
         const minDelayPromise = new Promise(resolve => setTimeout(resolve, 7000));
         
-        // Make the API request to check connection with 10 second timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         
@@ -55,7 +49,6 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
           signal: controller.signal
         });
         
-        // Wait for both the minimum delay and the API response
         const [response] = await Promise.all([
           fetchPromise,
           minDelayPromise
@@ -83,7 +76,6 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
         console.error("Proxy connection error:", error);
         setProxyConnected(false);
         
-        // Ensure minimum loading time of 7 seconds before showing error
         await new Promise(resolve => setTimeout(resolve, 7000));
         
         toast.error("SpyFu API connection failed", {
@@ -108,12 +100,11 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     }
   }, [isCheckingConnection, connectionAttempted]);
   
-  // Only show traffic fields when there's an explicit API error
   useEffect(() => {
     if (apiError) {
       setShowTrafficFields(true);
     } else {
-      setShowTrafficFields(false); // Ensure fields are hidden when no API error
+      setShowTrafficFields(false);
     }
   }, [apiError]);
 

@@ -46,37 +46,34 @@ const hasAdminAccess = (): boolean => {
   return false;
 };
 
-// Simplified environment detection - only localhost is considered development
+// Super simplified environment detection - ONLY localhost-type domains are development
 const isDevelopmentEnvironment = (): boolean => {
-  // Always consider it production if not in a browser
+  // If window doesn't exist, we're in a server environment - consider it production
   if (typeof window === 'undefined') return false;
   
   const hostname = window.location.hostname;
   
-  // Only these specific hostnames are considered development environments
-  const isLocalhost = hostname === 'localhost' || 
-                      hostname === '127.0.0.1' || 
-                      hostname.includes('.local');
-                      
-  console.log(`Current hostname: ${hostname}, isDevelopment: ${isLocalhost}`);
-  return isLocalhost;
+  // ONLY these specific hostnames are considered development
+  return hostname === 'localhost' || 
+         hostname === '127.0.0.1' || 
+         hostname.includes('.local');
 };
 
 // Get the proxy server URL - ALWAYS use Railway in production
 export const getProxyServerUrl = (): string => {
-  // First, check if we're in development mode with simplified, reliable detection
+  // First, determine if we're in a development environment
   const isDev = isDevelopmentEnvironment();
   
   // Log the environment detection for debugging
-  console.log(`Environment detected: ${isDev ? 'Development' : 'Production'}`);
+  console.log(`Environment detected: ${isDev ? 'Development' : 'Production'}, Hostname: ${typeof window !== 'undefined' ? window.location.hostname : 'N/A'}`);
   
-  // FOR PRODUCTION: Always use Railway URL - no exceptions!
+  // FOR PRODUCTION: Always use Railway URL - no exceptions or overrides!
   if (!isDev) {
-    console.log(`Using Railway proxy URL: ${DEFAULT_PUBLIC_PROXY_URL}`);
+    console.log(`Using production Railway proxy URL: ${DEFAULT_PUBLIC_PROXY_URL}`);
     return DEFAULT_PUBLIC_PROXY_URL;
   }
   
-  // FOR DEVELOPMENT ONLY: Check for admin custom URL
+  // FOR DEVELOPMENT ONLY: Allow custom proxy URL for admin testing
   if (isDev && hasAdminAccess() && typeof localStorage !== 'undefined') {
     const customProxyUrl = localStorage.getItem('custom_proxy_url');
     if (customProxyUrl && customProxyUrl.trim()) {
@@ -95,8 +92,14 @@ export const PROXY_SERVER_URL = (): string => {
   return getProxyServerUrl();
 };
 
-// Function to save a custom proxy URL - admin access required
+// Function to save a custom proxy URL - admin access required and ONLY in development
 export const saveCustomProxyUrl = (url: string): void => {
+  // Only allow in development mode
+  if (!isDevelopmentEnvironment()) {
+    console.error('Attempt to set custom proxy URL in production - not allowed');
+    return;
+  }
+  
   if (!hasAdminAccess()) {
     console.error('Attempt to set custom proxy URL without admin access');
     return;
@@ -116,10 +119,10 @@ export const saveCustomProxyUrl = (url: string): void => {
 // Function to get the proxy URL for SpyFu API requests
 export const getProxyUrl = (domain: string): string => {
   const cleanedDomain = cleanDomain(domain);
-  return `${PROXY_SERVER_URL()}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
+  return `${getProxyServerUrl()}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
 };
 
 // Function to get the test URL for the proxy server
 export const getProxyTestUrl = (): string => {
-  return `${PROXY_SERVER_URL()}/`;
+  return `${getProxyServerUrl()}/`;
 };

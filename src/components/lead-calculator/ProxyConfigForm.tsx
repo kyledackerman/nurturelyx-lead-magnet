@@ -10,12 +10,18 @@ interface ProxyConfigFormProps {
 }
 
 export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
-  const [proxyUrl, setProxyUrl] = useState<string>(PROXY_SERVER_URL);
+  const [proxyUrl, setProxyUrl] = useState<string>(PROXY_SERVER_URL());
   const [isValidUrl, setIsValidUrl] = useState<boolean>(true);
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState<string>('');
+  const [isProduction, setIsProduction] = useState<boolean>(false);
 
   useEffect(() => {
+    // Check if we're in production
+    const hostname = window.location.hostname;
+    const isDev = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('.local');
+    setIsProduction(!isDev);
+    
     // Validate URL whenever it changes
     const isValid = proxyUrl.startsWith('http://') || proxyUrl.startsWith('https://');
     setIsValidUrl(isValid);
@@ -107,7 +113,9 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
               {DEFAULT_PUBLIC_PROXY_URL}
             </p>
             <p className="text-xs mt-2">
-              This is the default server URL. As an admin, you can configure a different URL if needed.
+              This is the default server URL. {isProduction 
+                ? "Custom proxy URLs are disabled in production for security." 
+                : "As an admin, you can configure a different URL for testing."}
             </p>
           </div>
         </div>
@@ -122,10 +130,16 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
             onChange={handleUrlChange}
             placeholder="https://yourproxyserver.com"
             className={!isValidUrl ? "border-red-500" : ""}
+            disabled={isProduction}
           />
           {!isValidUrl && (
             <p className="text-red-500 text-xs mt-1">
               Please enter a valid URL starting with http:// or https://
+            </p>
+          )}
+          {isProduction && (
+            <p className="text-amber-600 text-xs mt-1">
+              Custom proxy URLs are disabled in production. Railway URL is always used.
             </p>
           )}
         </div>
@@ -150,7 +164,7 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
             variant="outline" 
             size="sm"
             onClick={testConnection}
-            disabled={!isValidUrl || testStatus === 'testing'}
+            disabled={!isValidUrl || testStatus === 'testing' || isProduction}
             className="text-xs"
           >
             {testStatus === 'testing' ? 'Testing...' : 'Test Connection'}
@@ -160,6 +174,7 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
             variant="outline" 
             onClick={resetToDefault} 
             size="sm"
+            disabled={isProduction}
             className="text-xs"
           >
             Reset to Railway URL
@@ -170,7 +185,7 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button 
             onClick={handleSave} 
-            disabled={!isValidUrl}
+            disabled={!isValidUrl || isProduction}
             className="bg-accent hover:bg-accent/90"
           >
             Save & Reload
