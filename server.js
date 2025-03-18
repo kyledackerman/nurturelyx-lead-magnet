@@ -7,28 +7,30 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ✅ Allow Lovable & Railway
+// ✅ Enable Express to trust proxies (for Railway)
+app.set('trust proxy', 1);
+
+// ✅ Allow all domains temporarily to debug CORS issues
 const allowedOrigins = [
   'https://nurture-lead-vision.lovable.app',
   'https://nurture-lead-vision-production.up.railway.app'
 ];
 
-app.use(cors());
+app.use(cors({
+  origin: '*',  // ✅ TEMP: Allow all origins (Debug mode)
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-// ✅ Ensure CORS Headers are Always Applied
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin);
-  } else {
-    res.header("Access-Control-Allow-Origin", "*");
-  }
+// ✅ Handle OPTIONS preflight requests properly
+app.options('*', (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
+  res.status(200).end();
 });
 
-// ✅ Debugging Endpoint (This should work now)
+// ✅ Debugging Route to Check CORS
 app.get('/debug-headers', (req, res) => {
   res.json({
     headers: req.headers,
@@ -36,7 +38,7 @@ app.get('/debug-headers', (req, res) => {
   });
 });
 
-// ✅ Test Root Route
+// ✅ Root Route for API Status
 app.get('/', (req, res) => {
   res.json({
     message: 'SpyFu Proxy Server is running!',
@@ -103,9 +105,10 @@ app.get('/cors-test', (req, res) => {
   });
 });
 
-// ✅ Handle Undefined Routes (Prevents "Page Not Found")
+// ✅ Handle Undefined Routes (Prevents "Not Found" Errors)
 app.use((req, res) => {
   res.status(404).json({ error: 'Not Found', message: 'This route does not exist' });
 });
 
+// ✅ Start the Server
 app.listen(PORT, () => console.log(`Proxy server running on port ${PORT}`));

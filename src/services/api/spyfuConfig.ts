@@ -61,15 +61,14 @@ const isDevelopmentEnvironment = (): boolean => {
 
 // Get the proxy server URL - ALWAYS use Railway in production
 export const getProxyServerUrl = (): string => {
-  // First, determine if we're in a development environment
-  const isDev = isDevelopmentEnvironment();
-  
-  // Log the environment detection for debugging
-  console.log(`Environment detected: ${isDev ? 'Development' : 'Production'}, Hostname: ${typeof window !== 'undefined' ? window.location.hostname : 'N/A'}`);
-  
-  // FOR PRODUCTION: Always use Railway URL - no exceptions or overrides!
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : "";
+  const isDev = hostname === "localhost" || hostname.includes(".local") || hostname.includes("127.0.0.1");
+
+  console.log('Environment detected:', isDev ? "Development" : "Production");
+
+  // ✅ FORCE PRODUCTION TO ALWAYS USE RAILWAY
   if (!isDev) {
-    console.log(`Using production Railway proxy URL: ${DEFAULT_PUBLIC_PROXY_URL}`);
+    console.log("Using Railway proxy:", DEFAULT_PUBLIC_PROXY_URL);
     return DEFAULT_PUBLIC_PROXY_URL;
   }
   
@@ -81,7 +80,7 @@ export const getProxyServerUrl = (): string => {
       return customProxyUrl.trim();
     }
   }
-  
+
   // Default for development is localhost
   console.log('Using localhost:3001 for development');
   return 'http://localhost:3001';
