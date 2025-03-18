@@ -30,3 +30,12 @@ export const getSpyFuUrl = (domain: string): string => {
 export const hasSpyFuApiKey = (): boolean => {
   return SPYFU_API_USERNAME.length > 0 && SPYFU_API_KEY.length > 0;
 };
+
+// Proxy server URL - Set this to your local Express server
+export const PROXY_SERVER_URL = 'http://localhost:3001';
+
+// Function to get the proxy URL for SpyFu API requests
+export const getProxyUrl = (domain: string): string => {
+  const cleanedDomain = cleanDomain(domain);
+  return `${PROXY_SERVER_URL}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
+};

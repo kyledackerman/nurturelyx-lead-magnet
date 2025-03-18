@@ -1,10 +1,16 @@
 
 import { toast } from "sonner";
 import { ApiData } from "@/types/report";
-import { SPYFU_API_BASE_URL, SPYFU_API_USERNAME, SPYFU_API_KEY, isValidDomain, cleanDomain } from "./spyfuConfig";
+import { 
+  SPYFU_API_USERNAME, 
+  SPYFU_API_KEY, 
+  isValidDomain, 
+  cleanDomain, 
+  getProxyUrl 
+} from "./spyfuConfig";
 import { generateFallbackData } from "./fallbackDataService";
 
-// Function to fetch domain data from SpyFu API
+// Function to fetch domain data from SpyFu API via proxy
 export const fetchDomainData = async (
   domain: string, 
   organicTrafficManual?: number, 
@@ -24,51 +30,34 @@ export const fetchDomainData = async (
     
     console.log(`Analyzing domain: ${cleanedDomain}`);
     
-    // Attempt to get current date for exact date endpoint
-    const now = new Date();
-    const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
-    const currentYear = now.getFullYear();
-    
-    // Create properly encoded auth header - FIXED
-    // The correct format for Basic Auth is to encode "username:password" in base64
-    const auth = `${SPYFU_API_USERNAME}:${SPYFU_API_KEY}`;
-    const encodedAuth = btoa(auth);
-    
-    // Log authentication details for debugging (without revealing actual credentials)
-    console.log(`Using encoded credentials for API request`);
-    
     try {
       // Set a longer timeout for the API request (60 seconds)
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000);
       
-      // Build API URL with required parameters
-      const apiUrl = `${SPYFU_API_BASE_URL}/getDomainStatsForExactDate?month=${currentMonth}&year=${currentYear}&domain=${encodeURIComponent(cleanedDomain)}&countryCode=US`;
+      // Get the proxy URL for the cleaned domain
+      const proxyUrl = getProxyUrl(cleanedDomain);
       
-      console.log(`Making API request to: ${apiUrl}`);
+      console.log(`Making API request via proxy: ${proxyUrl}`);
       
-      // Make the API request with proper headers, including the authorization
-      const response = await fetch(apiUrl, {
+      // Make the API request to our proxy server
+      const response = await fetch(proxyUrl, {
         method: 'GET',
         headers: {
-          'Authorization': `Basic ${encodedAuth}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         signal: controller.signal,
-        mode: 'cors',
-        cache: 'no-cache',
-        credentials: 'omit' // Don't send cookies
       });
       
       clearTimeout(timeoutId);
       
       // Log full response details for debugging
-      console.log(`SpyFu API response status: ${response.status} ${response.statusText}`);
+      console.log(`Proxy API response status: ${response.status} ${response.statusText}`);
       
       if (!response.ok) {
         // Log more detailed error information
-        console.error(`SpyFu API error: Status ${response.status}, ${response.statusText}`);
+        console.error(`Proxy API error: Status ${response.status}, ${response.statusText}`);
         
         // Try to read the error response if possible
         try {
@@ -78,12 +67,12 @@ export const fetchDomainData = async (
           console.error("Could not read error response body");
         }
         
-        throw new Error(`SpyFu API error: ${response.status} ${response.statusText}`);
+        throw new Error(`Proxy API error: ${response.status} ${response.statusText}`);
       }
       
       // Parse the JSON response
       const data = await response.json();
-      console.log("SpyFu API response data:", data);
+      console.log("Proxy API response data:", data);
       
       // Extract the relevant stats from the API response
       if (!data.results || data.results.length === 0) {
@@ -129,24 +118,24 @@ export const fetchDomainData = async (
       
       return apiData;
     } catch (apiError) {
-      console.error("SpyFu API request failed:", apiError);
+      console.error("SpyFu API request via proxy failed:", apiError);
       
       let errorMessage = apiError instanceof Error ? apiError.message : String(apiError);
       
-      // Specific error handling for CORS and network issues
-      if (errorMessage.includes('CORS') || errorMessage.includes('network') || errorMessage.includes('abort') || errorMessage.includes('Failed to fetch')) {
-        console.error("This appears to be a network connectivity or CORS issue");
+      // Specific error handling for connection issues
+      if (errorMessage.includes('network') || errorMessage.includes('abort') || errorMessage.includes('Failed to fetch')) {
+        console.error("This appears to be a network connectivity issue with the proxy");
         
-        // More helpful error message for CORS/network issues
-        errorMessage = `The SpyFu API connection failed due to browser restrictions. This is likely a CORS issue which happens when making API requests directly from a browser. Try using the manual traffic entry options.`;
+        // More helpful error message for network issues
+        errorMessage = `The proxy server connection failed. Make sure your Express.js proxy server is running at http://localhost:3001 and try again.`;
         
-        toast.error(`API Connection Issue`, {
+        toast.error(`Proxy Server Connection Issue`, {
           id: toastId,
-          description: `Unable to connect to SpyFu. Please enter your traffic data manually to continue.`
+          description: `Unable to connect to the proxy server. Please make sure it's running or enter your traffic data manually to continue.`
         });
       }
       
-      // If SpyFu API call fails, try a direct fallback
+      // If proxy API call fails, try a direct fallback
       toast.warning(`SpyFu API connection issue for ${domain}`, { 
         id: toastId, 
         description: `Using estimated data instead. Enter your traffic manually for better accuracy.`,

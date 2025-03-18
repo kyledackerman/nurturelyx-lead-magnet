@@ -15,7 +15,15 @@ export const InfoSection = ({ apiError }: InfoSectionProps) => {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle className="text-red-800 font-semibold">SpyFu API Connection Error</AlertTitle>
           <AlertDescription className="text-red-700">
-            We couldn't connect to the SpyFu API to fetch your traffic data. This is most likely due to CORS restrictions, which prevent browser-based applications from directly accessing certain APIs. Please enter your traffic numbers manually to continue.
+            {apiError.includes("proxy") ? (
+              <>
+                We couldn't connect to the proxy server. Please make sure your Express.js proxy server is running at http://localhost:3001. If you haven't set up the proxy server yet, please follow the setup instructions provided.
+              </>
+            ) : (
+              <>
+                We couldn't connect to the SpyFu API to fetch your traffic data. This is most likely due to CORS restrictions, which require using a proxy server. Please enter your traffic numbers manually to continue or set up the proxy server.
+              </>
+            )}
           </AlertDescription>
           <p className="text-red-600 mt-2 text-xs">Technical details: {apiError}</p>
         </Alert>
