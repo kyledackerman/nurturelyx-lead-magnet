@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { LineChart, AlertCircle, ExternalLink, HelpCircle, Server, CheckCircle2, Loader2 } from "lucide-react";
+import { LineChart, AlertCircle, ExternalLink, HelpCircle, Server, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_PUBLIC_PROXY_URL } from "@/services/api/spyfuConfig";
@@ -12,13 +12,15 @@ interface InfoSectionProps {
   connectionError?: string | null;
   proxyConnected?: boolean;
   isCheckingConnection?: boolean;
+  onRetryConnection?: () => void;
 }
 
 export const InfoSection = ({ 
   apiError, 
   connectionError,
   proxyConnected,
-  isCheckingConnection 
+  isCheckingConnection,
+  onRetryConnection
 }: InfoSectionProps) => {
   const [showProxyConfig, setShowProxyConfig] = useState(false);
 
@@ -38,20 +40,33 @@ export const InfoSection = ({
           <AlertCircle className="h-4 w-4" />
           <AlertTitle className="text-amber-800 font-semibold">API Connection Error</AlertTitle>
           <AlertDescription className="text-amber-700">
-            <p>{connectionError}</p>
-            <p className="text-sm mt-2 text-gray-600">Please enter your traffic data manually below to continue.</p>
+            <div className="flex flex-col">
+              <p>{connectionError}</p>
+              <p className="text-sm mt-2 text-gray-600">Please enter your traffic data manually below to continue.</p>
+              {onRetryConnection && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2 w-fit" 
+                  onClick={onRetryConnection}
+                >
+                  <RefreshCw size={16} className="mr-2" />
+                  Retry Connection
+                </Button>
+              )}
+            </div>
           </AlertDescription>
         </Alert>
       ) : (
         // Display connection information
         <>
           {isCheckingConnection ? (
-            <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 p-2 rounded-md mt-4">
+            <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 p-3 rounded-md mt-4">
               <Loader2 size={16} className="animate-spin flex-shrink-0" />
               <span>Connecting to traffic data service...</span>
             </div>
           ) : proxyConnected ? (
-            <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded-md mt-4">
+            <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-3 rounded-md mt-4">
               <CheckCircle2 size={16} className="flex-shrink-0" />
               <span>Connected to SpyFu traffic data service</span>
               <Button
@@ -65,9 +80,20 @@ export const InfoSection = ({
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-2 rounded-md mt-4">
+            <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded-md mt-4">
               <AlertCircle size={16} className="flex-shrink-0" />
               <span>Cannot connect to traffic data API. Enter traffic information below.</span>
+              {onRetryConnection && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="ml-auto text-amber-800 hover:text-amber-900 hover:bg-amber-100 p-1 h-auto" 
+                  onClick={onRetryConnection}
+                >
+                  <RefreshCw size={14} className="mr-1" />
+                  Retry
+                </Button>
+              )}
             </div>
           )}
         </>

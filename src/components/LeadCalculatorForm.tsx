@@ -34,6 +34,7 @@ const LeadCalculatorForm = ({
     proxyConnected,
     isCheckingConnection,
     connectionError,
+    retryConnection,
     handleChange,
     validateForm,
     setShowTrafficFields,
@@ -69,6 +70,12 @@ const LeadCalculatorForm = ({
     }
   };
 
+  // If we have a connection error or aren't connected, always show traffic fields
+  const shouldShowTrafficFields = showTrafficFields || 
+                                !proxyConnected || 
+                                !!apiError || 
+                                !!connectionError;
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
@@ -94,7 +101,7 @@ const LeadCalculatorForm = ({
             formData={formData}
             handleChange={handleChange}
             errors={errors}
-            showTrafficFields={showTrafficFields || !proxyConnected || !!apiError || !!connectionError} 
+            showTrafficFields={shouldShowTrafficFields} 
           />
           
           <TransactionValueInput 
@@ -108,6 +115,7 @@ const LeadCalculatorForm = ({
             connectionError={connectionError}
             proxyConnected={proxyConnected}
             isCheckingConnection={isCheckingConnection}
+            onRetryConnection={retryConnection}
           />
           
           <FormActions 

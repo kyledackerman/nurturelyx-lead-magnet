@@ -49,35 +49,59 @@ export const fetchDomainData = async (
     try {
       // First, check if proxy is available
       console.log("Testing proxy connection...");
-      const testResponse = await fetch(getProxyTestUrl(), {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'omit',
-        mode: 'cors'
-      });
       
-      if (!testResponse.ok) {
-        throw new Error("Proxy connection test failed");
+      try {
+        const testResponse = await fetch(getProxyTestUrl(), {
+          method: 'GET',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'omit',
+          cache: 'no-cache',
+          mode: 'cors'
+        });
+        
+        if (!testResponse.ok) {
+          console.error("Proxy connection test failed with status:", testResponse.status);
+          throw new Error("Proxy connection test failed");
+        }
+      } catch (testError) {
+        console.error("Proxy connection test error:", testError);
+        throw new Error("Failed to connect to proxy server");
       }
       
       // Proxy is available, get real data for the domain
       console.log(`Fetching real data for ${cleanedDomain}`);
       const proxyUrl = getProxyUrl(cleanedDomain);
+      
       const response = await fetch(proxyUrl, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         credentials: 'omit',
+        cache: 'no-cache',
         mode: 'cors'
       });
       
       if (!response.ok) {
+        console.error("API response error:", response.status, response.statusText);
         throw new Error(`API returned status ${response.status}`);
       }
       
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error("Error parsing API response:", jsonError);
+        throw new Error("Invalid response from API server");
+      }
       
       // Check if data contains error
       if (data.error) {
+        console.error("API returned error:", data.error);
         throw new Error(data.error);
       }
       

@@ -43,7 +43,7 @@ export const getProxyUrl = (domain: string): string => {
 
 // Function to get a test URL for the proxy
 export const getProxyTestUrl = (): string => {
-  // Use the root endpoint which is more likely to respond
+  // Use the server root URL as it's more reliable than specialized endpoints
   return `${DEFAULT_PUBLIC_PROXY_URL}/`;
 };
 

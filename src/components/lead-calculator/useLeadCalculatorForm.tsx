@@ -28,7 +28,8 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     isUsingRailway,
     connectionError,
     isCheckingConnection,
-    resetConnectionState
+    resetConnectionState,
+    retryConnection
   } = useProxyConnection();
 
   // Enhanced handleChange that also clears related errors
@@ -58,6 +59,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     isUsingRailway,
     isCheckingConnection,
     connectionError,
+    retryConnection,
     
     // Methods
     handleChange: handleFormChange,
