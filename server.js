@@ -8,6 +8,11 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Add detailed logging for startup
+console.log("⚡ Starting server with environment:", process.env.NODE_ENV || 'development');
+console.log("📁 Current directory:", __dirname);
+console.log("🔑 SpyFu API credentials available:", !!process.env.SPYFU_API_USERNAME && !!process.env.SPYFU_API_KEY);
+
 // Add error handling for uncaught exceptions
 process.on('uncaughtException', (error) => {
   console.error('CRITICAL ERROR - UNCAUGHT EXCEPTION:', error);
@@ -43,6 +48,12 @@ app.use((req, res, next) => {
 
 // Middleware to parse JSON requests
 app.use(express.json());
+
+// Add logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
 
 // Root Route (Confirms API is Running)
 app.get("/api", (req, res) => {
@@ -152,6 +163,23 @@ app.get("/debug-headers", (req, res) => {
     res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });
+
+// Log the dist directory contents
+try {
+  console.log("Checking for dist directory...");
+  const fs = require('fs');
+  const distPath = path.join(__dirname, 'dist');
+  
+  if (fs.existsSync(distPath)) {
+    console.log("✅ Dist directory exists");
+    const files = fs.readdirSync(distPath);
+    console.log("📂 Dist directory contents:", files);
+  } else {
+    console.error("❌ Dist directory does not exist - the build may have failed");
+  }
+} catch (error) {
+  console.error("Error checking dist directory:", error);
+}
 
 // Serve static files from the dist directory
 app.use(express.static(path.join(__dirname, 'dist'), {
