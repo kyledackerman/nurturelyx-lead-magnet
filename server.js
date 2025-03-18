@@ -37,6 +37,18 @@ app.use((req, res, next) => {
   next();
 });
 
+// ✅ Root Route (Confirms API is Running) - MOVED UP in the order
+app.get("/", (req, res) => {
+  res.json({ 
+    message: "SpyFu Proxy Server is running!", 
+    status: "OK",
+    endpoints: {
+      spyfu: "/proxy/spyfu?domain=example.com",
+      debug: "/debug-headers"
+    }
+  });
+});
+
 // ✅ SpyFu Proxy API Route
 app.get("/proxy/spyfu", async (req, res) => {
   const { domain } = req.query;
@@ -75,19 +87,7 @@ app.get("/debug-headers", (req, res) => {
   });
 });
 
-// ✅ Root Route (Confirms API is Running)
-app.get("/", (req, res) => {
-  res.json({ 
-    message: "SpyFu Proxy Server is running!", 
-    status: "OK",
-    endpoints: {
-      spyfu: "/proxy/spyfu?domain=example.com",
-      debug: "/debug-headers"
-    }
-  });
-});
-
-// ✅ Catch-All Route for Undefined Endpoints
+// ✅ Catch-All Route for Undefined Endpoints - This should always be LAST
 app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });
 });
