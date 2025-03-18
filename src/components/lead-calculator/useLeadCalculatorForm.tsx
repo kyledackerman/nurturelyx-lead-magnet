@@ -20,7 +20,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   const [proxyConnected, setProxyConnected] = useState<boolean>(false);
   const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
   const [connectionAttempted, setConnectionAttempted] = useState<boolean>(false);
-  const [isUsingRailway, setIsUsingRailway] = useState<boolean>(PROXY_SERVER_URL() === DEFAULT_PUBLIC_PROXY_URL);
+  const [isUsingRailway, setIsUsingRailway] = useState<boolean>(true);
 
   // Check proxy connection only once on initial load
   useEffect(() => {
@@ -31,29 +31,37 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
       const connectionToastId = toast.loading("Checking SpyFu API connection...");
       
       try {
+        // Get the current proxy URL (might be different based on environment)
         const proxyUrl = PROXY_SERVER_URL();
         console.log("Testing proxy connection to:", `${proxyUrl}/proxy/spyfu?domain=ping`);
         
         // Update the isUsingRailway state
         setIsUsingRailway(proxyUrl === DEFAULT_PUBLIC_PROXY_URL);
         
-        // Show the loading toast for at least 7 seconds to give API time to respond
-        const connectionPromise = fetch(`${proxyUrl}/proxy/spyfu?domain=ping`, {
+        // Create a promise that resolves with a minimum delay of 7 seconds
+        const minDelayPromise = new Promise(resolve => setTimeout(resolve, 7000));
+        
+        // Make the API request to check connection with 10 second timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        const fetchPromise = fetch(`${proxyUrl}/proxy/spyfu?domain=ping`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             'Cache-Control': 'no-cache, no-store',
             'Pragma': 'no-cache'
           },
-          // Use a timeout for better UX
-          signal: AbortSignal.timeout(10000),
+          signal: controller.signal
         });
         
-        // Ensure we show the loading state for at least 7 seconds
+        // Wait for both the minimum delay and the API response
         const [response] = await Promise.all([
-          connectionPromise,
-          new Promise(resolve => setTimeout(resolve, 7000))
+          fetchPromise,
+          minDelayPromise
         ]);
+        
+        clearTimeout(timeoutId);
         
         if (response.ok) {
           console.log("✅ Proxy server is running at:", proxyUrl);
@@ -75,7 +83,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
         console.error("Proxy connection error:", error);
         setProxyConnected(false);
         
-        // Wait a minimum of 7 seconds before showing the error to show we really tried
+        // Ensure minimum loading time of 7 seconds before showing error
         await new Promise(resolve => setTimeout(resolve, 7000));
         
         toast.error("SpyFu API connection failed", {

@@ -31,17 +31,19 @@ export const fetchDomainData = async (
     console.log(`Analyzing domain: ${cleanedDomain}`);
     
     try {
-      // Set a timeout for the API request (increased to 7 seconds)
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 7000);
+      // Create a promise that resolves with a minimum delay of 7 seconds
+      const minDelayPromise = new Promise(resolve => setTimeout(resolve, 7000));
       
       // Get the proxy URL for the cleaned domain
       const proxyUrl = getProxyUrl(cleanedDomain);
       
       console.log(`Making API request via proxy: ${proxyUrl}`);
       
-      // Make the API request to our proxy server with no cache to force fresh request
-      const response = await fetch(proxyUrl, {
+      // Make the API request to our proxy server with no cache and a 10 second timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const fetchPromise = fetch(proxyUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -53,6 +55,12 @@ export const fetchDomainData = async (
         cache: 'no-cache',
         credentials: 'omit' // Don't send cookies
       });
+      
+      // Wait for both the minimum delay and the API response
+      const [response] = await Promise.all([
+        fetchPromise,
+        minDelayPromise
+      ]);
       
       clearTimeout(timeoutId);
       
@@ -126,8 +134,8 @@ export const fetchDomainData = async (
       
       let errorMessage = apiError instanceof Error ? apiError.message : String(apiError);
       
-      // Show the loading toast for a minimum of 7 seconds even on error
-      // This makes it look like we're truly making an attempt
+      // Ensure a minimum time has passed (7 seconds) before showing an error
+      // This makes it look like we really tried to get data
       await new Promise(resolve => setTimeout(resolve, 7000));
       
       // Specific error handling for connection issues
@@ -161,11 +169,11 @@ export const fetchDomainData = async (
   } catch (error) {
     console.error(`Error fetching domain data:`, error);
     
+    // Ensure a minimum loading time of 7 seconds before showing error
+    await new Promise(resolve => setTimeout(resolve, 7000));
+    
     // If user provided manual data, use it as fallback
     if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual > 0) {
-      // Ensure a minimum loading time of 7 seconds
-      await new Promise(resolve => setTimeout(resolve, 7000));
-      
       toast.warning(`SpyFu API unavailable for ${domain}`, { 
         id: toastId, 
         description: `Using your manually entered data instead.`,
@@ -180,9 +188,6 @@ export const fetchDomainData = async (
         dataSource: 'manual' as const
       };
     }
-    
-    // Ensure a minimum loading time of 7 seconds
-    await new Promise(resolve => setTimeout(resolve, 7000));
     
     // If all attempts failed, show a clear error message
     const errorMessage = error instanceof Error ? error.message : 

@@ -44,32 +44,46 @@ const LeadCalculatorForm = ({
       try {
         // Check if we should try API first
         if (!showTrafficFields && formData.domain) {
-          toast.loading("Analyzing domain...", {
-            id: "domain-analysis",
+          const toastId = toast.loading("Analyzing domain...", {
             description: "Fetching traffic data from SpyFu API"
           });
           
           try {
-            // Try fetching data from API first with a timeout promise
-            const timeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error("API request timed out after 15 seconds")), 15000)
-            );
+            // Create a promise that resolves with a minimum delay of 7 seconds
+            const minDelayPromise = new Promise(resolve => setTimeout(resolve, 7000));
             
+            // Try fetching data from API with a timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+            
+            // Make the API request
             const fetchPromise = fetchDomainData(formData.domain);
-            await Promise.race([fetchPromise, timeoutPromise]);
             
-            // If successful, continue with form submission
-            onCalculate(formData);
-            toast.success("Calculating your report", {
-              id: "domain-analysis",
-              description: "Processing your data to generate insights."
-            });
+            // Wait for both the minimum delay and the API response (or timeout)
+            try {
+              await Promise.all([fetchPromise, minDelayPromise]);
+              clearTimeout(timeoutId);
+              
+              // If successful, continue with form submission
+              onCalculate(formData);
+              toast.success("Calculating your report", {
+                id: toastId,
+                description: "Processing your data to generate insights."
+              });
+            } catch (error) {
+              clearTimeout(timeoutId);
+              throw error; // Re-throw to be caught by outer catch
+            }
           } catch (error) {
-            // If API fails, show traffic fields and ask for manual input
+            // If API fails after minimum delay, show traffic fields and ask for manual input
             console.error("API fetch failed:", error);
             setShowTrafficFields(true);
+            
+            // Ensure a minimum loading time before showing error
+            await new Promise(resolve => setTimeout(resolve, 7000));
+            
             toast.error("API Connection Issue", {
-              id: "domain-analysis",
+              id: toastId,
               description: "Please enter your traffic data manually to continue."
             });
           }
