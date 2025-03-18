@@ -13,17 +13,17 @@ export const DEFAULT_FORM_STATE: FormData = {
 };
 
 export function useFormState(initialData?: FormData | null, apiError?: string | null) {
-  const [formData, setFormData] = useState<FormData>(DEFAULT_FORM_STATE);
+  const [formData, setFormData] = useState<FormData>(initialData || DEFAULT_FORM_STATE);
   const [showTrafficFields, setShowTrafficFields] = useState<boolean>(false);
 
-  // Initialize form with initial data if provided
+  // Reset to initial data when provided
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
     }
   }, [initialData]);
   
-  // Show traffic fields ONLY when API error is present, not on initial load
+  // Show traffic fields only when API error occurs
   useEffect(() => {
     if (apiError) {
       setShowTrafficFields(true);
@@ -37,6 +37,7 @@ export function useFormState(initialData?: FormData | null, apiError?: string | 
     }));
   };
 
+  // Complete reset function that resets everything to default
   const resetForm = () => {
     setFormData(DEFAULT_FORM_STATE);
     setShowTrafficFields(false);
