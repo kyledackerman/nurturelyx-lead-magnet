@@ -33,6 +33,7 @@ const LeadCalculatorForm = ({
     showTrafficFields,
     proxyConnected,
     isCheckingConnection,
+    connectionError,
     handleChange,
     validateForm,
     setShowTrafficFields,
@@ -93,7 +94,7 @@ const LeadCalculatorForm = ({
             formData={formData}
             handleChange={handleChange}
             errors={errors}
-            showTrafficFields={showTrafficFields || !proxyConnected || !!apiError} 
+            showTrafficFields={showTrafficFields || !proxyConnected || !!apiError || !!connectionError} 
           />
           
           <TransactionValueInput 
@@ -103,8 +104,10 @@ const LeadCalculatorForm = ({
           />
           
           <InfoSection 
-            apiError={apiError} 
+            apiError={apiError}
+            connectionError={connectionError}
             proxyConnected={proxyConnected}
+            isCheckingConnection={isCheckingConnection}
           />
           
           <FormActions 

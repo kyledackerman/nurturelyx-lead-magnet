@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { LineChart, AlertCircle, ExternalLink, HelpCircle, Server, CheckCircle2 } from "lucide-react";
+import { LineChart, AlertCircle, ExternalLink, HelpCircle, Server, CheckCircle2, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_PUBLIC_PROXY_URL } from "@/services/api/spyfuConfig";
@@ -9,10 +9,17 @@ import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/comp
 
 interface InfoSectionProps {
   apiError?: string | null;
+  connectionError?: string | null;
   proxyConnected?: boolean;
+  isCheckingConnection?: boolean;
 }
 
-export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
+export const InfoSection = ({ 
+  apiError, 
+  connectionError,
+  proxyConnected,
+  isCheckingConnection 
+}: InfoSectionProps) => {
   const [showProxyConfig, setShowProxyConfig] = useState(false);
 
   return (
@@ -26,10 +33,24 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
             <p className="text-sm mt-2 text-gray-600">The calculator will work perfectly with your manually entered data.</p>
           </AlertDescription>
         </Alert>
+      ) : connectionError ? (
+        <Alert className="mt-4 bg-white" variant="warning">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle className="text-amber-800 font-semibold">API Connection Error</AlertTitle>
+          <AlertDescription className="text-amber-700">
+            <p>{connectionError}</p>
+            <p className="text-sm mt-2 text-gray-600">Please enter your traffic data manually below to continue.</p>
+          </AlertDescription>
+        </Alert>
       ) : (
         // Display connection information
         <>
-          {proxyConnected ? (
+          {isCheckingConnection ? (
+            <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 p-2 rounded-md mt-4">
+              <Loader2 size={16} className="animate-spin flex-shrink-0" />
+              <span>Connecting to traffic data service...</span>
+            </div>
+          ) : proxyConnected ? (
             <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded-md mt-4">
               <CheckCircle2 size={16} className="flex-shrink-0" />
               <span>Connected to SpyFu traffic data service</span>
@@ -46,7 +67,7 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
           ) : (
             <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-2 rounded-md mt-4">
               <AlertCircle size={16} className="flex-shrink-0" />
-              <span>Trying to connect to API. Enter traffic information below if connection fails.</span>
+              <span>Cannot connect to traffic data API. Enter traffic information below.</span>
             </div>
           )}
         </>

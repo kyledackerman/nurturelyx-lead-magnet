@@ -43,7 +43,8 @@ export const getProxyUrl = (domain: string): string => {
 
 // Function to get a test URL for the proxy
 export const getProxyTestUrl = (): string => {
-  return `${DEFAULT_PUBLIC_PROXY_URL}/proxy/spyfu?domain=ping`;
+  // Use the root endpoint which is more likely to respond
+  return `${DEFAULT_PUBLIC_PROXY_URL}/`;
 };
 
 // We only use the Railway URL
