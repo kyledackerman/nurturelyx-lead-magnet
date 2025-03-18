@@ -42,8 +42,8 @@ The server will run on the PORT specified in your environment variables or defau
 
 Make sure your Railway service is configured to:
 
-1. Run `npm run build` before starting
-2. Use `npm start` (which should run `node server.js`) as the start command
+1. Set the Build Command to `npm run build`
+2. Set the Start Command to `npm start`
 3. Set the following environment variables:
    - PORT (optional, Railway sets this automatically)
    - SPYFU_API_USERNAME

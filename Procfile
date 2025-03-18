@@ -1,2 +1,2 @@
 
-web: npm run setup && npm start
+web: npm start
