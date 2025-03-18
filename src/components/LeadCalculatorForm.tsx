@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormData } from "@/types/report";
 import { RefreshCw, AlertCircle, ServerOff } from "lucide-react";
@@ -33,7 +34,8 @@ const LeadCalculatorForm = ({
     proxyConnected,
     handleChange,
     validateForm,
-    setShowTrafficFields
+    setShowTrafficFields,
+    resetForm
   } = useLeadCalculatorForm(initialData, apiError);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,10 +120,17 @@ const LeadCalculatorForm = ({
     }
   };
 
+  const handleResetClick = () => {
+    if (onReset) {
+      resetForm(); // Reset form state in the hook
+      onReset(); // Call parent reset function
+    }
+  };
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <FormHeader onReset={onReset} />
+        <FormHeader onReset={handleResetClick} />
       </CardHeader>
       <CardContent>
         {apiError && (
@@ -163,7 +172,7 @@ const LeadCalculatorForm = ({
           <FormActions 
             isCalculating={isCalculating}
             canCalculate={canCalculate}
-            onReset={onReset}
+            onReset={handleResetClick}
           />
         </form>
       </CardContent>

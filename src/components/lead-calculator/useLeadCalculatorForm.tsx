@@ -1,17 +1,21 @@
+
 import { useState, useEffect } from "react";
 import { FormData } from "@/types/report";
 import { toast } from "sonner";
 import { DEFAULT_PUBLIC_PROXY_URL, hasSpyFuApiKey, PROXY_SERVER_URL } from "@/services/api/spyfuConfig";
 
+// Default empty form state
+const DEFAULT_FORM_STATE: FormData = {
+  domain: "",
+  monthlyVisitors: 0,
+  organicTrafficManual: 0,
+  isUnsureOrganic: false,
+  isUnsurePaid: false,
+  avgTransactionValue: 0,
+};
+
 export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: string | null) {
-  const [formData, setFormData] = useState<FormData>({
-    domain: "",
-    monthlyVisitors: 0,
-    organicTrafficManual: 0,
-    isUnsureOrganic: false,
-    isUnsurePaid: false,
-    avgTransactionValue: 0,
-  });
+  const [formData, setFormData] = useState<FormData>(DEFAULT_FORM_STATE);
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [canCalculate, setCanCalculate] = useState<boolean>(true);
@@ -20,6 +24,14 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
   const [connectionAttempted, setConnectionAttempted] = useState<boolean>(false);
   const [isUsingRailway, setIsUsingRailway] = useState<boolean>(true);
+
+  // Reset form to default state
+  const resetForm = () => {
+    setFormData(DEFAULT_FORM_STATE);
+    setErrors({});
+    setShowTrafficFields(false);
+    setConnectionAttempted(false);
+  };
 
   useEffect(() => {
     const checkProxyConnection = async () => {
@@ -130,15 +142,20 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
             description: "The browser's security policy is preventing connection to the API. You can enter traffic data manually to continue."
           });
           
-          // Display more prominent error for CORS issues
-          setShowTrafficFields(true);
+          // Only show traffic fields if explicitly requested, not on initial load with error
+          if (apiError) {
+            setShowTrafficFields(true);
+          }
         } else {
           toast.error("SpyFu API connection failed", {
             id: connectionToastId,
             description: "You can enter traffic data manually to continue."
           });
           
-          setShowTrafficFields(true);
+          // Only show traffic fields if explicitly requested, not on initial load with error
+          if (apiError) {
+            setShowTrafficFields(true);
+          }
         }
         
         const proxyUrl = PROXY_SERVER_URL();
@@ -156,17 +173,17 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     if (hasSpyFuApiKey()) {
       checkProxyConnection();
     }
-  }, [isCheckingConnection, connectionAttempted]);
+  }, [isCheckingConnection, connectionAttempted, apiError]);
   
   useEffect(() => {
+    // Show traffic fields ONLY when API error is present, not on initial load
     if (apiError) {
       setShowTrafficFields(true);
-    } else {
-      setShowTrafficFields(false);
     }
   }, [apiError]);
 
   useEffect(() => {
+    // Initialize form with initial data if provided
     if (initialData) {
       setFormData(initialData);
     }
@@ -222,6 +239,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     handleChange,
     validateForm,
     setCanCalculate,
-    setShowTrafficFields
+    setShowTrafficFields,
+    resetForm
   };
 }
