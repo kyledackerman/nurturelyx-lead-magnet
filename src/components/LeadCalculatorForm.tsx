@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormData } from "@/types/report";
@@ -9,7 +8,7 @@ import { TrafficInputFields } from "./lead-calculator/TrafficInputFields";
 import { TransactionValueInput } from "./lead-calculator/TransactionValueInput";
 import { InfoSection } from "./lead-calculator/InfoSection";
 import { FormActions } from "./lead-calculator/FormActions";
-import { hasSpyFuApiKey } from "@/services/spyfuService";
+import { hasSpyFuApiKey, PROXY_SERVER_URL } from "@/services/spyfuService";
 
 interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
@@ -38,24 +37,51 @@ const LeadCalculatorForm = ({
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [canCalculate, setCanCalculate] = useState<boolean>(false);
   const [showTrafficFields, setShowTrafficFields] = useState<boolean>(false);
-  
-  useEffect(() => {
-    // Show traffic fields only when there's an API error
-    setShowTrafficFields(!!apiError);
-  }, [apiError]);
+  const [proxyConnected, setProxyConnected] = useState<boolean>(false);
 
   useEffect(() => {
-    const domainIsValid = formData.domain.trim().length > 0;
+    const checkProxyConnection = async () => {
+      try {
+        const response = await fetch(`${PROXY_SERVER_URL}/proxy/spyfu?domain=ping`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: AbortSignal.timeout(3000),
+        });
+        
+        setProxyConnected(true);
+        console.log("✅ Proxy server is running at:", PROXY_SERVER_URL);
+        
+        toast.success("Proxy server connected", {
+          description: "SpyFu API requests will now be processed through your local proxy",
+          duration: 5000,
+        });
+      } catch (error) {
+        setProxyConnected(false);
+        console.log("❌ Proxy server connection failed. Make sure it's running at:", PROXY_SERVER_URL);
+        console.error("Proxy connection error:", error);
+        
+        if (apiError) {
+          toast.error("Proxy server not detected", {
+            description: "Make sure your Express server is running on port 3001",
+            duration: 8000,
+          });
+        }
+      }
+    };
     
-    // Require traffic fields only if we're showing them (API failed)
-    const hasRequiredTraffic = !showTrafficFields || 
-      (formData.isUnsurePaid || formData.monthlyVisitors > 0) && 
-      (formData.isUnsureOrganic || formData.organicTrafficManual > 0);
-    
-    const hasRequiredFields = domainIsValid && formData.avgTransactionValue > 0 && hasRequiredTraffic;
-    
-    setCanCalculate(hasRequiredFields);
-  }, [formData, showTrafficFields]);
+    if (hasSpyFuApiKey()) {
+      checkProxyConnection();
+      
+      const intervalId = setInterval(checkProxyConnection, 15000);
+      return () => clearInterval(intervalId);
+    }
+  }, [apiError]);
+  
+  useEffect(() => {
+    setShowTrafficFields(!!apiError || !proxyConnected);
+  }, [apiError, proxyConnected]);
 
   useEffect(() => {
     if (initialData) {
@@ -85,7 +111,6 @@ const LeadCalculatorForm = ({
       newErrors.domain = "Please enter a valid domain";
     }
     
-    // Only validate traffic fields if they're showing
     if (showTrafficFields) {
       if (formData.isUnsurePaid === false && (!formData.monthlyVisitors || formData.monthlyVisitors < 0)) {
         newErrors.monthlyVisitors = "Please enter a valid number of monthly paid visitors";
@@ -169,7 +194,7 @@ const LeadCalculatorForm = ({
             errors={errors}
           />
           
-          <InfoSection apiError={apiError} />
+          <InfoSection apiError={apiError} proxyConnected={proxyConnected} />
           
           <FormActions 
             isCalculating={isCalculating}

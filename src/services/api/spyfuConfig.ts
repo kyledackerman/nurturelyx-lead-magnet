@@ -8,12 +8,16 @@ export const SPYFU_API_KEY = 'VESAPD8P';
 
 // Function to check if a domain has a valid format
 export const isValidDomain = (domain: string): boolean => {
+  if (domain === 'ping') return true; // Special case for connection testing
+  
   // Basic validation: non-empty and contains at least one dot
   return domain.trim().length > 0 && domain.includes('.');
 };
 
 // Function to clean domain format (remove http://, https://, www. etc.)
 export const cleanDomain = (domain: string): string => {
+  if (domain === 'ping') return domain; // Don't modify our special test domain
+  
   return domain
     .replace(/^https?:\/\//, '')
     .replace(/^www\./, '')

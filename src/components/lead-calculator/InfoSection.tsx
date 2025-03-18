@@ -1,16 +1,17 @@
 
-import { LineChart } from "lucide-react";
+import { LineChart, AlertCircle, ExternalLink } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface InfoSectionProps {
   apiError?: string | null;
+  proxyConnected?: boolean;
 }
 
-export const InfoSection = ({ apiError }: InfoSectionProps) => {
+export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
   return (
     <>
-      {apiError && (
+      {apiError ? (
         <Alert className="mt-4 bg-white" variant="error">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle className="text-red-800 font-semibold">SpyFu API Connection Error</AlertTitle>
@@ -27,7 +28,17 @@ export const InfoSection = ({ apiError }: InfoSectionProps) => {
           </AlertDescription>
           <p className="text-red-600 mt-2 text-xs">Technical details: {apiError}</p>
         </Alert>
-      )}
+      ) : proxyConnected ? (
+        <Alert className="mt-4 bg-green-50 border-green-200" variant="default">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+            <AlertTitle className="text-green-800 font-semibold">Proxy Server Connected</AlertTitle>
+          </div>
+          <AlertDescription className="text-green-700">
+            Your proxy server is running and connected. SpyFu API requests will be routed through your local proxy.
+          </AlertDescription>
+        </Alert>
+      ) : null}
       
       <div className="bg-secondary/50 p-4 rounded-lg border border-border mt-2">
         <div className="flex items-start gap-3">
