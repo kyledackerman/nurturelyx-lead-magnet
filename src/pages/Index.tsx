@@ -6,7 +6,6 @@ import LeadReport from "@/components/LeadReport";
 import { FormData, ReportData } from "@/types/report";
 import { calculateReportMetrics } from "@/services/apiService";
 import { fetchDomainData } from "@/services/spyfuService";
-import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 
 // Import our new components
@@ -124,7 +123,6 @@ const Index = () => {
   
   return (
     <div className="min-h-screen flex flex-col">
-      <Toaster position="top-right" />
       <Header />
       
       <main className="flex-1 bg-background">
