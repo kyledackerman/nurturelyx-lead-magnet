@@ -45,13 +45,21 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        signal: AbortSignal.timeout(3000), // 3 second timeout
+        signal: AbortSignal.timeout(5000), // 5 second timeout (increased from 3)
       });
       
       if (response.ok) {
-        setTestStatus('success');
-        setTestMessage('Connection successful! Proxy server is responding.');
-        console.log("✅ Connection test successful!");
+        try {
+          const data = await response.json();
+          setTestStatus('success');
+          setTestMessage('Connection successful! Proxy server is responding with valid data.');
+          console.log("✅ Connection test successful with data:", data);
+        } catch (error) {
+          // Response was OK but not valid JSON
+          setTestStatus('success');
+          setTestMessage('Connection successful! Proxy server is responding.');
+          console.log("✅ Connection test successful (no valid JSON)");
+        }
       } else {
         setTestStatus('error');
         setTestMessage(`Connection failed with status: ${response.status} ${response.statusText}`);
@@ -60,7 +68,17 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
     } catch (error) {
       console.error("Proxy test connection error:", error);
       setTestStatus('error');
-      setTestMessage(`Connection failed: ${error instanceof Error ? error.message : String(error)}`);
+      
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        // More helpful error for CORS or network issues
+        if (proxyUrl.includes('localhost')) {
+          setTestMessage(`Cannot connect to localhost. If you're using this in production, use your server's IP address instead.`);
+        } else {
+          setTestMessage(`Network error: Could not connect to the proxy server. Check for CORS issues or server availability.`);
+        }
+      } else {
+        setTestMessage(`Connection failed: ${error instanceof Error ? error.message : String(error)}`);
+      }
     }
   };
 
@@ -72,7 +90,12 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
   };
 
   const resetToDefault = () => {
-    const defaultUrl = 'http://65.184.26.60:3001';
+    // Try to detect if we're running locally
+    const isLocalHost = typeof window !== 'undefined' && 
+      (window.location.hostname === 'localhost' || 
+       window.location.hostname === '127.0.0.1');
+    
+    const defaultUrl = isLocalHost ? 'http://localhost:3001' : 'http://65.184.26.60:3001';
     setProxyUrl(defaultUrl);
     setTestStatus('idle');
     setTestMessage('');
@@ -91,7 +114,7 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
             type="text"
             value={proxyUrl}
             onChange={handleUrlChange}
-            placeholder="http://65.184.26.60:3001"
+            placeholder="http://localhost:3001"
             className={!isValidUrl ? "border-red-500" : ""}
           />
           {!isValidUrl && (
@@ -101,8 +124,8 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
           )}
           <p className="text-xs text-gray-500 mt-1">
             Examples: 
-            <code className="bg-gray-200 px-1 rounded mx-1">http://65.184.26.60:3001</code> or 
-            <code className="bg-gray-200 px-1 rounded mx-1">https://your-proxy-domain.com</code>
+            <code className="bg-gray-200 px-1 rounded mx-1">http://localhost:3001</code> or 
+            <code className="bg-gray-200 px-1 rounded mx-1">http://65.184.26.60:3001</code>
           </p>
         </div>
 

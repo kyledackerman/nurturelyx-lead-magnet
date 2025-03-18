@@ -35,7 +35,7 @@ export const hasSpyFuApiKey = (): boolean => {
   return SPYFU_API_USERNAME.length > 0 && SPYFU_API_KEY.length > 0;
 };
 
-// Get proxy URL from localStorage if available, or use default
+// Get proxy URL from localStorage if available, or try localhost first, then the default IP
 const getProxyServerUrl = (): string => {
   if (typeof localStorage !== 'undefined') {
     const customProxyUrl = localStorage.getItem('custom_proxy_url');
@@ -43,7 +43,13 @@ const getProxyServerUrl = (): string => {
       return customProxyUrl;
     }
   }
-  return 'http://65.184.26.60:3001'; // Updated default to use the provided IPv4
+  
+  // Try to detect if we're running locally and use localhost
+  const isLocalHost = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || 
+     window.location.hostname === '127.0.0.1');
+  
+  return isLocalHost ? 'http://localhost:3001' : 'http://65.184.26.60:3001';
 };
 
 // Proxy server URL - dynamically retrieved
