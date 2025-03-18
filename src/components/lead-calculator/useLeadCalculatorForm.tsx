@@ -53,7 +53,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   // IMPORTANT: Never show traffic fields regardless of errors
   useEffect(() => {
     setShouldShowTrafficFields(false);
-    setShowTrafficFields(false);
+    setShowTrafficFields(); // Fixed: Removed the argument since the function accepts no arguments
   }, [connectionError, apiError, setShowTrafficFields]);
 
   return {

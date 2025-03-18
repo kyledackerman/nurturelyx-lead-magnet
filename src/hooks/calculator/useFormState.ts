@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { FormData } from "@/types/report";
 
@@ -46,7 +47,7 @@ export function useFormState(initialData?: FormData | null, apiError?: string | 
     showTrafficFields: false, // Always return false
     setFormData,
     handleChange,
-    setShowTrafficFields: () => {}, // Empty function
+    setShowTrafficFields, // This should be the React state setter function that accepts a boolean
     resetForm
   };
 }
