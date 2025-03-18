@@ -87,7 +87,7 @@ export const fetchDomainData = async (
       paidTraffic,
       domainPower,
       backlinks,
-      dataSource: 'api'
+      dataSource: 'api' as const
     };
     
     toast.success(`Successfully analyzed ${cleanedDomain}`, { 
@@ -110,7 +110,7 @@ export const fetchDomainData = async (
         organicTraffic: avgTraffic,
         organicKeywords: avgKeywords,
         backlinks: avgBacklinks,
-        dataSource: 'both'
+        dataSource: 'both' as const
       };
     }
     

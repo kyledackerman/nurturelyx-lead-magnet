@@ -1,7 +1,8 @@
-
 import { ApiData } from "@/types/report";
 import { toast } from "sonner";
-import { fetchDomainData as spyfuFetchDomainData } from "./spyfuService";
+
+// Re-export the SpyFu URL function
+export { getSpyFuUrl } from './spyfuService';
 
 // Calculate report metrics based on both organic and paid traffic
 export const calculateReportMetrics = (
@@ -82,9 +83,6 @@ export const calculateReportMetrics = (
   };
 };
 
-// Re-export the SpyFu fetchDomainData function
-export const fetchDomainData = spyfuFetchDomainData;
-
 export interface MonthlyRevenueData {
   month: string;
   year: number;
@@ -95,3 +93,13 @@ export interface MonthlyRevenueData {
   sales: number;
   revenueLost: number;
 }
+
+// This function will be defined in spyfuService.ts and imported by users
+export const fetchDomainData = async (
+  domain: string, 
+  organicTrafficManual?: number, 
+  isUnsureOrganic?: boolean
+): Promise<ApiData> => {
+  // We'll redirect this function to the implementation in spyfuService
+  throw new Error("This function should not be called directly. Import from spyfuService instead.");
+};
