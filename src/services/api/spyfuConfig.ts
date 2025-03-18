@@ -35,16 +35,24 @@ export const hasSpyFuApiKey = (): boolean => {
   return SPYFU_API_USERNAME.length > 0 && SPYFU_API_KEY.length > 0;
 };
 
-// Default public proxy URL - now updated to your Railway deployment
+// Default public proxy URL - updated to Railway deployment
 export const DEFAULT_PUBLIC_PROXY_URL = 'https://nurture-lead-vision-production.up.railway.app';
 
-// Get the proxy server URL - prioritizes localStorage setting, then environment, then defaults
-export const getProxyServerUrl = (): string => {
-  // First check for custom proxy URL in localStorage
+// Check if current user has admin access
+const hasAdminAccess = (): boolean => {
   if (typeof localStorage !== 'undefined') {
+    return localStorage.getItem('admin_access') === 'true';
+  }
+  return false;
+};
+
+// Get the proxy server URL - prioritizes localStorage setting only for admins, then default
+export const getProxyServerUrl = (): string => {
+  // Only check for custom proxy URL in localStorage if admin access is granted
+  if (hasAdminAccess() && typeof localStorage !== 'undefined') {
     const customProxyUrl = localStorage.getItem('custom_proxy_url');
     if (customProxyUrl) {
-      console.log('Using custom proxy URL from localStorage:', customProxyUrl);
+      console.log('Admin using custom proxy URL from localStorage:', customProxyUrl);
       return customProxyUrl;
     }
   }
@@ -63,12 +71,17 @@ export const getProxyServerUrl = (): string => {
 // Proxy server URL - dynamically retrieved
 export const PROXY_SERVER_URL = getProxyServerUrl();
 
-// Function to save a custom proxy URL
+// Function to save a custom proxy URL - admin access required
 export const saveCustomProxyUrl = (url: string): void => {
+  if (!hasAdminAccess()) {
+    console.error('Attempt to set custom proxy URL without admin access');
+    return;
+  }
+  
   if (typeof localStorage !== 'undefined') {
     // Basic validation to ensure it's a URL
     if (url.startsWith('http://') || url.startsWith('https://')) {
-      console.log('Saving custom proxy URL to localStorage:', url);
+      console.log('Admin saving custom proxy URL to localStorage:', url);
       localStorage.setItem('custom_proxy_url', url);
       // Force a page reload to apply the new URL
       window.location.reload();

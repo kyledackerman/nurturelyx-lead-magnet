@@ -40,23 +40,18 @@ If you see error messages related to the SpyFu API:
 1. Check your internet connection
 2. Verify that the domain you entered is valid and correctly formatted
 3. Try refreshing the page and attempting your calculation again
-4. Check if the proxy server is running correctly (configured at Railway: nurture-lead-vision-production.up.railway.app)
+4. If problems persist, try entering your traffic data manually
 
 ### Proxy Server Configuration
-The application uses a secure proxy server to make API requests to SpyFu:
+The application uses a secure proxy server hosted on Railway:
 
-1. **Default Configuration**: By default, the application uses the Railway-hosted proxy server at `nurture-lead-vision-production.up.railway.app`
-2. **Custom Configuration**: 
-   - Click the "Configure Proxy Server" button
-   - Enter a custom proxy server URL if needed
-   - Test the connection to ensure it's working
-   - Save your changes (the page will reload)
+- **Default Configuration**: The application uses the Railway-hosted proxy server at `nurture-lead-vision-production.up.railway.app`
+- **Administration**: Proxy server configuration is restricted to administrators only
 
 ### Common Issues
 
 #### "Error fetching data" message
 - This typically indicates a temporary API failure or proxy connection issue
-- Verify that the proxy server is running correctly
 - You can still get useful estimates by entering your traffic data manually
 
 #### Blank or incomplete results
@@ -77,7 +72,7 @@ Revenue impact is calculated by multiplying potential sales by your average tran
 
 ## Admin Configuration Options
 
-For administrators or self-hosted instances:
+For administrators:
 
 ### Proxy Server Deployment
 - The application uses a proxy server running on Railway at `nurture-lead-vision-production.up.railway.app`
@@ -87,10 +82,10 @@ For administrators or self-hosted instances:
   - `SPYFU_API_KEY`: Your SpyFu API key
   - `PORT`: The port to run the server on (default: 3001)
 
-### Custom Proxy Configuration
-- Users can configure a custom proxy URL by clicking the "Configure Proxy Server" button
-- Custom proxy URLs are stored in localStorage and persist between sessions
-- The proxy server must implement the same API endpoints as the default server
+### Admin Proxy Configuration
+- Administrators can configure the proxy URL by enabling admin mode
+- To enable admin mode, set `localStorage.setItem('admin_access', 'true')` in the browser console
+- Admin proxy configuration persists in localStorage
 
 ## Contact and Support
 For additional help or to learn more about implementing NurturelyX on your website, click the "Apply for Beta" button to contact our team.

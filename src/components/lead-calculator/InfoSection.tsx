@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { LineChart, AlertCircle, ExternalLink, Settings, HelpCircle, Server } from "lucide-react";
+import { LineChart, AlertCircle, ExternalLink, Settings, HelpCircle, Server, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_PUBLIC_PROXY_URL, PROXY_SERVER_URL, getProxyTestUrl } from "@/services/api/spyfuConfig";
@@ -15,8 +15,8 @@ interface InfoSectionProps {
 export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
   const [showProxyConfig, setShowProxyConfig] = useState(false);
   
-  // Show proxy config button for everyone
-  const showProxySettings = true;
+  // Restrict proxy config to admin only via localStorage flag
+  const isAdmin = typeof localStorage !== 'undefined' && localStorage.getItem('admin_access') === 'true';
   const isUsingRailway = PROXY_SERVER_URL === DEFAULT_PUBLIC_PROXY_URL;
 
   return (
@@ -34,7 +34,7 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
                   <li>Your proxy server has CORS enabled for this domain</li>
                   <li>Your network/firewall allows connections to the proxy server</li>
                 </ol>
-                {showProxySettings && (
+                {isAdmin && (
                   <div className="mt-3">
                     <Button 
                       variant="outline" 
@@ -70,8 +70,8 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
             </div>
           )}
           
-          {/* Always show the proxy config button when no API error */}
-          {!apiError && showProxySettings && (
+          {/* Show proxy config button only for admins */}
+          {!apiError && isAdmin && (
             <div className="flex items-center mt-4 mb-2">
               <Button 
                 variant="outline" 
@@ -87,7 +87,7 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
         </>
       )}
       
-      {showProxyConfig && (
+      {showProxyConfig && isAdmin && (
         <ProxyConfigForm onClose={() => setShowProxyConfig(false)} />
       )}
       
