@@ -50,7 +50,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// ✅ SpyFu Proxy API Route
+// ✅ SpyFu Proxy API Route - THIS WAS MISSING IN THE PREVIOUS CODE!
 app.get('/proxy/spyfu', async (req, res) => {
   const { domain } = req.query;
 
