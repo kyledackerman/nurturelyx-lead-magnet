@@ -11,7 +11,7 @@ export const InfoSection = ({ apiError }: InfoSectionProps) => {
   return (
     <>
       {apiError && (
-        <Alert className="mt-4 bg-white">
+        <Alert className="mt-4 bg-white" variant="error">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle className="text-red-800 font-semibold">API Connection Error</AlertTitle>
           <AlertDescription className="text-red-700">

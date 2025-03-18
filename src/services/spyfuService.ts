@@ -5,7 +5,7 @@ import { ApiData } from "@/types/report";
 // SpyFu API configuration
 const SPYFU_API_BASE_URL = 'https://www.spyfu.com/apis/domain_stats_api/v2';
 
-// SpyFu API credentials (provided by the application owner)
+// SpyFu API credentials
 const SPYFU_API_USERNAME = 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
 const SPYFU_API_KEY = 'VESAPD8P';
 
@@ -76,32 +76,38 @@ export const fetchDomainData = async (
     const authHeader = `Basic ${btoa(`${SPYFU_API_USERNAME}:${SPYFU_API_KEY}`)}`;
     
     try {
-      // Make the request to SpyFu API for the latest domain stats with timeout
+      // Set a longer timeout for the API request (15 seconds)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
       
-      const response = await fetch(
-        `${SPYFU_API_BASE_URL}/getLatestDomainStats?domain=${encodeURIComponent(cleanedDomain)}&countryCode=US`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': authHeader,
-            'Content-Type': 'application/json',
-          },
-          signal: controller.signal
-        }
-      );
+      const apiUrl = `${SPYFU_API_BASE_URL}/getLatestDomainStats?domain=${encodeURIComponent(cleanedDomain)}&countryCode=US`;
+      console.log(`Making API request to: ${apiUrl}`);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        signal: controller.signal,
+        // Improve cache handling
+        cache: 'no-cache'
+      });
       
       clearTimeout(timeoutId);
       
       if (!response.ok) {
+        console.error(`SpyFu API error: Status ${response.status}, ${response.statusText}`);
         throw new Error(`SpyFu API error: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
+      console.log("SpyFu API response:", data);
       
       // Extract the relevant stats from the API response
       if (!data.results || data.results.length === 0) {
+        console.error("No data found in SpyFu API response");
         throw new Error(`No data found for domain: ${cleanedDomain}`);
       }
       
@@ -192,7 +198,7 @@ export const fetchDomainData = async (
       };
     }
     
-    // If all attempts failed, provide a friendly error message
+    // If all attempts failed, show a clear error message
     const errorMessage = error instanceof Error ? error.message : 
       `Please check your domain and try again, or enter your traffic manually to continue.`;
     
