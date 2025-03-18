@@ -5,7 +5,8 @@ export {
   hasSpyFuApiKey, 
   cleanDomain, 
   isValidDomain,
-  PROXY_SERVER_URL 
+  PROXY_SERVER_URL,
+  getProxyTestUrl
 } from './api/spyfuConfig';
 export { generateFallbackData } from './api/fallbackDataService';
 export { fetchDomainData } from './api/domainDataService';

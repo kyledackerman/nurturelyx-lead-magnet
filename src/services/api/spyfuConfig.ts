@@ -43,3 +43,8 @@ export const getProxyUrl = (domain: string): string => {
   const cleanedDomain = cleanDomain(domain);
   return `${PROXY_SERVER_URL}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
 };
+
+// Function to get the test URL for the proxy server
+export const getProxyTestUrl = (): string => {
+  return `${PROXY_SERVER_URL}/`;
+};

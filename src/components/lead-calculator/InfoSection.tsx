@@ -2,6 +2,7 @@
 import { LineChart, AlertCircle, ExternalLink } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { PROXY_SERVER_URL, getProxyTestUrl } from "@/services/spyfuService";
 
 interface InfoSectionProps {
   apiError?: string | null;
@@ -18,7 +19,14 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
           <AlertDescription className="text-red-700">
             {apiError.includes("proxy") ? (
               <>
-                We couldn't connect to the proxy server. Please make sure your Express.js proxy server is running at http://localhost:3001. If you haven't set up the proxy server yet, please follow the setup instructions provided.
+                We couldn't connect to the proxy server. Please make sure your Express.js proxy server is running at {PROXY_SERVER_URL}.
+                <div className="mt-2 p-2 bg-gray-100 rounded text-gray-800 text-sm">
+                  <p>Test your proxy with these URLs:</p>
+                  <ol className="list-decimal pl-5 mt-1 space-y-1">
+                    <li>Open <code className="bg-gray-200 px-1 rounded">{getProxyTestUrl()}</code> - Should show a welcome message</li>
+                    <li>Open <code className="bg-gray-200 px-1 rounded">{PROXY_SERVER_URL}/proxy/spyfu?domain=ping</code> - Should return a JSON response</li>
+                  </ol>
+                </div>
               </>
             ) : (
               <>
@@ -35,7 +43,7 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
             <AlertTitle className="text-green-800 font-semibold">Proxy Server Connected</AlertTitle>
           </div>
           <AlertDescription className="text-green-700">
-            Your proxy server is running and connected. SpyFu API requests will be routed through your local proxy.
+            Your proxy server is running and connected at {PROXY_SERVER_URL}. SpyFu API requests will be routed through your local proxy.
           </AlertDescription>
         </Alert>
       ) : null}
