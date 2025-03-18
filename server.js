@@ -7,15 +7,19 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Simplified CORS setup - using a permissive configuration for testing
-app.set('trust proxy', 1);
-app.use(cors());
+// CORS configuration - allow requests from ANY origin (needed for development)
+app.use(cors({
+  origin: '*',  // Allow any origin
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],
+  credentials: false
+}));
 
-// Add specific CORS headers for maximum compatibility
+// Set proper headers for CORS
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Origin");
+  res.header("Access-Control-Allow-Headers", "*");
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -65,6 +69,9 @@ app.get('/proxy/spyfu', async (req, res) => {
     
     const data = await response.json();
     console.log('SpyFu API response successful');
+    
+    // Set CORS headers explicitly on the response
+    res.header("Access-Control-Allow-Origin", "*");
     res.json(data);
   } catch (error) {
     console.error('SpyFu API Request Failed:', error.message);

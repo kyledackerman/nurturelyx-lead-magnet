@@ -35,16 +35,19 @@ export const fetchDomainData = async (
       const proxyUrl = getProxyUrl(cleanedDomain);
       console.log(`Making API request via proxy: ${proxyUrl}`);
       
-      // Make the API request with a timeout
+      // Make the API request with a timeout and proper CORS settings
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // Increased timeout
       
       const response = await fetch(proxyUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Origin': window.location.origin,
         },
+        mode: 'cors', // Explicitly set CORS mode
+        credentials: 'omit', // Don't send credentials
         signal: controller.signal
       });
       
@@ -108,6 +111,11 @@ export const fetchDomainData = async (
           dataSource: 'manual' as const
         };
       } else {
+        // Try fallback data if API fails
+        toast.error(`API connection error`, {
+          id: toastId,
+          description: `Please enter your traffic data manually below to continue.`
+        });
         throw new Error(`Unable to retrieve data from SpyFu API. Please enter your traffic values manually.`);
       }
     }

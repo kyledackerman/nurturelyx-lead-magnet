@@ -7,7 +7,8 @@ export {
   isValidDomain,
   PROXY_SERVER_URL,
   getProxyTestUrl,
-  saveCustomProxyUrl
+  saveCustomProxyUrl,
+  toggleLocalProxy
 } from './api/spyfuConfig';
 export { generateFallbackData } from './api/fallbackDataService';
 export { fetchDomainData } from './api/domainDataService';
