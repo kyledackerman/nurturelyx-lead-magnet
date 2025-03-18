@@ -31,9 +31,9 @@ export const fetchDomainData = async (
     console.log(`Analyzing domain: ${cleanedDomain}`);
     
     try {
-      // Set a longer timeout for the API request (60 seconds)
+      // Set a timeout for the API request (30 seconds)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
       
       // Get the proxy URL for the cleaned domain
       const proxyUrl = getProxyUrl(cleanedDomain);
@@ -48,6 +48,8 @@ export const fetchDomainData = async (
           'Accept': 'application/json'
         },
         signal: controller.signal,
+        // Add cache control to avoid caching issues
+        cache: 'no-cache',
       });
       
       clearTimeout(timeoutId);
@@ -127,18 +129,18 @@ export const fetchDomainData = async (
         console.error("This appears to be a network connectivity issue with the proxy");
         
         // More helpful error message for network issues
-        errorMessage = `The proxy server connection failed. Make sure your Express.js proxy server is running at http://localhost:3001 and try again.`;
+        errorMessage = `The proxy server connection failed. Make sure your Express.js proxy server is running on the configured IP and port.`;
         
         toast.error(`Proxy Server Connection Issue`, {
           id: toastId,
-          description: `Unable to connect to the proxy server. Please make sure it's running or enter your traffic data manually to continue.`
+          description: `Unable to connect to the proxy server. You will now need to enter your traffic data manually to continue.`
         });
       }
       
-      // If proxy API call fails, try a direct fallback
-      toast.warning(`SpyFu API connection issue for ${domain}`, { 
+      // Show a warning toast for API connection issues
+      toast.warning(`API connection issue for ${domain}`, { 
         id: toastId, 
-        description: `Using estimated data instead. Enter your traffic manually for better accuracy.`,
+        description: `Please enter your traffic data manually to continue.`,
       });
       
       // If manual data provided, use it
@@ -152,8 +154,8 @@ export const fetchDomainData = async (
           dataSource: 'manual' as const
         };
       } else {
-        // Generate fallback data when API and manual data unavailable
-        return generateFallbackData(domain, organicTrafficManual);
+        // Use fallback data that will prompt for manual input
+        throw new Error(`Unable to retrieve data from SpyFu API. Please enter your traffic values manually to continue.`);
       }
     }
   } catch (error) {

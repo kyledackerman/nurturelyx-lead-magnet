@@ -5,7 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { PROXY_SERVER_URL, getProxyTestUrl } from "@/services/spyfuService";
 import { ProxyConfigForm } from "./ProxyConfigForm";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface InfoSectionProps {
   apiError?: string | null;
@@ -14,6 +14,8 @@ interface InfoSectionProps {
 
 export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
   const [showProxyConfig, setShowProxyConfig] = useState(false);
+  // Determine if we're in admin mode - in production this would be a proper auth check
+  const isAdminMode = process.env.NODE_ENV === 'development';
 
   return (
     <>
@@ -22,7 +24,7 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle className="text-red-800 font-semibold">API Connection Error</AlertTitle>
           <AlertDescription className="text-red-700">
-            {apiError.includes("proxy") ? (
+            {apiError.includes("proxy") && isAdminMode ? (
               <>
                 <p>We couldn't connect to the proxy server. Please check that:</p>
                 <ol className="list-decimal pl-5 mt-2 space-y-1 text-sm">
@@ -30,7 +32,67 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
                   <li>Your proxy server has CORS enabled for this domain</li>
                   <li>Your network/firewall allows connections to port 3001</li>
                 </ol>
-                <div className="mt-3">
+                {isAdminMode && (
+                  <div className="mt-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setShowProxyConfig(!showProxyConfig)}
+                      className="flex items-center gap-1 text-xs"
+                    >
+                      <Settings size={14} />
+                      {showProxyConfig ? "Hide Config" : "Configure Proxy URL"}
+                    </Button>
+                  </div>
+                )}
+                <p className="text-sm mt-2 text-gray-600">Enter your traffic data manually to continue without the API.</p>
+              </>
+            ) : (
+              <>
+                We couldn't connect to get your traffic data automatically. Please enter your traffic numbers manually to continue.
+              </>
+            )}
+          </AlertDescription>
+          {isAdminMode && (
+            <details className="mt-2">
+              <summary className="text-xs text-red-600 cursor-pointer">Technical details</summary>
+              <p className="text-xs text-red-600 mt-1 bg-gray-50 p-1 rounded">{apiError}</p>
+            </details>
+          )}
+        </Alert>
+      ) : proxyConnected ? (
+        isAdminMode && (
+          <Alert className="mt-4 bg-green-50 border-green-200" variant="default">
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                <AlertTitle className="text-green-800 font-semibold">Proxy Server Connected</AlertTitle>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowProxyConfig(!showProxyConfig)}
+                className="flex items-center gap-1 text-xs"
+              >
+                <Settings size={14} />
+                {showProxyConfig ? "Hide Config" : "Configure"}
+              </Button>
+            </div>
+            <AlertDescription className="text-green-700">
+              Your proxy server is running and connected at {PROXY_SERVER_URL}. SpyFu API requests will be routed through your proxy.
+            </AlertDescription>
+          </Alert>
+        )
+      ) : (
+        isAdminMode && (
+          <div className="mt-4 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 bg-amber-500 rounded-full"></div>
+              <span className="text-sm text-amber-700">Manual input mode active - proxy disconnected</span>
+            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -38,71 +100,19 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
                     className="flex items-center gap-1 text-xs"
                   >
                     <Settings size={14} />
-                    {showProxyConfig ? "Hide Config" : "Configure Proxy URL"}
+                    Configure Proxy
                   </Button>
-                </div>
-                <p className="text-sm mt-2 text-gray-600">Enter your traffic data manually to continue without the API.</p>
-              </>
-            ) : (
-              <>
-                We couldn't connect to the SpyFu API to fetch your traffic data. Please enter your traffic numbers manually to continue.
-              </>
-            )}
-          </AlertDescription>
-          <details className="mt-2">
-            <summary className="text-xs text-red-600 cursor-pointer">Technical details</summary>
-            <p className="text-xs text-red-600 mt-1 bg-gray-50 p-1 rounded">{apiError}</p>
-          </details>
-        </Alert>
-      ) : proxyConnected ? (
-        <Alert className="mt-4 bg-green-50 border-green-200" variant="default">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-              <AlertTitle className="text-green-800 font-semibold">Proxy Server Connected</AlertTitle>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setShowProxyConfig(!showProxyConfig)}
-              className="flex items-center gap-1 text-xs"
-            >
-              <Settings size={14} />
-              {showProxyConfig ? "Hide Config" : "Configure"}
-            </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Set up your proxy server connection</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
-          <AlertDescription className="text-green-700">
-            Your proxy server is running and connected at {PROXY_SERVER_URL}. SpyFu API requests will be routed through your proxy.
-          </AlertDescription>
-        </Alert>
-      ) : (
-        <div className="mt-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-2 bg-amber-500 rounded-full"></div>
-            <span className="text-sm text-amber-700">Manual input mode active - proxy disconnected</span>
-          </div>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setShowProxyConfig(!showProxyConfig)}
-                  className="flex items-center gap-1 text-xs"
-                >
-                  <Settings size={14} />
-                  Configure Proxy
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">Set up your proxy server connection</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+        )
       )}
       
-      {showProxyConfig && (
+      {showProxyConfig && isAdminMode && (
         <ProxyConfigForm onClose={() => setShowProxyConfig(false)} />
       )}
       

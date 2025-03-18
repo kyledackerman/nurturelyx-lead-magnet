@@ -17,7 +17,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [canCalculate, setCanCalculate] = useState<boolean>(false);
   const [showTrafficFields, setShowTrafficFields] = useState<boolean>(false);
-  const [proxyConnected, setProxyConnected] = useState<boolean>(false);
+  const [proxyConnected, setProxyConnected] = useState<boolean>(true); // Default to true to hide fields
   const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
 
   useEffect(() => {
@@ -42,48 +42,35 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
           setProxyConnected(true);
           setShowTrafficFields(false);
           console.log("✅ Proxy server is running at:", PROXY_SERVER_URL);
-          
-          // Only show toast when connection changes from disconnected to connected
-          if (!proxyConnected) {
-            toast.success("Proxy server connected", {
-              description: "SpyFu API requests will now be processed through your proxy server",
-              duration: 5000,
-            });
-          }
         } else {
           throw new Error(`Proxy server returned status: ${response.status}`);
         }
       } catch (error) {
+        // We'll only update proxyConnected on explicit failures but won't show fields yet
         setProxyConnected(false);
-        setShowTrafficFields(true);
         console.log("❌ Proxy server connection failed. Make sure it's running at:", PROXY_SERVER_URL);
         console.error("Proxy connection error:", error);
         
-        // Only show toast on initial failure or when explicitly requested
-        if (apiError && !showTrafficFields) {
-          toast.error("Proxy server not detected", {
-            description: "Make sure your proxy server is running. Manual traffic data input is now enabled.",
-            duration: 8000,
-          });
-        }
+        // Don't show toast or fields yet - only after form submission
       } finally {
         setIsCheckingConnection(false);
       }
     };
     
     if (hasSpyFuApiKey()) {
-      // Check connection immediately
+      // Check connection immediately but don't show fields yet
       checkProxyConnection();
       
-      // Then check periodically but less frequently (every 30 seconds)
-      const intervalId = setInterval(checkProxyConnection, 30000);
+      // Then check periodically but less frequently (every 60 seconds)
+      const intervalId = setInterval(checkProxyConnection, 60000);
       return () => clearInterval(intervalId);
     }
-  }, [apiError, proxyConnected, isCheckingConnection]);
+  }, [isCheckingConnection]);
   
-  // Update showTrafficFields when API error occurs or proxy is disconnected
+  // Update showTrafficFields ONLY when API error occurs explicitly
   useEffect(() => {
-    const shouldShow = !!apiError || !proxyConnected;
+    // Only show fields when there's an explicit API error
+    const shouldShow = !!apiError;
     setShowTrafficFields(shouldShow);
     
     // If we need to show manual fields and there's an API error,
@@ -94,7 +81,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
         duration: 5000,
       });
     }
-  }, [apiError, proxyConnected]);
+  }, [apiError]);
 
   useEffect(() => {
     if (initialData) {
