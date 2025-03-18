@@ -5,9 +5,9 @@ import { ApiData } from "@/types/report";
 // SpyFu API configuration
 const SPYFU_API_BASE_URL = 'https://www.spyfu.com/apis/domain_stats_api/v2';
 
-// Your SpyFu API credentials (these should be stored securely in a production environment)
-const SPYFU_API_USERNAME = 'your-api-username';
-const SPYFU_API_KEY = 'your-api-key';
+// SpyFu API credentials (provided by the application owner)
+const SPYFU_API_USERNAME = 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
+const SPYFU_API_KEY = 'VESAPD8P';
 
 // Function to check if a domain has a valid format
 const isValidDomain = (domain: string): boolean => {
@@ -29,9 +29,9 @@ export const getSpyFuUrl = (domain: string): string => {
   return `https://www.spyfu.com/overview/domain?query=${encodeURIComponent(cleanedDomain)}`;
 };
 
-// Check if SpyFu API credentials are set
+// Check if SpyFu API credentials are set - always returns true now since we have hard-coded values
 export const hasSpyFuApiKey = (): boolean => {
-  return SPYFU_API_USERNAME !== 'your-api-username' && SPYFU_API_KEY !== 'your-api-key';
+  return true;
 };
 
 // Function to fetch domain data from SpyFu API
