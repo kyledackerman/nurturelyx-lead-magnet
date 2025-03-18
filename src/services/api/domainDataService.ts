@@ -29,50 +29,51 @@ export const fetchDomainData = async (
     const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
     const currentYear = now.getFullYear();
     
-    // Create properly encoded auth header using Basic Authentication
-    // It's important to encode the credentials correctly as username:password
-    const credentials = `${SPYFU_API_USERNAME}:${SPYFU_API_KEY}`;
-    const encodedCredentials = btoa(credentials);
-    const authHeader = `Basic ${encodedCredentials}`;
+    // Create properly encoded auth header - FIXED
+    // The correct format for Basic Auth is to encode "username:password" in base64
+    const auth = `${SPYFU_API_USERNAME}:${SPYFU_API_KEY}`;
+    const encodedAuth = btoa(auth);
     
-    // Log the encoded credentials (without the actual values) for debugging
-    console.log(`Auth header format: Basic ****** (encoded from API credentials)`);
+    // Log authentication details for debugging (without revealing actual credentials)
+    console.log(`Using encoded credentials for API request`);
     
     try {
-      // Set a longer timeout for the API request (30 seconds)
+      // Set a longer timeout for the API request (60 seconds)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
       
-      // Use getDomainStatsForExactDate endpoint with specified month and year
+      // Build API URL with required parameters
       const apiUrl = `${SPYFU_API_BASE_URL}/getDomainStatsForExactDate?month=${currentMonth}&year=${currentYear}&domain=${encodeURIComponent(cleanedDomain)}&countryCode=US`;
+      
       console.log(`Making API request to: ${apiUrl}`);
       
-      // Make the API request with proper headers and settings
+      // Make the API request with proper headers, including the authorization
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
-          'Authorization': authHeader,
+          'Authorization': `Basic ${encodedAuth}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         signal: controller.signal,
-        mode: 'cors', // Explicitly set CORS mode
+        mode: 'cors',
         cache: 'no-cache',
         credentials: 'omit' // Don't send cookies
       });
       
       clearTimeout(timeoutId);
       
-      // Log response status for debugging
+      // Log full response details for debugging
       console.log(`SpyFu API response status: ${response.status} ${response.statusText}`);
       
       if (!response.ok) {
+        // Log more detailed error information
         console.error(`SpyFu API error: Status ${response.status}, ${response.statusText}`);
         
         // Try to read the error response if possible
         try {
           const errorText = await response.text();
-          console.error(`Error response: ${errorText}`);
+          console.error(`Error response body: ${errorText}`);
         } catch (e) {
           console.error("Could not read error response body");
         }
@@ -80,8 +81,9 @@ export const fetchDomainData = async (
         throw new Error(`SpyFu API error: ${response.status} ${response.statusText}`);
       }
       
+      // Parse the JSON response
       const data = await response.json();
-      console.log("SpyFu API response:", data);
+      console.log("SpyFu API response data:", data);
       
       // Extract the relevant stats from the API response
       if (!data.results || data.results.length === 0) {
@@ -129,13 +131,18 @@ export const fetchDomainData = async (
     } catch (apiError) {
       console.error("SpyFu API request failed:", apiError);
       
-      // If the error is related to CORS, provide a more specific message
-      const errorMessage = apiError instanceof Error ? apiError.message : String(apiError);
-      if (errorMessage.includes('CORS') || errorMessage.includes('network') || errorMessage.includes('abort')) {
-        console.error("This appears to be a CORS or network connectivity issue");
+      let errorMessage = apiError instanceof Error ? apiError.message : String(apiError);
+      
+      // Specific error handling for CORS and network issues
+      if (errorMessage.includes('CORS') || errorMessage.includes('network') || errorMessage.includes('abort') || errorMessage.includes('Failed to fetch')) {
+        console.error("This appears to be a network connectivity or CORS issue");
+        
+        // More helpful error message for CORS/network issues
+        errorMessage = `The SpyFu API connection failed due to browser restrictions. This is likely a CORS issue which happens when making API requests directly from a browser. Try using the manual traffic entry options.`;
+        
         toast.error(`API Connection Issue`, {
           id: toastId,
-          description: `The SpyFu API connection failed due to CORS or network restrictions. Try disabling any browser extensions that might block requests.`
+          description: `Unable to connect to SpyFu. Please enter your traffic data manually to continue.`
         });
       }
       

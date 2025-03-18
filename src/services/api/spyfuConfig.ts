@@ -26,7 +26,7 @@ export const getSpyFuUrl = (domain: string): string => {
   return `https://www.spyfu.com/overview/domain?query=${encodeURIComponent(cleanedDomain)}`;
 };
 
-// Check if SpyFu API credentials are set - always returns true now since we have hard-coded values
+// Check if SpyFu API credentials are set
 export const hasSpyFuApiKey = (): boolean => {
-  return true;
+  return SPYFU_API_USERNAME.length > 0 && SPYFU_API_KEY.length > 0;
 };
