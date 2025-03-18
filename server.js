@@ -57,21 +57,37 @@ app.get("/proxy/spyfu", async (req, res) => {
     return res.status(400).json({ error: "Domain parameter is required" });
   }
 
+  // ✅ Use environment variables for SpyFu API credentials
   const username = process.env.SPYFU_API_USERNAME;
   const apiKey = process.env.SPYFU_API_KEY;
+
+  if (!username || !apiKey) {
+    console.error("SpyFu API credentials are missing");
+    return res.status(500).json({ error: "SpyFu API credentials are missing" });
+  }
 
   const url = `https://www.spyfu.com/apis/domain_stats_api/v2/getDomainStatsForExactDate?domain=${domain}&month=3&year=2023&countryCode=US&api_username=${username}&api_key=${apiKey}`;
 
   try {
-    console.log(`Making request to: ${url}`);
+    console.log(`Fetching SpyFu API: ${url}`);
     const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error(`SpyFu API Error: ${response.status} - ${response.statusText}`);
+      return res.status(response.status).json({ 
+        error: "SpyFu API request failed", 
+        status: response.status,
+        statusText: response.statusText
+      });
+    }
+
     const data = await response.json();
 
     // ✅ Apply CORS Headers on API Response
     res.header("Access-Control-Allow-Origin", "*");
     res.json(data);
   } catch (error) {
-    console.error("SpyFu API Request Failed:", error.message);
+    console.error("SpyFu API Fetch Error:", error.message);
     res.status(500).json({
       error: "SpyFu API request failed",
       details: error.message,
