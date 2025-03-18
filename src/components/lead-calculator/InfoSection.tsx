@@ -1,8 +1,10 @@
 
-import { LineChart, AlertCircle, ExternalLink } from "lucide-react";
+import { useState } from "react";
+import { LineChart, AlertCircle, ExternalLink, Settings } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { PROXY_SERVER_URL, getProxyTestUrl } from "@/services/spyfuService";
+import { ProxyConfigForm } from "./ProxyConfigForm";
 
 interface InfoSectionProps {
   apiError?: string | null;
@@ -10,6 +12,8 @@ interface InfoSectionProps {
 }
 
 export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
+  const [showProxyConfig, setShowProxyConfig] = useState(false);
+
   return (
     <>
       {apiError ? (
@@ -27,6 +31,17 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
                     <li>Open <code className="bg-gray-200 px-1 rounded">{PROXY_SERVER_URL}/proxy/spyfu?domain=ping</code> - Should return a JSON response</li>
                   </ol>
                 </div>
+                <div className="mt-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowProxyConfig(!showProxyConfig)}
+                    className="flex items-center gap-1 text-xs"
+                  >
+                    <Settings size={14} />
+                    {showProxyConfig ? "Hide Config" : "Configure Proxy URL"}
+                  </Button>
+                </div>
               </>
             ) : (
               <>
@@ -38,15 +53,42 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
         </Alert>
       ) : proxyConnected ? (
         <Alert className="mt-4 bg-green-50 border-green-200" variant="default">
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-            <AlertTitle className="text-green-800 font-semibold">Proxy Server Connected</AlertTitle>
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+              <AlertTitle className="text-green-800 font-semibold">Proxy Server Connected</AlertTitle>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowProxyConfig(!showProxyConfig)}
+              className="flex items-center gap-1 text-xs"
+            >
+              <Settings size={14} />
+              {showProxyConfig ? "Hide Config" : "Configure"}
+            </Button>
           </div>
           <AlertDescription className="text-green-700">
             Your proxy server is running and connected at {PROXY_SERVER_URL}. SpyFu API requests will be routed through your local proxy.
           </AlertDescription>
         </Alert>
-      ) : null}
+      ) : (
+        <div className="mt-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowProxyConfig(!showProxyConfig)}
+            className="flex items-center gap-1 text-xs"
+          >
+            <Settings size={14} />
+            Configure Proxy Server
+          </Button>
+        </div>
+      )}
+      
+      {showProxyConfig && (
+        <ProxyConfigForm onClose={() => setShowProxyConfig(false)} />
+      )}
       
       <div className="bg-secondary/50 p-4 rounded-lg border border-border mt-2">
         <div className="flex items-start gap-3">

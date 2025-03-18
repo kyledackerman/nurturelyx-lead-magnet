@@ -35,8 +35,31 @@ export const hasSpyFuApiKey = (): boolean => {
   return SPYFU_API_USERNAME.length > 0 && SPYFU_API_KEY.length > 0;
 };
 
-// Proxy server URL - Set this to your local Express server
-export const PROXY_SERVER_URL = 'http://localhost:3001';
+// Get proxy URL from localStorage if available, or use default
+const getProxyServerUrl = (): string => {
+  if (typeof localStorage !== 'undefined') {
+    const customProxyUrl = localStorage.getItem('custom_proxy_url');
+    if (customProxyUrl) {
+      return customProxyUrl;
+    }
+  }
+  return 'http://localhost:3001'; // Default fallback
+};
+
+// Proxy server URL - dynamically retrieved
+export const PROXY_SERVER_URL = getProxyServerUrl();
+
+// Function to save a custom proxy URL
+export const saveCustomProxyUrl = (url: string): void => {
+  if (typeof localStorage !== 'undefined') {
+    // Basic validation to ensure it's a URL
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      localStorage.setItem('custom_proxy_url', url);
+      // Force a page reload to apply the new URL
+      window.location.reload();
+    }
+  }
+};
 
 // Function to get the proxy URL for SpyFu API requests
 export const getProxyUrl = (domain: string): string => {
