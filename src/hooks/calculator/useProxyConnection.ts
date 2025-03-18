@@ -10,6 +10,7 @@ export function useProxyConnection() {
   const [connectionAttempted, setConnectionAttempted] = useState<boolean>(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState<number>(0);
+  const [diagnosticInfo, setDiagnosticInfo] = useState<any>(null);
   const MAX_RETRIES = 3;
 
   const checkProxyConnection = useCallback(async () => {
@@ -20,14 +21,13 @@ export function useProxyConnection() {
     setConnectionError(null);
     
     try {
-      console.log(`Testing direct Railway connection at: ${DIRECT_RAILWAY_URL}`);
+      console.log(`Testing Railway connection at: ${DIRECT_RAILWAY_URL}`);
       
-      // Create abort controller for timeout handling
+      // Try the /health endpoint first for diagnostics
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
       
-      // Use no-cors mode to avoid CORS issues
-      const response = await fetch(DIRECT_RAILWAY_URL, { 
+      const response = await fetch(`${DIRECT_RAILWAY_URL}/health`, { 
         method: 'GET',
         signal: controller.signal,
         mode: 'cors',
@@ -41,24 +41,60 @@ export function useProxyConnection() {
       
       clearTimeout(timeoutId);
       
-      if (response.ok || response.status === 200) {
-        console.log("✅ Railway connection successful!");
-        setProxyConnected(true);
-        setConnectionError(null);
+      if (response.ok) {
+        // Store diagnostic info
+        const data = await response.json();
+        setDiagnosticInfo(data);
+        console.log("Health check successful:", data);
+        
+        // Now try a simple ping to the root endpoint
+        const pingResponse = await fetch(DIRECT_RAILWAY_URL, {
+          method: 'GET',
+          mode: 'cors',
+          credentials: 'omit',
+          cache: 'no-store'
+        });
+        
+        if (pingResponse.ok) {
+          console.log("✅ Railway connection successful!");
+          setProxyConnected(true);
+          setConnectionError(null);
+        } else {
+          throw new Error(`Root endpoint responded with status: ${pingResponse.status}`);
+        }
       } else {
-        console.error(`❌ Railway connection failed with status: ${response.status}`);
-        setProxyConnected(false);
-        setConnectionError(`API server responded with status: ${response.status}. Using manual mode.`);
+        throw new Error(`Health check failed with status: ${response.status}`);
       }
     } catch (error: any) {
       console.error("❌ Railway connection error:", error);
       
-      // Handle connection errors
-      let errorMessage = "Cannot connect to API server. Using manual mode.";
+      // Enhanced error messages with more details
+      let errorMessage = "Cannot connect to API server. Try refreshing or check your network.";
+      
       if (error.name === "AbortError") {
-        errorMessage = "Connection timed out. Using manual mode.";
+        errorMessage = "Connection timed out. The server might be down or your network might be blocking the connection.";
       } else if (error.message) {
-        errorMessage = `Connection error: ${error.message}. Using manual mode.`;
+        errorMessage = `Connection error: ${error.message}. This could be due to CORS, network issues, or server unavailability.`;
+      }
+      
+      // Try a CORS-specific debug endpoint if available
+      try {
+        const corsDebugResponse = await fetch(`${DIRECT_RAILWAY_URL}/debug-headers`, { 
+          mode: 'cors',
+          credentials: 'omit'
+        });
+        
+        if (corsDebugResponse.ok) {
+          const corsDebugData = await corsDebugResponse.json();
+          console.log("CORS debug info:", corsDebugData);
+          setDiagnosticInfo(corsDebugData);
+          
+          if (!corsDebugData.headers || !corsDebugData.headers['access-control-allow-origin']) {
+            errorMessage += " CORS headers may be missing on the server.";
+          }
+        }
+      } catch (corsError) {
+        console.error("CORS debug endpoint failed:", corsError);
       }
       
       setProxyConnected(false);
@@ -94,6 +130,7 @@ export function useProxyConnection() {
     setConnectionError(null);
     setIsCheckingConnection(true);
     setRetryCount(0);
+    setDiagnosticInfo(null);
   }, []);
 
   const retryConnection = useCallback(() => {
@@ -108,6 +145,7 @@ export function useProxyConnection() {
     isUsingRailway: true,
     connectionError,
     isCheckingConnection,
+    diagnosticInfo,
     resetConnectionState,
     retryConnection
   };

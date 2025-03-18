@@ -33,6 +33,7 @@ const LeadCalculatorForm = ({
     proxyConnected,
     isCheckingConnection,
     connectionError,
+    diagnosticInfo,
     retryConnection,
     handleChange,
     validateForm,
@@ -114,6 +115,7 @@ const LeadCalculatorForm = ({
             connectionError={connectionError}
             proxyConnected={proxyConnected}
             isCheckingConnection={isCheckingConnection}
+            diagnosticInfo={diagnosticInfo}
             onRetryConnection={retryConnection}
           />
           

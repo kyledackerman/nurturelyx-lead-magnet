@@ -29,6 +29,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     isUsingRailway,
     connectionError,
     isCheckingConnection,
+    diagnosticInfo,
     resetConnectionState,
     retryConnection
   } = useProxyConnection();
@@ -46,13 +47,12 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     resetConnectionState();
   };
 
-  // Only show traffic fields if explicitly set or if there are connection issues or API errors
-  // This is a computed value that shouldn't be directly set
+  // Hide traffic fields initially - only show when needed
   const shouldShowTrafficFields = showTrafficFields || !proxyConnected || !!connectionError || !!apiError;
   
   // Use useEffect to handle traffic fields visibility based on connection status
+  // We only want to show traffic fields if there's a connection issue
   useEffect(() => {
-    // Force traffic fields to be visible only if there are connection issues
     if (!proxyConnected || !!connectionError || !!apiError) {
       setShowTrafficFields(true);
     }
@@ -61,7 +61,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   return {
     // Form state
     formData,
-    showTrafficFields: shouldShowTrafficFields, // Always use computed value
+    showTrafficFields: shouldShowTrafficFields, // Computed value
     
     // Form validation
     errors,
@@ -72,6 +72,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     isUsingRailway,
     isCheckingConnection,
     connectionError,
+    diagnosticInfo,
     retryConnection,
     
     // Methods

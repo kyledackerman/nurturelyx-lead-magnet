@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { LineChart, AlertCircle, HelpCircle, Server, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
+import { LineChart, AlertCircle, HelpCircle, Server, CheckCircle2, Loader2, RefreshCw, TerminalSquare } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ProxyConfigForm } from "./ProxyConfigForm";
@@ -11,6 +11,7 @@ interface InfoSectionProps {
   connectionError?: string | null;
   proxyConnected?: boolean;
   isCheckingConnection?: boolean;
+  diagnosticInfo?: any;
   onRetryConnection?: () => void;
 }
 
@@ -19,9 +20,11 @@ export const InfoSection = ({
   connectionError,
   proxyConnected,
   isCheckingConnection,
+  diagnosticInfo,
   onRetryConnection
 }: InfoSectionProps) => {
   const [showProxyConfig, setShowProxyConfig] = useState(false);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
 
   // Show loading when checking connection
   if (isCheckingConnection) {
@@ -68,16 +71,33 @@ export const InfoSection = ({
           <div className="flex flex-col">
             <p>{connectionError}</p>
             <p className="text-sm mt-2 font-medium">Enter your traffic data below to continue with the calculator.</p>
-            {onRetryConnection && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-2 w-fit" 
-                onClick={onRetryConnection}
+            <div className="flex gap-2 mt-2">
+              {onRetryConnection && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-fit" 
+                  onClick={onRetryConnection}
+                >
+                  <RefreshCw size={16} className="mr-2" />
+                  Retry Connection
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-red-800 hover:text-red-900 hover:bg-red-100 p-1 h-auto"
+                onClick={() => setShowDiagnostics(!showDiagnostics)}
               >
-                <RefreshCw size={16} className="mr-2" />
-                Retry Connection
+                <TerminalSquare className="h-3 w-3 mr-1" />
+                Diagnostics
               </Button>
+            </div>
+            
+            {showDiagnostics && diagnosticInfo && (
+              <div className="mt-3 p-2 bg-gray-900 text-gray-200 rounded text-xs font-mono overflow-x-auto">
+                <pre>{JSON.stringify(diagnosticInfo, null, 2)}</pre>
+              </div>
             )}
           </div>
         </AlertDescription>
@@ -100,7 +120,7 @@ export const InfoSection = ({
           <Server className="h-3 w-3 mr-1" />
           Server info
         </Button>
-        {showProxyConfig && <ProxyConfigForm onClose={() => setShowProxyConfig(false)} />}
+        {showProxyConfig && <ProxyConfigForm onClose={() => setShowProxyConfig(false)} diagnosticInfo={diagnosticInfo} />}
       </div>
     );
   }
@@ -124,7 +144,7 @@ export const InfoSection = ({
         )}
       </div>
       
-      {showProxyConfig && <ProxyConfigForm onClose={() => setShowProxyConfig(false)} />}
+      {showProxyConfig && <ProxyConfigForm onClose={() => setShowProxyConfig(false)} diagnosticInfo={diagnosticInfo} />}
       
       <div className="bg-secondary/50 p-4 rounded-lg border border-border mt-4">
         <div className="flex items-start gap-3">
