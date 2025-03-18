@@ -3,7 +3,7 @@ import { useState } from "react";
 import { LineChart, AlertCircle, ExternalLink, Settings, HelpCircle, Server } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { PROXY_SERVER_URL, getProxyTestUrl } from "@/services/api/spyfuConfig";
+import { DEFAULT_PUBLIC_PROXY_URL, PROXY_SERVER_URL, getProxyTestUrl } from "@/services/api/spyfuConfig";
 import { ProxyConfigForm } from "./ProxyConfigForm";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -15,8 +15,9 @@ interface InfoSectionProps {
 export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
   const [showProxyConfig, setShowProxyConfig] = useState(false);
   
-  // Show proxy config button for everyone (removed admin-only restriction)
+  // Show proxy config button for everyone
   const showProxySettings = true;
+  const isUsingRailway = PROXY_SERVER_URL === DEFAULT_PUBLIC_PROXY_URL;
 
   return (
     <>
@@ -60,20 +61,30 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
           </details>
         </Alert>
       ) : (
-        // Always show the proxy config button when no API error
-        !apiError && showProxySettings && (
-          <div className="flex items-center mt-4 mb-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setShowProxyConfig(!showProxyConfig)}
-              className="flex items-center gap-1 text-xs ml-auto"
-            >
-              <Server size={14} />
-              {showProxyConfig ? "Hide Proxy Config" : "Configure Proxy Server"}
-            </Button>
-          </div>
-        )
+        // Display Railway connection status when no error
+        <>
+          {proxyConnected && isUsingRailway && (
+            <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded-md mt-4">
+              <CheckCircle2 size={16} className="flex-shrink-0" />
+              <span>Connected to Railway proxy server at <code className="text-xs bg-white px-1 rounded">{DEFAULT_PUBLIC_PROXY_URL}</code></span>
+            </div>
+          )}
+          
+          {/* Always show the proxy config button when no API error */}
+          {!apiError && showProxySettings && (
+            <div className="flex items-center mt-4 mb-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowProxyConfig(!showProxyConfig)}
+                className="flex items-center gap-1 text-xs ml-auto"
+              >
+                <Server size={14} />
+                {showProxyConfig ? "Hide Proxy Config" : "Configure Proxy Server"}
+              </Button>
+            </div>
+          )}
+        </>
       )}
       
       {showProxyConfig && (

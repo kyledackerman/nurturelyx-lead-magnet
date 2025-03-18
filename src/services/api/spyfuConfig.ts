@@ -35,9 +35,8 @@ export const hasSpyFuApiKey = (): boolean => {
   return SPYFU_API_USERNAME.length > 0 && SPYFU_API_KEY.length > 0;
 };
 
-// Default public proxy URL if none is set in localStorage
-// This default URL will be used in production when no custom URL is set
-export const DEFAULT_PUBLIC_PROXY_URL = 'https://your-deployed-proxy-url.com';
+// Default public proxy URL - now updated to your Railway deployment
+export const DEFAULT_PUBLIC_PROXY_URL = 'https://nurture-lead-vision-production.up.railway.app';
 
 // Get the proxy server URL - prioritizes localStorage setting, then environment, then defaults
 export const getProxyServerUrl = (): string => {
@@ -56,8 +55,8 @@ export const getProxyServerUrl = (): string => {
     return 'http://localhost:3001';
   }
   
-  // In production with no custom URL, use the default public URL
-  console.log('Production environment detected, using default public proxy URL');
+  // In production with no custom URL, use the default public URL (Railway)
+  console.log('Production environment detected, using Railway proxy URL');
   return DEFAULT_PUBLIC_PROXY_URL;
 };
 

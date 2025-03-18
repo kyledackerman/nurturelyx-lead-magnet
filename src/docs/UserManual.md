@@ -10,16 +10,7 @@ NurturelyX is a tool for estimating the potential lead generation and revenue im
 1. Navigate to the NurturelyX Lead Estimation Report tool
 2. Enter the following information:
    - **Website Domain**: Your website's domain (e.g., example.com)
-   - **Google Analytics Connection**: Connect your Google Analytics account for precise traffic data
-   - **Estimated Monthly Paid Visitors**: (If not using Google Analytics) Number of monthly visitors from paid sources
    - **Average Transaction Value**: The average value of a transaction on your website
-
-### Connecting Google Analytics
-For the most accurate results, connect your Google Analytics account:
-1. Click the "Connect to Google Analytics" button
-2. Sign in with your Google account
-3. Grant permission to access your analytics data
-4. Once connected, we'll automatically fetch both organic and paid traffic metrics
 
 ### Understanding the Results
 
@@ -45,18 +36,27 @@ A table showing a 6-month breakdown of:
 ## Troubleshooting
 
 ### API Connection Issues
-If you see error messages related to the Google Analytics API:
+If you see error messages related to the SpyFu API:
 1. Check your internet connection
 2. Verify that the domain you entered is valid and correctly formatted
 3. Try refreshing the page and attempting your calculation again
-4. Ensure you've granted the necessary permissions when connecting your Google account
-5. If using a self-hosted version, verify the OAuth client ID is correctly configured
+4. Check if the proxy server is running correctly (configured at Railway: nurture-lead-vision-production.up.railway.app)
+
+### Proxy Server Configuration
+The application uses a secure proxy server to make API requests to SpyFu:
+
+1. **Default Configuration**: By default, the application uses the Railway-hosted proxy server at `nurture-lead-vision-production.up.railway.app`
+2. **Custom Configuration**: 
+   - Click the "Configure Proxy Server" button
+   - Enter a custom proxy server URL if needed
+   - Test the connection to ensure it's working
+   - Save your changes (the page will reload)
 
 ### Common Issues
 
 #### "Error fetching data" message
-- This typically indicates a temporary API failure or authentication issue
-- The tool will automatically use fallback data generation if the API is unavailable
+- This typically indicates a temporary API failure or proxy connection issue
+- Verify that the proxy server is running correctly
 - You can still get useful estimates by entering your traffic data manually
 
 #### Blank or incomplete results
@@ -64,16 +64,10 @@ If you see error messages related to the Google Analytics API:
 - Check for any validation messages indicating errors in your inputs
 - Try using a different browser if problems persist
 
-#### Google Analytics connection problems
-- Make sure you're logged into the correct Google account
-- Verify that you have access to Google Analytics for the domain you're analyzing
-- Check that you've granted all requested permissions
-- Clear browser cookies and try again if the connection fails
-
 ## Methodology
 
 ### Visitor Identification
-NurturelyX uses proprietary technology to identify up to 20% of anonymous website visitors without requiring opt-in. This is applied to the total of your organic and paid traffic (retrieved from Google Analytics or manually entered).
+NurturelyX uses proprietary technology to identify up to 20% of anonymous website visitors without requiring opt-in. This is applied to the total of your organic and paid traffic (retrieved from the SpyFu API or manually entered).
 
 ### Lead-to-Sale Conversion
 We calculate potential sales using an industry-standard 1% conversion rate from identified leads to actual sales.
@@ -85,16 +79,18 @@ Revenue impact is calculated by multiplying potential sales by your average tran
 
 For administrators or self-hosted instances:
 
-### API Integration
-- The application uses the Google Analytics API to retrieve domain traffic data
-- Required OAuth client ID: `your-client-id`
-- To use a custom client ID, modify the `GOOGLE_ANALYTICS_CLIENT_ID` constant in the apiService.ts file
-- The OAuth redirect URI should point to `/auth/callback` on your domain
+### Proxy Server Deployment
+- The application uses a proxy server running on Railway at `nurture-lead-vision-production.up.railway.app`
+- The proxy server handles API calls to SpyFu and manages API credentials securely
+- Required environment variables for the proxy server:
+  - `SPYFU_API_USERNAME`: Your SpyFu API username
+  - `SPYFU_API_KEY`: Your SpyFu API key
+  - `PORT`: The port to run the server on (default: 3001)
 
-### Customization Options
-- Conversion rates can be adjusted in the `calculateReportMetrics` function
-- To change theme colors, update the color variables in the index.css file
-- Google Analytics integration can be disabled by setting `enableGoogleAnalytics` to false
+### Custom Proxy Configuration
+- Users can configure a custom proxy URL by clicking the "Configure Proxy Server" button
+- Custom proxy URLs are stored in localStorage and persist between sessions
+- The proxy server must implement the same API endpoints as the default server
 
 ## Contact and Support
 For additional help or to learn more about implementing NurturelyX on your website, click the "Apply for Beta" button to contact our team.

@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PROXY_SERVER_URL, saveCustomProxyUrl } from "@/services/api/spyfuConfig";
+import { DEFAULT_PUBLIC_PROXY_URL, PROXY_SERVER_URL, saveCustomProxyUrl } from "@/services/api/spyfuConfig";
 import { AlertTriangle, CheckCircle2, Globe, Server } from "lucide-react";
 
 interface ProxyConfigFormProps {
@@ -94,13 +94,8 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
   };
 
   const resetToDefault = () => {
-    // Try to detect if we're running locally
-    const isLocalHost = typeof window !== 'undefined' && 
-      (window.location.hostname === 'localhost' || 
-       window.location.hostname === '127.0.0.1');
-    
-    const defaultUrl = isLocalHost ? 'http://localhost:3001' : 'https://yourproxyserver.com';
-    setProxyUrl(defaultUrl);
+    // Use the Railway URL as the default
+    setProxyUrl(DEFAULT_PUBLIC_PROXY_URL);
     setTestStatus('idle');
     setTestMessage('');
   };
@@ -113,16 +108,16 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
         <div className="flex items-start gap-2">
           <Globe size={18} className="mt-0.5 flex-shrink-0" />
           <div>
-            <p className="font-medium">Public Proxy Server Setup</p>
+            <p className="font-medium">Railway Proxy Server Available</p>
             <p className="text-sm mt-1">
-              For production use, you need a publicly accessible proxy server instead of localhost. 
-              Your proxy server must:
+              Your proxy server is deployed on Railway at:
             </p>
-            <ul className="list-disc ml-5 mt-1 text-xs space-y-1">
-              <li>Be accessible over the internet (not localhost)</li>
-              <li>Have CORS enabled to allow requests from your website</li>
-              <li>Implement the same API endpoints as your local proxy</li>
-            </ul>
+            <p className="text-xs bg-white p-1.5 rounded mt-1 font-mono">
+              {DEFAULT_PUBLIC_PROXY_URL}
+            </p>
+            <p className="text-xs mt-2">
+              This is the default server for production. You can use the form below to test or configure a different URL.
+            </p>
           </div>
         </div>
       </div>
@@ -151,11 +146,6 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
               </span>
             </div>
           )}
-          <p className="text-xs text-gray-500 mt-2">
-            Examples: 
-            <code className="bg-gray-200 px-1 rounded mx-1">https://yourproxyserver.com</code> or 
-            <code className="bg-gray-200 px-1 rounded mx-1">http://your-domain.com:3001</code>
-          </p>
         </div>
 
         {testStatus !== 'idle' && (
@@ -190,7 +180,7 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
             size="sm"
             className="text-xs"
           >
-            Reset to Default
+            Reset to Railway URL
           </Button>
         </div>
         

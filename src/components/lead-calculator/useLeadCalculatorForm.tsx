@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { FormData } from "@/types/report";
 import { toast } from "sonner";
-import { hasSpyFuApiKey, PROXY_SERVER_URL } from "@/services/api/spyfuConfig";
+import { DEFAULT_PUBLIC_PROXY_URL, hasSpyFuApiKey, PROXY_SERVER_URL } from "@/services/api/spyfuConfig";
 
 export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: string | null) {
   const [formData, setFormData] = useState<FormData>({
@@ -20,6 +20,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   const [proxyConnected, setProxyConnected] = useState<boolean>(false);
   const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
   const [connectionAttempted, setConnectionAttempted] = useState<boolean>(false);
+  const [isUsingRailway, setIsUsingRailway] = useState<boolean>(PROXY_SERVER_URL === DEFAULT_PUBLIC_PROXY_URL);
 
   // Check proxy connection only once on initial load
   useEffect(() => {
@@ -30,6 +31,9 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
       try {
         console.log("Testing proxy connection to:", `${PROXY_SERVER_URL}/proxy/spyfu?domain=ping`);
         
+        // Update the isUsingRailway state
+        setIsUsingRailway(PROXY_SERVER_URL === DEFAULT_PUBLIC_PROXY_URL);
+        
         const response = await fetch(`${PROXY_SERVER_URL}/proxy/spyfu?domain=ping`, {
           method: 'GET',
           headers: {
@@ -38,19 +42,30 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
             'Pragma': 'no-cache'
           },
           // Use a short timeout for better UX
-          signal: AbortSignal.timeout(3000),
+          signal: AbortSignal.timeout(5000),
         });
         
         if (response.ok) {
           console.log("✅ Proxy server is running at:", PROXY_SERVER_URL);
           setProxyConnected(true);
+          
+          if (PROXY_SERVER_URL === DEFAULT_PUBLIC_PROXY_URL) {
+            console.log("✅ Using Railway deployment:", DEFAULT_PUBLIC_PROXY_URL);
+          } else {
+            console.log("⚠️ Using custom proxy URL instead of Railway:", PROXY_SERVER_URL);
+          }
         } else {
           throw new Error(`Proxy server returned status: ${response.status}`);
         }
       } catch (error) {
         console.error("Proxy connection error:", error);
         setProxyConnected(false);
-        console.log("❌ Proxy server connection failed. Make sure it's running at:", PROXY_SERVER_URL);
+        
+        if (PROXY_SERVER_URL === DEFAULT_PUBLIC_PROXY_URL) {
+          console.log("❌ Railway proxy connection failed:", DEFAULT_PUBLIC_PROXY_URL);
+        } else {
+          console.log("❌ Proxy server connection failed at:", PROXY_SERVER_URL);
+        }
       } finally {
         setIsCheckingConnection(false);
         setConnectionAttempted(true);
@@ -123,6 +138,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     canCalculate,
     showTrafficFields,
     proxyConnected,
+    isUsingRailway,
     handleChange,
     validateForm,
     setCanCalculate,
