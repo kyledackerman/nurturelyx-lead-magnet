@@ -12,7 +12,7 @@ interface TransactionValueInputProps {
 
 export const TransactionValueInput = ({ formData, handleChange, errors }: TransactionValueInputProps) => {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 mb-6">
       <Label htmlFor="avgTransactionValue" className="text-lg">Average Transaction Value ($)</Label>
       <div className="relative max-w-[240px]">
         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -34,7 +34,7 @@ export const TransactionValueInput = ({ formData, handleChange, errors }: Transa
           </div>
         )}
       </div>
-      <div className="flex items-start gap-2 mt-2 bg-secondary/50 p-3 rounded-lg border border-border">
+      <div className="flex items-start gap-2 mt-4 bg-secondary/50 p-3 rounded-lg border border-border">
         <div className="bg-accent/10 p-2 rounded-full">
           <DollarSign className="h-6 w-6 text-accent" />
         </div>

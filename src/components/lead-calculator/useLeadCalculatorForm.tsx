@@ -15,7 +15,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   });
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [canCalculate, setCanCalculate] = useState<boolean>(false);
+  const [canCalculate, setCanCalculate] = useState<boolean>(true); // Changed default to true
   const [showTrafficFields, setShowTrafficFields] = useState<boolean>(false);
   const [proxyConnected, setProxyConnected] = useState<boolean>(false);
   const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
