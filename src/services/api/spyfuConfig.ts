@@ -43,7 +43,7 @@ const getProxyServerUrl = (): string => {
       return customProxyUrl;
     }
   }
-  return 'http://localhost:3001'; // Default fallback
+  return 'http://65.184.26.60:3001'; // Updated default to use the provided IPv4
 };
 
 // Proxy server URL - dynamically retrieved
