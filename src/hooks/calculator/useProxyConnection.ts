@@ -24,69 +24,99 @@ export function useProxyConnection() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      // Force no-cache for this request
-      const pingResponse = await fetch('/api/check', {
-        method: 'GET',
-        mode: 'cors',
-        signal: controller.signal,
-        credentials: 'omit',
-        cache: 'no-cache',
-        headers: {
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache'
-        }
-      });
-      
-      clearTimeout(timeoutId);
-      
-      // First check if we got any response at all
-      if (!pingResponse) {
-        throw new Error("Server returned no response");
-      }
-      
-      // Get the response text first, then try to parse it as JSON
-      const responseText = await pingResponse.text();
-      const contentType = pingResponse.headers.get('content-type');
-      
       try {
-        // Only try to parse as JSON if we have content
-        if (responseText && responseText.trim() !== '') {
-          const jsonData = JSON.parse(responseText);
-          
-          // If we get here, it's valid JSON even if the content-type is wrong
-          console.log("API endpoint returned valid JSON:", jsonData);
-          
-          if (pingResponse.ok && jsonData) {
-            console.log("✅ API connection successful!");
-            setProxyConnected(true);
-            setConnectionError(null);
-            setDiagnosticInfo({
-              ...jsonData,
-              contentType,
-              status: pingResponse.status,
-              headers: Object.fromEntries([...pingResponse.headers.entries()])
-            });
-          } else {
-            throw new Error(`API endpoint responded with status: ${pingResponse.status}`);
+        // Force no-cache for this request
+        const pingResponse = await fetch('/api/check', {
+          method: 'GET',
+          mode: 'cors',
+          signal: controller.signal,
+          credentials: 'omit',
+          cache: 'no-cache',
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
           }
-        } else {
-          throw new Error("Empty response from server");
-        }
-      } catch (parseError) {
-        // If JSON parsing fails, it's likely HTML or other non-JSON content
-        console.error("Failed to parse response as JSON:", parseError);
-        
-        setDiagnosticInfo({
-          error: "Server returned non-JSON content",
-          contentType: contentType,
-          responsePreview: responseText.substring(0, 250),
-          htmlDetected: responseText.includes("<!DOCTYPE") || responseText.includes("<html"),
-          status: pingResponse.status,
-          statusText: pingResponse.statusText
         });
         
-        throw new Error("Server returned non-JSON response");
+        clearTimeout(timeoutId);
+        
+        // First check if we got any response at all
+        if (!pingResponse) {
+          throw new Error("Server returned no response");
+        }
+        
+        // Clone the response before reading it so we can use it multiple times
+        const responseClone = pingResponse.clone();
+        
+        // Get the response text to check content
+        const responseText = await responseClone.text();
+        const contentType = pingResponse.headers.get('content-type');
+        
+        // Check if response contains HTML markers
+        const isHtmlResponse = responseText.includes('<!DOCTYPE') || 
+                              responseText.includes('<html') || 
+                              contentType?.includes('text/html');
+        
+        if (isHtmlResponse) {
+          setDiagnosticInfo({
+            error: "Server returned HTML instead of JSON",
+            contentType: contentType,
+            responsePreview: responseText.substring(0, 250),
+            htmlDetected: true,
+            status: pingResponse.status,
+            statusText: pingResponse.statusText
+          });
+          
+          throw new Error("The server is returning HTML instead of JSON. This usually means the Express API routes are not being handled correctly.");
+        }
+        
+        // Try parsing as JSON only if it doesn't look like HTML
+        let jsonData = null;
+        
+        try {
+          // Only try to parse as JSON if we have content and it's not HTML
+          if (responseText && responseText.trim() !== '') {
+            jsonData = JSON.parse(responseText);
+            
+            // If we get here, it's valid JSON
+            console.log("API endpoint returned valid JSON:", jsonData);
+            
+            if (pingResponse.ok && jsonData) {
+              console.log("✅ API connection successful!");
+              setProxyConnected(true);
+              setConnectionError(null);
+              setDiagnosticInfo({
+                ...jsonData,
+                contentType,
+                status: pingResponse.status,
+                headers: Object.fromEntries([...pingResponse.headers.entries()])
+              });
+            } else {
+              throw new Error(`API endpoint responded with status: ${pingResponse.status}`);
+            }
+          } else {
+            throw new Error("Empty response from server");
+          }
+        } catch (parseError) {
+          // JSON parsing failed but it's not HTML
+          console.error("Failed to parse response as JSON:", parseError);
+          
+          setDiagnosticInfo({
+            error: "Server returned non-JSON content",
+            contentType: contentType,
+            responsePreview: responseText.substring(0, 250),
+            htmlDetected: responseText.includes("<!DOCTYPE") || responseText.includes("<html"),
+            status: pingResponse.status,
+            statusText: pingResponse.statusText
+          });
+          
+          throw new Error("Server returned non-JSON response");
+        }
+      } catch (fetchError) {
+        // Catch fetch errors separately to provide better diagnostics
+        clearTimeout(timeoutId);
+        throw fetchError;
       }
     } catch (error: any) {
       console.error("❌ API connection error:", error);
@@ -96,10 +126,9 @@ export function useProxyConnection() {
       if (error.name === "AbortError") {
         errorMessage = "Connection timed out. The server might be down or your network might be blocking the connection.";
       } else if (error.message && (
+        error.message.includes("HTML instead of JSON") || 
         error.message.includes("non-JSON") || 
-        diagnosticInfo?.htmlDetected || 
-        diagnosticInfo?.responsePreview?.includes("<!DOCTYPE") || 
-        diagnosticInfo?.responsePreview?.includes("<html")
+        diagnosticInfo?.htmlDetected
       )) {
         errorMessage = "The server is returning HTML instead of JSON. This usually means the Express API routes are not being handled correctly.";
       } else if (error.message) {

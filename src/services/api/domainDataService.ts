@@ -69,12 +69,20 @@ export const fetchDomainData = async (
         throw new Error(`API returned status ${response.status}`);
       }
       
-      // Get response text first to verify if it's actually JSON
-      const responseText = await response.text();
-      let data;
+      // Clone the response to avoid "body already read" errors
+      const responseClone = response.clone();
       
+      // Get response text first to verify if it's actually JSON
+      const responseText = await responseClone.text();
+      
+      // Check if response contains HTML markers
+      if (responseText.includes('<!DOCTYPE') || responseText.includes('<html')) {
+        throw new Error("Server returned HTML instead of JSON. API routes may not be configured correctly.");
+      }
+      
+      let data;
       try {
-        // Only try to parse if we have content
+        // Only try to parse if we have content and it's not HTML
         if (responseText && responseText.trim() !== '') {
           data = JSON.parse(responseText);
         } else {
