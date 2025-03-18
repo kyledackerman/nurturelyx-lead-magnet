@@ -31,7 +31,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
       const connectionToastId = toast.loading("Checking SpyFu API connection...");
       
       try {
-        // Get the current proxy URL (might be different based on environment)
+        // Ensure we're using the current proxy URL
         const proxyUrl = PROXY_SERVER_URL();
         console.log("Testing proxy connection to:", `${proxyUrl}/proxy/spyfu?domain=ping`);
         

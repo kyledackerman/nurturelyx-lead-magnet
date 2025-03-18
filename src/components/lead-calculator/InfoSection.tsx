@@ -119,4 +119,4 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
       </div>
     </>
   );
-};
+}

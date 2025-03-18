@@ -48,41 +48,35 @@ const hasAdminAccess = (): boolean => {
 
 // Determine if we're running in a development environment with improved detection
 const isDevelopmentEnvironment = (): boolean => {
-  // Check if window is defined (browser environment)
+  // Always consider it production if not in a browser
   if (typeof window === 'undefined') return false;
   
   // Check for development environment markers
   const hostname = window.location.hostname;
-  const port = window.location.port;
   
   return (
-    process.env.NODE_ENV === 'development' || 
     hostname === 'localhost' ||
     hostname.includes('.local') ||
-    port === '3000' ||
-    port === '5173' ||
-    hostname.includes('localhost')
+    hostname.includes('127.0.0.1')
   );
 };
 
-// Get the proxy server URL with improved reliability
+// Get the proxy server URL with improved reliability - Always use Railway in production
 export const getProxyServerUrl = (): string => {
-  console.log('Getting proxy server URL with process.env.NODE_ENV =', process.env.NODE_ENV);
-  
-  // Check for development environment first
+  // First, check if we're in development mode
   const isDev = isDevelopmentEnvironment();
-  console.log('Is development environment?', isDev);
+  console.log('Environment check - isDevelopmentEnvironment:', isDev);
   
-  // Only check for custom proxy URL in localStorage if admin access is granted
-  if (hasAdminAccess() && typeof localStorage !== 'undefined' && typeof window !== 'undefined') {
+  // Only use localStorage custom URL for admins
+  if (hasAdminAccess() && typeof localStorage !== 'undefined') {
     const customProxyUrl = localStorage.getItem('custom_proxy_url');
-    if (customProxyUrl) {
+    if (customProxyUrl && customProxyUrl.trim()) {
       console.log('Admin using custom proxy URL from localStorage:', customProxyUrl);
       return customProxyUrl.trim();
     }
   }
   
-  // Use localhost for development, Railway for production
+  // Use localhost for development, ALWAYS use Railway for production
   if (isDev) {
     console.log('Development environment detected, using localhost:3001');
     return 'http://localhost:3001';
@@ -93,34 +87,9 @@ export const getProxyServerUrl = (): string => {
   return DEFAULT_PUBLIC_PROXY_URL;
 };
 
-// Initialize the proxy server URL once on module load, but make it reactive to changes
-let currentProxyUrl = getProxyServerUrl();
-
-// Function to get the current proxy URL (with potential to update)
+// Function to get the current proxy URL
 export const PROXY_SERVER_URL = (): string => {
-  // Re-evaluate environment to ensure we always have the right URL
-  // This helps with environments where window might not be immediately available
-  if (typeof window !== 'undefined') {
-    const isDev = isDevelopmentEnvironment();
-    
-    // Check if admin has set a custom URL since initialization
-    if (hasAdminAccess() && typeof localStorage !== 'undefined') {
-      const storedUrl = localStorage.getItem('custom_proxy_url');
-      if (storedUrl && storedUrl.trim() !== currentProxyUrl) {
-        currentProxyUrl = storedUrl.trim();
-        return currentProxyUrl;
-      }
-    }
-    
-    // Make sure we have the right URL for the environment
-    if (isDev && !currentProxyUrl.includes('localhost')) {
-      currentProxyUrl = 'http://localhost:3001';
-    } else if (!isDev && currentProxyUrl.includes('localhost')) {
-      currentProxyUrl = DEFAULT_PUBLIC_PROXY_URL;
-    }
-  }
-  
-  return currentProxyUrl;
+  return getProxyServerUrl();
 };
 
 // Function to save a custom proxy URL - admin access required
@@ -135,7 +104,6 @@ export const saveCustomProxyUrl = (url: string): void => {
     if (url.startsWith('http://') || url.startsWith('https://')) {
       console.log('Admin saving custom proxy URL to localStorage:', url);
       localStorage.setItem('custom_proxy_url', url.trim());
-      currentProxyUrl = url.trim(); // Update the current proxy URL
       // Force a page reload to apply the new URL
       window.location.reload();
     }
