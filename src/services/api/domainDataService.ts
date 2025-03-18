@@ -74,7 +74,12 @@ export const fetchDomainData = async (
       let data;
       
       try {
-        data = JSON.parse(responseText);
+        // Only try to parse if we have content
+        if (responseText && responseText.trim() !== '') {
+          data = JSON.parse(responseText);
+        } else {
+          throw new Error("Empty response from API server");
+        }
       } catch (jsonError) {
         console.error("Error parsing API response:", jsonError);
         console.error("Response preview:", responseText.substring(0, 200));
@@ -87,7 +92,7 @@ export const fetchDomainData = async (
       }
       
       // Check if data contains error
-      if (data.error) {
+      if (data?.error) {
         console.error("API returned error:", data.error);
         throw new Error(data.error);
       }

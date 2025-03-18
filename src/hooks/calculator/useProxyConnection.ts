@@ -45,38 +45,38 @@ export function useProxyConnection() {
         throw new Error("Server returned no response");
       }
       
-      // Check if the response is actually JSON by attempting to parse it
-      let jsonData: any = null;
+      // Get the response text first, then try to parse it as JSON
+      const responseText = await pingResponse.text();
       const contentType = pingResponse.headers.get('content-type');
       
       try {
-        // Attempt to parse JSON regardless of content-type header
-        // This is a more reliable way to detect if it's JSON
-        const responseText = await pingResponse.text();
-        jsonData = JSON.parse(responseText);
-        
-        // If we get here, it's valid JSON even if the content-type is wrong
-        console.log("API endpoint returned valid JSON:", jsonData);
-        
-        if (pingResponse.ok && jsonData) {
-          console.log("✅ API connection successful!");
-          setProxyConnected(true);
-          setConnectionError(null);
-          setDiagnosticInfo({
-            ...jsonData,
-            contentType,
-            status: pingResponse.status,
-            headers: Object.fromEntries([...pingResponse.headers.entries()])
-          });
+        // Only try to parse as JSON if we have content
+        if (responseText && responseText.trim() !== '') {
+          const jsonData = JSON.parse(responseText);
+          
+          // If we get here, it's valid JSON even if the content-type is wrong
+          console.log("API endpoint returned valid JSON:", jsonData);
+          
+          if (pingResponse.ok && jsonData) {
+            console.log("✅ API connection successful!");
+            setProxyConnected(true);
+            setConnectionError(null);
+            setDiagnosticInfo({
+              ...jsonData,
+              contentType,
+              status: pingResponse.status,
+              headers: Object.fromEntries([...pingResponse.headers.entries()])
+            });
+          } else {
+            throw new Error(`API endpoint responded with status: ${pingResponse.status}`);
+          }
         } else {
-          throw new Error(`API endpoint responded with status: ${pingResponse.status}`);
+          throw new Error("Empty response from server");
         }
       } catch (parseError) {
         // If JSON parsing fails, it's likely HTML or other non-JSON content
         console.error("Failed to parse response as JSON:", parseError);
         
-        // Get the first 250 characters of the response to help diagnose
-        const responseText = await pingResponse.text();
         setDiagnosticInfo({
           error: "Server returned non-JSON content",
           contentType: contentType,
