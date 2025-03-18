@@ -45,6 +45,14 @@ export const getProxyServerUrl = (): string => {
     return DEFAULT_PUBLIC_PROXY_URL;
   }
   
+  // Check for custom proxy URL in localStorage (admin only)
+  if (isDev && typeof localStorage !== 'undefined') {
+    const customProxyUrl = localStorage.getItem('custom_proxy_url');
+    if (customProxyUrl) {
+      return customProxyUrl;
+    }
+  }
+  
   // Use localhost in development
   return 'http://localhost:3001';
 };
@@ -56,4 +64,24 @@ export const PROXY_SERVER_URL = getProxyServerUrl;
 export const getProxyUrl = (domain: string): string => {
   const cleanedDomain = cleanDomain(domain);
   return `${getProxyServerUrl()}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
+};
+
+// Function to get a test URL for the proxy
+export const getProxyTestUrl = (): string => {
+  return `${getProxyServerUrl()}/`;
+};
+
+// Function to save a custom proxy URL (admin only)
+export const saveCustomProxyUrl = (url: string): void => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('custom_proxy_url', url);
+    // Force reload to apply the new proxy URL
+    window.location.reload();
+  }
+};
+
+// Function to check if SpyFu API key is available
+export const hasSpyFuApiKey = (): boolean => {
+  // We always have the API key available since it's hardcoded
+  return SPYFU_API_KEY !== '';
 };
