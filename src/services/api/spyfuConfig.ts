@@ -46,45 +46,48 @@ const hasAdminAccess = (): boolean => {
   return false;
 };
 
-// Determine if we're running in a development environment with improved detection
+// Simplified environment detection - only localhost is considered development
 const isDevelopmentEnvironment = (): boolean => {
   // Always consider it production if not in a browser
   if (typeof window === 'undefined') return false;
   
-  // Check for development environment markers
   const hostname = window.location.hostname;
   
-  return (
-    hostname === 'localhost' ||
-    hostname.includes('.local') ||
-    hostname.includes('127.0.0.1')
-  );
+  // Only these specific hostnames are considered development environments
+  const isLocalhost = hostname === 'localhost' || 
+                      hostname === '127.0.0.1' || 
+                      hostname.includes('.local');
+                      
+  console.log(`Current hostname: ${hostname}, isDevelopment: ${isLocalhost}`);
+  return isLocalhost;
 };
 
-// Get the proxy server URL with improved reliability - Always use Railway in production
+// Get the proxy server URL - ALWAYS use Railway in production
 export const getProxyServerUrl = (): string => {
-  // First, check if we're in development mode
+  // First, check if we're in development mode with simplified, reliable detection
   const isDev = isDevelopmentEnvironment();
-  console.log('Environment check - isDevelopmentEnvironment:', isDev);
   
-  // Only use localStorage custom URL for admins
-  if (hasAdminAccess() && typeof localStorage !== 'undefined') {
+  // Log the environment detection for debugging
+  console.log(`Environment detected: ${isDev ? 'Development' : 'Production'}`);
+  
+  // FOR PRODUCTION: Always use Railway URL - no exceptions!
+  if (!isDev) {
+    console.log(`Using Railway proxy URL: ${DEFAULT_PUBLIC_PROXY_URL}`);
+    return DEFAULT_PUBLIC_PROXY_URL;
+  }
+  
+  // FOR DEVELOPMENT ONLY: Check for admin custom URL
+  if (isDev && hasAdminAccess() && typeof localStorage !== 'undefined') {
     const customProxyUrl = localStorage.getItem('custom_proxy_url');
     if (customProxyUrl && customProxyUrl.trim()) {
-      console.log('Admin using custom proxy URL from localStorage:', customProxyUrl);
+      console.log('Admin using custom proxy URL in development:', customProxyUrl);
       return customProxyUrl.trim();
     }
   }
   
-  // Use localhost for development, ALWAYS use Railway for production
-  if (isDev) {
-    console.log('Development environment detected, using localhost:3001');
-    return 'http://localhost:3001';
-  }
-  
-  // Default to Railway deployment URL for production
-  console.log('Production environment detected, using Railway proxy URL:', DEFAULT_PUBLIC_PROXY_URL);
-  return DEFAULT_PUBLIC_PROXY_URL;
+  // Default for development is localhost
+  console.log('Using localhost:3001 for development');
+  return 'http://localhost:3001';
 };
 
 // Function to get the current proxy URL
