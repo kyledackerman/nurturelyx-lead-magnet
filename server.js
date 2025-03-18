@@ -1,39 +1,41 @@
 
+const cors = require('cors');
 const express = require('express');
 const fetch = require('node-fetch');
-const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// 1. Enable CORS with a comprehensive configuration
-// This middleware applies to all routes
+// ✅ Explicitly allow Lovable & Railway Proxy
+const allowedOrigins = [
+  'https://nurture-lead-vision.lovable.app',  
+  'https://nurture-lead-vision-production.up.railway.app'
+];
+
 app.use(cors({
-  origin: '*', // Allow all origins - critical for public API
-  methods: ['GET', 'HEAD', 'OPTIONS'], // Allow common HTTP methods
-  allowedHeaders: ['Content-Type', 'Accept', 'Origin', 'X-Requested-With'],
-  exposedHeaders: ['Content-Length', 'Content-Type'],
-  credentials: false, // Don't send cookies
-  maxAge: 86400, // Cache preflight requests for 24 hours
-  preflightContinue: false,
-  optionsSuccessStatus: 204 // Standard OPTIONS success response
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS Not Allowed'));
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// 2. Add a specific OPTIONS handler for preflight requests
-app.options('*', (req, res) => {
-  res.status(204).send();
+// ✅ Manually set CORS headers for all responses
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");  // You can specify Lovable instead of "*"
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  next();
 });
 
 app.use(express.json());
 
-// ✅ Root route to confirm server is running
 app.get('/', (req, res) => {
-  // Set CORS headers for the root endpoint
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, Origin, X-Requested-With');
-  
   res.json({
     message: 'SpyFu Proxy Server is running!',
     status: 'OK',
@@ -48,11 +50,6 @@ app.get('/proxy/spyfu', async (req, res) => {
   const { domain } = req.query;
 
   if (!domain) {
-    // Set CORS headers even for error responses
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, Origin, X-Requested-With');
-    
     return res.status(400).json({ error: 'Domain parameter is required' });
   }
 
@@ -81,19 +78,9 @@ app.get('/proxy/spyfu', async (req, res) => {
     const data = await response.json();
     console.log('SpyFu API response received successfully');
     
-    // Set CORS headers explicitly in the response - belt and suspenders approach
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, Origin, X-Requested-With');
-    
     res.json(data);
   } catch (error) {
     console.error('SpyFu API Request Failed:', error.message);
-    
-    // Set CORS headers even for error responses
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, Origin, X-Requested-With');
     
     res.status(500).json({ 
       error: 'SpyFu API request failed', 
@@ -105,10 +92,6 @@ app.get('/proxy/spyfu', async (req, res) => {
 
 // Special CORS test endpoint - helps diagnose if CORS is properly configured
 app.get('/cors-test', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, Origin, X-Requested-With');
-  
   res.json({ 
     success: true, 
     message: 'CORS is properly configured!',
