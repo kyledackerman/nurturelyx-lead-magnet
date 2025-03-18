@@ -9,7 +9,6 @@ import { TrafficInputFields } from "./lead-calculator/TrafficInputFields";
 import { TransactionValueInput } from "./lead-calculator/TransactionValueInput";
 import { InfoSection } from "./lead-calculator/InfoSection";
 import { FormActions } from "./lead-calculator/FormActions";
-import { SpyFuApiKeyForm } from "./lead-calculator/SpyFuApiKeyForm";
 import { hasSpyFuApiKey } from "@/services/spyfuService";
 
 interface LeadCalculatorFormProps {
@@ -39,17 +38,16 @@ const LeadCalculatorForm = ({
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [canCalculate, setCanCalculate] = useState<boolean>(false);
   const [showTrafficFields, setShowTrafficFields] = useState<boolean>(false);
-  const [spyfuApiConnected, setSpyfuApiConnected] = useState<boolean>(hasSpyFuApiKey());
-
+  
   useEffect(() => {
-    // Show traffic fields only when there's an API error or SpyFu API is not connected
-    setShowTrafficFields(!!apiError || !spyfuApiConnected);
-  }, [apiError, spyfuApiConnected]);
+    // Show traffic fields only when there's an API error
+    setShowTrafficFields(!!apiError);
+  }, [apiError]);
 
   useEffect(() => {
     const domainIsValid = formData.domain.trim().length > 0;
     
-    // Require traffic fields only if we're showing them (API failed or not connected)
+    // Require traffic fields only if we're showing them (API failed)
     const hasRequiredTraffic = !showTrafficFields || 
       (formData.isUnsurePaid || formData.monthlyVisitors > 0) && 
       (formData.isUnsureOrganic || formData.organicTrafficManual > 0);
@@ -78,14 +76,6 @@ const LeadCalculatorForm = ({
         return newErrors;
       });
     }
-  };
-
-  const handleApiKeySet = () => {
-    setSpyfuApiConnected(true);
-    setShowTrafficFields(false);
-    toast.success("SpyFu API connected successfully", {
-      description: "You can now analyze domains with the SpyFu API."
-    });
   };
 
   const validateForm = (): boolean => {
@@ -156,10 +146,6 @@ const LeadCalculatorForm = ({
         </div>
       </CardHeader>
       <CardContent>
-        {!spyfuApiConnected && !apiError && (
-          <SpyFuApiKeyForm onApiKeySet={handleApiKeySet} />
-        )}
-        
         {apiError && (
           <div className="mb-6">
             <div className="flex items-center justify-center text-sm text-red-600 mt-2 bg-white p-2 rounded border border-red-200">
