@@ -25,7 +25,7 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
       setTestStatus('idle');
       setTestMessage('');
     }
-  }, [proxyUrl]);
+  }, [proxyUrl, testStatus]);
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const url = e.target.value;
@@ -45,15 +45,17 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        signal: AbortSignal.timeout(5000), // 5 second timeout
+        signal: AbortSignal.timeout(3000), // 3 second timeout
       });
       
       if (response.ok) {
         setTestStatus('success');
         setTestMessage('Connection successful! Proxy server is responding.');
+        console.log("✅ Connection test successful!");
       } else {
         setTestStatus('error');
         setTestMessage(`Connection failed with status: ${response.status} ${response.statusText}`);
+        console.error(`❌ Connection test failed with status: ${response.status}`);
       }
     } catch (error) {
       console.error("Proxy test connection error:", error);

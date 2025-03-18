@@ -17,13 +17,14 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [canCalculate, setCanCalculate] = useState<boolean>(false);
   const [showTrafficFields, setShowTrafficFields] = useState<boolean>(false);
-  const [proxyConnected, setProxyConnected] = useState<boolean>(true); // Default to true to hide fields
+  const [proxyConnected, setProxyConnected] = useState<boolean>(false);
   const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
+  const [connectionAttempted, setConnectionAttempted] = useState<boolean>(false);
 
+  // Check proxy connection only once on initial load
   useEffect(() => {
     const checkProxyConnection = async () => {
-      // Only check if we're not already checking to avoid multiple parallel requests
-      if (isCheckingConnection) return;
+      if (isCheckingConnection || connectionAttempted) return;
       
       setIsCheckingConnection(true);
       try {
@@ -35,51 +36,34 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
             'Content-Type': 'application/json',
           },
           // Use a shorter timeout for better UX
-          signal: AbortSignal.timeout(5000),
+          signal: AbortSignal.timeout(3000),
         });
         
         if (response.ok) {
-          setProxyConnected(true);
-          setShowTrafficFields(false);
           console.log("✅ Proxy server is running at:", PROXY_SERVER_URL);
+          setProxyConnected(true);
         } else {
           throw new Error(`Proxy server returned status: ${response.status}`);
         }
       } catch (error) {
-        // We'll only update proxyConnected on explicit failures but won't show fields yet
+        console.error("Proxy connection error:", error);
         setProxyConnected(false);
         console.log("❌ Proxy server connection failed. Make sure it's running at:", PROXY_SERVER_URL);
-        console.error("Proxy connection error:", error);
-        
-        // Don't show toast or fields yet - only after form submission
       } finally {
         setIsCheckingConnection(false);
+        setConnectionAttempted(true);
       }
     };
     
     if (hasSpyFuApiKey()) {
-      // Check connection immediately but don't show fields yet
       checkProxyConnection();
-      
-      // Then check periodically but less frequently (every 60 seconds)
-      const intervalId = setInterval(checkProxyConnection, 60000);
-      return () => clearInterval(intervalId);
     }
-  }, [isCheckingConnection]);
+  }, [isCheckingConnection, connectionAttempted]);
   
-  // Update showTrafficFields ONLY when API error occurs explicitly
+  // Only show traffic fields when there's an explicit API error
   useEffect(() => {
-    // Only show fields when there's an explicit API error
-    const shouldShow = !!apiError;
-    setShowTrafficFields(shouldShow);
-    
-    // If we need to show manual fields and there's an API error,
-    // make sure the user is aware they need to provide data manually
-    if (shouldShow && apiError) {
-      toast.info("Please enter your traffic data manually", {
-        description: "We couldn't connect to the SpyFu API. Manual input is required to continue.",
-        duration: 5000,
-      });
+    if (apiError) {
+      setShowTrafficFields(true);
     }
   }, [apiError]);
 
@@ -137,6 +121,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     proxyConnected,
     handleChange,
     validateForm,
-    setCanCalculate
+    setCanCalculate,
+    setShowTrafficFields
   };
 }

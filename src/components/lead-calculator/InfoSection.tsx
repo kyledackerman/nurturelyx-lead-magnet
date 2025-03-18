@@ -60,57 +60,7 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
             </details>
           )}
         </Alert>
-      ) : proxyConnected ? (
-        isAdminMode && (
-          <Alert className="mt-4 bg-green-50 border-green-200" variant="default">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-                <AlertTitle className="text-green-800 font-semibold">Proxy Server Connected</AlertTitle>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setShowProxyConfig(!showProxyConfig)}
-                className="flex items-center gap-1 text-xs"
-              >
-                <Settings size={14} />
-                {showProxyConfig ? "Hide Config" : "Configure"}
-              </Button>
-            </div>
-            <AlertDescription className="text-green-700">
-              Your proxy server is running and connected at {PROXY_SERVER_URL}. SpyFu API requests will be routed through your proxy.
-            </AlertDescription>
-          </Alert>
-        )
-      ) : (
-        isAdminMode && (
-          <div className="mt-4 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 bg-amber-500 rounded-full"></div>
-              <span className="text-sm text-amber-700">Manual input mode active - proxy disconnected</span>
-            </div>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setShowProxyConfig(!showProxyConfig)}
-                    className="flex items-center gap-1 text-xs"
-                  >
-                    <Settings size={14} />
-                    Configure Proxy
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">Set up your proxy server connection</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        )
-      )}
+      ) : null}
       
       {showProxyConfig && isAdminMode && (
         <ProxyConfigForm onClose={() => setShowProxyConfig(false)} />

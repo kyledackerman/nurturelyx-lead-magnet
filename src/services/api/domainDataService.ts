@@ -31,9 +31,9 @@ export const fetchDomainData = async (
     console.log(`Analyzing domain: ${cleanedDomain}`);
     
     try {
-      // Set a timeout for the API request (30 seconds)
+      // Set a timeout for the API request (15 seconds - reduced for better UX)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
       
       // Get the proxy URL for the cleaned domain
       const proxyUrl = getProxyUrl(cleanedDomain);
@@ -48,7 +48,6 @@ export const fetchDomainData = async (
           'Accept': 'application/json'
         },
         signal: controller.signal,
-        // Add cache control to avoid caching issues
         cache: 'no-cache',
       });
       
@@ -136,12 +135,6 @@ export const fetchDomainData = async (
           description: `Unable to connect to the proxy server. You will now need to enter your traffic data manually to continue.`
         });
       }
-      
-      // Show a warning toast for API connection issues
-      toast.warning(`API connection issue for ${domain}`, { 
-        id: toastId, 
-        description: `Please enter your traffic data manually to continue.`,
-      });
       
       // If manual data provided, use it
       if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual > 0) {

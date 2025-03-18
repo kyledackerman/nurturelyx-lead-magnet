@@ -9,6 +9,7 @@ import { TransactionValueInput } from "./lead-calculator/TransactionValueInput";
 import { InfoSection } from "./lead-calculator/InfoSection";
 import { FormActions } from "./lead-calculator/FormActions";
 import { useLeadCalculatorForm } from "./lead-calculator/useLeadCalculatorForm";
+import { fetchDomainData } from "@/services/spyfuService";
 
 interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
@@ -32,17 +33,52 @@ const LeadCalculatorForm = ({
     showTrafficFields,
     proxyConnected,
     handleChange,
-    validateForm
+    validateForm,
+    setShowTrafficFields
   } = useLeadCalculatorForm(initialData, apiError);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (validateForm()) {
-      onCalculate(formData);
-      toast.success("Calculating your report", {
-        description: "Processing your data to generate insights."
-      });
+      try {
+        // Check if we should try API first
+        if (!showTrafficFields && formData.domain) {
+          toast.loading("Analyzing domain...", {
+            id: "domain-analysis",
+            description: "Fetching traffic data from SpyFu API"
+          });
+          
+          try {
+            // Try fetching data from API first
+            await fetchDomainData(formData.domain);
+            // If successful, continue with form submission
+            onCalculate(formData);
+            toast.success("Calculating your report", {
+              id: "domain-analysis",
+              description: "Processing your data to generate insights."
+            });
+          } catch (error) {
+            // If API fails, show traffic fields and ask for manual input
+            console.error("API fetch failed:", error);
+            setShowTrafficFields(true);
+            toast.error("API Connection Issue", {
+              id: "domain-analysis",
+              description: "Please enter your traffic data manually to continue."
+            });
+          }
+        } else {
+          // Traffic fields are already visible, just submit the form
+          onCalculate(formData);
+          toast.success("Calculating your report", {
+            description: "Processing your data to generate insights."
+          });
+        }
+      } catch (error) {
+        toast.error("Error submitting form", {
+          description: "Please check your inputs and try again."
+        });
+      }
     } else {
       toast.error("Please fix the errors before continuing", {
         description: "Some required information is missing or invalid."
