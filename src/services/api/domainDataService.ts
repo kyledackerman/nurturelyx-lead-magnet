@@ -4,7 +4,8 @@ import { ApiData } from "@/types/report";
 import { 
   isValidDomain, 
   cleanDomain, 
-  getProxyUrl 
+  getProxyUrl,
+  SPYFU_API_KEY
 } from "./spyfuConfig";
 import { generateFallbackData } from "./fallbackDataService";
 
@@ -27,6 +28,7 @@ export const fetchDomainData = async (
     }
     
     console.log(`Analyzing domain: ${cleanedDomain}`);
+    console.log(`API Key available: ${Boolean(SPYFU_API_KEY)}`);
     
     try {
       // Get the proxy URL for the cleaned domain
@@ -49,6 +51,7 @@ export const fetchDomainData = async (
       clearTimeout(timeoutId);
       
       if (!response.ok) {
+        console.error(`Proxy API error: ${response.status} ${response.statusText}`);
         throw new Error(`Proxy API error: ${response.status} ${response.statusText}`);
       }
       

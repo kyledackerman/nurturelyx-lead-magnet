@@ -1,4 +1,3 @@
-
 // SpyFu API configuration
 export const SPYFU_API_USERNAME = 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
 export const SPYFU_API_KEY = 'VESAPD8P';
@@ -83,5 +82,5 @@ export const saveCustomProxyUrl = (url: string): void => {
 // Function to check if SpyFu API key is available
 export const hasSpyFuApiKey = (): boolean => {
   // We always have the API key available since it's hardcoded
-  return SPYFU_API_KEY !== '';
+  return Boolean(SPYFU_API_KEY);
 };

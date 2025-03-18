@@ -23,7 +23,7 @@ export function useFormState(initialData?: FormData | null, apiError?: string | 
     }
   }, [initialData]);
   
-  // Show traffic fields only when API error occurs
+  // Show traffic fields ONLY when API error occurs
   useEffect(() => {
     if (apiError) {
       setShowTrafficFields(true);
