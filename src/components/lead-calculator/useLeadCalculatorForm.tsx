@@ -3,17 +3,20 @@ import { FormData } from "@/types/report";
 import { useFormState } from "@/hooks/calculator/useFormState";
 import { useFormValidation } from "@/hooks/calculator/useFormValidation";
 import { useProxyConnection } from "@/hooks/calculator/useProxyConnection";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: string | null) {
   // Use our specialized hooks
   const {
     formData,
-    showTrafficFields,
+    showTrafficFields: formStateShowTrafficFields,
     handleChange,
     setShowTrafficFields,
     resetForm
   } = useFormState(initialData, apiError);
+
+  // Explicitly track traffic field visibility in this component
+  const [shouldShowTrafficFields, setShouldShowTrafficFields] = useState<boolean>(false);
 
   const {
     errors,
@@ -22,7 +25,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     clearFieldError,
     setErrors,
     setCanCalculate
-  } = useFormValidation(formData, showTrafficFields);
+  } = useFormValidation(formData, shouldShowTrafficFields);
 
   const {
     proxyConnected,
@@ -45,20 +48,29 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     resetForm();
     setErrors({});
     resetConnectionState();
+    setShouldShowTrafficFields(false);
   };
   
   // IMPORTANT: Only show traffic fields when there's a connection or API error
   // We use useEffect to avoid showing fields during initial render
   useEffect(() => {
-    if (connectionError || apiError) {
+    const hasError = Boolean(connectionError || apiError);
+    
+    if (hasError) {
+      console.log("Error detected, showing traffic fields:", { connectionError, apiError });
+      setShouldShowTrafficFields(true);
       setShowTrafficFields(true);
+    } else {
+      // Default to always hiding traffic fields unless there's an error
+      setShouldShowTrafficFields(false);
+      setShowTrafficFields(false);
     }
   }, [connectionError, apiError, setShowTrafficFields]);
 
   return {
     // Form state
     formData,
-    showTrafficFields, // Use direct value from state, not computed
+    showTrafficFields: shouldShowTrafficFields, // Use our explicit state, not from formState
     
     // Form validation
     errors,
@@ -76,7 +88,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     handleChange: handleFormChange,
     validateForm,
     setCanCalculate,
-    setShowTrafficFields,
+    setShowTrafficFields: setShouldShowTrafficFields, // Use our explicit setter
     resetForm: resetFormCompletely
   };
 }

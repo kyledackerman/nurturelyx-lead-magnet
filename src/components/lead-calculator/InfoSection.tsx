@@ -29,7 +29,9 @@ export const InfoSection = ({
   const railwayUrl = "https://nurture-lead-vision-production.up.railway.app";
 
   // Is the error related to HTML response?
-  const isHtmlError = connectionError?.includes("HTML") || 
+  const isHtmlError = connectionError?.includes("<!DOCTYPE") || 
+                     connectionError?.includes("HTML") || 
+                     connectionError?.includes("Unexpected token '<'") ||
                      (diagnosticInfo?.htmlDetected === true) ||
                      (diagnosticInfo?.isHtmlResponse === true);
 
@@ -68,7 +70,7 @@ export const InfoSection = ({
     );
   }
 
-  // Show connection error message
+  // Show connection error message with enhanced HTML detection
   if (connectionError) {
     return (
       <Alert className="mt-4 bg-white" variant="destructive">
@@ -78,12 +80,19 @@ export const InfoSection = ({
           <div className="flex flex-col">
             <p>{connectionError}</p>
             {isHtmlError && (
-              <p className="text-sm mt-1">
-                <strong>Problem detected:</strong> The server is returning HTML instead of JSON. 
-                This usually means there's a proxy, CDN, or firewall in the path.
-              </p>
+              <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
+                <p className="font-medium text-yellow-800">HTML Response Detected</p>
+                <p className="text-yellow-700 mt-1">
+                  The server is returning HTML instead of JSON. This usually happens when:
+                </p>
+                <ul className="list-disc pl-5 mt-1 text-yellow-700 space-y-1">
+                  <li>The server is redirecting to a login page</li>
+                  <li>There's a proxy, CDN, or firewall in the path</li>
+                  <li>The server is returning an error page</li>
+                </ul>
+              </div>
             )}
-            <p className="text-sm mt-2 font-medium">Enter your traffic data below to continue with the calculator.</p>
+            <p className="text-sm mt-3 font-medium">Enter your traffic data below to continue with the calculator.</p>
             
             <div className="flex flex-wrap gap-2 mt-2">
               {onRetryConnection && (
@@ -124,41 +133,9 @@ export const InfoSection = ({
                 <pre>{JSON.stringify(diagnosticInfo, null, 2)}</pre>
               </div>
             )}
-            
-            {isHtmlError && showDiagnostics && (
-              <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs">
-                <p className="font-semibold text-yellow-800">Troubleshooting HTML Response:</p>
-                <ul className="list-disc pl-5 mt-1 text-yellow-700 space-y-1">
-                  <li>The API is returning HTML instead of JSON</li>
-                  <li>This typically happens when there's a proxy, CDN, or security service intercepting requests</li>
-                  <li>Try visiting the API directly in a new tab to see what happens</li>
-                  <li>You can still use the calculator by manually entering your traffic data</li>
-                </ul>
-              </div>
-            )}
           </div>
         </AlertDescription>
       </Alert>
-    );
-  }
-
-  // Show success message when connected
-  if (proxyConnected) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-3 rounded-md mt-4">
-        <CheckCircle2 size={16} className="flex-shrink-0" />
-        <span>Connected to SpyFu traffic data service</span>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-xs ml-auto text-green-800 hover:text-green-900 hover:bg-green-100 p-1 h-auto"
-          onClick={() => setShowProxyConfig(!showProxyConfig)}
-        >
-          <Server className="h-3 w-3 mr-1" />
-          Server info
-        </Button>
-        {showProxyConfig && <ProxyConfigForm onClose={() => setShowProxyConfig(false)} diagnosticInfo={diagnosticInfo} />}
-      </div>
     );
   }
 

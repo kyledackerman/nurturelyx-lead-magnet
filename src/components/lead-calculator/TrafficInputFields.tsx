@@ -36,7 +36,8 @@ export const TrafficInputFields = ({ formData, handleChange, errors, showTraffic
         </p>
       </div>
 
-      {showTrafficFields && (
+      {/* ONLY show traffic fields when explicitly enabled - controlled by parent components */}
+      {showTrafficFields === true && (
         <>
           <div className="space-y-2">
             <Label htmlFor="monthlyVisitors" className="block font-medium">
