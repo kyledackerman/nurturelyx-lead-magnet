@@ -8,7 +8,7 @@ export function useProxyConnection() {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState<number>(0);
   const [diagnosticInfo, setDiagnosticInfo] = useState<any>(null);
-  const MAX_RETRIES = 2; // Reduced from 3 to 2 to fail faster
+  const MAX_RETRIES = 2;
 
   const checkProxyConnection = useCallback(async () => {
     if (connectionAttempted && retryCount >= MAX_RETRIES) return;
@@ -20,9 +20,9 @@ export function useProxyConnection() {
     try {
       console.log(`Testing API connection at: /api`);
       
-      // Try the API endpoint first for diagnostics
+      // Try the API endpoint with a shorter timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // Reduced from 8000 to 5000ms for faster timeout
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
       // Use a simple GET request to the API endpoint
       const pingResponse = await fetch('/api', {
@@ -30,13 +30,24 @@ export function useProxyConnection() {
         mode: 'cors',
         signal: controller.signal,
         credentials: 'omit',
-        cache: 'no-store'
+        cache: 'no-store',
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
       });
       
       clearTimeout(timeoutId);
       
-      // Save the response text for debugging
-      const responseText = await pingResponse.text();
+      // Save the response for diagnostics
+      let responseText;
+      try {
+        responseText = await pingResponse.text();
+        console.log("API response text:", responseText.substring(0, 100));
+      } catch (e) {
+        console.error("Error reading response text:", e);
+        responseText = "Error reading response";
+      }
       
       // Try to parse it as JSON
       let jsonData = null;
@@ -47,7 +58,7 @@ export function useProxyConnection() {
         console.error("API endpoint did not return valid JSON. Got:", responseText.substring(0, 100));
         setDiagnosticInfo({
           error: "Invalid JSON response",
-          responseText: responseText.substring(0, 250), // First 250 chars
+          responseText: responseText.substring(0, 250),
           htmlDetected: responseText.includes("<!DOCTYPE") || responseText.includes("<html")
         });
         throw new Error(`Server returned HTML instead of JSON: ${responseText.substring(0, 50)}...`);
@@ -64,7 +75,6 @@ export function useProxyConnection() {
     } catch (error: any) {
       console.error("❌ API connection error:", error);
       
-      // Enhanced error messages with more details
       let errorMessage = "Cannot connect to API server. Try refreshing or check your network.";
       
       if (error.name === "AbortError") {
@@ -78,7 +88,6 @@ export function useProxyConnection() {
       setProxyConnected(false);
       setConnectionError(errorMessage);
       
-      // Store error diagnostics
       setDiagnosticInfo({
         error: error.message || "Unknown error",
         name: error.name || "Error",
@@ -103,7 +112,7 @@ export function useProxyConnection() {
       } else {
         clearInterval(retryTimer);
       }
-    }, 7000); // Try every 7 seconds - reduced from 10s 
+    }, 7000);
     
     // Cleanup
     return () => {

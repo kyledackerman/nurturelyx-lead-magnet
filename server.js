@@ -10,26 +10,24 @@ const PORT = process.env.PORT || 3001;
 
 // Add error handling for uncaught exceptions
 process.on('uncaughtException', (error) => {
-  console.error('UNCAUGHT EXCEPTION:', error);
-  // Don't exit the process as Railway will restart it anyway
+  console.error('CRITICAL ERROR - UNCAUGHT EXCEPTION:', error);
+  // We'll log but not exit the process as Railway will restart it
 });
 
 // Add error handling for unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('UNHANDLED REJECTION:', reason);
+  console.error('CRITICAL ERROR - UNHANDLED REJECTION:', reason);
 });
 
-// ✅ SUPER PERMISSIVE CORS configuration - Accept ALL origins with ALL methods
+// Extremely permissive CORS configuration - Accept ALL origins
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  credentials: false,
-  preflightContinue: false,
-  optionsSuccessStatus: 204
+  allowedHeaders: '*',
+  credentials: false
 }));
 
-// ✅ Ensure CORS headers on EVERY Response
+// Ensure CORS headers on every response
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -43,13 +41,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Middleware to parse JSON requests
+// Middleware to parse JSON requests
 app.use(express.json());
 
-// ✅ Root Route (Confirms API is Running) - Keep this super simple
+// Root Route (Confirms API is Running)
 app.get("/api", (req, res) => {
   try {
-    res.header('Access-Control-Allow-Origin', '*');
+    console.log("API root endpoint called");
     res.json({ 
       message: "SpyFu Proxy Server is running!", 
       status: "OK",
@@ -61,18 +59,17 @@ app.get("/api", (req, res) => {
   }
 });
 
-// ✅ Health check route to diagnose the server
+// Health check route
 app.get("/health", (req, res) => {
   try {
     const memoryUsage = process.memoryUsage();
-    const uptime = process.uptime();
+    console.log("Health check called");
     
     res.json({
       status: "healthy",
       serverTime: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
       port: PORT,
-      uptime: `${Math.floor(uptime / 60)} minutes, ${Math.floor(uptime % 60)} seconds`,
       memory: {
         rss: `${Math.round(memoryUsage.rss / 1024 / 1024)} MB`,
         heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)} MB`,
@@ -81,6 +78,7 @@ app.get("/health", (req, res) => {
       spyfuCredentials: {
         hasApiUsername: !!process.env.SPYFU_API_USERNAME,
         hasApiKey: !!process.env.SPYFU_API_KEY,
+        // Fallback credentials available
         usingFallbacks: true
       }
     });
@@ -90,19 +88,17 @@ app.get("/health", (req, res) => {
   }
 });
 
-// ✅ SpyFu Proxy API Route
+// SpyFu Proxy API Route
 app.get("/proxy/spyfu", async (req, res) => {
+  console.log("SpyFu proxy endpoint called");
   try {
-    // Ensure CORS headers for this specific route
-    res.header('Access-Control-Allow-Origin', '*');
-    
     const { domain } = req.query;
 
     if (!domain) {
       return res.status(400).json({ error: "Domain parameter is required" });
     }
 
-    // ✅ Use environment variables for SpyFu API credentials
+    // Use environment variables for SpyFu API credentials with fallbacks
     const username = process.env.SPYFU_API_USERNAME || 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
     const apiKey = process.env.SPYFU_API_KEY || 'VESAPD8P';
 
@@ -132,9 +128,7 @@ app.get("/proxy/spyfu", async (req, res) => {
     }
 
     const data = await response.json();
-
-    // ✅ Apply CORS Headers on API Response
-    res.header("Access-Control-Allow-Origin", "*");
+    console.log("SpyFu API call successful");
     res.json(data);
   } catch (error) {
     console.error("SpyFu API Fetch Error:", error.message);
@@ -145,14 +139,13 @@ app.get("/proxy/spyfu", async (req, res) => {
   }
 });
 
-// ✅ Debug Route to Check CORS
+// Debug Route to Check CORS
 app.get("/debug-headers", (req, res) => {
   try {
-    res.header('Access-Control-Allow-Origin', '*');
+    console.log("Debug headers endpoint called");
     res.json({
       headers: req.headers,
-      message: "CORS Debugging - Headers Confirmed.",
-      timestamp: new Date().toISOString()
+      message: "CORS Debugging - Headers Confirmed"
     });
   } catch (error) {
     console.error("Error in /debug-headers route:", error);
@@ -160,7 +153,7 @@ app.get("/debug-headers", (req, res) => {
   }
 });
 
-// Improved error handling for static files
+// Serve static files from the dist directory
 app.use(express.static(path.join(__dirname, 'dist'), {
   fallthrough: true,
   index: 'index.html'
@@ -169,6 +162,7 @@ app.use(express.static(path.join(__dirname, 'dist'), {
 // Any routes not matched by API endpoints should serve the index.html
 app.get('*', (req, res) => {
   try {
+    console.log(`Serving frontend for path: ${req.path}`);
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
   } catch (error) {
     console.error("Error serving index.html:", error);
@@ -176,12 +170,26 @@ app.get('*', (req, res) => {
   }
 });
 
-// ✅ Start Server with error handling
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}, serving both API and frontend`);
-  console.log(`API endpoint available at: http://localhost:${PORT}/api`);
-  console.log(`SpyFu proxy available at: http://localhost:${PORT}/proxy/spyfu?domain=example.com`);
-  console.log(`Frontend served from: ${path.join(__dirname, 'dist')}`);
+// Start Server with better error handling
+const server = app.listen(PORT, () => {
+  console.log(`
+🚀 Server running on port ${PORT}
+📁 Serving static files from: ${path.join(__dirname, 'dist')}
+🔌 API endpoints:
+   - /api (Server status)
+   - /health (Health check)
+   - /proxy/spyfu (SpyFu proxy)
+   - /debug-headers (CORS debugging)
+  `);
 }).on('error', (error) => {
   console.error('SERVER START ERROR:', error);
+});
+
+// Handle server shutdown gracefully
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });
