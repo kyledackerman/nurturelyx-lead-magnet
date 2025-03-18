@@ -28,26 +28,39 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
       if (isCheckingConnection || connectionAttempted) return;
       
       setIsCheckingConnection(true);
+      const connectionToastId = toast.loading("Checking SpyFu API connection...");
+      
       try {
         console.log("Testing proxy connection to:", `${PROXY_SERVER_URL}/proxy/spyfu?domain=ping`);
         
         // Update the isUsingRailway state
         setIsUsingRailway(PROXY_SERVER_URL === DEFAULT_PUBLIC_PROXY_URL);
         
-        const response = await fetch(`${PROXY_SERVER_URL}/proxy/spyfu?domain=ping`, {
+        // Show the loading toast for at least 2 seconds
+        const connectionPromise = fetch(`${PROXY_SERVER_URL}/proxy/spyfu?domain=ping`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             'Cache-Control': 'no-cache, no-store',
             'Pragma': 'no-cache'
           },
-          // Use a short timeout for better UX
-          signal: AbortSignal.timeout(5000),
+          // Use a timeout for better UX
+          signal: AbortSignal.timeout(7000),
         });
+        
+        // Ensure we show the loading state for at least 2 seconds
+        const [response] = await Promise.all([
+          connectionPromise,
+          new Promise(resolve => setTimeout(resolve, 2000))
+        ]);
         
         if (response.ok) {
           console.log("✅ Proxy server is running at:", PROXY_SERVER_URL);
           setProxyConnected(true);
+          
+          toast.success("SpyFu API connection established", {
+            id: connectionToastId
+          });
           
           if (PROXY_SERVER_URL === DEFAULT_PUBLIC_PROXY_URL) {
             console.log("✅ Using Railway deployment:", DEFAULT_PUBLIC_PROXY_URL);
@@ -60,6 +73,14 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
       } catch (error) {
         console.error("Proxy connection error:", error);
         setProxyConnected(false);
+        
+        // Wait a minimum of 3 seconds before showing the error
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        toast.error("SpyFu API connection failed", {
+          id: connectionToastId,
+          description: "You can enter traffic data manually to continue."
+        });
         
         if (PROXY_SERVER_URL === DEFAULT_PUBLIC_PROXY_URL) {
           console.log("❌ Railway proxy connection failed:", DEFAULT_PUBLIC_PROXY_URL);

@@ -28,12 +28,7 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
           <AlertDescription className="text-red-700">
             {apiError.includes("proxy") ? (
               <>
-                <p>We couldn't connect to the proxy server. Please check that:</p>
-                <ol className="list-decimal pl-5 mt-2 space-y-1 text-sm">
-                  <li>Your proxy server is running at <code className="bg-gray-200 px-1 rounded">{PROXY_SERVER_URL}</code></li>
-                  <li>Your proxy server has CORS enabled for this domain</li>
-                  <li>Your network/firewall allows connections to the proxy server</li>
-                </ol>
+                <p>We couldn't connect to the SpyFu API. Please enter your traffic data manually to continue.</p>
                 {isAdmin && (
                   <div className="mt-3">
                     <Button 
@@ -55,10 +50,13 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
               </>
             )}
           </AlertDescription>
-          <details className="mt-2">
-            <summary className="text-xs text-red-600 cursor-pointer">Technical details</summary>
-            <p className="text-xs text-red-600 mt-1 bg-gray-50 p-1 rounded">{apiError}</p>
-          </details>
+          {isAdmin && (
+            <details className="mt-2">
+              <summary className="text-xs text-red-600 cursor-pointer">Technical details (admin only)</summary>
+              <p className="text-xs text-red-600 mt-1 bg-gray-50 p-1 rounded">{apiError}</p>
+              <p className="text-xs text-red-700 mt-1">Current proxy URL: {PROXY_SERVER_URL}</p>
+            </details>
+          )}
         </Alert>
       ) : (
         // Display Railway connection status when no error
@@ -66,7 +64,7 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
           {proxyConnected && isUsingRailway && (
             <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded-md mt-4">
               <CheckCircle2 size={16} className="flex-shrink-0" />
-              <span>Connected to Railway proxy server at <code className="text-xs bg-white px-1 rounded">{DEFAULT_PUBLIC_PROXY_URL}</code></span>
+              <span>Connected to SpyFu API via Railway proxy</span>
             </div>
           )}
           

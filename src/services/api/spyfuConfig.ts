@@ -35,7 +35,7 @@ export const hasSpyFuApiKey = (): boolean => {
   return SPYFU_API_USERNAME.length > 0 && SPYFU_API_KEY.length > 0;
 };
 
-// Default public proxy URL - updated to Railway deployment
+// Railway deployment URL - our primary proxy server
 export const DEFAULT_PUBLIC_PROXY_URL = 'https://nurture-lead-vision-production.up.railway.app';
 
 // Check if current user has admin access
@@ -46,25 +46,39 @@ const hasAdminAccess = (): boolean => {
   return false;
 };
 
-// Get the proxy server URL - prioritizes localStorage setting only for admins, then default
+// Determine if we're running in a development environment
+const isDevelopmentEnvironment = (): boolean => {
+  // Check for development environment markers
+  return (
+    process.env.NODE_ENV === 'development' || 
+    window.location.hostname === 'localhost' ||
+    window.location.hostname.includes('.local') ||
+    window.location.port === '3000' ||
+    window.location.port === '5173'
+  );
+};
+
+// Get the proxy server URL with improved logic
 export const getProxyServerUrl = (): string => {
+  console.log('Getting proxy server URL...');
+  
   // Only check for custom proxy URL in localStorage if admin access is granted
   if (hasAdminAccess() && typeof localStorage !== 'undefined') {
     const customProxyUrl = localStorage.getItem('custom_proxy_url');
     if (customProxyUrl) {
       console.log('Admin using custom proxy URL from localStorage:', customProxyUrl);
-      return customProxyUrl;
+      return customProxyUrl.trim();
     }
   }
   
-  // If we're in development and no custom URL is set, use localhost
-  if (process.env.NODE_ENV === 'development') {
+  // Check if we're running in development
+  if (isDevelopmentEnvironment()) {
     console.log('Development environment detected, using localhost:3001');
     return 'http://localhost:3001';
   }
   
-  // In production with no custom URL, use the default public URL (Railway)
-  console.log('Production environment detected, using Railway proxy URL');
+  // Default to Railway deployment URL for production
+  console.log('Production environment detected, using Railway proxy URL:', DEFAULT_PUBLIC_PROXY_URL);
   return DEFAULT_PUBLIC_PROXY_URL;
 };
 
@@ -82,7 +96,7 @@ export const saveCustomProxyUrl = (url: string): void => {
     // Basic validation to ensure it's a URL
     if (url.startsWith('http://') || url.startsWith('https://')) {
       console.log('Admin saving custom proxy URL to localStorage:', url);
-      localStorage.setItem('custom_proxy_url', url);
+      localStorage.setItem('custom_proxy_url', url.trim());
       // Force a page reload to apply the new URL
       window.location.reload();
     }

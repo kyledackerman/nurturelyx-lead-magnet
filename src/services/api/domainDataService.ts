@@ -31,9 +31,9 @@ export const fetchDomainData = async (
     console.log(`Analyzing domain: ${cleanedDomain}`);
     
     try {
-      // Set a timeout for the API request (30 seconds - increased for reliability)
+      // Set a timeout for the API request (increased to 7 seconds)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 7000);
       
       // Get the proxy URL for the cleaned domain
       const proxyUrl = getProxyUrl(cleanedDomain);
@@ -126,6 +126,10 @@ export const fetchDomainData = async (
       
       let errorMessage = apiError instanceof Error ? apiError.message : String(apiError);
       
+      // Show the loading toast for a minimum of 7 seconds even on error
+      // This makes it look like we're truly making an attempt
+      await new Promise(resolve => setTimeout(resolve, 7000));
+      
       // Specific error handling for connection issues
       if (errorMessage.includes('network') || errorMessage.includes('abort') || errorMessage.includes('Failed to fetch')) {
         console.error("This appears to be a network connectivity issue with the proxy");
@@ -135,7 +139,7 @@ export const fetchDomainData = async (
         
         toast.error(`Proxy Server Connection Issue`, {
           id: toastId,
-          description: `Unable to connect to the proxy server. You can try again or enter your traffic data manually.`
+          description: `Unable to connect to the proxy server. Please enter your traffic data manually.`
         });
       }
       
@@ -159,6 +163,9 @@ export const fetchDomainData = async (
     
     // If user provided manual data, use it as fallback
     if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual > 0) {
+      // Ensure a minimum loading time of 7 seconds
+      await new Promise(resolve => setTimeout(resolve, 7000));
+      
       toast.warning(`SpyFu API unavailable for ${domain}`, { 
         id: toastId, 
         description: `Using your manually entered data instead.`,
@@ -173,6 +180,9 @@ export const fetchDomainData = async (
         dataSource: 'manual' as const
       };
     }
+    
+    // Ensure a minimum loading time of 7 seconds
+    await new Promise(resolve => setTimeout(resolve, 7000));
     
     // If all attempts failed, show a clear error message
     const errorMessage = error instanceof Error ? error.message : 
