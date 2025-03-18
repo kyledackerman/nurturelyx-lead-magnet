@@ -1,7 +1,8 @@
 
 import { FormData } from "@/types/report";
 import LeadCalculatorForm from "@/components/LeadCalculatorForm";
-import { AlertCircle, ServerOff } from "lucide-react";
+import { AlertCircle, ServerOff, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface FormSectionProps {
   apiError: string | null;
@@ -16,30 +17,45 @@ const FormSection = ({ apiError, formDataCache, onCalculate, onReset, isCalculat
     <section className="py-12">
       <div className="container mx-auto px-4 max-w-4xl">
         {apiError && (
-          <div className="mb-8 max-w-2xl mx-auto">
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm">
+          <div className="mb-8">
+            <Alert variant="destructive" className="border-red-500 bg-red-50 mb-4">
+              <ServerOff className="h-5 w-5 text-red-500" />
+              <AlertTitle className="text-red-800 text-lg">API Connection Error</AlertTitle>
+              <AlertDescription>
+                <p className="text-red-700">{apiError}</p>
+                <p className="mt-2 font-medium text-red-800">
+                  {apiError.includes("browser's security policy") 
+                    ? "Please enter your traffic data manually to continue." 
+                    : "You can enter your traffic data manually to continue."}
+                </p>
+              </AlertDescription>
+            </Alert>
+            
+            <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-md shadow-sm">
               <div className="flex items-start">
                 <div className="flex-shrink-0">
-                  <ServerOff className="h-5 w-5 text-red-500" aria-hidden="true" />
+                  <AlertTriangle className="h-5 w-5 text-amber-500" aria-hidden="true" />
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">API Connection Error</h3>
-                  <div className="mt-1 text-sm text-red-700">
-                    <p>{apiError}</p>
-                    <p className="mt-1 font-medium">
-                      {apiError.includes("browser's security policy") 
-                        ? "Please enter your traffic data manually to continue." 
-                        : "You can enter your traffic data manually to continue."}
+                  <h3 className="text-sm font-medium text-amber-800">Technical Details (for Administrators)</h3>
+                  <div className="mt-1 text-sm text-amber-700">
+                    <p>The application is unable to connect to the SpyFu API proxy server.</p>
+                    <p className="mt-1">
+                      {apiError.includes("CORS") || apiError.includes("browser's security policy")
+                        ? "This appears to be a CORS (Cross-Origin Resource Sharing) policy issue. The browser is blocking requests to the API for security reasons."
+                        : "This could be a network connectivity issue or the proxy server may be unavailable."}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="mt-4 text-center text-sm text-gray-600">
-              <div className="inline-flex items-center">
-                <AlertCircle className="h-4 w-4 mr-1 text-amber-500" />
-                <span>Having trouble? Try entering your traffic data manually in the form below.</span>
+            <div className="mt-4 text-center text-sm bg-blue-50 p-3 rounded-md border border-blue-200">
+              <div className="flex items-center justify-center">
+                <AlertCircle className="h-4 w-4 mr-1 text-blue-500" />
+                <span className="font-medium text-blue-700">
+                  Don't worry! You can still use the calculator by entering your traffic data manually below.
+                </span>
               </div>
             </div>
           </div>

@@ -10,32 +10,27 @@ const PORT = process.env.PORT || 3001;
 // ✅ Enable Express to trust proxies (for Railway)
 app.set('trust proxy', 1);
 
-// ✅ Allow all domains temporarily to debug CORS issues
-const allowedOrigins = [
-  'https://nurture-lead-vision.lovable.app',
-  'https://nurture-lead-vision-production.up.railway.app'
-];
-
+// ✅ Apply CORS middleware globally with most permissive settings for debugging
 app.use(cors({
-  origin: '*',  // ✅ TEMP: Allow all origins (Debug mode)
+  origin: '*',  // ✅ Allow all origins temporarily for debugging
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'Cache-Control', 'Pragma'],
+  credentials: false,
+  maxAge: 86400 // 24 hours
 }));
 
-// ✅ Handle OPTIONS preflight requests properly
-app.options('*', (req, res) => {
+// ✅ Add manual CORS headers to all responses
+app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.status(200).end();
-});
-
-// ✅ Debugging Route to Check CORS
-app.get('/debug-headers', (req, res) => {
-  res.json({
-    headers: req.headers,
-    message: "CORS Debugging - Headers Confirmed."
-  });
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Origin, Cache-Control, Pragma");
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
 });
 
 // ✅ Root Route for API Status
@@ -43,6 +38,7 @@ app.get('/', (req, res) => {
   res.json({
     message: 'SpyFu Proxy Server is running!',
     status: 'OK',
+    timestamp: new Date().toISOString(),
     endpoints: {
       spyfu: '/proxy/spyfu?domain=example.com',
       debug: '/debug-headers'
@@ -50,7 +46,25 @@ app.get('/', (req, res) => {
   });
 });
 
-// ✅ SpyFu Proxy API Route - THIS WAS MISSING IN THE PREVIOUS CODE!
+// ✅ Debugging Route to Check CORS
+app.get('/cors-test', (req, res) => {
+  res.json({
+    success: true, 
+    message: 'CORS is properly configured!',
+    origin: req.headers.origin || 'No origin header',
+    headers: req.headers
+  });
+});
+
+// ✅ Debug headers route
+app.get('/debug-headers', (req, res) => {
+  res.json({
+    headers: req.headers,
+    message: "CORS Debugging - Headers Confirmed."
+  });
+});
+
+// ✅ SpyFu Proxy API Route
 app.get('/proxy/spyfu', async (req, res) => {
   const { domain } = req.query;
 
@@ -93,16 +107,6 @@ app.get('/proxy/spyfu', async (req, res) => {
       message: 'If you are seeing this from a browser client, please enter traffic data manually.'
     });
   }
-});
-
-// Special CORS test endpoint - helps diagnose if CORS is properly configured
-app.get('/cors-test', (req, res) => {
-  res.json({ 
-    success: true, 
-    message: 'CORS is properly configured!',
-    origin: req.headers.origin || 'No origin header',
-    headers: req.headers
-  });
 });
 
 // ✅ Handle Undefined Routes (Prevents "Not Found" Errors)
