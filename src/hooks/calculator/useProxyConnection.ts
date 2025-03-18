@@ -1,13 +1,12 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { DEFAULT_PUBLIC_PROXY_URL, PROXY_SERVER_URL } from "@/services/api/spyfuConfig";
+import { DEFAULT_PUBLIC_PROXY_URL } from "@/services/api/spyfuConfig";
 
 export function useProxyConnection() {
   const [proxyConnected, setProxyConnected] = useState<boolean>(false);
   const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
   const [connectionAttempted, setConnectionAttempted] = useState<boolean>(false);
-  const [isUsingRailway, setIsUsingRailway] = useState<boolean>(true);
 
   useEffect(() => {
     const checkProxyConnection = async () => {
@@ -17,11 +16,9 @@ export function useProxyConnection() {
       const connectionToastId = toast.loading("Checking API connection...");
       
       try {
-        // Force use of the Railway URL to avoid user-configured URLs that may fail
+        // ONLY use the Railway URL
         const proxyUrl = DEFAULT_PUBLIC_PROXY_URL;
         console.log("Testing proxy connection to:", `${proxyUrl}/`);
-        
-        setIsUsingRailway(true);
         
         // Test the root endpoint with a timeout
         const controller = new AbortController();
@@ -80,7 +77,7 @@ export function useProxyConnection() {
 
   return {
     proxyConnected,
-    isUsingRailway: true, // Always return true to force Railway usage
+    isUsingRailway: true, // Always true, we only use Railway
     resetConnectionState
   };
 }

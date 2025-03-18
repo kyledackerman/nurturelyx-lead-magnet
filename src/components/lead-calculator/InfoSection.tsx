@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { LineChart, AlertCircle, ExternalLink, Settings, HelpCircle, Server, CheckCircle2 } from "lucide-react";
+import { LineChart, AlertCircle, ExternalLink, HelpCircle, Server, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_PUBLIC_PROXY_URL } from "@/services/api/spyfuConfig";
@@ -14,9 +14,6 @@ interface InfoSectionProps {
 
 export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
   const [showProxyConfig, setShowProxyConfig] = useState(false);
-  
-  // Admin functions are disabled for reliability
-  const isAdmin = false;
 
   return (
     <>
@@ -48,7 +45,7 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-medium text-foreground">How We Calculate Results</h3>
+              <h3 className="text-sm font-medium text-foreground text-white">How We Calculate Results</h3>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>

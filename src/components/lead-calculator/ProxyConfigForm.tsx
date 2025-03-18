@@ -1,9 +1,7 @@
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { DEFAULT_PUBLIC_PROXY_URL } from "@/services/api/spyfuConfig";
-import { AlertTriangle, CheckCircle2, Info, Server } from "lucide-react";
+import { Info, Server } from "lucide-react";
 
 interface ProxyConfigFormProps {
   onClose: () => void;
@@ -22,11 +20,11 @@ export const ProxyConfigForm = ({ onClose }: ProxyConfigFormProps) => {
           <Info size={18} className="mt-0.5 flex-shrink-0" />
           <div>
             <p className="font-medium">Railway Proxy Server</p>
-            <p className="text-xs bg-white p-1.5 rounded mt-1 font-mono">
+            <p className="text-xs bg-white p-1.5 rounded mt-1 font-mono text-black">
               {DEFAULT_PUBLIC_PROXY_URL}
             </p>
             <p className="text-xs mt-2">
-              For reliability, we always use the Railway proxy server. Custom proxy configuration has been disabled.
+              For reliability, we always use the Railway proxy server. Custom proxy configuration is not available.
             </p>
           </div>
         </div>

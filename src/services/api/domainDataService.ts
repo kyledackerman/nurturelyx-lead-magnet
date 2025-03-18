@@ -5,7 +5,8 @@ import {
   isValidDomain, 
   cleanDomain, 
   getProxyUrl,
-  SPYFU_API_KEY
+  SPYFU_API_KEY,
+  DEFAULT_PUBLIC_PROXY_URL
 } from "./spyfuConfig";
 import { generateFallbackData } from "./fallbackDataService";
 
@@ -29,9 +30,10 @@ export const fetchDomainData = async (
     
     console.log(`Analyzing domain: ${cleanedDomain}`);
     console.log(`API Key available: ${Boolean(SPYFU_API_KEY)}`);
+    console.log(`Using Railway proxy URL: ${DEFAULT_PUBLIC_PROXY_URL}`);
     
     try {
-      // Get the proxy URL for the cleaned domain
+      // Get the proxy URL for the cleaned domain - ONLY use Railway URL
       const proxyUrl = getProxyUrl(cleanedDomain);
       console.log(`Making API request via proxy: ${proxyUrl}`);
       
