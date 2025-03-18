@@ -49,7 +49,7 @@ app.use((req, res, next) => {
 // Middleware to parse JSON requests
 app.use(express.json());
 
-// Add logging middleware
+// Add logging middleware for all requests
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
@@ -238,7 +238,8 @@ app.use(express.static(path.join(__dirname, 'dist'), {
   }
 }));
 
-// This wildcard route should only catch non-API routes
+// This wildcard route should ONLY catch non-API routes
+// It must come AFTER all API routes and the static files middleware
 app.get('*', (req, res, next) => {
   // Skip this handler for API routes
   if (req.path.startsWith('/api') || req.path.startsWith('/proxy') || req.path === '/health' || req.path === '/debug-headers') {

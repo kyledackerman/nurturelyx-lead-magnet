@@ -65,7 +65,8 @@ export function useProxyConnection() {
             error: "Empty response from server",
             status: response.status,
             statusText: response.statusText,
-            headers: Object.fromEntries([...response.headers.entries()])
+            headers: Object.fromEntries([...response.headers.entries()]),
+            url: "/api/check"
           });
           throw new Error("Empty response from server");
         }
@@ -84,7 +85,8 @@ export function useProxyConnection() {
             responsePreview: responseText.substring(0, 250),
             htmlDetected: true,
             status: response.status,
-            statusText: response.statusText
+            statusText: response.statusText,
+            url: "/api/check"
           });
           
           throw new Error("The server is returning HTML instead of JSON. This usually means the Express API routes are not being handled correctly.");
@@ -123,7 +125,8 @@ export function useProxyConnection() {
             responsePreview: responseText.substring(0, 250),
             htmlDetected: responseText.includes("<!DOCTYPE") || responseText.includes("<html"),
             status: response.status,
-            statusText: response.statusText
+            statusText: response.statusText,
+            url: "/api/check"
           });
           
           throw new Error(`Server returned non-JSON response: ${parseError.message}`);
@@ -157,7 +160,8 @@ export function useProxyConnection() {
         setDiagnosticInfo({
           error: error.message || "Unknown error",
           name: error.name || "Error",
-          isAbortError: error.name === "AbortError"
+          isAbortError: error.name === "AbortError",
+          url: "/api/check"
         });
       }
     } finally {
