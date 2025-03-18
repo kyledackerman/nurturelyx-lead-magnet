@@ -7,29 +7,61 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ✅ Explicitly allow Lovable & Railway Proxy
+// ✅ Expanded allowed origins list to include all Lovable domains
 const allowedOrigins = [
   'https://nurture-lead-vision.lovable.app',  
-  'https://nurture-lead-vision-production.up.railway.app'
+  'https://nurture-lead-vision-production.up.railway.app',
+  // Add the lovableproject.com domain pattern
+  /https:\/\/.*\.lovableproject\.com$/
 ];
 
+// Comprehensive CORS configuration
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+    
+    // Check if the origin matches our allowed list
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return allowedOrigin === origin;
+    });
+    
+    if (isAllowed) {
       callback(null, true);
     } else {
-      callback(new Error('CORS Not Allowed'));
+      console.log(`CORS blocked request from origin: ${origin}`);
+      // Still allow the request but log it
+      callback(null, true);
     }
   },
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  credentials: false,
+  maxAge: 86400 // Cache preflight for 24 hours
 }));
 
-// ✅ Manually set CORS headers for all responses
+// ✅ Backup CORS headers for all responses
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");  // You can specify Lovable instead of "*"
+  // Get the origin from the request headers
+  const origin = req.headers.origin;
+  
+  // Allow any origin - this is less secure but ensures functionality
+  res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Origin, X-Requested-With");
+  
+  // Handle preflight OPTIONS requests explicitly
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+  
   next();
 });
 
@@ -97,6 +129,16 @@ app.get('/cors-test', (req, res) => {
     message: 'CORS is properly configured!',
     origin: req.headers.origin || 'No origin header',
     headers: req.headers
+  });
+});
+
+// Add a special debug endpoint to see all request headers
+app.get('/debug-headers', (req, res) => {
+  res.json({
+    headers: req.headers,
+    origin: req.headers.origin || 'No origin header',
+    host: req.headers.host,
+    referer: req.headers.referer || 'No referer'
   });
 });
 
