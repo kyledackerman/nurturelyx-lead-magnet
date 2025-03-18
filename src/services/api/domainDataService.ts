@@ -31,24 +31,27 @@ export const fetchDomainData = async (
     console.log(`Analyzing domain: ${cleanedDomain}`);
     
     try {
-      // Set a timeout for the API request (15 seconds - reduced for better UX)
+      // Set a timeout for the API request (20 seconds - increased for reliability)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
       
       // Get the proxy URL for the cleaned domain
       const proxyUrl = getProxyUrl(cleanedDomain);
       
       console.log(`Making API request via proxy: ${proxyUrl}`);
       
-      // Make the API request to our proxy server
+      // Make the API request to our proxy server with no cache to force fresh request
       const response = await fetch(proxyUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache, no-store',
+          'Pragma': 'no-cache'
         },
         signal: controller.signal,
         cache: 'no-cache',
+        credentials: 'omit' // Don't send cookies
       });
       
       clearTimeout(timeoutId);
@@ -128,11 +131,11 @@ export const fetchDomainData = async (
         console.error("This appears to be a network connectivity issue with the proxy");
         
         // More helpful error message for network issues
-        errorMessage = `The proxy server connection failed. Make sure your Express.js proxy server is running on the configured IP and port.`;
+        errorMessage = `The proxy server connection failed. Please check your network connection and ensure the proxy server is running.`;
         
         toast.error(`Proxy Server Connection Issue`, {
           id: toastId,
-          description: `Unable to connect to the proxy server. You will now need to enter your traffic data manually to continue.`
+          description: `Unable to connect to the proxy server. You can try again or enter your traffic data manually.`
         });
       }
       

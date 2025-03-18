@@ -15,7 +15,7 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   });
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [canCalculate, setCanCalculate] = useState<boolean>(true); // Changed default to true
+  const [canCalculate, setCanCalculate] = useState<boolean>(true);
   const [showTrafficFields, setShowTrafficFields] = useState<boolean>(false);
   const [proxyConnected, setProxyConnected] = useState<boolean>(false);
   const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
@@ -34,8 +34,10 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store',
+            'Pragma': 'no-cache'
           },
-          // Use a shorter timeout for better UX
+          // Use a short timeout for better UX
           signal: AbortSignal.timeout(3000),
         });
         
