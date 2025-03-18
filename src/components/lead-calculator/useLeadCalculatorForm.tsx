@@ -3,6 +3,7 @@ import { FormData } from "@/types/report";
 import { useFormState } from "@/hooks/calculator/useFormState";
 import { useFormValidation } from "@/hooks/calculator/useFormValidation";
 import { useProxyConnection } from "@/hooks/calculator/useProxyConnection";
+import { useEffect } from "react";
 
 export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: string | null) {
   // Use our specialized hooks
@@ -45,21 +46,23 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     resetConnectionState();
   };
 
-  // If we have connection issues, always show manual traffic fields
+  // ALWAYS show traffic fields if there are connection issues or API errors
   const shouldShowTrafficFields = showTrafficFields || !proxyConnected || !!connectionError || !!apiError;
   
-  // Update traffic fields visibility when connection status changes
-  if (((!proxyConnected || !!connectionError) && !showTrafficFields) || 
-      (proxyConnected && !connectionError && !apiError && showTrafficFields)) {
-    setTimeout(() => {
-      setShowTrafficFields(!proxyConnected || !!connectionError || !!apiError);
-    }, 0);
-  }
+  // Use useEffect to handle traffic fields visibility based on connection status
+  useEffect(() => {
+    const connectionIssue = !proxyConnected || !!connectionError || !!apiError;
+    
+    if ((connectionIssue && !showTrafficFields) || 
+        (!connectionIssue && showTrafficFields && !formData.isUnsureOrganic)) {
+      setShowTrafficFields(connectionIssue);
+    }
+  }, [proxyConnected, connectionError, apiError, showTrafficFields, setShowTrafficFields, formData.isUnsureOrganic]);
 
   return {
     // Form state
     formData,
-    showTrafficFields: shouldShowTrafficFields, // Use computed value
+    showTrafficFields: shouldShowTrafficFields, // Always use computed value
     
     // Form validation
     errors,

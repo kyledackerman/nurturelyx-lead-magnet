@@ -7,37 +7,26 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ✅ Allow All Origins, But Log Them for Debugging
-const allowedOrigins = [
-  "https://nurture-lead-vision.lovable.app",
-  "https://nurture-lead-vision-production.up.railway.app",
-];
+// ✅ CORS configuration - Allow all origins but with proper headers
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false
+}));
 
-// ✅ CORS Middleware - Allow Specific Domains
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn(`❌ CORS blocked request from: ${origin}`);
-        callback(new Error("CORS Not Allowed"));
-      }
-    },
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-
-// ✅ Ensure CORS Headers on Every Response
+// ✅ Ensure CORS headers on Every Response
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   next();
 });
 
-// ✅ Root Route (Confirms API is Running) - MOVED UP in the order
+// ✅ Middleware to parse JSON requests
+app.use(express.json());
+
+// ✅ Root Route (Confirms API is Running)
 app.get("/", (req, res) => {
   res.json({ 
     message: "SpyFu Proxy Server is running!", 
@@ -70,7 +59,9 @@ app.get("/proxy/spyfu", async (req, res) => {
 
   try {
     console.log(`Fetching SpyFu API: ${url}`);
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      timeout: 10000, // 10 second timeout
+    });
     
     if (!response.ok) {
       console.error(`SpyFu API Error: ${response.status} - ${response.statusText}`);
@@ -103,7 +94,21 @@ app.get("/debug-headers", (req, res) => {
   });
 });
 
-// ✅ Catch-All Route for Undefined Endpoints - This should always be LAST
+// ✅ Health Check Route
+app.get("/health", (req, res) => {
+  const credentials = {
+    hasApiUsername: !!process.env.SPYFU_API_USERNAME,
+    hasApiKey: !!process.env.SPYFU_API_KEY
+  };
+  
+  res.json({
+    status: "healthy",
+    serverTime: new Date().toISOString(),
+    credentials
+  });
+});
+
+// ✅ Catch-All Route for Undefined Endpoints
 app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });
 });

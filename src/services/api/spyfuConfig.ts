@@ -9,16 +9,23 @@ export const DEFAULT_PUBLIC_PROXY_URL = 'https://nurture-lead-vision-production.
 // Function to check if a domain has a valid format
 export const isValidDomain = (domain: string): boolean => {
   if (domain === 'ping') return true; // Special case for connection testing
-  return domain.trim().length > 0 && domain.includes('.');
+  
+  // Basic domain validation - must have at least one dot and some characters on each side
+  const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)+$/;
+  return domain.trim().length > 0 && domainRegex.test(domain);
 };
 
 // Function to clean domain format (remove http://, https://, www. etc.)
 export const cleanDomain = (domain: string): string => {
   if (domain === 'ping') return domain;
+  
+  // More thorough cleaning
   return domain
     .replace(/^https?:\/\//, '')
     .replace(/^www\./, '')
-    .trim();
+    .replace(/\/.*$/, '') // Remove paths
+    .trim()
+    .toLowerCase();
 };
 
 // Function to get the SpyFu URL for the given domain
@@ -27,24 +34,23 @@ export const getSpyFuUrl = (domain: string): string => {
   return `https://www.spyfu.com/overview/domain?query=${encodeURIComponent(cleanedDomain)}`;
 };
 
-// Get the proxy server URL - using direct string
+// Get the proxy server URL
 export const getProxyServerUrl = (): string => {
-  return 'https://nurture-lead-vision-production.up.railway.app';
+  return DEFAULT_PUBLIC_PROXY_URL;
 };
 
-// Function to get the current proxy URL - using direct string
-export const PROXY_SERVER_URL = (): string => 'https://nurture-lead-vision-production.up.railway.app';
+// Function to get the current proxy URL
+export const PROXY_SERVER_URL = (): string => DEFAULT_PUBLIC_PROXY_URL;
 
-// Function to get the proxy URL for SpyFu API requests - using direct string
+// Function to get the proxy URL for SpyFu API requests 
 export const getProxyUrl = (domain: string): string => {
   const cleanedDomain = cleanDomain(domain);
-  return `https://nurture-lead-vision-production.up.railway.app/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
+  return `${DEFAULT_PUBLIC_PROXY_URL}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
 };
 
-// Function to get a test URL for the proxy - using direct string
+// Function to get a test URL for the proxy (changed to root URL for more reliability)
 export const getProxyTestUrl = (): string => {
-  // Use the server root URL as it's more reliable
-  return 'https://nurture-lead-vision-production.up.railway.app/';
+  return DEFAULT_PUBLIC_PROXY_URL;
 };
 
 // We only use the Railway URL

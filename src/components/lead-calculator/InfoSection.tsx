@@ -36,12 +36,23 @@ export const InfoSection = ({
   // Show API error message
   if (apiError) {
     return (
-      <Alert className="mt-4 bg-white" variant="warning">
+      <Alert className="mt-4 bg-white" variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle className="text-amber-800 font-semibold">API Not Available</AlertTitle>
-        <AlertDescription className="text-amber-700">
-          <p>To continue calculating your results, please enter your traffic data manually below.</p>
-          <p className="text-sm mt-2 text-gray-600">The calculator will work perfectly with your manually entered data.</p>
+        <AlertTitle className="text-red-800 font-semibold">API Error</AlertTitle>
+        <AlertDescription className="text-red-700">
+          <p>{apiError}</p>
+          <p className="text-sm mt-2">To continue calculating your results, please enter your traffic data manually below.</p>
+          {onRetryConnection && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-2 w-fit" 
+              onClick={onRetryConnection}
+            >
+              <RefreshCw size={16} className="mr-2" />
+              Retry Connection
+            </Button>
+          )}
         </AlertDescription>
       </Alert>
     );
@@ -50,13 +61,13 @@ export const InfoSection = ({
   // Show connection error message
   if (connectionError) {
     return (
-      <Alert className="mt-4 bg-white" variant="warning">
+      <Alert className="mt-4 bg-white" variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle className="text-amber-800 font-semibold">API Connection Error</AlertTitle>
-        <AlertDescription className="text-amber-700">
+        <AlertTitle className="text-red-800 font-semibold">Connection Error</AlertTitle>
+        <AlertDescription className="text-red-700">
           <div className="flex flex-col">
             <p>{connectionError}</p>
-            <p className="text-sm mt-2 text-gray-600">Please enter your traffic data manually below to continue.</p>
+            <p className="text-sm mt-2">Please enter your traffic data manually below to continue.</p>
             {onRetryConnection && (
               <Button 
                 variant="outline" 
@@ -102,13 +113,13 @@ export const InfoSection = ({
         <span>Cannot connect to traffic data API. Enter traffic information below.</span>
         {onRetryConnection && (
           <Button 
-            variant="ghost" 
+            variant="outline" 
             size="sm" 
-            className="ml-auto text-amber-800 hover:text-amber-900 hover:bg-amber-100 p-1 h-auto" 
+            className="ml-auto text-amber-800 hover:text-amber-900 hover:bg-amber-100" 
             onClick={onRetryConnection}
           >
             <RefreshCw size={14} className="mr-1" />
-            Retry
+            Retry Connection
           </Button>
         )}
       </div>

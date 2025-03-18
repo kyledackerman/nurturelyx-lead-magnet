@@ -1,13 +1,10 @@
 
 import { toast } from "sonner";
 import { ApiData } from "@/types/report";
-import { 
-  isValidDomain, 
-  cleanDomain
-} from "./spyfuConfig";
+import { isValidDomain, cleanDomain } from "./spyfuConfig";
 import { generateFallbackData } from "./fallbackDataService";
 
-// Direct Railway URL for reliability
+// Hardcoded Railway URL for maximum reliability
 const RAILWAY_URL = "https://nurture-lead-vision-production.up.railway.app";
 
 // Function to fetch domain data from SpyFu API via proxy
@@ -48,44 +45,44 @@ export const fetchDomainData = async (
     
     // Try to get real data from the SpyFu API
     try {
-      // First, check if proxy is available with a direct test using the Railway URL
-      console.log("Testing direct Railway connection...");
+      // First, verify the proxy server is accessible
+      console.log("Testing Railway connection...");
       
-      try {
-        const testResponse = await fetch(`${RAILWAY_URL}/`, {
-          method: 'GET',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          credentials: 'omit',
-          cache: 'no-cache',
-          mode: 'cors'
-        });
-        
-        if (!testResponse.ok) {
-          console.error("Proxy connection test failed with status:", testResponse.status);
-          throw new Error("Proxy connection test failed");
-        }
-      } catch (testError) {
-        console.error("Direct Railway connection test error:", testError);
-        throw new Error("Failed to connect to proxy server");
+      // Ping the Railway server with a simple request
+      const testResponse = await fetch(`${RAILWAY_URL}/`, {
+        method: 'GET',
+        headers: { 
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        cache: 'no-store',
+        mode: 'cors'
+      });
+      
+      if (!testResponse.ok) {
+        console.error("Proxy server test failed with status:", testResponse.status);
+        throw new Error(`Proxy server responded with ${testResponse.status}`);
       }
       
       // Proxy is available, get real data for the domain
       console.log(`Fetching real data for ${cleanedDomain} via Railway`);
       const proxyUrl = `${RAILWAY_URL}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      
       const response = await fetch(proxyUrl, {
         method: 'GET',
         headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
         },
-        credentials: 'omit',
-        cache: 'no-cache',
+        signal: controller.signal,
+        cache: 'no-store',
         mode: 'cors'
       });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         console.error("API response error:", response.status, response.statusText);
@@ -122,31 +119,49 @@ export const fetchDomainData = async (
       });
       
       return apiData;
-    } catch (error) {
-      console.warn("API data fetch failed, using fallback data:", error);
-      // Continue to fallback data
+    } catch (error: any) {
+      console.warn("API data fetch failed:", error);
+      
+      // If there's manual traffic data available, use it
+      if (organicTrafficManual !== undefined && organicTrafficManual > 0) {
+        console.log("Using manual traffic data as fallback");
+        
+        toast.warning(`Using your manually entered data`, { 
+          id: toastId,
+          description: "API connection failed. Using your traffic values."
+        });
+        
+        return {
+          organicKeywords: Math.floor(organicTrafficManual * 0.3),
+          organicTraffic: organicTrafficManual,
+          paidTraffic: 0,
+          domainPower: Math.min(95, Math.floor(40 + (domain.length * 2))),
+          backlinks: Math.floor(organicTrafficManual * 0.5),
+          dataSource: 'manual' as const
+        };
+      }
+      
+      // Generate fallback data based on domain name
+      const fallbackData = generateFallbackData(cleanedDomain);
+      
+      toast.warning(`Analysis using estimates for ${domain}`, { 
+        id: toastId,
+        description: "API connection failed. Using industry estimates instead."
+      });
+      
+      return {
+        ...fallbackData,
+        dataSource: 'fallback' as const
+      };
     }
-    
-    // Generate fallback data based on domain name
-    const fallbackData = generateFallbackData(cleanedDomain);
-    
-    // Show a message that we're using estimated data
-    toast.success(`Analysis complete for ${domain}`, { 
-      id: toastId,
-      description: "Using industry estimates for traffic data."
-    });
-    
-    return {
-      ...fallbackData,
-      dataSource: 'fallback' as const
-    };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error fetching domain data:`, error);
     
     // If user provided manual data, use it as fallback
-    if (organicTrafficManual !== undefined && !isUnsureOrganic && organicTrafficManual > 0) {
+    if (organicTrafficManual !== undefined && organicTrafficManual > 0) {
       toast.warning(`Using your manually entered data`, { 
-        id: toastId
+        id: toastId,
+        description: "API connection failed. Using your traffic values."
       });
       
       return {
