@@ -10,28 +10,31 @@ const PORT = process.env.PORT || 3001;
 // ✅ Trust Railway proxy
 app.set('trust proxy', 1);
 
-// ✅ Force CORS Headers for Every Response
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
-});
+// ✅ Allow CORS for All Domains (Fixes API Connectivity Issues)
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-// ✅ Explicitly Handle OPTIONS Preflight Requests
+// ✅ Handle OPTIONS Preflight Requests
 app.options('*', (req, res) => {
   res.status(200).end();
 });
 
-// ✅ Root Route - Check if Server is Running
+// ✅ Root Route (Confirms API is Running)
 app.get('/', (req, res) => {
   res.json({ 
     message: 'SpyFu Proxy Server is running!', 
-    status: 'OK' 
+    status: 'OK',
+    endpoints: {
+      spyfu: '/proxy/spyfu?domain=example.com',
+      debug: '/debug-headers'
+    }
   });
 });
 
-// ✅ Proxy Route to SpyFu API
+// ✅ SpyFu API Proxy Route (THIS IS THE MISSING PIECE!)
 app.get('/proxy/spyfu', async (req, res) => {
   const { domain } = req.query;
 
@@ -49,7 +52,7 @@ app.get('/proxy/spyfu', async (req, res) => {
     const response = await fetch(url);
     const data = await response.json();
 
-    // ✅ Enforce CORS on API response
+    // ✅ Ensure CORS is Applied on API Response
     res.header("Access-Control-Allow-Origin", "*");
     res.json(data);
   } catch (error) {
@@ -58,7 +61,7 @@ app.get('/proxy/spyfu', async (req, res) => {
   }
 });
 
-// ✅ 404 Catch-All
+// ✅ Catch-All Route for Undefined Endpoints
 app.use((req, res) => {
   res.status(404).json({ error: 'Not Found' });
 });
