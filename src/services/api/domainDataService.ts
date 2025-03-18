@@ -42,7 +42,7 @@ export const fetchDomainData = async (
     
     // Try to get real data from the SpyFu API via our proxy
     try {
-      // Use relative path for API
+      // Use relative path for API and ensure no caching
       const proxyUrl = `/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
       console.log(`Fetching real data via relative path: ${proxyUrl}`);
       
@@ -52,9 +52,9 @@ export const fetchDomainData = async (
       const response = await fetch(proxyUrl, {
         method: 'GET',
         headers: { 
-          'Accept': '*/*',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive'
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
         },
         signal: controller.signal,
         cache: 'no-store',
@@ -69,12 +69,21 @@ export const fetchDomainData = async (
         throw new Error(`API returned status ${response.status}`);
       }
       
+      // Get response text first to verify if it's actually JSON
+      const responseText = await response.text();
       let data;
+      
       try {
-        data = await response.json();
+        data = JSON.parse(responseText);
       } catch (jsonError) {
         console.error("Error parsing API response:", jsonError);
-        throw new Error("Invalid response from API server");
+        console.error("Response preview:", responseText.substring(0, 200));
+        
+        if (responseText.includes("<!DOCTYPE") || responseText.includes("<html")) {
+          throw new Error("Server returned HTML instead of JSON. API routes may not be configured correctly.");
+        }
+        
+        throw new Error("Invalid JSON response from API server");
       }
       
       // Check if data contains error
