@@ -167,6 +167,7 @@ const LeadCalculatorForm = ({ onCalculate, onReset, isCalculating, initialData, 
           <FormActions 
             isCalculating={isCalculating}
             canCalculate={canCalculate}
+            onReset={onReset}
           />
         </form>
       </CardContent>
