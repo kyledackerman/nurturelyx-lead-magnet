@@ -32,15 +32,28 @@ export const InfoSection = ({ apiError, proxyConnected }: InfoSectionProps) => {
           {proxyConnected ? (
             <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded-md mt-4">
               <CheckCircle2 size={16} className="flex-shrink-0" />
-              <span>Connected to traffic data service</span>
+              <span>Connected to SpyFu traffic data service</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs ml-auto text-green-800 hover:text-green-900 hover:bg-green-100 p-1 h-auto"
+                onClick={() => setShowProxyConfig(!showProxyConfig)}
+              >
+                <Server className="h-3 w-3 mr-1" />
+                Server info
+              </Button>
             </div>
           ) : (
             <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-2 rounded-md mt-4">
               <AlertCircle size={16} className="flex-shrink-0" />
-              <span>Using manual data mode. Enter your traffic information below.</span>
+              <span>Trying to connect to API. Enter traffic information below if connection fails.</span>
             </div>
           )}
         </>
+      )}
+      
+      {showProxyConfig && (
+        <ProxyConfigForm onClose={() => setShowProxyConfig(false)} />
       )}
       
       <div className="bg-secondary/50 p-4 rounded-lg border border-border mt-4">

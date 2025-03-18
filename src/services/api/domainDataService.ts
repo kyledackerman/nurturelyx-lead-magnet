@@ -5,8 +5,7 @@ import {
   isValidDomain, 
   cleanDomain, 
   getProxyUrl,
-  SPYFU_API_KEY,
-  DEFAULT_PUBLIC_PROXY_URL
+  getProxyTestUrl
 } from "./spyfuConfig";
 import { generateFallbackData } from "./fallbackDataService";
 
@@ -44,6 +43,63 @@ export const fetchDomainData = async (
         backlinks: Math.floor(organicTrafficManual * 0.5),
         dataSource: 'manual' as const
       };
+    }
+    
+    // Try to get real data from the SpyFu API
+    try {
+      // First, check if proxy is available
+      console.log("Testing proxy connection...");
+      const testResponse = await fetch(getProxyTestUrl(), {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'omit',
+        mode: 'cors'
+      });
+      
+      if (!testResponse.ok) {
+        throw new Error("Proxy connection test failed");
+      }
+      
+      // Proxy is available, get real data for the domain
+      console.log(`Fetching real data for ${cleanedDomain}`);
+      const proxyUrl = getProxyUrl(cleanedDomain);
+      const response = await fetch(proxyUrl, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'omit',
+        mode: 'cors'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API returned status ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Check if data contains error
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      // Extract the relevant metrics from the API response
+      const apiData: ApiData = {
+        organicTraffic: data.organicTrafficEstimate || 0,
+        paidTraffic: data.ppcTrafficEstimate || 0,
+        organicKeywords: data.organicKeywords || 0,
+        domainPower: data.domainStrength || 0,
+        backlinks: data.backlinks || 0,
+        dataSource: 'api' as const
+      };
+      
+      toast.success(`Analysis complete for ${domain}`, { 
+        id: toastId,
+        description: "Using real SpyFu data for your report."
+      });
+      
+      return apiData;
+    } catch (error) {
+      console.warn("API data fetch failed, using fallback data:", error);
+      // Continue to fallback data
     }
     
     // Generate fallback data based on domain name
@@ -85,7 +141,7 @@ export const fetchDomainData = async (
       
       toast.warning(`Using estimated data for ${domain}`, { 
         id: toastId,
-        description: "No API connection available. Using industry estimates instead."
+        description: "API connection unavailable. Using industry estimates instead."
       });
       
       return {

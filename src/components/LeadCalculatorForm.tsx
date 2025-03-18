@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormData } from "@/types/report";
 import { RefreshCw, AlertCircle, ServerOff } from "lucide-react";
@@ -31,6 +32,7 @@ const LeadCalculatorForm = ({
     canCalculate,
     showTrafficFields,
     proxyConnected,
+    isCheckingConnection,
     handleChange,
     validateForm,
     setShowTrafficFields,
@@ -42,7 +44,7 @@ const LeadCalculatorForm = ({
     
     if (validateForm()) {
       try {
-        // Skip API connection attempt - go straight to form submission
+        // Try to use the SpyFu API but fall back to manual mode if needed
         onCalculate(formData);
         toast.success("Calculating your report", {
           description: "Processing your data to generate insights."
@@ -91,7 +93,7 @@ const LeadCalculatorForm = ({
             formData={formData}
             handleChange={handleChange}
             errors={errors}
-            showTrafficFields={true} // Always show traffic fields
+            showTrafficFields={showTrafficFields || !proxyConnected || !!apiError} 
           />
           
           <TransactionValueInput 
@@ -102,11 +104,11 @@ const LeadCalculatorForm = ({
           
           <InfoSection 
             apiError={apiError} 
-            proxyConnected={false} // Always show as not connected
+            proxyConnected={proxyConnected}
           />
           
           <FormActions 
-            isCalculating={isCalculating}
+            isCalculating={isCalculating || isCheckingConnection}
             canCalculate={canCalculate}
             onReset={handleResetClick}
           />

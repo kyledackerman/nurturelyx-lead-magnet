@@ -27,12 +27,8 @@ export const getSpyFuUrl = (domain: string): string => {
   return `https://www.spyfu.com/overview/domain?query=${encodeURIComponent(cleanedDomain)}`;
 };
 
-// For all proxy-related functions, we'll return the values but not actually try to use them
-// This makes the app more resilient to API failures
-
 // Get the proxy server URL
 export const getProxyServerUrl = (): string => {
-  console.log('Using manual mode instead of API connection');
   return DEFAULT_PUBLIC_PROXY_URL;
 };
 
@@ -47,22 +43,20 @@ export const getProxyUrl = (domain: string): string => {
 
 // Function to get a test URL for the proxy
 export const getProxyTestUrl = (): string => {
-  return `${DEFAULT_PUBLIC_PROXY_URL}/`;
+  return `${DEFAULT_PUBLIC_PROXY_URL}/proxy/spyfu?domain=ping`;
 };
 
-// These functions do nothing - we ONLY use the Railway URL
+// We only use the Railway URL
 export const saveCustomProxyUrl = (url: string): void => {
-  // Never save custom URLs
-  console.log('Custom proxy URLs are disabled - always using manual mode');
+  console.log('Custom proxy URLs are disabled - always using Railway URL');
 };
 
 export const toggleLocalProxy = (useLocal: boolean): void => {
-  // Never toggle local proxy
-  console.log('Local proxy usage is disabled - always using manual mode');
+  console.log('Local proxy usage is disabled - always using Railway URL');
 };
 
 // Function to check if SpyFu API key is available
 export const hasSpyFuApiKey = (): boolean => {
-  // Always say we don't have API access to skip API connection attempts
-  return false;
+  // We have the API key configured in Railway
+  return true;
 };

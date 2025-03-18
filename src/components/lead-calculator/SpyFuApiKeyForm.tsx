@@ -28,7 +28,7 @@ export const SpyFuApiKeyForm = ({ onApiKeySet }: SpyFuApiKeyFormProps) => {
             <div>
               <h3 className="font-medium text-green-800">SpyFu API Integration Available</h3>
               <p className="text-green-700 text-sm">
-                Our app includes free SpyFu API access - no credentials needed
+                Our app includes SpyFu API access for accurate traffic data
               </p>
             </div>
           </div>
@@ -45,10 +45,11 @@ export const SpyFuApiKeyForm = ({ onApiKeySet }: SpyFuApiKeyFormProps) => {
         <div className="text-xs text-gray-500 flex items-start gap-2 bg-white mt-4 p-3 rounded-lg">
           <Info className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
           <div>
-            <p className="font-medium text-gray-700 mb-1">Using the SpyFu API</p>
+            <p className="font-medium text-gray-700 mb-1">SpyFu API Benefits</p>
             <p>
-              We've integrated the SpyFu API to provide accurate SEO and traffic data for any domain you analyze.
-              Simply enter a domain and we'll fetch all the relevant metrics automatically.
+              Our SpyFu API integration provides accurate SEO and traffic data for any domain you analyze.
+              Simply enter a domain and we'll fetch all the relevant metrics automatically. If the API
+              is unavailable, you can still enter your data manually and get the same quality results.
             </p>
           </div>
         </div>
