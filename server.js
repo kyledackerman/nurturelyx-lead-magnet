@@ -34,8 +34,8 @@ app.get('/proxy/spyfu', async (req, res) => {
     return res.status(400).json({ error: 'Domain parameter is required' });
   }
 
-  const username = process.env.SPYFU_API_USERNAME;
-  const apiKey = process.env.SPYFU_API_KEY;
+  const username = process.env.SPYFU_API_USERNAME || 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
+  const apiKey = process.env.SPYFU_API_KEY || 'VESAPD8P';
 
   const url = `https://www.spyfu.com/apis/domain_stats_api/v2/getDomainStatsForExactDate?domain=${domain}&month=3&year=2023&countryCode=US&api_username=${username}&api_key=${apiKey}`;
 
