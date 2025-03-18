@@ -47,7 +47,7 @@ export function useFormState(initialData?: FormData | null, apiError?: string | 
     showTrafficFields: false, // Always return false
     setFormData,
     handleChange,
-    setShowTrafficFields, // This should be the React state setter function that accepts a boolean
+    setShowTrafficFields, // This is the React state setter function that accepts a boolean
     resetForm
   };
 }
