@@ -1,7 +1,6 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormData } from "@/types/report";
-import { RefreshCw, AlertCircle } from "lucide-react";
+import { RefreshCw, AlertCircle, ServerOff } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { TrafficInputFields } from "./lead-calculator/TrafficInputFields";
@@ -80,12 +79,25 @@ const LeadCalculatorForm = ({
             setShowTrafficFields(true);
             
             // Ensure a minimum loading time before showing error
-            await new Promise(resolve => setTimeout(resolve, 7000));
+            await new Promise(resolve => setTimeout(resolve, 2000));
             
-            toast.error("API Connection Issue", {
-              id: toastId,
-              description: "Please enter your traffic data manually to continue."
-            });
+            // More descriptive error message
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const isCorsError = errorMessage.toLowerCase().includes('cors') || 
+                               errorMessage.toLowerCase().includes('network') ||
+                               errorMessage.toLowerCase().includes('failed to fetch');
+            
+            if (isCorsError) {
+              toast.error("CORS Security Restriction", {
+                id: toastId,
+                description: "The browser's security policy is preventing connection to the API. Please enter your traffic data manually."
+              });
+            } else {
+              toast.error("API Connection Issue", {
+                id: toastId,
+                description: "Please enter your traffic data manually to continue."
+              });
+            }
           }
         } else {
           // Traffic fields are already visible, just submit the form
@@ -114,14 +126,15 @@ const LeadCalculatorForm = ({
       <CardContent>
         {apiError && (
           <div className="mb-6">
-            <div className="flex items-start text-sm text-red-600 mt-2 bg-white p-2 rounded border border-red-200">
-              <AlertCircle size={16} className="mr-1 mt-0.5 shrink-0" />
+            <div className="flex items-start text-sm bg-red-50 text-red-800 p-3 rounded border border-red-200">
+              <ServerOff size={18} className="mr-2 mt-0.5 text-red-600 shrink-0" />
               <div>
-                <p className="font-medium">SpyFu API Connection Error</p>
-                <p className="text-xs text-red-500">
-                  {apiError === "Edit mode - all fields are editable" 
-                    ? "You can edit all fields and recalculate your report." 
-                    : "Please provide traffic data manually to continue."}
+                <p className="font-medium">API Connection Error</p>
+                <p className="text-sm text-red-700 mt-1">
+                  {apiError}
+                </p>
+                <p className="text-sm font-medium mt-1">
+                  Please provide traffic data manually below to continue.
                 </p>
               </div>
             </div>
@@ -133,7 +146,7 @@ const LeadCalculatorForm = ({
             formData={formData}
             handleChange={handleChange}
             errors={errors}
-            showTrafficFields={showTrafficFields}
+            showTrafficFields={showTrafficFields || !!apiError}
           />
           
           <TransactionValueInput 

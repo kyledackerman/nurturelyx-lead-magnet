@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { FormData } from "@/types/report";
 import { toast } from "sonner";
@@ -130,11 +129,16 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
             id: connectionToastId,
             description: "The browser's security policy is preventing connection to the API. You can enter traffic data manually to continue."
           });
+          
+          // Display more prominent error for CORS issues
+          setShowTrafficFields(true);
         } else {
           toast.error("SpyFu API connection failed", {
             id: connectionToastId,
             description: "You can enter traffic data manually to continue."
           });
+          
+          setShowTrafficFields(true);
         }
         
         const proxyUrl = PROXY_SERVER_URL();
