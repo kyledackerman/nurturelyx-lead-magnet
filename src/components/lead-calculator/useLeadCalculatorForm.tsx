@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { FormData } from "@/types/report";
 import { toast } from "sonner";
-import { hasSpyFuApiKey, PROXY_SERVER_URL } from "@/services/spyfuService";
+import { hasSpyFuApiKey, PROXY_SERVER_URL } from "@/services/api/spyfuConfig";
 
 export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: string | null) {
   const [formData, setFormData] = useState<FormData>({
@@ -66,6 +66,8 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
   useEffect(() => {
     if (apiError) {
       setShowTrafficFields(true);
+    } else {
+      setShowTrafficFields(false); // Ensure fields are hidden when no API error
     }
   }, [apiError]);
 

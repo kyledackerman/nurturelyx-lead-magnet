@@ -31,9 +31,9 @@ export const fetchDomainData = async (
     console.log(`Analyzing domain: ${cleanedDomain}`);
     
     try {
-      // Set a timeout for the API request (20 seconds - increased for reliability)
+      // Set a timeout for the API request (30 seconds - increased for reliability)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
       
       // Get the proxy URL for the cleaned domain
       const proxyUrl = getProxyUrl(cleanedDomain);

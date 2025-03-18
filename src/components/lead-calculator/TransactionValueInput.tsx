@@ -21,7 +21,7 @@ export const TransactionValueInput = ({
   };
 
   return (
-    <div className="mb-6 mt-8">
+    <div className="mb-8 mt-10">
       <label htmlFor="transaction-value" className="block mb-2 text-sm font-medium text-gray-900">
         What is your average transaction value?
       </label>
@@ -41,7 +41,7 @@ export const TransactionValueInput = ({
       {errors.avgTransactionValue && (
         <p className="mt-1 text-sm text-red-500">{errors.avgTransactionValue}</p>
       )}
-      <p className="text-xs text-gray-500 mt-2 mb-4">
+      <p className="text-xs text-gray-500 mt-2">
         Enter the average value of a transaction or sale for your business.
       </p>
     </div>
