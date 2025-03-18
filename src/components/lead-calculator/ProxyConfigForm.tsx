@@ -1,6 +1,5 @@
 
 import { Button } from "@/components/ui/button";
-import { DEFAULT_PUBLIC_PROXY_URL } from "@/services/api/spyfuConfig";
 import { Info, Server, TerminalSquare } from "lucide-react";
 import { useState } from "react";
 
@@ -16,19 +15,19 @@ export const ProxyConfigForm = ({ onClose, diagnosticInfo }: ProxyConfigFormProp
     <div className="p-4 border rounded-lg bg-gray-50 mt-4">
       <h3 className="font-medium mb-2 flex items-center gap-2">
         <Server size={16} />
-        Proxy Server Configuration
+        API Configuration
       </h3>
       
       <div className="p-3 bg-blue-50 text-blue-700 rounded-md mb-4 text-sm">
         <div className="flex items-start gap-2">
           <Info size={18} className="mt-0.5 flex-shrink-0" />
           <div>
-            <p className="font-medium">Railway Proxy Server</p>
+            <p className="font-medium">API Server Information</p>
             <p className="text-xs bg-white p-1.5 rounded mt-1 font-mono text-black">
-              {DEFAULT_PUBLIC_PROXY_URL}
+              Using relative API paths (/api, /proxy/spyfu)
             </p>
             <p className="text-xs mt-2">
-              For reliability, we always use the Railway proxy server. Custom proxy configuration is not available.
+              The API and frontend are now integrated into a single server. This should solve connection issues.
             </p>
             <div className="mt-2 flex justify-between items-center">
               <Button 
@@ -42,12 +41,12 @@ export const ProxyConfigForm = ({ onClose, diagnosticInfo }: ProxyConfigFormProp
               </Button>
               
               <a 
-                href={DEFAULT_PUBLIC_PROXY_URL} 
+                href="/api" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-xs underline"
               >
-                Test server in new tab
+                Test API in new tab
               </a>
             </div>
             

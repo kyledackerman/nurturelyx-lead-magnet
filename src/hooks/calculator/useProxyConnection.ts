@@ -1,9 +1,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-// Direct hardcoded URL for maximum reliability - no function calls
-const DIRECT_RAILWAY_URL = "https://nurture-lead-vision-production.up.railway.app";
-
 export function useProxyConnection() {
   const [proxyConnected, setProxyConnected] = useState<boolean>(false);
   const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(true);
@@ -21,14 +18,14 @@ export function useProxyConnection() {
     setConnectionError(null);
     
     try {
-      console.log(`Testing Railway connection at: ${DIRECT_RAILWAY_URL}`);
+      console.log(`Testing API connection at: /api`);
       
-      // Try the /health endpoint first for diagnostics
+      // Try the API endpoint first for diagnostics
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // Reduced from 8000 to 5000ms for faster timeout
       
-      // Use a simple GET request to the root endpoint first
-      const pingResponse = await fetch(DIRECT_RAILWAY_URL, {
+      // Use a simple GET request to the API endpoint
+      const pingResponse = await fetch('/api', {
         method: 'GET',
         mode: 'cors',
         signal: controller.signal,
@@ -45,9 +42,9 @@ export function useProxyConnection() {
       let jsonData = null;
       try {
         jsonData = JSON.parse(responseText);
-        console.log("Root endpoint returned valid JSON:", jsonData);
+        console.log("API endpoint returned valid JSON:", jsonData);
       } catch (e) {
-        console.error("Root endpoint did not return valid JSON. Got:", responseText.substring(0, 100));
+        console.error("API endpoint did not return valid JSON. Got:", responseText.substring(0, 100));
         setDiagnosticInfo({
           error: "Invalid JSON response",
           responseText: responseText.substring(0, 250), // First 250 chars
@@ -57,15 +54,15 @@ export function useProxyConnection() {
       }
       
       if (pingResponse.ok && jsonData) {
-        console.log("✅ Railway connection successful!");
+        console.log("✅ API connection successful!");
         setProxyConnected(true);
         setConnectionError(null);
         setDiagnosticInfo(jsonData);
       } else {
-        throw new Error(`Root endpoint responded with status: ${pingResponse.status}`);
+        throw new Error(`API endpoint responded with status: ${pingResponse.status}`);
       }
     } catch (error: any) {
-      console.error("❌ Railway connection error:", error);
+      console.error("❌ API connection error:", error);
       
       // Enhanced error messages with more details
       let errorMessage = "Cannot connect to API server. Try refreshing or check your network.";
@@ -73,7 +70,7 @@ export function useProxyConnection() {
       if (error.name === "AbortError") {
         errorMessage = "Connection timed out. The server might be down or your network might be blocking the connection.";
       } else if (error.message.includes("HTML") || error.message.includes("<!DOCTYPE")) {
-        errorMessage = "The server is returning HTML instead of JSON. This is likely due to a proxy or middleware issue.";
+        errorMessage = "The server is returning HTML instead of JSON. This happens when only the frontend is running, not the API server.";
       } else if (error.message) {
         errorMessage = `Connection error: ${error.message}`;
       }

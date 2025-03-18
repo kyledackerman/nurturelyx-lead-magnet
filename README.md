@@ -1,69 +1,66 @@
-# Welcome to your Lovable project
 
-## Project info
+# Lead Calculator App
 
-**URL**: https://lovable.dev/projects/80f9bcc1-4e27-4742-a133-49d3ab105a09
+This application calculates potential lead values based on website traffic data.
 
-## How can I edit this code?
+## Project Structure
 
-There are several ways of editing your application.
+This is a full-stack application with:
+- Frontend: React + Vite
+- Backend: Express.js
 
-**Use Lovable**
+## Deployment Instructions
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/80f9bcc1-4e27-4742-a133-49d3ab105a09) and start prompting.
+### Important: This app requires both frontend and backend to run together
 
-Changes made via Lovable will be committed automatically to this repo.
+For Railway or any other hosting platform, make sure:
 
-**Use your preferred IDE**
+1. The build script creates the frontend files
+2. The start script runs the Express server
+3. The Express server serves both the API endpoints and the static frontend files
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Setup for Production
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Install dependencies:
+```
+npm install
+```
 
-Follow these steps:
+2. Build the frontend:
+```
+npm run build
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+3. Start the server:
+```
+npm start
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+The server will run on the PORT specified in your environment variables or default to 3001.
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Railway Configuration
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Make sure your Railway service is configured to:
+
+1. Run `npm run build` before starting
+2. Use `npm start` (which should run `node server.js`) as the start command
+3. Set the following environment variables:
+   - PORT (optional, Railway sets this automatically)
+   - SPYFU_API_USERNAME
+   - SPYFU_API_KEY
+
+## Development
+
+For local development:
+
+1. Start the Express server:
+```
+node server.js
+```
+
+2. In another terminal, start the Vite dev server:
+```
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/80f9bcc1-4e27-4742-a133-49d3ab105a09) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+The frontend will proxy API requests to the Express server.

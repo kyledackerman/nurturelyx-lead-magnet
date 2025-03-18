@@ -25,8 +25,6 @@ export const InfoSection = ({
 }: InfoSectionProps) => {
   const [showProxyConfig, setShowProxyConfig] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
-  
-  const railwayUrl = "https://nurture-lead-vision-production.up.railway.app";
 
   // Is the error related to HTML response?
   const isHtmlError = connectionError?.includes("<!DOCTYPE") || 
@@ -75,20 +73,21 @@ export const InfoSection = ({
     return (
       <Alert className="mt-4 bg-white" variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle className="text-red-800 font-semibold">Connection Issue</AlertTitle>
+        <AlertTitle className="text-red-800 font-semibold">API Connection Issue</AlertTitle>
         <AlertDescription className="text-red-700">
           <div className="flex flex-col">
             <p>{connectionError}</p>
             {isHtmlError && (
               <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
-                <p className="font-medium text-yellow-800">HTML Response Detected</p>
+                <p className="font-medium text-yellow-800">HTML Response Detected Instead of JSON</p>
                 <p className="text-yellow-700 mt-1">
-                  The server is returning HTML instead of JSON. This usually happens when:
+                  This usually means the server is only running the frontend, not the backend API. 
+                  Make sure your server.js file is running alongside the frontend.
                 </p>
                 <ul className="list-disc pl-5 mt-1 text-yellow-700 space-y-1">
-                  <li>The server is redirecting to a login page</li>
-                  <li>There's a proxy, CDN, or firewall in the path</li>
-                  <li>The server is returning an error page</li>
+                  <li>Check that your Railway deployment is running server.js</li>
+                  <li>Ensure package.json has the correct start script</li>
+                  <li>The Express server should serve both the API and frontend</li>
                 </ul>
               </div>
             )}
@@ -121,10 +120,10 @@ export const InfoSection = ({
                 variant="ghost"
                 size="sm" 
                 className="text-xs text-red-800 hover:text-red-900 hover:bg-red-100 p-1 h-auto"
-                onClick={() => window.open(railwayUrl, '_blank')}
+                onClick={() => window.open('/api', '_blank')}
               >
                 <ExternalLink className="h-3 w-3 mr-1" />
-                Test Server Directly
+                Test API Directly
               </Button>
             </div>
             

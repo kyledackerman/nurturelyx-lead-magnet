@@ -4,9 +4,6 @@ import { ApiData } from "@/types/report";
 import { isValidDomain, cleanDomain } from "./spyfuConfig";
 import { generateFallbackData } from "./fallbackDataService";
 
-// Hardcoded direct Railway URL for maximum reliability - NO function calls
-const DIRECT_RAILWAY_URL = "https://nurture-lead-vision-production.up.railway.app";
-
 // Function to fetch domain data from SpyFu API via proxy
 export const fetchDomainData = async (
   domain: string, 
@@ -45,9 +42,9 @@ export const fetchDomainData = async (
     
     // Try to get real data from the SpyFu API via our proxy
     try {
-      // Directly construct the proxy URL without any function calls that might fail
-      const proxyUrl = `${DIRECT_RAILWAY_URL}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
-      console.log(`Fetching real data via direct Railway URL: ${proxyUrl}`);
+      // Use relative path for API
+      const proxyUrl = `/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
+      console.log(`Fetching real data via relative path: ${proxyUrl}`);
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout

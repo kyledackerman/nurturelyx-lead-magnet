@@ -3,9 +3,9 @@
 export const SPYFU_API_USERNAME = 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
 export const SPYFU_API_KEY = 'VESAPD8P';
 
-// PRIMARY RAILWAY PROXY URL - direct hardcoded string for maximum reliability
-export const DEFAULT_PUBLIC_PROXY_URL = 'https://nurture-lead-vision-production.up.railway.app';
-export const DIRECT_RAILWAY_URL = 'https://nurture-lead-vision-production.up.railway.app';
+// Use RELATIVE paths instead of hardcoded URLs for maximum reliability
+export const DEFAULT_PUBLIC_PROXY_URL = '';  // Empty means use relative paths
+export const DIRECT_RAILWAY_URL = '';  // Empty means use relative paths
 
 // Function to check if a domain has a valid format
 export const isValidDomain = (domain: string): boolean => {
@@ -35,27 +35,27 @@ export const getSpyFuUrl = (domain: string): string => {
   return `https://www.spyfu.com/overview/domain?query=${encodeURIComponent(cleanedDomain)}`;
 };
 
-// Direct access to Railway URL - no functions, just direct string
-export const PROXY_SERVER_URL = (): string => DIRECT_RAILWAY_URL;
+// Use relative paths for API calls
+export const PROXY_SERVER_URL = (): string => '';
 
-// Function to get the proxy URL for SpyFu API requests - direct hardcoded URL
+// Function to get the proxy URL for SpyFu API requests - use relative path
 export const getProxyUrl = (domain: string): string => {
   const cleanedDomain = cleanDomain(domain);
-  return `${DIRECT_RAILWAY_URL}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
+  return `/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
 };
 
-// Function to get a test URL for the proxy - direct root endpoint
+// Function to get a test URL for the proxy - use relative path for API endpoint
 export const getProxyTestUrl = (): string => {
-  return DIRECT_RAILWAY_URL;
+  return '/api';
 };
 
-// We only use the Railway URL
+// We only use relative paths now
 export const saveCustomProxyUrl = (url: string): void => {
-  console.log('Custom proxy URLs are disabled - always using Railway URL');
+  console.log('Custom proxy URLs are disabled - always using relative paths');
 };
 
 export const toggleLocalProxy = (useLocal: boolean): void => {
-  console.log('Local proxy usage is disabled - always using Railway URL');
+  console.log('Local proxy usage is disabled - always using relative paths');
 };
 
 // Function to check if SpyFu API key is available

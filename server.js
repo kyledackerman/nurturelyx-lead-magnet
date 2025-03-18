@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
+const path = require("path");
 require("dotenv").config();
 
 const app = express();
@@ -34,7 +35,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 // ✅ Root Route (Confirms API is Running) - Keep this super simple
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.json({ 
     message: "SpyFu Proxy Server is running!", 
@@ -120,13 +121,15 @@ app.get("/health", (req, res) => {
   });
 });
 
-// ✅ Catch-All Route for Undefined Endpoints
-app.use((req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.status(404).json({ error: "Not Found" });
+// Serve static files from the 'dist' directory (Vite build output)
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Any routes not matched by API endpoints should serve the index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // ✅ Start Server
 app.listen(PORT, () =>
-  console.log(`🚀 Proxy server running on port ${PORT}`)
+  console.log(`🚀 Server running on port ${PORT}, serving both API and frontend`)
 );
