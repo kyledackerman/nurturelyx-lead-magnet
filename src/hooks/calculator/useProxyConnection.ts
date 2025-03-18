@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from "react";
-import { DEFAULT_PUBLIC_PROXY_URL, getProxyTestUrl } from "@/services/api/spyfuConfig";
+import { getProxyTestUrl } from "@/services/api/spyfuConfig";
 
 export function useProxyConnection() {
   const [proxyConnected, setProxyConnected] = useState<boolean>(false);
@@ -17,8 +17,12 @@ export function useProxyConnection() {
     setConnectionAttempted(true);
     
     try {
-      const testUrl = getProxyTestUrl();
-      console.log(`Testing proxy connection at: ${testUrl}`);
+      // Using directly the URL string to avoid any issues with function calls
+      const testUrl = "https://nurture-lead-vision-production.up.railway.app/";
+      console.log(`Testing direct proxy connection at: ${testUrl}`);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
       
       const response = await fetch(testUrl, { 
         method: 'GET',
@@ -26,24 +30,26 @@ export function useProxyConnection() {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
+        signal: controller.signal,
         mode: 'cors',
         credentials: 'omit', // Don't send credentials
-        cache: 'no-cache', // Don't use cache
-        redirect: 'follow'
+        cache: 'no-cache' // Don't use cache
       });
       
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
-        console.log("Proxy connection successful!");
+        console.log("✅ Proxy connection successful!");
         setProxyConnected(true);
         setConnectionError(null);
       } else {
-        console.error("Proxy connection failed with status:", response.status);
+        console.error("❌ Proxy connection failed with status:", response.status);
         setProxyConnected(false);
         setConnectionError(`API responded with status: ${response.status}. Using manual mode.`);
         setRetryCount(prev => prev + 1);
       }
     } catch (error) {
-      console.error("Proxy connection error:", error);
+      console.error("❌ Proxy connection error:", error);
       setProxyConnected(false);
       setConnectionError("Cannot connect to API server. Using manual mode.");
       setRetryCount(prev => prev + 1);
@@ -53,7 +59,13 @@ export function useProxyConnection() {
   }, [connectionAttempted, retryCount]);
 
   useEffect(() => {
+    // When component mounts, attempt to connect
     checkProxyConnection();
+    
+    // Cleanup
+    return () => {
+      // No cleanup needed
+    };
   }, [checkProxyConnection]);
 
   const resetConnectionState = () => {
@@ -65,7 +77,7 @@ export function useProxyConnection() {
 
   const retryConnection = () => {
     if (retryCount < MAX_RETRIES) {
-      setConnectionAttempted(false);
+      resetConnectionState(); // Reset state before retrying
       checkProxyConnection();
     }
   };

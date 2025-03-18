@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormData } from "@/types/report";
-import { RefreshCw, AlertCircle, ServerOff } from "lucide-react";
+import { RefreshCw, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { TrafficInputFields } from "./lead-calculator/TrafficInputFields";
@@ -9,7 +9,6 @@ import { TransactionValueInput } from "./lead-calculator/TransactionValueInput";
 import { InfoSection } from "./lead-calculator/InfoSection";
 import { FormActions } from "./lead-calculator/FormActions";
 import { useLeadCalculatorForm } from "./lead-calculator/useLeadCalculatorForm";
-import { fetchDomainData } from "@/services/spyfuService";
 
 interface LeadCalculatorFormProps {
   onCalculate: (data: FormData) => void;
@@ -46,7 +45,7 @@ const LeadCalculatorForm = ({
     
     if (validateForm()) {
       try {
-        // Try to use the SpyFu API but fall back to manual mode if needed
+        // Always proceed, even if proxy isn't connected - we'll use fallback data
         onCalculate(formData);
         toast.success("Calculating your report", {
           description: "Processing your data to generate insights."

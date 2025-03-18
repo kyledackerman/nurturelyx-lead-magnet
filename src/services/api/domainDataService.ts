@@ -3,11 +3,12 @@ import { toast } from "sonner";
 import { ApiData } from "@/types/report";
 import { 
   isValidDomain, 
-  cleanDomain, 
-  getProxyUrl,
-  getProxyTestUrl
+  cleanDomain
 } from "./spyfuConfig";
 import { generateFallbackData } from "./fallbackDataService";
+
+// Direct Railway URL for reliability
+const RAILWAY_URL = "https://nurture-lead-vision-production.up.railway.app";
 
 // Function to fetch domain data from SpyFu API via proxy
 export const fetchDomainData = async (
@@ -47,11 +48,11 @@ export const fetchDomainData = async (
     
     // Try to get real data from the SpyFu API
     try {
-      // First, check if proxy is available
-      console.log("Testing proxy connection...");
+      // First, check if proxy is available with a direct test using the Railway URL
+      console.log("Testing direct Railway connection...");
       
       try {
-        const testResponse = await fetch(getProxyTestUrl(), {
+        const testResponse = await fetch(`${RAILWAY_URL}/`, {
           method: 'GET',
           headers: { 
             'Content-Type': 'application/json',
@@ -67,13 +68,13 @@ export const fetchDomainData = async (
           throw new Error("Proxy connection test failed");
         }
       } catch (testError) {
-        console.error("Proxy connection test error:", testError);
+        console.error("Direct Railway connection test error:", testError);
         throw new Error("Failed to connect to proxy server");
       }
       
       // Proxy is available, get real data for the domain
-      console.log(`Fetching real data for ${cleanedDomain}`);
-      const proxyUrl = getProxyUrl(cleanedDomain);
+      console.log(`Fetching real data for ${cleanedDomain} via Railway`);
+      const proxyUrl = `${RAILWAY_URL}/proxy/spyfu?domain=${encodeURIComponent(cleanedDomain)}`;
       
       const response = await fetch(proxyUrl, {
         method: 'GET',

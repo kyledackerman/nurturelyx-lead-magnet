@@ -45,10 +45,21 @@ export function useLeadCalculatorForm(initialData?: FormData | null, apiError?: 
     resetConnectionState();
   };
 
+  // If we have connection issues, always show manual traffic fields
+  const shouldShowTrafficFields = showTrafficFields || !proxyConnected || !!connectionError || !!apiError;
+  
+  // Update traffic fields visibility when connection status changes
+  if (((!proxyConnected || !!connectionError) && !showTrafficFields) || 
+      (proxyConnected && !connectionError && !apiError && showTrafficFields)) {
+    setTimeout(() => {
+      setShowTrafficFields(!proxyConnected || !!connectionError || !!apiError);
+    }, 0);
+  }
+
   return {
     // Form state
     formData,
-    showTrafficFields,
+    showTrafficFields: shouldShowTrafficFields, // Use computed value
     
     // Form validation
     errors,
