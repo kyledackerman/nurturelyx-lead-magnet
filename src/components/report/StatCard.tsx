@@ -15,7 +15,7 @@ const StatCard = ({ label, value, description, icon: Icon }: StatCardProps) => {
       <div className="flex justify-between items-start">
         <div>
           <p className="stat-label text-white text-sm">{label}</p>
-          <h3 className="stat-value text-3xl font-bold mt-1">{value}</h3>
+          <h3 className="stat-value text-3xl font-bold mt-1 text-accent">{value}</h3>
           <p 
             className="mt-2 text-sm text-white"
             dangerouslySetInnerHTML={{ __html: description }}

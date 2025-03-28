@@ -14,8 +14,10 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 174 84% 68%; /* Teal #81e6d9 */
-    --primary-foreground: 0 0% 0%; /* Black text on teal */
+    /* Teal #81e6d9 */
+    --primary: 174 84% 68%;
+    /* Black text on teal */
+    --primary-foreground: 0 0% 0%;
 
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -23,22 +25,27 @@
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
 
-    --accent: 174 84% 68%; /* Teal #81e6d9 */
-    --accent-foreground: 0 0% 0%; /* Black text on teal */
+    /* Teal #81e6d9 */
+    --accent: 174 84% 68%;
+    /* Black text on teal */
+    --accent-foreground: 0 0% 0%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 174 84% 68%; /* Teal */
+    /* Teal */
+    --ring: 174 84% 68%;
 
     --radius: 0.5rem;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 174 84% 68%; /* Teal */
-    --sidebar-primary-foreground: 0 0% 0%; /* Black text on teal */
+    /* Teal */
+    --sidebar-primary: 174 84% 68%;
+    /* Black text on teal */
+    --sidebar-primary-foreground: 0 0% 0%;
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
@@ -85,7 +92,7 @@
   }
   
   /* Text colors for dark backgrounds */
-  .bg-secondary, .bg-background, .bg-muted, .bg-accent/10, .bg-accent/20, .bg-secondary/70 {
+  .bg-secondary, .bg-background, .bg-muted, .bg-accent\/10, .bg-accent\/20, .bg-secondary\/70 {
     @apply text-white;
   }
   
