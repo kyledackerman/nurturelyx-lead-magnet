@@ -80,7 +80,7 @@ const Changelog = ({ reportData }: { reportData: ReportData }) => {
           </li>
           <li className="flex items-start">
             <Check size={16} className="mr-2 mt-0.5 text-green-500" />
-            <span><strong>Sales Estimation:</strong> Estimated at 1% conversion of identified leads with {formatCurrency(data.avgTransactionValue)} average value</span>
+            <span><strong>Sales Estimation:</strong> Estimated at 1% conversion of identified leads with {formatCurrency(reportData.avgTransactionValue)} average value</span>
           </li>
           <li className="flex items-start">
             <AlertTriangle size={16} className="mr-2 mt-0.5 text-amber-500" />
