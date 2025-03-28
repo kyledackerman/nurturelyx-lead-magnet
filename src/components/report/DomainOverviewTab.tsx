@@ -41,34 +41,34 @@ const DomainOverviewTab = ({
             <h3 className="text-lg font-medium mb-4">Domain Statistics</h3>
             <dl className="space-y-4">
               <div className="flex flex-row justify-between py-2 border-b border-gray-800">
-                <dt className="font-medium text-black">Domain</dt>
-                <dd className="text-right text-black">{domain}</dd>
+                <dt className="font-medium text-white">Domain</dt>
+                <dd className="text-right text-white">{domain}</dd>
               </div>
               <div className="flex flex-row justify-between py-2 border-b border-gray-800">
-                <dt className="font-medium text-black">Domain Authority</dt>
-                <dd className="text-right text-black">{domainPower}/100</dd>
+                <dt className="font-medium text-white">Domain Authority</dt>
+                <dd className="text-right text-white">{domainPower}/100</dd>
               </div>
               <div className="flex flex-row justify-between py-2 border-b border-gray-800">
-                <dt className="font-medium text-black">Backlinks</dt>
-                <dd className="text-right text-black">{backlinks.toLocaleString()}</dd>
+                <dt className="font-medium text-white">Backlinks</dt>
+                <dd className="text-right text-white">{backlinks.toLocaleString()}</dd>
               </div>
               <div className="flex flex-row justify-between py-2 border-b border-gray-800">
-                <dt className="font-medium text-black">Organic Keywords</dt>
-                <dd className="text-right text-black">{organicKeywords.toLocaleString()}</dd>
+                <dt className="font-medium text-white">Organic Keywords</dt>
+                <dd className="text-right text-white">{organicKeywords.toLocaleString()}</dd>
               </div>
               <div className="flex flex-row justify-between py-2 border-b border-gray-800">
-                <dt className="font-medium text-black">Monthly Organic Traffic</dt>
-                <dd className="text-right text-black">{organicTraffic.toLocaleString()}</dd>
+                <dt className="font-medium text-white">Monthly Organic Traffic</dt>
+                <dd className="text-right text-white">{organicTraffic.toLocaleString()}</dd>
               </div>
               <div className="flex flex-row justify-between py-2 border-b border-gray-800">
-                <dt className="font-medium text-black">Monthly Paid Traffic</dt>
-                <dd className="text-right text-black">{paidTraffic.toLocaleString()}</dd>
+                <dt className="font-medium text-white">Monthly Paid Traffic</dt>
+                <dd className="text-right text-white">{paidTraffic.toLocaleString()}</dd>
               </div>
             </dl>
           </div>
           
           <div>
-            <h3 className="text-lg font-medium mb-4 text-black">Traffic Breakdown</h3>
+            <h3 className="text-lg font-medium mb-4 text-white">Traffic Breakdown</h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -78,24 +78,24 @@ const DomainOverviewTab = ({
                   <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                   <XAxis 
                     dataKey="name" 
-                    tick={{ fill: '#000000', fontSize: 12 }}
+                    tick={{ fill: '#ffffff', fontSize: 12 }}
                     tickLine={{ stroke: '#333' }}
                     axisLine={{ stroke: '#333' }}
                   />
                   <YAxis 
-                    tick={{ fill: '#000000', fontSize: 12 }}
+                    tick={{ fill: '#ffffff', fontSize: 12 }}
                     tickLine={{ stroke: '#333' }}
                     axisLine={{ stroke: '#333' }}
                   />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#222', borderColor: '#444', color: '#000000' }}
-                    labelStyle={{ color: '#000000', fontWeight: 'bold' }}
+                    contentStyle={{ backgroundColor: '#222', borderColor: '#444', color: '#ffffff' }}
+                    labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
                   />
                   <Bar dataKey="value" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <p className="text-sm text-black mt-4">
+            <p className="text-sm text-white mt-4">
               Your traffic sources show {organicTraffic > paidTraffic ? 'more organic than paid traffic' : 'more paid than organic traffic'}. 
               This could indicate {organicTraffic > paidTraffic ? 'strong SEO performance' : 'a reliance on paid acquisition'}.
             </p>

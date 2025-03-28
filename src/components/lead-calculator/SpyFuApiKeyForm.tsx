@@ -36,7 +36,7 @@ export const SpyFuApiKeyForm = ({ onApiKeySet }: SpyFuApiKeyFormProps) => {
             variant="outline" 
             size="sm"
             onClick={handleContinue}
-            className="text-accent border-accent hover:bg-accent/10"
+            className="text-white border-accent hover:bg-accent/10"
           >
             Continue
           </Button>

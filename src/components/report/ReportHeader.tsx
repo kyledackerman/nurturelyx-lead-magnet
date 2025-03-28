@@ -22,7 +22,7 @@ const ReportHeader = ({ onEditData, onReset }: ReportHeaderProps) => {
         <Button 
           variant="outline" 
           onClick={onEditData} 
-          className="flex items-center gap-2 text-black border-accent hover:bg-accent/10"
+          className="flex items-center gap-2 text-white border-accent hover:bg-accent/10"
           size="sm"
         >
           <Edit size={16} />
@@ -34,7 +34,7 @@ const ReportHeader = ({ onEditData, onReset }: ReportHeaderProps) => {
         <Button
           variant="outline"
           onClick={onReset}
-          className="flex items-center gap-2 border-accent text-black hover:bg-accent/10"
+          className="flex items-center gap-2 border-accent text-white hover:bg-accent/10"
           size="sm"
         >
           <RefreshCw size={16} />
@@ -44,7 +44,7 @@ const ReportHeader = ({ onEditData, onReset }: ReportHeaderProps) => {
         <Button
           variant="outline"
           onClick={handlePrintReport}
-          className="flex items-center gap-2 text-black"
+          className="flex items-center gap-2 text-white"
           size="sm"
         >
           <Printer size={16} />
