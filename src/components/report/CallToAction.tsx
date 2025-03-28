@@ -18,8 +18,8 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
   return (
     <Card className="bg-accent/10 border-accent mt-8 px-6 py-8">
       <div className="text-center max-w-2xl mx-auto space-y-4">
-        <h2 className="text-2xl font-bold text-black">Ready to Stop Losing {formatCurrency(yearlyRevenueLost)} Each Year?</h2>
-        <p className="text-black">
+        <h2 className="text-2xl font-bold text-white">Ready to Stop Losing {formatCurrency(yearlyRevenueLost)} Each Year?</h2>
+        <p className="text-white">
           Join the NurturelyX beta and start converting your anonymous traffic into real revenue.
           Only a limited number of spots available.
         </p>

@@ -14,7 +14,7 @@ const MethodologyCard = ({ domain, monthlyVisitors, avgTransactionValue }: Metho
       <CardHeader className="pb-2">
         <div className="flex items-center">
           <Info size={16} className="mr-2 text-accent" />
-          <CardTitle className="text-lg">Methodology</CardTitle>
+          <CardTitle className="text-lg text-white">Methodology</CardTitle>
         </div>
       </CardHeader>
       <CardContent>

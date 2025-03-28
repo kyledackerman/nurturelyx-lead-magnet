@@ -84,6 +84,16 @@
     @apply text-sm text-foreground;
   }
   
+  /* Text colors for dark backgrounds */
+  .bg-secondary, .bg-background, .bg-muted, .bg-accent/10, .bg-accent/20, .bg-secondary/70 {
+    @apply text-white;
+  }
+  
+  /* Keep accent text colors */
+  .text-accent {
+    @apply text-accent;
+  }
+  
   /* Loading indicator animations */
   @keyframes pulse {
     0%, 100% {

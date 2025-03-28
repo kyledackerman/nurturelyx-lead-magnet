@@ -39,8 +39,8 @@ const Glossary = () => {
       <CardHeader className="flex flex-row items-center gap-2">
         <HelpCircle className="h-5 w-5 text-accent" />
         <div>
-          <CardTitle>Glossary of Terms</CardTitle>
-          <CardDescription className="text-black">
+          <CardTitle className="text-white">Glossary of Terms</CardTitle>
+          <CardDescription className="text-white">
             Understanding the terminology used in this report
           </CardDescription>
         </div>
@@ -50,7 +50,7 @@ const Glossary = () => {
           {glossaryItems.map((item, index) => (
             <div key={index} className="border-b border-gray-700 pb-3 last:border-0">
               <h3 className="font-medium text-accent">{item.term}</h3>
-              <p className="text-sm text-black mt-1">{item.definition}</p>
+              <p className="text-sm text-white mt-1">{item.definition}</p>
             </div>
           ))}
         </div>
