@@ -69,7 +69,7 @@
   }
   
   .stat-label {
-    @apply text-sm text-gray-400 font-medium;
+    @apply text-sm text-foreground font-medium;
   }
   
   .methodology-card {
@@ -81,7 +81,7 @@
   }
   
   .methodology-text {
-    @apply text-sm text-gray-400;
+    @apply text-sm text-foreground;
   }
   
   /* Loading indicator animations */

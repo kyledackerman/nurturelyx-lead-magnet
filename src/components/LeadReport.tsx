@@ -43,9 +43,9 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
       <Card className="bg-secondary animate-fade-in">
         <CardHeader>
           <CardTitle>Monthly Opportunity Breakdown</CardTitle>
-          <CardDescription className="text-black">
+          <CardDescription className="text-white">
             Historical data for {data.domain} over the last 6 months
-            <strong className="block mt-1 text-black">
+            <strong className="block mt-1 text-white">
               Note: "Visitors" represents the combined total of organic and paid traffic for each month
             </strong>
           </CardDescription>

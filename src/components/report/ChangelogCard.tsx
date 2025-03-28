@@ -41,7 +41,7 @@ const ChangelogCard = ({ reportData }: ChangelogCardProps) => {
           <Info className="mr-2" size={20} />
           Report Summary & Changelog
         </CardTitle>
-        <CardDescription className="text-black">
+        <CardDescription className="text-white">
           Generated on {currentDate} at {new Date().toLocaleTimeString()}
         </CardDescription>
       </CardHeader>
@@ -49,23 +49,23 @@ const ChangelogCard = ({ reportData }: ChangelogCardProps) => {
         <ul className="space-y-2 text-sm">
           <li className="flex items-start">
             <Check size={16} className="mr-2 mt-0.5 text-green-500" />
-            <span className="text-black"><strong>Data Source:</strong> {dataSourceMessage}</span>
+            <span className="text-white"><strong>Data Source:</strong> {dataSourceMessage}</span>
           </li>
           <li className="flex items-start">
             <Check size={16} className="mr-2 mt-0.5 text-green-500" />
-            <span className="text-black"><strong>Monthly Metrics:</strong> All values represent <strong>monthly averages</strong> unless otherwise stated</span>
+            <span className="text-white"><strong>Monthly Metrics:</strong> All values represent <strong>monthly averages</strong> unless otherwise stated</span>
           </li>
           <li className="flex items-start">
             <Check size={16} className="mr-2 mt-0.5 text-green-500" />
-            <span className="text-black"><strong>Leads Calculation:</strong> Potential leads are based on 20% of your total monthly traffic (organic + paid)</span>
+            <span className="text-white"><strong>Leads Calculation:</strong> Potential leads are based on 20% of your total monthly traffic (organic + paid)</span>
           </li>
           <li className="flex items-start">
             <Check size={16} className="mr-2 mt-0.5 text-green-500" />
-            <span className="text-black"><strong>Sales Estimation:</strong> Estimated at 1% conversion of identified leads with {formatCurrency(reportData.avgTransactionValue)} average value</span>
+            <span className="text-white"><strong>Sales Estimation:</strong> Estimated at 1% conversion of identified leads with {formatCurrency(reportData.avgTransactionValue)} average value</span>
           </li>
           <li className="flex items-start">
             <AlertTriangle size={16} className="mr-2 mt-0.5 text-amber-500" />
-            <span className="text-black">The revenue figures represent <strong>additional potential</strong> beyond your current performance</span>
+            <span className="text-white">The revenue figures represent <strong>additional potential</strong> beyond your current performance</span>
           </li>
         </ul>
       </CardContent>
