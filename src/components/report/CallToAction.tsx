@@ -23,7 +23,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
           Join the NurturelyX beta and start converting your anonymous traffic into real revenue.
           Only a limited number of spots available.
         </p>
-        <Button className="gradient-bg text-white mt-4 mx-auto" size="lg">
+        <Button className="gradient-bg mt-4 mx-auto" size="lg">
           Apply for Beta Access Now
         </Button>
       </div>

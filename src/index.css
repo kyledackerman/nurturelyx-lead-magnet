@@ -65,7 +65,7 @@
 
   .gradient-bg {
     background: linear-gradient(to right, hsl(var(--accent)), hsl(var(--accent) / 0.8));
-    @apply text-accent-foreground;
+    color: hsl(var(--accent-foreground));
   }
   
   .stat-card {
@@ -73,7 +73,8 @@
   }
   
   .stat-value {
-    @apply text-3xl md:text-4xl font-bold text-accent;
+    @apply text-3xl md:text-4xl font-bold;
+    color: hsl(var(--accent));
   }
   
   .stat-label {
