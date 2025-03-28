@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReportData } from "@/types/report";
@@ -6,6 +7,10 @@ import MonthlyRevenueTable from "./MonthlyRevenueTable";
 import StatCard from "./report/StatCard";
 import MethodologyCard from "./report/MethodologyCard";
 import ReportTabs from "./report/ReportTabs";
+import VideoExplainer from "./report/VideoExplainer";
+import CompetitorComparison from "./report/CompetitorComparison";
+import Testimonials from "./report/Testimonials";
+import Glossary from "./report/Glossary";
 
 interface LeadReportProps {
   data: ReportData;
@@ -75,7 +80,7 @@ const Changelog = ({ reportData }: { reportData: ReportData }) => {
           </li>
           <li className="flex items-start">
             <Check size={16} className="mr-2 mt-0.5 text-green-500" />
-            <span><strong>Sales Estimation:</strong> Estimated at 1% conversion of identified leads with {formatCurrency(reportData.avgTransactionValue)} average value</span>
+            <span><strong>Sales Estimation:</strong> Estimated at 1% conversion of identified leads with {formatCurrency(data.avgTransactionValue)} average value</span>
           </li>
           <li className="flex items-start">
             <AlertTriangle size={16} className="mr-2 mt-0.5 text-amber-500" />
@@ -172,7 +177,28 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
         </CardContent>
       </Card>
       
+      <VideoExplainer />
+      
       <ReportTabs data={data} />
+      
+      <CompetitorComparison data={data} />
+      
+      <Testimonials />
+      
+      <Glossary />
+      
+      <Card className="bg-accent/10 border-accent mt-8 px-6 py-8">
+        <div className="text-center max-w-2xl mx-auto space-y-4">
+          <h2 className="text-2xl font-bold text-accent">Ready to Stop Losing {formatCurrency(data.yearlyRevenueLost)} Each Year?</h2>
+          <p className="text-gray-400">
+            Join the NurturelyX beta and start converting your anonymous traffic into real revenue.
+            Only a limited number of spots available.
+          </p>
+          <Button className="gradient-bg text-accent-foreground mt-4 mx-auto" size="lg">
+            Apply for Beta Access Now
+          </Button>
+        </div>
+      </Card>
       
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {

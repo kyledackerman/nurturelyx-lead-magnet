@@ -96,9 +96,10 @@ const SolutionTab = ({
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
         <Button className="w-full gradient-bg text-accent-foreground" size="lg">
-          Apply for Beta
+          Apply for Beta Access
           <ArrowUpRight className="ml-2 h-4 w-4" />
         </Button>
+        <p className="text-xs text-center text-gray-400">Limited spots available. Join the waitlist today.</p>
       </CardFooter>
     </Card>
   );
