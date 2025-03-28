@@ -95,26 +95,25 @@ const CompetitorComparison = ({ data }: CompetitorComparisonProps) => {
           </TableHeader>
           <TableBody>
             {competitors.map((competitor, index) => {
-              // Calculate estimated ROI based on the visitor identification
+              // Parse identification rate from string (removing the % character)
               const identificationRate = parseFloat(competitor.identificationRate) / 100;
               
-              // Total identified visitors based on monthly visitors and ID rate
-              const identifiedVisitors = Math.round(data.monthlyVisitors * identificationRate);
+              // Calculate identified visitors
+              const identifiedVisitors = Math.round(monthlyVisitors * identificationRate);
               
-              // Using a 1% conversion rate for identified visitors to sales
+              // Apply 1% conversion rate to get sales
               const conversionRate = 0.01;
               const potentialSales = Math.round(identifiedVisitors * conversionRate);
               
-              // Calculate potential revenue from these sales
+              // Calculate revenue based on average transaction value
               const potentialRevenue = potentialSales * data.avgTransactionValue;
               
-              console.log(`${competitor.name}: Visitors: ${data.monthlyVisitors}, ID Rate: ${identificationRate}, Identified: ${identifiedVisitors}, Sales: ${potentialSales}, Revenue: ${potentialRevenue}, Cost: ${competitor.monthlyPrice}`);
-              
-              // Calculate ROI: Revenue - Cost
+              // Calculate actual ROI (Revenue - Cost)
               const roi = potentialRevenue - competitor.monthlyPrice;
               
-              // Calculate ROI percentage: (Revenue - Cost) / Cost
-              const roiPercentage = (potentialRevenue > 0) ? (roi / competitor.monthlyPrice) : -1;
+              // Calculate ROI percentage (ROI / Cost * 100)
+              // Make sure we don't divide by zero and handle negative ROI properly
+              const roiPercentage = competitor.monthlyPrice > 0 ? roi / competitor.monthlyPrice : 0;
               
               return (
                 <TableRow 
