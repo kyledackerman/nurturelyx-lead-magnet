@@ -64,7 +64,8 @@
   }
 
   .gradient-bg {
-    @apply bg-gradient-to-r from-accent to-accent\/80 text-accent-foreground;
+    background: linear-gradient(to right, hsl(var(--accent)), hsl(var(--accent) / 0.8));
+    @apply text-accent-foreground;
   }
   
   .stat-card {
@@ -80,7 +81,8 @@
   }
   
   .methodology-card {
-    @apply p-4 bg-secondary\/70 rounded-lg border border-border mt-4;
+    background-color: hsl(var(--secondary) / 0.7);
+    @apply p-4 rounded-lg border border-border mt-4;
   }
   
   .methodology-title {
@@ -92,7 +94,15 @@
   }
   
   /* Text colors for dark backgrounds */
-  .bg-secondary, .bg-background, .bg-muted, .bg-accent\/10, .bg-accent\/20, .bg-secondary\/70 {
+  .bg-secondary, 
+  .bg-background, 
+  .bg-muted {
+    @apply text-white;
+  }
+  
+  /* Background with opacity classes need white text */
+  [class*="bg-accent/"], 
+  [class*="bg-secondary/"] {
     @apply text-white;
   }
   
