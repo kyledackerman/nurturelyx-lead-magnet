@@ -95,16 +95,26 @@ const CompetitorComparison = ({ data }: CompetitorComparisonProps) => {
           </TableHeader>
           <TableBody>
             {competitors.map((competitor, index) => {
-              // Calculate estimated ROI based on the real data
+              // Calculate estimated ROI based on the visitor identification
               const identificationRate = parseFloat(competitor.identificationRate) / 100;
+              
+              // Total identified visitors based on monthly visitors and ID rate
               const identifiedVisitors = Math.round(data.monthlyVisitors * identificationRate);
-              const conversionRate = 0.01; // Assuming 1% conversion
+              
+              // Using a 1% conversion rate for identified visitors to sales
+              const conversionRate = 0.01;
               const potentialSales = Math.round(identifiedVisitors * conversionRate);
+              
+              // Calculate potential revenue from these sales
               const potentialRevenue = potentialSales * data.avgTransactionValue;
+              
+              console.log(`${competitor.name}: Visitors: ${data.monthlyVisitors}, ID Rate: ${identificationRate}, Identified: ${identifiedVisitors}, Sales: ${potentialSales}, Revenue: ${potentialRevenue}, Cost: ${competitor.monthlyPrice}`);
               
               // Calculate ROI: Revenue - Cost
               const roi = potentialRevenue - competitor.monthlyPrice;
-              const roiPercentage = roi / competitor.monthlyPrice;
+              
+              // Calculate ROI percentage: (Revenue - Cost) / Cost
+              const roiPercentage = (potentialRevenue > 0) ? (roi / competitor.monthlyPrice) : -1;
               
               return (
                 <TableRow 
