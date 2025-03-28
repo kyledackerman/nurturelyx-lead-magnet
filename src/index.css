@@ -64,7 +64,7 @@
   }
 
   .gradient-bg {
-    @apply bg-gradient-to-r from-accent to-accent/80 text-accent-foreground;
+    @apply bg-gradient-to-r from-accent to-accent\/80 text-accent-foreground;
   }
   
   .stat-card {
@@ -80,7 +80,7 @@
   }
   
   .methodology-card {
-    @apply p-4 bg-secondary/70 rounded-lg border border-border mt-4;
+    @apply p-4 bg-secondary\/70 rounded-lg border border-border mt-4;
   }
   
   .methodology-title {
@@ -96,9 +96,9 @@
     @apply text-white;
   }
   
-  /* Keep accent text colors */
+  /* Override for accent text to ensure it's visible */
   .text-accent {
-    @apply text-accent;
+    color: hsl(var(--accent));
   }
   
   /* Loading indicator animations */
