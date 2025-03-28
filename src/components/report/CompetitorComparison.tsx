@@ -73,7 +73,7 @@ const CompetitorComparison = ({ data }: CompetitorComparisonProps) => {
     <Card className="bg-secondary mt-8">
       <CardHeader>
         <CardTitle>Competitor Comparison</CardTitle>
-        <CardDescription className="text-gray-400">
+        <CardDescription className="text-black">
           How NurturelyX stacks up against alternatives for websites with {data.monthlyVisitors.toLocaleString()} monthly visitors
         </CardDescription>
       </CardHeader>
@@ -81,13 +81,13 @@ const CompetitorComparison = ({ data }: CompetitorComparisonProps) => {
         <Table className="border-collapse w-full">
           <TableHeader>
             <TableRow className="bg-secondary-foreground/5">
-              <TableHead className="text-base font-semibold">Platform</TableHead>
-              <TableHead className="text-base font-semibold text-right">ID Rate</TableHead>
-              <TableHead className="text-base font-semibold text-center">Setup</TableHead>
-              <TableHead className="text-base font-semibold text-center">Privacy Compliant</TableHead>
-              <TableHead className="text-base font-semibold text-center">CRM Integration</TableHead>
-              <TableHead className="text-base font-semibold text-right">Monthly Cost</TableHead>
-              <TableHead className="text-base font-semibold text-right">Est. Monthly ROI</TableHead>
+              <TableHead className="text-base font-semibold text-black">Platform</TableHead>
+              <TableHead className="text-base font-semibold text-right text-black">ID Rate</TableHead>
+              <TableHead className="text-base font-semibold text-center text-black">Setup</TableHead>
+              <TableHead className="text-base font-semibold text-center text-black">Privacy Compliant</TableHead>
+              <TableHead className="text-base font-semibold text-center text-black">CRM Integration</TableHead>
+              <TableHead className="text-base font-semibold text-right text-black">Monthly Cost</TableHead>
+              <TableHead className="text-base font-semibold text-right text-black">Est. Monthly ROI</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -104,14 +104,14 @@ const CompetitorComparison = ({ data }: CompetitorComparisonProps) => {
                   key={index} 
                   className={`${index % 2 === 0 ? "bg-secondary-foreground/5" : ""} ${competitor.highlight ? "border-l-4 border-l-accent" : ""}`}
                 >
-                  <TableCell className={`font-medium text-base ${competitor.highlight ? "text-accent" : ""}`}>
+                  <TableCell className={`font-medium text-base text-black ${competitor.highlight ? "text-accent" : ""}`}>
                     {competitor.name}
                     {competitor.highlight && <span className="text-xs ml-2">(Best)</span>}
                   </TableCell>
-                  <TableCell className="text-right text-base font-medium">
+                  <TableCell className="text-right text-base font-medium text-black">
                     {competitor.identificationRate}
                   </TableCell>
-                  <TableCell className="text-center text-base font-medium">
+                  <TableCell className="text-center text-base font-medium text-black">
                     {competitor.installComplexity}
                   </TableCell>
                   <TableCell className="text-center text-base font-medium">
@@ -124,7 +124,7 @@ const CompetitorComparison = ({ data }: CompetitorComparisonProps) => {
                       <Check className="mx-auto h-5 w-5 text-green-500" /> : 
                       <X className="mx-auto h-5 w-5 text-red-500" />}
                   </TableCell>
-                  <TableCell className="text-right text-base font-medium">
+                  <TableCell className="text-right text-base font-medium text-black">
                     {formatCurrency(competitor.monthlyPrice)}
                   </TableCell>
                   <TableCell className={`text-right text-base font-bold ${roi > 0 ? "text-green-500" : "text-red-500"}`}>
@@ -136,7 +136,7 @@ const CompetitorComparison = ({ data }: CompetitorComparisonProps) => {
           </TableBody>
         </Table>
         <div className="flex justify-between mt-4">
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-black">
             * ROI calculations based on your reported average transaction value of {formatCurrency(data.avgTransactionValue)} and 1% conversion rate.
           </div>
         </div>

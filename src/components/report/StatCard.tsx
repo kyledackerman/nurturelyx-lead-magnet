@@ -14,10 +14,10 @@ const StatCard = ({ label, value, description, icon: Icon }: StatCardProps) => {
     <Card className="stat-card border-l-4 border-l-accent overflow-hidden bg-secondary p-6">
       <div className="flex justify-between items-start">
         <div>
-          <p className="stat-label text-gray-400 text-sm">{label}</p>
+          <p className="stat-label text-black text-sm">{label}</p>
           <h3 className="stat-value text-3xl font-bold mt-1">{value}</h3>
           <p 
-            className="mt-2 text-sm text-gray-400"
+            className="mt-2 text-sm text-black"
             dangerouslySetInnerHTML={{ __html: description }}
           />
         </div>

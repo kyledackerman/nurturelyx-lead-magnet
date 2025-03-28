@@ -1,12 +1,13 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MonthlyRevenueData } from "@/services/apiService";
+import { MonthlyRevenueData } from "@/types/report";
 
 interface MonthlyRevenueTableProps {
   data: MonthlyRevenueData[];
 }
 
 const MonthlyRevenueTable = ({ data }: MonthlyRevenueTableProps) => {
+  // Format currency values
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -14,45 +15,33 @@ const MonthlyRevenueTable = ({ data }: MonthlyRevenueTableProps) => {
       maximumFractionDigits: 0
     }).format(value);
   };
-
+  
   return (
     <div className="overflow-x-auto">
-      <Table className="border-collapse w-full">
+      <Table className="w-full">
         <TableHeader>
           <TableRow className="bg-secondary-foreground/5">
-            <TableHead className="text-base font-semibold">Month</TableHead>
-            <TableHead className="text-base font-semibold text-right">Visitors</TableHead>
-            <TableHead className="text-base font-semibold text-right">Missed Leads</TableHead>
-            <TableHead className="text-base font-semibold text-right">Lost Sales</TableHead>
-            <TableHead className="text-base font-semibold text-right">Revenue Lost</TableHead>
+            <TableHead className="text-black">Month</TableHead>
+            <TableHead className="text-right text-black">Visitors</TableHead>
+            <TableHead className="text-right text-black">Missed Leads</TableHead>
+            <TableHead className="text-right text-black">Lost Sales</TableHead>
+            <TableHead className="text-right text-black">Lost Revenue</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.map((month, index) => (
             <TableRow key={index} className={index % 2 === 0 ? "bg-secondary-foreground/5" : ""}>
-              <TableCell className="font-medium text-base">{month.month} {month.year}</TableCell>
-              <TableCell className="text-right text-base font-medium">
-                {month.visitors.toLocaleString()}
-              </TableCell>
-              <TableCell className="text-right text-base font-medium">
-                {month.leads.toLocaleString()}
-              </TableCell>
-              <TableCell className="text-right text-base font-medium">
-                {month.sales.toLocaleString()}
-              </TableCell>
-              <TableCell className="text-right font-bold text-base text-accent">
-                {formatCurrency(month.revenueLost)}
+              <TableCell className="font-medium text-black">{month.month}</TableCell>
+              <TableCell className="text-right text-black">{month.visitors.toLocaleString()}</TableCell>
+              <TableCell className="text-right text-black">{month.missedLeads.toLocaleString()}</TableCell>
+              <TableCell className="text-right text-black">{month.lostSales.toLocaleString()}</TableCell>
+              <TableCell className="text-right font-bold text-black">
+                {formatCurrency(month.lostRevenue)}
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      <div className="flex justify-between mt-4">
-        <div className="text-xs text-gray-400">
-          * Historical data is based on typical traffic patterns for websites in your industry.
-          Actual results may vary based on your specific implementation and market conditions.
-        </div>
-      </div>
     </div>
   );
 };

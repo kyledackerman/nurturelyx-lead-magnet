@@ -7,7 +7,7 @@ const VideoExplainer = () => {
     <Card className="bg-secondary mt-8">
       <CardHeader>
         <CardTitle>How NurturelyX Works</CardTitle>
-        <CardDescription className="text-gray-400">
+        <CardDescription className="text-black">
           Watch our 2-minute explainer video
         </CardDescription>
       </CardHeader>
@@ -25,7 +25,7 @@ const VideoExplainer = () => {
             className="w-full h-full object-cover opacity-50"
           />
         </div>
-        <div className="mt-4 text-sm text-gray-400">
+        <div className="mt-4 text-sm text-black">
           <p>In this video, learn how NurturelyX:</p>
           <ul className="list-disc list-inside mt-2 space-y-1">
             <li>Identifies anonymous visitors without cookies</li>

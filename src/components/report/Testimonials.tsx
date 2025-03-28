@@ -34,7 +34,7 @@ const Testimonials = () => {
     <Card className="bg-secondary mt-8">
       <CardHeader>
         <CardTitle>What Our Customers Say</CardTitle>
-        <CardDescription className="text-gray-400">
+        <CardDescription className="text-black">
           Real results from businesses like yours
         </CardDescription>
       </CardHeader>
@@ -43,7 +43,7 @@ const Testimonials = () => {
           {testimonials.map((testimonial, index) => (
             <div key={index} className="bg-background rounded-lg p-6 relative">
               <Quote className="absolute top-4 right-4 h-6 w-6 text-accent opacity-50" />
-              <p className="text-sm mb-6 italic">"{testimonial.quote}"</p>
+              <p className="text-sm mb-6 italic text-black">"{testimonial.quote}"</p>
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-full overflow-hidden bg-secondary">
                   <img 
@@ -53,8 +53,8 @@ const Testimonials = () => {
                   />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">{testimonial.author}</p>
-                  <p className="text-xs text-gray-400">{testimonial.position}</p>
+                  <p className="font-medium text-sm text-black">{testimonial.author}</p>
+                  <p className="text-xs text-black">{testimonial.position}</p>
                   <p className="text-xs text-accent mt-1">{testimonial.improvement}</p>
                 </div>
               </div>
