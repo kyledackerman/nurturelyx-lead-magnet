@@ -25,9 +25,13 @@ const CompetitorComparison = ({ data }: CompetitorComparisonProps) => {
     }).format(value);
   };
 
-  // Calculate estimated monthly costs based on traffic
+  // Get the actual monthly visitors and average transaction value from data
   const monthlyVisitors = data.monthlyVisitors;
+  const avgTransactionValue = data.avgTransactionValue;
   const tier = monthlyVisitors <= 10000 ? 'starter' : monthlyVisitors <= 50000 ? 'growth' : 'enterprise';
+  
+  // Base conversion rate for leads to sales
+  const baseConversionRate = 0.01; // 1%
   
   const competitors = [
     {
@@ -77,7 +81,7 @@ const CompetitorComparison = ({ data }: CompetitorComparisonProps) => {
       <CardHeader>
         <CardTitle>Competitor Comparison</CardTitle>
         <CardDescription className="text-white">
-          How NurturelyX stacks up against alternatives for websites with {data.monthlyVisitors.toLocaleString()} monthly visitors
+          How NurturelyX stacks up against alternatives for websites with {monthlyVisitors.toLocaleString()} monthly visitors
         </CardDescription>
       </CardHeader>
       <CardContent className="overflow-x-auto">
@@ -95,24 +99,22 @@ const CompetitorComparison = ({ data }: CompetitorComparisonProps) => {
           </TableHeader>
           <TableBody>
             {competitors.map((competitor, index) => {
-              // Parse identification rate from string (removing the % character)
-              const identificationRate = parseFloat(competitor.identificationRate) / 100;
+              // Parse identification rate from string to a number (removing % sign)
+              const identificationRateValue = parseFloat(competitor.identificationRate) / 100;
               
-              // Calculate identified visitors
-              const identifiedVisitors = Math.round(monthlyVisitors * identificationRate);
+              // Calculate number of visitors identified
+              const identifiedVisitors = Math.round(monthlyVisitors * identificationRateValue);
               
-              // Apply 1% conversion rate to get sales
-              const conversionRate = 0.01;
-              const potentialSales = Math.round(identifiedVisitors * conversionRate);
+              // Calculate number of sales from identified visitors (1% conversion)
+              const potentialSales = Math.round(identifiedVisitors * baseConversionRate);
               
-              // Calculate revenue based on average transaction value
-              const potentialRevenue = potentialSales * data.avgTransactionValue;
+              // Calculate revenue based on sales * avg transaction value
+              const potentialRevenue = potentialSales * avgTransactionValue;
               
-              // Calculate actual ROI (Revenue - Cost)
+              // Actual ROI calculation (Revenue - Cost)
               const roi = potentialRevenue - competitor.monthlyPrice;
               
-              // Calculate ROI percentage (ROI / Cost * 100)
-              // Make sure we don't divide by zero and handle negative ROI properly
+              // ROI percentage calculation
               const roiPercentage = competitor.monthlyPrice > 0 ? roi / competitor.monthlyPrice : 0;
               
               return (
@@ -151,7 +153,7 @@ const CompetitorComparison = ({ data }: CompetitorComparisonProps) => {
         </Table>
         <div className="flex justify-between mt-4">
           <div className="text-xs text-white">
-            * ROI calculations based on your reported average transaction value of {formatCurrency(data.avgTransactionValue)} and 1% conversion rate.
+            * ROI calculations based on your reported average transaction value of {formatCurrency(avgTransactionValue)} and 1% conversion rate.
           </div>
         </div>
       </CardContent>
