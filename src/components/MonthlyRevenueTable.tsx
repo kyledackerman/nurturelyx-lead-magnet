@@ -33,10 +33,10 @@ const MonthlyRevenueTable = ({ data }: MonthlyRevenueTableProps) => {
             <TableRow key={index} className={index % 2 === 0 ? "bg-secondary-foreground/5" : ""}>
               <TableCell className="font-medium text-black">{month.month}</TableCell>
               <TableCell className="text-right text-black">{month.visitors.toLocaleString()}</TableCell>
-              <TableCell className="text-right text-black">{month.missedLeads.toLocaleString()}</TableCell>
-              <TableCell className="text-right text-black">{month.lostSales.toLocaleString()}</TableCell>
+              <TableCell className="text-right text-black">{(month.missedLeads || month.leads).toLocaleString()}</TableCell>
+              <TableCell className="text-right text-black">{(month.lostSales || month.sales).toLocaleString()}</TableCell>
               <TableCell className="text-right font-bold text-black">
-                {formatCurrency(month.lostRevenue)}
+                {formatCurrency(month.lostRevenue || month.revenueLost)}
               </TableCell>
             </TableRow>
           ))}

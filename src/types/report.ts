@@ -18,19 +18,24 @@ export interface ApiData {
   dataSource: 'api' | 'manual' | 'both' | 'fallback';
 }
 
+export interface MonthlyRevenueData {
+  month: string;
+  year: number;
+  visitors: number;
+  organicVisitors: number;
+  paidVisitors: number;
+  leads: number;
+  sales: number;
+  revenueLost: number;
+  missedLeads?: number;
+  lostSales?: number;
+  lostRevenue?: number;
+}
+
 export interface ReportData extends FormData, ApiData {
   missedLeads: number;
   estimatedSalesLost: number;
   monthlyRevenueLost: number;
   yearlyRevenueLost: number;
-  monthlyRevenueData: {
-    month: string;
-    year: number;
-    visitors: number;
-    organicVisitors: number;
-    paidVisitors: number;
-    leads: number;
-    sales: number;
-    revenueLost: number;
-  }[];
+  monthlyRevenueData: MonthlyRevenueData[];
 }

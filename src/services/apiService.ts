@@ -1,5 +1,5 @@
 
-import { ApiData } from "@/types/report";
+import { ApiData, MonthlyRevenueData } from "@/types/report";
 import { toast } from "sonner";
 
 // Re-export the SpyFu URL function
@@ -71,7 +71,10 @@ export const calculateReportMetrics = (
       paidVisitors: monthPaid,
       leads: monthLeads,
       sales: monthSales,
-      revenueLost: monthRevenue
+      revenueLost: monthRevenue,
+      missedLeads: monthLeads,
+      lostSales: monthSales,
+      lostRevenue: monthRevenue
     });
   }
   
@@ -83,17 +86,6 @@ export const calculateReportMetrics = (
     monthlyRevenueData
   };
 };
-
-export interface MonthlyRevenueData {
-  month: string;
-  year: number;
-  visitors: number;
-  organicVisitors: number;
-  paidVisitors: number;
-  leads: number;
-  sales: number;
-  revenueLost: number;
-}
 
 // This function will be defined in domainDataService.ts and imported by users
 export const fetchDomainData = async (
