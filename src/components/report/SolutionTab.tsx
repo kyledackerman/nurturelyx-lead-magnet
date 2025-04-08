@@ -1,7 +1,5 @@
-
-import { ArrowUpRight, Check } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { CheckCircle, Lightbulb, Zap, BarChart } from "lucide-react";
 
 interface SolutionTabProps {
   missedLeads: number;
@@ -14,92 +12,137 @@ const SolutionTab = ({
   missedLeads,
   estimatedSalesLost,
   monthlyRevenueLost,
-  yearlyRevenueLost
+  yearlyRevenueLost,
 }: SolutionTabProps) => {
   const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
     }).format(value);
   };
 
   return (
-    <Card className="bg-secondary">
-      <CardHeader>
-        <CardTitle>How NurturelyX Solves Your Lead Gap</CardTitle>
-        <CardDescription className="text-gray-400">
-          Turn anonymous traffic into identified leads with our one-line script
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="flex items-start gap-3">
-            <div className="mt-1 bg-accent/10 p-2 rounded-full">
-              <Check className="h-4 w-4 text-accent" />
-            </div>
-            <div>
-              <h3 className="font-medium text-foreground">Identify Up to 20% of Anonymous Visitors</h3>
-              <p className="text-gray-400">
-                Our proprietary technology identifies visitors without requiring them to opt-in
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <div className="mt-1 bg-accent/10 p-2 rounded-full">
-              <Check className="h-4 w-4 text-accent" />
-            </div>
-            <div>
-              <h3 className="font-medium text-foreground">Simple One-Line Installation</h3>
-              <p className="text-gray-400">
-                Add a single line of JavaScript to your website - no complex setup required
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <div className="mt-1 bg-accent/10 p-2 rounded-full">
-              <Check className="h-4 w-4 text-accent" />
-            </div>
-            <div>
-              <h3 className="font-medium text-foreground">Compliant and Ethical</h3>
-              <p className="text-gray-400">
-                Our solution is fully compliant with privacy regulations including GDPR and CCPA
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <div className="mt-1 bg-accent/10 p-2 rounded-full">
-              <Check className="h-4 w-4 text-accent" />
-            </div>
-            <div>
-              <h3 className="font-medium text-foreground">Seamless CRM Integration</h3>
-              <p className="text-gray-400">
-                Automatically push identified leads to your existing CRM or marketing automation platform
-              </p>
-            </div>
-          </div>
-          
-          <div className="methodology-card mt-6">
-            <h3 className="methodology-title text-accent">
-              Stop Losing {formatCurrency(monthlyRevenueLost)} Every Month
+    <Card>
+      <CardContent className="pt-6">
+        <div className="space-y-6">
+          <div className="bg-secondary p-6 rounded-lg">
+            <h3 className="text-xl font-semibold mb-4 flex items-center">
+              <Lightbulb className="mr-2 text-accent" size={20} />
+              <span className="text-white">The Problem: Anonymous Traffic</span>
             </h3>
-            <p className="methodology-text">
-              With NurturelyX, you could be converting an additional {missedLeads.toLocaleString()} leads per month,
-              potentially resulting in {estimatedSalesLost.toLocaleString()} sales worth approximately {formatCurrency(monthlyRevenueLost)} 
-              in monthly revenue or {formatCurrency(yearlyRevenueLost)} annually.
+            <p className="text-white mb-4">
+              Your website is attracting valuable traffic, but you're missing
+              out on {missedLeads.toLocaleString()} potential leads each month
+              because these visitors leave without identifying themselves.
+            </p>
+            <ul className="space-y-3 text-white">
+              <li className="flex items-start">
+                <span className="mr-2 text-red-500">•</span>
+                <span>
+                  You're spending money to drive traffic but capturing only a
+                  small percentage
+                </span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2 text-red-500">•</span>
+                <span>
+                  This results in an estimated{" "}
+                  {estimatedSalesLost.toLocaleString()} lost sales opportunities
+                  monthly
+                </span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2 text-red-500">•</span>
+                <span>
+                  The revenue impact is substantial:{" "}
+                  {formatCurrency(yearlyRevenueLost)} annually
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-accent/10 p-6 rounded-lg">
+            <h3 className="text-xl font-semibold mb-4 flex items-center">
+              <Zap className="mr-2 text-accent" size={20} />
+              <span className="text-white">The Solution: NurturelyX</span>
+            </h3>
+            <p className="text-white mb-4">
+              NurturelyX identifies up to 20% of your anonymous visitors,
+              turning them into actionable leads for your sales team to pursue.
+            </p>
+            <ul className="space-y-3">
+              <li className="flex items-start">
+                <CheckCircle
+                  className="mr-2 text-green-500 mt-0.5 flex-shrink-0"
+                  size={16}
+                />
+                <span className="text-white">
+                  5-minute implementation with a simple JavaScript snippet
+                </span>
+              </li>
+              <li className="flex items-start">
+                <CheckCircle
+                  className="mr-2 text-green-500 mt-0.5 flex-shrink-0"
+                  size={16}
+                />
+                <span className="text-white">
+                  Works with your existing CRM and marketing tools
+                </span>
+              </li>
+              <li className="flex items-start">
+                <CheckCircle
+                  className="mr-2 text-green-500 mt-0.5 flex-shrink-0"
+                  size={16}
+                />
+                <span className="text-white">
+                  GDPR and CCPA compliant with built-in privacy controls
+                </span>
+              </li>
+              <li className="flex items-start">
+                <CheckCircle
+                  className="mr-2 text-green-500 mt-0.5 flex-shrink-0"
+                  size={16}
+                />
+                <span className="text-white">
+                  Typical ROI of 5-10x in the first month
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-secondary p-6 rounded-lg">
+            <h3 className="text-xl font-semibold mb-4 flex items-center">
+              <BarChart className="mr-2 text-accent" size={20} />
+              <span className="text-white">The Results: Measurable Impact</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="bg-background p-4 rounded-lg text-center">
+                <p className="text-4xl font-bold text-accent">
+                  {missedLeads.toLocaleString()}
+                </p>
+                <p className="text-sm text-white">New Leads Per Month</p>
+              </div>
+              <div className="bg-background p-4 rounded-lg text-center">
+                <p className="text-4xl font-bold text-accent">
+                  {estimatedSalesLost.toLocaleString()}
+                </p>
+                <p className="text-sm text-white">Additional Sales Per Month</p>
+              </div>
+              <div className="bg-background p-4 rounded-lg text-center">
+                <p className="text-4xl font-bold text-accent">
+                  {formatCurrency(monthlyRevenueLost)}
+                </p>
+                <p className="text-sm text-white">Added Revenue Per Month</p>
+              </div>
+            </div>
+            <p className="text-white text-center mt-6">
+              Join our limited beta program today to start recovering your lost
+              revenue potential.
             </p>
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex flex-col space-y-4">
-        <Button className="w-full gradient-bg text-accent-foreground" size="lg">
-          Apply for Beta
-          <ArrowUpRight className="ml-2 h-4 w-4" />
-        </Button>
-      </CardFooter>
     </Card>
   );
 };

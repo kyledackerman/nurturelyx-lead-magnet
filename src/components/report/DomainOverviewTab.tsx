@@ -1,23 +1,13 @@
-import { HelpCircle, LineChart, ExternalLink } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  Legend,
   ResponsiveContainer,
+  Tooltip,
 } from "recharts";
-import { getSpyFuUrl } from "@/services/spyfuService";
-import { Button } from "@/components/ui/button";
 
 interface DomainOverviewTabProps {
   domain: string;
@@ -25,7 +15,7 @@ interface DomainOverviewTabProps {
   backlinks: number;
   organicTraffic: number;
   organicKeywords: number;
-  paidTraffic?: number;
+  paidTraffic: number;
 }
 
 const DomainOverviewTab = ({
@@ -34,123 +24,112 @@ const DomainOverviewTab = ({
   backlinks,
   organicTraffic,
   organicKeywords,
-  paidTraffic = 0,
+  paidTraffic,
 }: DomainOverviewTabProps) => {
-  // Data for traffic comparison chart
+  // Prepare chart data
   const trafficData = [
     {
-      name: "Traffic Sources",
-      Organic: organicTraffic,
-      Paid: paidTraffic,
+      name: "Organic Traffic",
+      value: organicTraffic,
+      fill: "#81e6d9", // teal color
+    },
+    {
+      name: "Paid Traffic",
+      value: paidTraffic,
+      fill: "#9b87f5", // purple-light color
     },
   ];
 
-  const totalTraffic = organicTraffic + paidTraffic;
-  const organicPercentage =
-    Math.round((organicTraffic / totalTraffic) * 100) || 0;
-  const paidPercentage = Math.round((paidTraffic / totalTraffic) * 100) || 0;
-
-  // Generate SpyFu URL for this domain
-  const spyfuUrl = getSpyFuUrl(domain);
-
   return (
-    <Card className="bg-secondary">
-      <CardHeader>
-        <div className="flex justify-between items-center">
+    <Card>
+      <CardContent className="pt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div>
-            <CardTitle>Domain Performance</CardTitle>
-            <CardDescription className="text-gray-400">
-              Metrics for {domain}
-            </CardDescription>
+            <h3 className="text-lg font-medium mb-4">Domain Statistics</h3>
+            <dl className="space-y-4">
+              <div className="flex flex-row justify-between py-2 border-b border-gray-800">
+                <dt className="font-medium text-white">Domain</dt>
+                <dd className="text-right text-white">{domain}</dd>
+              </div>
+              <div className="flex flex-row justify-between py-2 border-b border-gray-800">
+                <dt className="font-medium text-white">Domain Authority</dt>
+                <dd className="text-right text-white">{domainPower}/100</dd>
+              </div>
+              <div className="flex flex-row justify-between py-2 border-b border-gray-800">
+                <dt className="font-medium text-white">Backlinks</dt>
+                <dd className="text-right text-white">
+                  {backlinks.toLocaleString()}
+                </dd>
+              </div>
+              <div className="flex flex-row justify-between py-2 border-b border-gray-800">
+                <dt className="font-medium text-white">Organic Keywords</dt>
+                <dd className="text-right text-white">
+                  {organicKeywords.toLocaleString()}
+                </dd>
+              </div>
+              <div className="flex flex-row justify-between py-2 border-b border-gray-800">
+                <dt className="font-medium text-white">
+                  Monthly Organic Traffic
+                </dt>
+                <dd className="text-right text-white">
+                  {organicTraffic.toLocaleString()}
+                </dd>
+              </div>
+              <div className="flex flex-row justify-between py-2 border-b border-gray-800">
+                <dt className="font-medium text-white">Monthly Paid Traffic</dt>
+                <dd className="text-right text-white">
+                  {paidTraffic.toLocaleString()}
+                </dd>
+              </div>
+            </dl>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.open(spyfuUrl, "_blank")}
-            className="flex items-center gap-1">
-            <ExternalLink className="h-4 w-4" />
-            View on SpyFu
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 bg-background rounded-lg">
-            <p className="text-sm text-gray-400 mb-1">Domain Power</p>
-            <p className="text-2xl font-bold text-accent">
-              {domainPower.toFixed(2)}/100
-            </p>
-          </div>
-          <div className="p-4 bg-background rounded-lg">
-            <p className="text-sm text-gray-400 mb-1">Backlinks</p>
-            <p className="text-2xl font-bold text-accent">
-              {backlinks.toLocaleString()}
-            </p>
-          </div>
-        </div>
 
-        <div className="h-80 bg-background rounded-lg p-4">
-          <h3 className="text-lg font-medium mb-4 flex items-center">
-            <LineChart className="h-4 w-4 mr-2 text-accent" />
-            Traffic Source Breakdown
-          </h3>
-          <ResponsiveContainer width="100%" height="85%">
-            <BarChart data={trafficData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
-              <YAxis dataKey="name" type="category" hide />
-              <Tooltip
-                formatter={(value: number) => [value.toLocaleString(), ""]}
-                labelFormatter={() => "Monthly Visitors"}
-              />
-              <Legend />
-              <Bar
-                dataKey="Organic"
-                fill="#3b82f6"
-                name={`Organic (${organicPercentage}%)`}
-              />
-              <Bar
-                dataKey="Paid"
-                fill="#10b981"
-                name={`Paid (${paidPercentage}%)`}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-          <div className="p-4 bg-background rounded-lg">
-            <p className="text-sm text-gray-400 mb-1">Organic Traffic</p>
-            <p className="text-2xl font-bold text-accent">
-              {organicTraffic.toLocaleString()}
+          <div>
+            <h3 className="text-lg font-medium mb-4 text-white">
+              Traffic Breakdown
+            </h3>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={trafficData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fill: "#ffffff", fontSize: 12 }}
+                    tickLine={{ stroke: "#333" }}
+                    axisLine={{ stroke: "#333" }}
+                  />
+                  <YAxis
+                    tick={{ fill: "#ffffff", fontSize: 12 }}
+                    tickLine={{ stroke: "#333" }}
+                    axisLine={{ stroke: "#333" }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#222",
+                      borderColor: "#444",
+                      color: "#ffffff",
+                    }}
+                    labelStyle={{ color: "#ffffff", fontWeight: "bold" }}
+                  />
+                  <Bar dataKey="value" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="text-sm text-white mt-4">
+              Your traffic sources show{" "}
+              {organicTraffic > paidTraffic
+                ? "more organic than paid traffic"
+                : "more paid than organic traffic"}
+              . This could indicate{" "}
+              {organicTraffic > paidTraffic
+                ? "strong SEO performance"
+                : "a reliance on paid acquisition"}
+              .
             </p>
           </div>
-          <div className="p-4 bg-background rounded-lg">
-            <p className="text-sm text-gray-400 mb-1">Paid Traffic</p>
-            <p className="text-2xl font-bold text-accent">
-              {paidTraffic.toLocaleString()}
-            </p>
-          </div>
-          <div className="p-4 bg-background rounded-lg">
-            <p className="text-sm text-gray-400 mb-1">Organic Keywords</p>
-            <p className="text-2xl font-bold text-accent">
-              {organicKeywords.toLocaleString()}
-            </p>
-          </div>
-        </div>
-
-        <div className="methodology-card mt-6">
-          <div className="flex items-center mb-2">
-            <HelpCircle size={16} className="mr-2 text-accent" />
-            <h3 className="methodology-title">What is Identity Resolution?</h3>
-          </div>
-          <p className="methodology-text">
-            Identity resolution technology identifies anonymous website visitors
-            without requiring them to opt-in. While traditional lead capture
-            methods only convert 2-5% of visitors, NurturelyX can identify up to
-            20% of your website traffic, dramatically increasing your lead
-            generation potential.
-          </p>
         </div>
       </CardContent>
     </Card>

@@ -53,6 +53,9 @@ export interface MonthlyRevenueData {
   organicVisitors: number;
   paidVisitors: number;
   leads: number;
+  missedLeads: number;
   sales: number;
+  lostSales: number;
   revenueLost: number;
+  lostRevenue: number;
 }
