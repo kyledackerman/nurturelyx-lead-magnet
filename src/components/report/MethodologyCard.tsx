@@ -14,11 +14,11 @@ const MethodologyCard = ({ domain, monthlyVisitors, avgTransactionValue }: Metho
       <CardHeader className="pb-2">
         <div className="flex items-center">
           <Info size={16} className="mr-2 text-accent" />
-          <CardTitle className="text-lg text-white">Methodology</CardTitle>
+          <CardTitle className="text-lg">Methodology</CardTitle>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4 text-sm text-white">
+        <div className="space-y-4 text-sm text-gray-400">
           <p>
             <span className="font-medium text-accent">Visitor Identification:</span> Our technology identifies up to 20% of your anonymous website visitors.
           </p>
@@ -28,7 +28,7 @@ const MethodologyCard = ({ domain, monthlyVisitors, avgTransactionValue }: Metho
           <p>
             <span className="font-medium text-accent">Revenue Calculation:</span> Lost sales × Your average transaction value (${avgTransactionValue}).
           </p>
-          <p className="text-xs opacity-75 mt-2 border-t border-border pt-2 text-white">
+          <p className="text-xs opacity-75 mt-2 border-t border-border pt-2">
             Data is based on your reported monthly visitor volume of {monthlyVisitors.toLocaleString()} 
             and organic traffic for {domain}.
           </p>

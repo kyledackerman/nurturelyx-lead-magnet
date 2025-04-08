@@ -14,10 +14,8 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    /* Teal #81e6d9 */
-    --primary: 174 84% 68%;
-    /* Black text on teal */
-    --primary-foreground: 0 0% 0%;
+    --primary: 174 84% 68%; /* Teal #81e6d9 */
+    --primary-foreground: 0 0% 0%; /* Black text on teal */
 
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -25,27 +23,22 @@
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
 
-    /* Teal #81e6d9 */
-    --accent: 174 84% 68%;
-    /* Black text on teal */
-    --accent-foreground: 0 0% 0%;
+    --accent: 174 84% 68%; /* Teal #81e6d9 */
+    --accent-foreground: 0 0% 0%; /* Black text on teal */
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    /* Teal */
-    --ring: 174 84% 68%;
+    --ring: 174 84% 68%; /* Teal */
 
     --radius: 0.5rem;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    /* Teal */
-    --sidebar-primary: 174 84% 68%;
-    /* Black text on teal */
-    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-primary: 174 84% 68%; /* Teal */
+    --sidebar-primary-foreground: 0 0% 0%; /* Black text on teal */
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
@@ -64,8 +57,7 @@
   }
 
   .gradient-bg {
-    background: linear-gradient(to right, hsl(var(--accent)), hsl(var(--accent) / 0.8));
-    color: hsl(0 0% 0%); /* Set to black explicitly */
+    @apply bg-gradient-to-r from-accent to-accent/80 text-accent-foreground;
   }
   
   .stat-card {
@@ -73,17 +65,15 @@
   }
   
   .stat-value {
-    @apply text-3xl md:text-4xl font-bold;
-    color: hsl(var(--accent));
+    @apply text-3xl md:text-4xl font-bold text-accent;
   }
   
   .stat-label {
-    @apply text-sm text-foreground font-medium;
+    @apply text-sm text-gray-400 font-medium;
   }
   
   .methodology-card {
-    background-color: hsl(var(--secondary) / 0.7);
-    @apply p-4 rounded-lg border border-border mt-4;
+    @apply p-4 bg-secondary/70 rounded-lg border border-border mt-4;
   }
   
   .methodology-title {
@@ -91,25 +81,7 @@
   }
   
   .methodology-text {
-    @apply text-sm text-foreground;
-  }
-  
-  /* Text colors for dark backgrounds */
-  .bg-secondary, 
-  .bg-background, 
-  .bg-muted {
-    @apply text-white;
-  }
-  
-  /* Background with opacity classes need white text */
-  [class*="bg-accent/"], 
-  [class*="bg-secondary/"] {
-    @apply text-white;
-  }
-  
-  /* Override for accent text to ensure it's visible */
-  .text-accent {
-    color: hsl(var(--accent));
+    @apply text-sm text-gray-400;
   }
   
   /* Loading indicator animations */

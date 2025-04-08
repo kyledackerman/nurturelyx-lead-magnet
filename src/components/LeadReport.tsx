@@ -1,18 +1,27 @@
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { ReportData } from "@/types/report";
+import {
+  DollarSign,
+  Users,
+  ShoppingCart,
+  Check,
+  AlertTriangle,
+  Info,
+  Edit,
+  Printer,
+  RefreshCw,
+} from "lucide-react";
 import MonthlyRevenueTable from "./MonthlyRevenueTable";
-import ReportTabs from "./report/ReportTabs";
-import VideoExplainer from "./report/VideoExplainer";
-import CompetitorComparison from "./report/CompetitorComparison";
-import Testimonials from "./report/Testimonials";
-import Glossary from "./report/Glossary";
-import ReportHeader from "./report/ReportHeader";
-import ChangelogCard from "./report/ChangelogCard";
-import StatsOverview from "./report/StatsOverview";
+import StatCard from "./report/StatCard";
 import MethodologyCard from "./report/MethodologyCard";
-import CallToAction from "./report/CallToAction";
-import PrintStyles from "./report/PrintStyles";
+import ReportTabs from "./report/ReportTabs";
 
 interface LeadReportProps {
   data: ReportData;
@@ -20,33 +29,180 @@ interface LeadReportProps {
   onEditData?: () => void;
 }
 
-const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
+const handlePrintReport = () => {
+  document.body.classList.add("printing-report");
+  window.print();
+  setTimeout(() => {
+    document.body.classList.remove("printing-report");
+  }, 1000);
+};
+
+const Changelog = ({ reportData }: { reportData: ReportData }) => {
+  const currentDate = new Date().toLocaleDateString();
+
+  let dataSourceMessage = "";
+  switch (reportData.dataSource) {
+    case "api":
+      dataSourceMessage = "Using SearchAtlas API data";
+      break;
+    case "manual":
+      dataSourceMessage = "Using your manually entered data";
+      break;
+    case "both":
+      dataSourceMessage = "Using combined API and manual data (averaged)";
+      break;
+    case "fallback":
+      dataSourceMessage = "Using industry estimates (API unavailable)";
+      break;
+  }
+
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 animate-fade-in" id="leadReport">
-      <ReportHeader onReset={onReset} onEditData={onEditData} />
-      
-      <ChangelogCard reportData={data} />
-      
-      <StatsOverview 
-        missedLeads={data.missedLeads}
-        estimatedSalesLost={data.estimatedSalesLost}
-        monthlyRevenueLost={data.monthlyRevenueLost}
-        yearlyRevenueLost={data.yearlyRevenueLost}
-      />
-      
+    <Card className="mb-8 border-l-4 border-l-blue-500 bg-blue-500/10">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xl flex items-center">
+          <Info className="mr-2" size={20} />
+          Report Summary & Changelog
+        </CardTitle>
+        <CardDescription>
+          Generated on {currentDate} at {new Date().toLocaleTimeString()}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ul className="space-y-2 text-sm">
+          <li className="flex items-start">
+            <Check size={16} className="mr-2 mt-0.5 text-green-500" />
+            <span>
+              <strong>Data Source:</strong> {dataSourceMessage}
+            </span>
+          </li>
+          <li className="flex items-start">
+            <Check size={16} className="mr-2 mt-0.5 text-green-500" />
+            <span>
+              <strong>Monthly Metrics:</strong> All values represent{" "}
+              <strong>monthly averages</strong> unless otherwise stated
+            </span>
+          </li>
+          <li className="flex items-start">
+            <Check size={16} className="mr-2 mt-0.5 text-green-500" />
+            <span>
+              <strong>Leads Calculation:</strong> Potential leads are based on
+              20% of your total monthly traffic (organic + paid)
+            </span>
+          </li>
+          <li className="flex items-start">
+            <Check size={16} className="mr-2 mt-0.5 text-green-500" />
+            <span>
+              <strong>Sales Estimation:</strong> Estimated at 1% conversion of
+              identified leads with{" "}
+              {formatCurrency(reportData.avgTransactionValue)} average value
+            </span>
+          </li>
+          <li className="flex items-start">
+            <AlertTriangle size={16} className="mr-2 mt-0.5 text-amber-500" />
+            <span>
+              The revenue figures represent{" "}
+              <strong>additional potential</strong> beyond your current
+              performance
+            </span>
+          </li>
+        </ul>
+      </CardContent>
+    </Card>
+  );
+};
+
+const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
+  console.log("-----------", data);
+  return (
+    <div
+      className="w-full max-w-6xl mx-auto space-y-8 animate-fade-in"
+      id="leadReport"
+    >
+      <div className="flex justify-between flex-wrap gap-4">
+        {onEditData && (
+          <Button
+            variant="outline"
+            onClick={onEditData}
+            className="flex items-center gap-2 text-accent border-accent hover:bg-accent/10"
+            size="sm"
+          >
+            <Edit size={16} />
+            My Information Isn't Right
+          </Button>
+        )}
+
+        <div className="flex gap-2 ml-auto">
+          <Button
+            variant="outline"
+            onClick={onReset}
+            className="flex items-center gap-2 border-accent text-accent hover:bg-accent/10"
+            size="sm"
+          >
+            <RefreshCw size={16} />
+            Restart
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={handlePrintReport}
+            className="flex items-center gap-2"
+            size="sm"
+          >
+            <Printer size={16} />
+            Save as PDF
+          </Button>
+        </div>
+      </div>
+
+      <Changelog reportData={data} />
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
+        <StatCard
+          label="Missed Leads"
+          value={data.missedLeads.toLocaleString()}
+          description="Monthly average based on <strong>20% visitor identification</strong>"
+          icon={Users}
+        />
+
+        <StatCard
+          label="Lost Sales*"
+          value={data.estimatedSalesLost.toLocaleString()}
+          description="Monthly average based on <strong>1% lead conversion</strong>"
+          icon={ShoppingCart}
+        />
+
+        <StatCard
+          label="Lost Revenue"
+          value={formatCurrency(data.monthlyRevenueLost)}
+          description={`<strong>${formatCurrency(
+            data.yearlyRevenueLost
+          )}</strong> annually`}
+          icon={DollarSign}
+        />
+      </div>
+
       <MethodologyCard
         domain={data.domain}
         monthlyVisitors={data.monthlyVisitors}
         avgTransactionValue={data.avgTransactionValue}
       />
-      
+
       <Card className="bg-secondary animate-fade-in">
         <CardHeader>
           <CardTitle>Monthly Opportunity Breakdown</CardTitle>
-          <CardDescription className="text-white">
+          <CardDescription className="text-gray-400">
             Historical data for {data.domain} over the last 6 months
-            <strong className="block mt-1 text-white">
-              Note: "Visitors" represents the combined total of organic and paid traffic for each month
+            <strong className="block mt-1 text-accent">
+              Note: "Visitors" represents the combined total of organic and paid
+              traffic for each month
             </strong>
           </CardDescription>
         </CardHeader>
@@ -54,20 +210,35 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
           <MonthlyRevenueTable data={data.monthlyRevenueData} />
         </CardContent>
       </Card>
-      
-      <VideoExplainer />
-      
+
       <ReportTabs data={data} />
-      
-      <CompetitorComparison data={data} />
-      
-      <Testimonials />
-      
-      <Glossary />
-      
-      <CallToAction yearlyRevenueLost={data.yearlyRevenueLost} />
-      
-      <PrintStyles />
+
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          
+          #leadReport, #leadReport * {
+            visibility: visible;
+          }
+          
+          #leadReport {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+          
+          button {
+            display: none !important;
+          }
+        }
+      `,
+        }}
+      />
     </div>
   );
 };

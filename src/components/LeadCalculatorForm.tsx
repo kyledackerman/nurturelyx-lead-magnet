@@ -1,5 +1,10 @@
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { FormData } from "@/types/report";
 import { RefreshCw, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -18,12 +23,12 @@ interface LeadCalculatorFormProps {
   apiError?: string | null;
 }
 
-const LeadCalculatorForm = ({ 
-  onCalculate, 
-  onReset, 
-  isCalculating, 
-  initialData, 
-  apiError: externalApiError 
+const LeadCalculatorForm = ({
+  onCalculate,
+  onReset,
+  isCalculating,
+  initialData,
+  apiError: externalApiError,
 }: LeadCalculatorFormProps) => {
   const {
     formData,
@@ -39,27 +44,27 @@ const LeadCalculatorForm = ({
     validateAndSubmit,
     validateForm,
     setShowTrafficFields,
-    resetForm
+    resetForm,
   } = useLeadCalculatorForm(initialData);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       try {
         // Always proceed, even if proxy isn't connected - we'll use fallback data
         onCalculate(formData);
         toast.success("Calculating your report", {
-          description: "Processing your data to generate insights."
+          description: "Processing your data to generate insights.",
         });
       } catch (error) {
         toast.error("Error submitting form", {
-          description: "Please check your inputs and try again."
+          description: "Please check your inputs and try again.",
         });
       }
     } else {
       toast.error("Please fix the errors before continuing", {
-        description: "Some required information is missing or invalid."
+        description: "Some required information is missing or invalid.",
       });
     }
   };
@@ -73,6 +78,8 @@ const LeadCalculatorForm = ({
 
   const apiError = externalApiError || connectionError;
 
+  console.log(externalApiError, "--------------", connectionError);
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
@@ -82,11 +89,15 @@ const LeadCalculatorForm = ({
         {apiError && (
           <div className="mb-6">
             <div className="flex items-start text-sm bg-amber-50 text-amber-800 p-3 rounded border border-amber-200">
-              <AlertCircle size={18} className="mr-2 mt-0.5 text-amber-600 shrink-0" />
+              <AlertCircle
+                size={18}
+                className="mr-2 mt-0.5 text-amber-600 shrink-0"
+              />
               <div>
                 <p className="font-medium">API Connection Unavailable</p>
                 <p className="text-sm text-amber-700 mt-1">
-                  Don't worry! You can still get accurate results by entering your traffic data below.
+                  Don't worry! You can still get accurate results by entering
+                  your traffic data below.
                 </p>
               </div>
             </div>
@@ -94,20 +105,20 @@ const LeadCalculatorForm = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          <TrafficInputFields 
+          <TrafficInputFields
             formData={formData}
             handleChange={handleChange}
             errors={errors}
-            showTrafficFields={showTrafficFields} 
+            showTrafficFields={showTrafficFields}
           />
-          
-          <TransactionValueInput 
+
+          <TransactionValueInput
             formData={formData}
             handleChange={handleChange}
             errors={errors}
           />
-          
-          <InfoSection 
+
+          <InfoSection
             apiError={apiError}
             connectionError={connectionError}
             proxyConnected={proxyConnected}
@@ -115,8 +126,8 @@ const LeadCalculatorForm = ({
             diagnosticInfo={diagnosticInfo}
             onRetryConnection={retryConnection}
           />
-          
-          <FormActions 
+
+          <FormActions
             isCalculating={isCalculating || isCheckingConnection}
             canCalculate={canCalculate}
             onReset={handleResetClick}
@@ -135,12 +146,13 @@ const FormHeader = ({ onReset }: { onReset?: () => void }) => (
         Calculate Your Missing Lead Opportunity
       </CardTitle>
       <CardDescription className="text-center">
-        Discover how many leads you're missing without requiring any technical setup
+        Discover how many leads you're missing without requiring any technical
+        setup
       </CardDescription>
     </div>
     {onReset && (
-      <Button 
-        variant="outline" 
+      <Button
+        variant="outline"
         onClick={onReset}
         className="flex items-center gap-2 border-accent text-accent hover:bg-accent/10"
         size="sm"

@@ -12,8 +12,8 @@ const ReportTabs = ({ data }: ReportTabsProps) => {
   return (
     <Tabs defaultValue="overview" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="overview" className="text-white">Domain Overview</TabsTrigger>
-        <TabsTrigger value="solution" className="text-white">NurturelyX Solution</TabsTrigger>
+        <TabsTrigger value="overview">Domain Overview</TabsTrigger>
+        <TabsTrigger value="solution">NurturelyX Solution</TabsTrigger>
       </TabsList>
       
       <TabsContent value="overview" className="animate-fade-in">

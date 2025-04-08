@@ -14,7 +14,7 @@ const Header = () => {
           <p className="text-xs text-gray-400">Lead Estimation Report</p>
         </div>
         
-        <Button className="gradient-bg font-medium">
+        <Button className="gradient-bg text-accent-foreground font-medium">
           Apply for Beta
         </Button>
       </div>
