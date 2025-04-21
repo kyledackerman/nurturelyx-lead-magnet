@@ -1,3 +1,4 @@
+
 import { ReportData } from "@/types/report";
 
 export const dummydata: ReportData = {
@@ -25,8 +26,11 @@ export const dummydata: ReportData = {
       organicVisitors: 534700,
       paidVisitors: 58850,
       leads: 26735,
+      missedLeads: 26735,
       sales: 10694,
+      lostSales: 10694,
       revenueLost: 16041,
+      lostRevenue: 16041
     },
     {
       month: "Jan",
@@ -35,8 +39,11 @@ export const dummydata: ReportData = {
       organicVisitors: 445700,
       paidVisitors: 58860,
       leads: 22285,
+      missedLeads: 22285,
       sales: 8914,
+      lostSales: 8914,
       revenueLost: 13371,
+      lostRevenue: 13371
     },
     {
       month: "Dec",
@@ -45,8 +52,11 @@ export const dummydata: ReportData = {
       organicVisitors: 347200,
       paidVisitors: 58819.99999999999,
       leads: 17360,
+      missedLeads: 17360,
       sales: 6944,
+      lostSales: 6944,
       revenueLost: 10416,
+      lostRevenue: 10416
     },
     {
       month: "Nov",
@@ -55,8 +65,11 @@ export const dummydata: ReportData = {
       organicVisitors: 338000,
       paidVisitors: 58819.99999999999,
       leads: 16900,
+      missedLeads: 16900,
       sales: 6760,
+      lostSales: 6760,
       revenueLost: 10140,
+      lostRevenue: 10140
     },
     {
       month: "Oct",
@@ -65,8 +78,11 @@ export const dummydata: ReportData = {
       organicVisitors: 341900,
       paidVisitors: 59019.99999999999,
       leads: 17095,
+      missedLeads: 17095,
       sales: 6838,
+      lostSales: 6838,
       revenueLost: 10257,
+      lostRevenue: 10257
     },
     {
       month: "Sept",
@@ -75,8 +91,11 @@ export const dummydata: ReportData = {
       organicVisitors: 326800,
       paidVisitors: 32820,
       leads: 16340,
+      missedLeads: 16340,
       sales: 6536,
+      lostSales: 6536,
       revenueLost: 9804,
+      lostRevenue: 9804
     },
   ],
 };

@@ -1,3 +1,4 @@
+
 import { ApiData, MonthlyRevenueData } from "@/types/report";
 import { toast } from "sonner";
 
@@ -73,8 +74,11 @@ export const calculateReportMetrics = (
         organicVisitors: row.organicVisitors,
         paidVisitors: row.paidVisitors,
         leads: monthLeads,
+        missedLeads: monthLeads, // Adding the missing property
         sales: monthSales,
+        lostSales: monthSales, // Adding the missing property
         revenueLost: monthRevenue,
+        lostRevenue: monthRevenue // Adding the missing property
       });
     });
   } else {
@@ -113,8 +117,11 @@ export const calculateReportMetrics = (
         organicVisitors: monthOrganic,
         paidVisitors: monthPaid,
         leads: monthLeads,
+        missedLeads: monthLeads, // Adding the missing property
         sales: monthSales,
+        lostSales: monthSales, // Adding the missing property
         revenueLost: monthRevenue,
+        lostRevenue: monthRevenue // Adding the missing property
       });
     }
   }

@@ -1,3 +1,4 @@
+
 import { ApiData, MonthlyRevenueData, NewApiDataT } from "@/types/report";
 
 export function formateNewApiDataToApiData(input: NewApiDataT): ApiData {
@@ -23,8 +24,11 @@ export function formateNewApiDataToApiData(input: NewApiDataT): ApiData {
         organicVisitors: monthData.monthlyOrganicClicks,
         paidVisitors: monthData.monthlyPaidClicks,
         leads: monthData.totalAdsPurchased, // missedLeads
+        missedLeads: monthData.totalAdsPurchased, // Adding missedLeads
         sales: 0, // estimatedSalesLost
+        lostSales: 0, // Adding lostSales
         revenueLost: 0, // monthlyRevenueLost
+        lostRevenue: 0 // Adding lostRevenue
       });
 
       return acc;
