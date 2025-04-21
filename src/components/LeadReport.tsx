@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -18,20 +19,31 @@ import StatsOverview from "./report/StatsOverview";
 import MethodologyCard from "./report/MethodologyCard";
 import CallToAction from "./report/CallToAction";
 import PrintStyles from "./report/PrintStyles";
+import ShareReportButton from "./report/ShareReportButton";
 
 interface LeadReportProps {
   data: ReportData;
   onReset: () => void;
   onEditData?: () => void;
+  isPublicView?: boolean;
 }
 
-const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
+const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadReportProps) => {
+  // Generate a reportId if one doesn't exist
+  const reportId = data.reportId || Math.random().toString(36).substring(2, 15);
+  
   return (
     <div
       className="w-full max-w-6xl mx-auto space-y-8 animate-fade-in"
       id="leadReport"
     >
-      <ReportHeader onReset={onReset} onEditData={onEditData} />
+      <div className="flex justify-between items-center">
+        <ReportHeader onReset={onReset} onEditData={onEditData} />
+        
+        {!isPublicView && (
+          <ShareReportButton reportData={data} reportId={reportId} />
+        )}
+      </div>
 
       <ChangelogCard reportData={data} />
 
@@ -70,11 +82,35 @@ const LeadReport = ({ data, onReset, onEditData }: LeadReportProps) => {
 
       <CompetitorComparison data={data} />
 
-      <Testimonials />
+      {!isPublicView && <Testimonials />}
 
       <Glossary />
 
       <CallToAction yearlyRevenueLost={data.yearlyRevenueLost} />
+
+      {!isPublicView && (
+        <Card className="bg-secondary p-6 border-accent/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl">Share Your Report</CardTitle>
+            <CardDescription className="text-white/80">
+              Let others know about the potential revenue they might be losing
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+              <div className="text-sm text-white">
+                <p>Sharing this report can help others understand:</p>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li>The value of visitor identification</li>
+                  <li>Potential revenue they're missing</li>
+                  <li>How to improve lead generation</li>
+                </ul>
+              </div>
+              <ShareReportButton reportData={data} reportId={reportId} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <PrintStyles />
     </div>

@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Edit, Printer, RefreshCw } from "lucide-react";
 
@@ -16,7 +17,7 @@ const ReportHeader = ({ onEditData, onReset }: ReportHeaderProps) => {
   };
 
   return (
-    <div className="flex justify-between flex-wrap gap-4">
+    <div className="flex flex-wrap gap-4">
       {onEditData && (
         <Button
           variant="outline"

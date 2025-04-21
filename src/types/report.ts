@@ -1,3 +1,4 @@
+
 export interface FormData {
   domain: string;
   monthlyVisitors?: number;
@@ -14,6 +15,7 @@ export interface ReportData extends FormData, ApiData {
   monthlyRevenueLost: number;
   yearlyRevenueLost: number;
   monthlyRevenueData: MonthlyRevenueData[];
+  reportId?: string; // Add reportId for public sharing
 }
 
 export interface NewApiDataT {
@@ -58,4 +60,12 @@ export interface MonthlyRevenueData {
   lostSales: number;
   revenueLost: number;
   lostRevenue: number;
+}
+
+// Define public report data interface
+export interface PublicReport {
+  reportId: string;
+  createdAt: string;
+  data: ReportData;
+  viewCount: number;
 }
