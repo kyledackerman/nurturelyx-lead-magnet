@@ -9,9 +9,19 @@ const LandingPageHero = () => {
           <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight text-foreground">
             How Much Revenue Are You Losing Every Month? (Free 2-Minute Report Reveals All)
           </h1>
-          <p className="text-xl text-gray-400 mb-8">
-            Enter your website below and discover exactly how much money you're leaving on the table right now
+          <p className="text-xl text-gray-400 mb-6">
+            Right now, as you read this, potential customers are visiting your website and leaving without buying. 
+            Every day you wait is money walking out the door.
           </p>
+          
+          <div className="bg-destructive/20 border border-destructive/30 rounded-lg p-4 mb-8 max-w-2xl mx-auto">
+            <p className="text-destructive font-semibold text-lg">
+              📉 The average website loses 97% of visitors forever
+            </p>
+            <p className="text-destructive/80 text-sm mt-1">
+              That's thousands of dollars in missed opportunities every single month
+            </p>
+          </div>
           
           <div className="flex flex-wrap justify-center gap-4 mb-12">
             <div className="flex items-center">
