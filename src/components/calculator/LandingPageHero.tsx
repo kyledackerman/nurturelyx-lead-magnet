@@ -7,7 +7,7 @@ const LandingPageHero = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight text-foreground">
-            Discover Your Website's Hidden Lead Potential
+            How Much Revenue Are You Losing Every Month? (Free 5-Minute Report Reveals All)
           </h1>
           <p className="text-xl text-gray-400 mb-8">
             Calculate how many leads you're missing and the revenue impact with our free estimation tool
