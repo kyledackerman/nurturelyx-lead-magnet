@@ -26,10 +26,6 @@ export const FormActions = ({ onReset, isCalculating, canCalculate }: FormAction
           )}
         </Button>
       </div>
-      
-      <p className="text-xs text-center text-gray-400 mt-2">
-        We identify 20% of your combined organic and paid traffic
-      </p>
     </>
   );
 };
