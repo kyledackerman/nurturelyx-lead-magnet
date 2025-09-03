@@ -23,7 +23,6 @@ const ReportTabs = ({ data }: ReportTabsProps) => {
         <DomainOverviewTab
           domain={data.domain}
           domainPower={data.domainPower}
-          backlinks={data.backlinks}
           organicTraffic={data.organicTraffic}
           organicKeywords={data.organicKeywords}
           paidTraffic={data.paidTraffic || data.monthlyVisitors}

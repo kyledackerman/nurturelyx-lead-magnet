@@ -12,7 +12,6 @@ import {
 interface DomainOverviewTabProps {
   domain: string;
   domainPower: number;
-  backlinks: number;
   organicTraffic: number;
   organicKeywords: number;
   paidTraffic: number;
@@ -21,7 +20,6 @@ interface DomainOverviewTabProps {
 const DomainOverviewTab = ({
   domain,
   domainPower,
-  backlinks,
   organicTraffic,
   organicKeywords,
   paidTraffic,
@@ -54,12 +52,6 @@ const DomainOverviewTab = ({
               <div className="flex flex-row justify-between py-2 border-b border-gray-800">
                 <dt className="font-medium text-white">Domain Authority</dt>
                 <dd className="text-right text-white">{domainPower}/100</dd>
-              </div>
-              <div className="flex flex-row justify-between py-2 border-b border-gray-800">
-                <dt className="font-medium text-white">Backlinks</dt>
-                <dd className="text-right text-white">
-                  {backlinks.toLocaleString()}
-                </dd>
               </div>
               <div className="flex flex-row justify-between py-2 border-b border-gray-800">
                 <dt className="font-medium text-white">Organic Keywords</dt>
