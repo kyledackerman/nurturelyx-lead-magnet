@@ -10,7 +10,7 @@ const LandingPageHero = () => {
             How Much Revenue Are You Losing Every Month? (Free 2-Minute Report Reveals All)
           </h1>
           <p className="text-xl text-gray-400 mb-8">
-            Calculate how many leads you're missing and the revenue impact with our free estimation tool
+            Enter your website below and discover exactly how much money you're leaving on the table right now
           </p>
           
           <div className="flex flex-wrap justify-center gap-4 mb-12">
