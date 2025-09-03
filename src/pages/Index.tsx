@@ -10,7 +10,7 @@ import { toast } from "sonner";
 // Import our new components
 import LoadingState from "@/components/calculator/LoadingState";
 import LandingPageHero from "@/components/calculator/LandingPageHero";
-import HowItWorks from "@/components/calculator/HowItWorks";
+
 import FormSection from "@/components/calculator/FormSection";
 
 const Index = () => {
@@ -145,7 +145,7 @@ const Index = () => {
               isCalculating={isCalculating}
             />
 
-            <HowItWorks />
+            
           </>
         ) : (
           <section className="py-12">
