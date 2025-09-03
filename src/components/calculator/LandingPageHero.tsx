@@ -15,11 +15,8 @@ const LandingPageHero = () => {
           </p>
           
           <div className="bg-destructive/20 border border-destructive/30 rounded-lg p-4 mb-8 max-w-2xl mx-auto">
-            <p className="text-destructive font-semibold text-lg">
+            <p className="text-white font-semibold text-lg">
               📉 The average website loses 97% of visitors forever
-            </p>
-            <p className="text-destructive/80 text-sm mt-1">
-              That's thousands of dollars in missed opportunities every single month
             </p>
           </div>
           
