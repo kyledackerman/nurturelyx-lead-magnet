@@ -15,7 +15,6 @@ const testimonials = [
     position: "CMO at TechVantage",
     company: "SaaS Platform",
     improvement: "143% increase in lead generation",
-    imageSrc: "/placeholder.svg",
   },
   {
     quote:
@@ -24,7 +23,6 @@ const testimonials = [
     position: "Director of Growth",
     company: "E-commerce Retailer",
     improvement: "285% ROI in first month",
-    imageSrc: "/placeholder.svg",
   },
   {
     quote:
@@ -33,7 +31,6 @@ const testimonials = [
     position: "Chief Privacy Officer",
     company: "Financial Services Firm",
     improvement: "$450K additional annual revenue",
-    imageSrc: "/placeholder.svg",
   },
 ];
 
@@ -54,14 +51,7 @@ const Testimonials = () => {
               <p className="text-sm mb-6 italic text-white">
                 "{testimonial.quote}"
               </p>
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-full overflow-hidden bg-secondary">
-                  <img
-                    src={testimonial.imageSrc}
-                    alt={testimonial.author}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
+              <div>
                 <div>
                   <p className="font-medium text-sm text-white">
                     {testimonial.author}
