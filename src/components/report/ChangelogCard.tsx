@@ -26,7 +26,7 @@ const ChangelogCard = ({ reportData }: ChangelogCardProps) => {
   let dataSourceMessage = "";
   switch (reportData.dataSource) {
     case "api":
-      dataSourceMessage = "Using SearchAtlas API data";
+      dataSourceMessage = "Using SpyFu API data";
       break;
     case "manual":
       dataSourceMessage = "Using your manually entered data";
