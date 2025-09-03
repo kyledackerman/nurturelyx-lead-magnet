@@ -1,5 +1,5 @@
 
-import { LineChart, Users, Zap } from "lucide-react";
+import { Database, Target, Zap } from "lucide-react";
 
 const LandingPageHero = () => {
   return (
@@ -16,23 +16,23 @@ const LandingPageHero = () => {
           <div className="flex flex-wrap justify-center gap-4 mb-12">
             <div className="flex items-center">
               <div className="bg-accent bg-opacity-10 p-2 rounded-full">
-                <LineChart className="h-5 w-5 text-accent" />
+                <Database className="h-5 w-5 text-accent" />
               </div>
-              <span className="ml-2 text-sm text-gray-400">Backed by data</span>
+              <span className="ml-2 text-sm text-gray-400">Real Traffic Data Analysis</span>
             </div>
             
             <div className="flex items-center">
               <div className="bg-accent bg-opacity-10 p-2 rounded-full">
-                <Users className="h-5 w-5 text-accent" />
+                <Target className="h-5 w-5 text-accent" />
               </div>
-              <span className="ml-2 text-sm text-gray-400">20% visitor identification</span>
+              <span className="ml-2 text-sm text-gray-400">Discover Your Lead Potential</span>
             </div>
             
             <div className="flex items-center">
               <div className="bg-accent bg-opacity-10 p-2 rounded-full">
                 <Zap className="h-5 w-5 text-accent" />
               </div>
-              <span className="ml-2 text-sm text-gray-400">One-line implementation</span>
+              <span className="ml-2 text-sm text-gray-400">Get Results in Seconds</span>
             </div>
           </div>
         </div>
