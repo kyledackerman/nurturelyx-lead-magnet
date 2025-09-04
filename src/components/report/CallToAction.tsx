@@ -33,7 +33,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
           
           <div className="flex items-center gap-2 text-sm text-accent mt-2">
             <UserRound size={16} />
-            <span>Join over 500+ businesses already using NurturelyX</span>
+            <span>Join over 115+ businesses already using NurturelyX</span>
           </div>
           
           <p className="text-sm text-white mt-4">
