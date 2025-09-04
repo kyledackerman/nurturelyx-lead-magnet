@@ -109,6 +109,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
             <div className="text-4xl font-bold text-primary mb-2">$1</div>
             <div className="text-muted-foreground mb-4">per verified lead</div>
             <div className="text-sm text-muted-foreground">
+              + $0.005 per email verification<br/>
               (Load as needed - no minimum purchase)
             </div>
           </div>
@@ -139,10 +140,6 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
                   <span className="text-foreground">Anonymous visitor analytics</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="text-foreground">Unlimited email verification (saves $0.005 per verification)</span>
-                </div>
               </div>
             </div>
             
@@ -153,6 +150,10 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
                   <span className="text-foreground">Identify anonymous visitors ($1/lead)</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span className="text-foreground">Email verification ($0.005 each)</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
@@ -168,7 +169,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
           
           <div className="mt-6 p-4 bg-secondary/50 rounded-lg text-center">
             <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground">Example:</strong> $10 in credits = 10 verified leads
+              <strong className="text-foreground">Example:</strong> $10 in credits = 2,000 email verifications or 10 verified leads
             </p>
           </div>
         </div>
