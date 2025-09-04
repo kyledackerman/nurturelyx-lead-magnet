@@ -20,7 +20,7 @@ const ScrollToCTAButton = () => {
         className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-4 text-lg font-semibold shadow-lg"
       >
         <ArrowDown className="w-6 h-6 mr-2" />
-        Ready to Get Started? See Your Options Below
+        Fix this problem now. See options below
       </Button>
     </div>
   );
