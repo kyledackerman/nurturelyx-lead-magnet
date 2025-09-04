@@ -1,5 +1,4 @@
 
-import { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -22,7 +21,6 @@ import ScrollToCTAButton from "./report/ScrollToCTAButton";
 import CallToAction from "./report/CallToAction";
 import PrintStyles from "./report/PrintStyles";
 import ShareReportButton from "./report/ShareReportButton";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LeadReportProps {
   data: ReportData;
@@ -34,20 +32,6 @@ interface LeadReportProps {
 const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadReportProps) => {
   // Generate a consistent reportId if one doesn't exist
   const reportId = data.reportId || `report_${Date.now()}_${data.domain.replace(/\./g, '_')}`;
-  const isMobile = useIsMobile();
-  
-  // Scroll to top of report on mobile when component mounts
-  useEffect(() => {
-    if (isMobile) {
-      const reportElement = document.getElementById('leadReport');
-      if (reportElement) {
-        reportElement.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
-        });
-      }
-    }
-  }, [isMobile]);
   
   return (
     <div
