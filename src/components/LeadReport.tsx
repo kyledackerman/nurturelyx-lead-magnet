@@ -17,6 +17,7 @@ import ReportHeader from "./report/ReportHeader";
 import ChangelogCard from "./report/ChangelogCard";
 import StatsOverview from "./report/StatsOverview";
 import MethodologyCard from "./report/MethodologyCard";
+import ScrollToCTAButton from "./report/ScrollToCTAButton";
 import CallToAction from "./report/CallToAction";
 import PrintStyles from "./report/PrintStyles";
 import ShareReportButton from "./report/ShareReportButton";
@@ -54,6 +55,8 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
         yearlyRevenueLost={data.yearlyRevenueLost}
       />
 
+      <ScrollToCTAButton />
+
       <MethodologyCard
         domain={data.domain}
         monthlyVisitors={data.monthlyVisitors}
@@ -86,7 +89,9 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
 
       <Glossary />
 
-      <CallToAction yearlyRevenueLost={data.yearlyRevenueLost} />
+      <div data-cta-section="true">
+        <CallToAction yearlyRevenueLost={data.yearlyRevenueLost} />
+      </div>
 
       {!isPublicView && (
         <Card className="bg-secondary p-6 border-accent/30">
