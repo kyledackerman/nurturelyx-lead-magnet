@@ -184,7 +184,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
         {/* Risk reversal */}
         <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
           <p className="text-foreground">
-            <strong className="text-primary">Zero Risk Guarantee:</strong> If you don't identify at least 10x more leads in your first 30 days, 
+            <strong className="text-primary">Zero Risk Guarantee:</strong> If you have more than 500 visitors per month and don't get at least 100 resolved identities, 
             we'll refund every penny and let you keep all the data we found.
           </p>
         </div>
