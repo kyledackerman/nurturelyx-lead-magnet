@@ -29,11 +29,11 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
             <span className="text-sm font-semibold uppercase tracking-wide">REVENUE HEMORRHAGING ALERT</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-foreground leading-tight">
-            You're Losing {formatCurrency(dailyLoss)}
+            You're Losing <span className="text-destructive">{formatCurrency(dailyLoss)}</span>
             <span className="text-primary"> Every Single Day</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            That's {formatCurrency(hourlyLoss)} per hour. While you're reading this, money is walking out the door.
+            That's <span className="text-destructive">{formatCurrency(hourlyLoss)}</span> per hour. While you're reading this, money is walking out the door.
           </p>
         </div>
 
@@ -42,15 +42,15 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
           <h3 className="text-2xl font-bold text-foreground mb-3">Here's What Doing Nothing Costs You:</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div>
-              <div className="text-3xl font-bold text-primary">{formatCurrency(dailyLoss)}</div>
+              <div className="text-3xl font-bold text-destructive">{formatCurrency(dailyLoss)}</div>
               <div className="text-muted-foreground">Lost Today</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-primary">{formatCurrency(dailyLoss * 7)}</div>
+              <div className="text-3xl font-bold text-destructive">{formatCurrency(dailyLoss * 7)}</div>
               <div className="text-muted-foreground">Lost This Week</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-primary">{formatCurrency(dailyLoss * 30)}</div>
+              <div className="text-3xl font-bold text-destructive">{formatCurrency(dailyLoss * 30)}</div>
               <div className="text-muted-foreground">Lost This Month</div>
             </div>
           </div>
@@ -197,7 +197,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
           </Button>
           
           <p className="text-xs text-muted-foreground max-w-md mx-auto">
-            The longer you wait, the more money walks out your door. Every day you delay costs you {formatCurrency(dailyLoss)}. 
+            The longer you wait, the more money walks out your door. Every day you delay costs you <span className="text-destructive">{formatCurrency(dailyLoss)}</span>. 
             That's more than most people pay for NurturelyX in an entire year.
           </p>
         </div>
