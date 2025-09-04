@@ -17,7 +17,7 @@ import Glossary from "./report/Glossary";
 import ReportHeader from "./report/ReportHeader";
 import ChangelogCard from "./report/ChangelogCard";
 import StatsOverview from "./report/StatsOverview";
-import MethodologyCard from "./report/MethodologyCard";
+
 import ScrollToCTAButton from "./report/ScrollToCTAButton";
 import CallToAction from "./report/CallToAction";
 import PrintStyles from "./report/PrintStyles";
@@ -68,11 +68,6 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
 
       <ScrollToCTAButton />
 
-      <MethodologyCard
-        domain={data.domain}
-        monthlyVisitors={data.monthlyVisitors}
-        avgTransactionValue={data.avgTransactionValue}
-      />
 
       <Card className="bg-secondary animate-fade-in">
         <CardHeader>
