@@ -1,4 +1,3 @@
-import { toast } from "sonner";
 import { ApiData, NewApiDataT, ReportData } from "@/types/report";
 import { isValidDomain, cleanDomain } from "./spyfuConfig";
 import { generateFallbackData } from "./fallbackDataService";
@@ -11,9 +10,7 @@ export const fetchDomainData = async (
   organicTrafficManual?: number,
   isUnsureOrganic?: boolean
 ): Promise<ApiData> => {
-  const toastId = toast.loading(`Analyzing ${domain}...`, {
-    description: "Getting SEO and traffic data. This may take a moment...",
-  });
+  console.log(`Analyzing domain: ${domain}...`);
 
   try {
     // Clean domain format
@@ -138,10 +135,7 @@ export const fetchDomainData = async (
       console.log("------data-api", data);
       const apiData = formateNewApiDataToApiData(NewData);
 
-      toast.success(`Analysis complete for ${domain}`, {
-        id: toastId,
-        description: "Using real SpyFu data for your report.",
-      });
+      console.log("Analysis complete - using real SpyFu data");
 
       // return apiData;
       return apiData;
@@ -151,11 +145,6 @@ export const fetchDomainData = async (
       // If there's manual traffic data available, use it
       if (organicTrafficManual !== undefined && organicTrafficManual > 0) {
         console.log("Using manual traffic data as fallback");
-
-        toast.warning(`Using your manually entered data`, {
-          id: toastId,
-          description: "API connection failed. Using your traffic values.",
-        });
 
         return {
           organicKeywords: Math.floor(organicTrafficManual * 0.3),
@@ -171,10 +160,7 @@ export const fetchDomainData = async (
       // Generate fallback data based on domain name
       const fallbackData = generateFallbackData(cleanedDomain);
 
-      toast.warning(`Analysis using estimates for ${domain}`, {
-        id: toastId,
-        description: "API connection failed. Using industry estimates instead.",
-      });
+      console.log("Using fallback data based on domain estimates");
 
       return {
         ...fallbackData,
@@ -186,10 +172,7 @@ export const fetchDomainData = async (
 
     // If user provided manual data, use it as fallback
     if (organicTrafficManual !== undefined && organicTrafficManual > 0) {
-      toast.warning(`Using your manually entered data`, {
-        id: toastId,
-        description: "API connection failed. Using your traffic values.",
-      });
+      console.log("Using manual traffic data as fallback after error");
 
       return {
         organicKeywords: Math.floor(organicTrafficManual * 0.3),
@@ -207,11 +190,7 @@ export const fetchDomainData = async (
       const cleanedDomain = cleanDomain(domain);
       const fallbackData = generateFallbackData(cleanedDomain);
 
-      toast.warning(`Using estimated data for ${domain}`, {
-        id: toastId,
-        description:
-          "API connection unavailable. Using industry estimates instead.",
-      });
+      console.log("Using fallback estimates for domain");
 
       return {
         ...fallbackData,
@@ -225,10 +204,7 @@ export const fetchDomainData = async (
         ? error.message
         : `Please check your domain and try again, or enter your traffic manually to continue.`;
 
-    toast.error(`Failed to analyze ${domain}`, {
-      id: toastId,
-      description: errorMessage,
-    });
+    console.error(`Failed to analyze ${domain}:`, errorMessage);
 
     throw new Error(`Please enter your traffic values manually to continue.`);
   }

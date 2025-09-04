@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/card";
 import { FormData } from "@/types/report";
 import { RefreshCw, AlertCircle } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { TrafficInputFields } from "./lead-calculator/TrafficInputFields";
 import { TransactionValueInput } from "./lead-calculator/TransactionValueInput";
@@ -51,21 +50,7 @@ const LeadCalculatorForm = ({
     e.preventDefault();
 
     if (validateForm()) {
-      try {
-        // Always proceed, even if proxy isn't connected - we'll use fallback data
-        onCalculate(formData);
-        toast.success("Calculating your report", {
-          description: "Processing your data to generate insights.",
-        });
-      } catch (error) {
-        toast.error("Error submitting form", {
-          description: "Please check your inputs and try again.",
-        });
-      }
-    } else {
-      toast.error("Please fix the errors before continuing", {
-        description: "Some required information is missing or invalid.",
-      });
+      onCalculate(formData);
     }
   };
 
