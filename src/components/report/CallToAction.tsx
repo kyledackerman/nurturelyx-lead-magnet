@@ -166,12 +166,6 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
               </div>
             </div>
           </div>
-          
-          <div className="mt-6 p-4 bg-secondary/50 rounded-lg text-center">
-            <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground">Example:</strong> $10 in credits = 2,000 email verifications or 10 verified leads
-            </p>
-          </div>
         </div>
 
         {/* Social proof */}
