@@ -35,7 +35,7 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
   
   return (
     <div
-      className="w-full max-w-6xl mx-auto space-y-8 animate-fade-in"
+      className="w-full max-w-6xl mx-auto space-y-8"
       id="leadReport"
     >
       <div className="flex justify-between items-center">
