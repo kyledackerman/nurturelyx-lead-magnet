@@ -168,13 +168,6 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
           </div>
         </div>
 
-        {/* Social proof */}
-        <div className="text-center space-y-4">
-          <p className="text-muted-foreground text-lg">
-            <strong className="text-primary">115+ businesses</strong> using NurturelyX to capture lost revenue
-          </p>
-        </div>
-
         {/* Risk reversal */}
         <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-center">
           <p className="text-foreground">
@@ -189,6 +182,10 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
             <Zap className="w-18 h-18 mr-6" />
             Get Your Pixel Now
           </Button>
+          
+          <p className="text-muted-foreground text-lg">
+            <strong className="text-primary">115+ businesses</strong> using NurturelyX to capture lost revenue
+          </p>
           
           <p className="text-xs text-muted-foreground max-w-md mx-auto">
             The longer you wait, the more money walks out your door. Every day you delay costs you <span className="text-red-500">{formatCurrency(dailyLoss)}</span>. 
