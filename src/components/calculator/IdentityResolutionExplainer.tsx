@@ -45,7 +45,7 @@ const IdentityResolutionExplainer = () => {
           </div>
         </div>
 
-        <div className="bg-card rounded-lg p-8 border">
+        <div className="bg-muted/50 rounded-lg p-8 border">
           <h3 className="text-xl font-semibold mb-4 text-center text-foreground">
             Here's How It Works
           </h3>
