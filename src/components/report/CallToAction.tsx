@@ -142,7 +142,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="text-foreground">Email verification access ($0.005 each - use for any verifications)</span>
+                  <span className="text-foreground">Email verifications ($0.005 each)</span>
                 </div>
               </div>
             </div>
