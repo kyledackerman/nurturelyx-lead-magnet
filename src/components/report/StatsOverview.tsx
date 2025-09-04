@@ -27,7 +27,7 @@ const StatsOverview = ({
       <StatCard
         label="Missed Leads"
         value={missedLeads.toLocaleString()}
-        description="<strong>Guaranteed</strong> monthly leads from proven <strong>20% visitor identification</strong>"
+        description="<strong>Guaranteed monthly leads with NurturelyX</strong>"
         icon={Users}
       />
 
