@@ -17,10 +17,10 @@ const ScrollToCTAButton = () => {
       <Button 
         onClick={scrollToCTA}
         size="lg"
-        className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-4 text-lg font-semibold shadow-lg"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-3 md:px-8 md:py-4 text-sm md:text-lg font-semibold shadow-lg w-full max-w-xs md:max-w-none md:w-auto"
       >
-        <ArrowDown className="w-6 h-6 mr-2" />
-        Fix this problem now. See options below
+        <ArrowDown className="w-4 h-4 md:w-6 md:h-6 mr-1 md:mr-2" />
+        Fix this problem now
       </Button>
     </div>
   );
