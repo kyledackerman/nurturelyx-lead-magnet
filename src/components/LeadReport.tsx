@@ -29,8 +29,8 @@ interface LeadReportProps {
 }
 
 const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadReportProps) => {
-  // Generate a reportId if one doesn't exist
-  const reportId = data.reportId || Math.random().toString(36).substring(2, 15);
+  // Generate a consistent reportId if one doesn't exist
+  const reportId = data.reportId || `report_${Date.now()}_${data.domain.replace(/\./g, '_')}`;
   
   return (
     <div

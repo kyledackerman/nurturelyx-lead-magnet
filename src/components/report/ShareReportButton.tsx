@@ -19,8 +19,9 @@ interface ShareReportButtonProps {
 const ShareReportButton = ({ reportData, reportId = "demo" }: ShareReportButtonProps) => {
   const [isCopied, setIsCopied] = useState(false);
   
-  // Generate a share URL for the report
-  const shareUrl = `${window.location.origin}/reports/${reportId}`;
+  // Generate a share URL for the report using custom domain
+  const baseUrl = import.meta.env.VITE_BASE_URL || window.location.origin;
+  const shareUrl = `${baseUrl}/reports/${reportId}`;
   
   // Create share text with key metrics
   const shareText = `I just discovered my website is losing ${new Intl.NumberFormat("en-US", {

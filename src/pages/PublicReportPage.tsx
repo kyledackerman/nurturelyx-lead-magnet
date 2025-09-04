@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadReport from "@/components/LeadReport";
@@ -59,6 +59,7 @@ const fetchPublicReport = async (reportId: string): Promise<ReportData | null> =
 
 const PublicReportPage = () => {
   const { reportId } = useParams<{ reportId: string }>();
+  const navigate = useNavigate();
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewCount, setViewCount] = useState(Math.floor(Math.random() * 100) + 50);
@@ -89,7 +90,7 @@ const PublicReportPage = () => {
   }, [reportId]);
   
   const handleCreateMyReport = () => {
-    window.location.href = "/";
+    navigate("/");
   };
   
   return (
