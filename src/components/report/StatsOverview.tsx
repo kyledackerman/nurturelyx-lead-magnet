@@ -27,14 +27,14 @@ const StatsOverview = ({
       <StatCard
         label="Missed Leads"
         value={missedLeads.toLocaleString()}
-        description="Monthly average based on <strong>20% visitor identification</strong>"
+        description="<strong>Guaranteed</strong> monthly leads from proven <strong>20% visitor identification</strong>"
         icon={Users}
       />
 
       <StatCard
         label="Lost Sales*"
         value={estimatedSalesLost.toLocaleString()}
-        description="Monthly average based on <strong>1% lead conversion</strong>"
+        description="<strong>Depends entirely</strong> on your <strong>1% conversion rate</strong>"
         icon={ShoppingCart}
       />
 
