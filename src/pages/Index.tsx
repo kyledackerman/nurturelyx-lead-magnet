@@ -10,6 +10,7 @@ import { toast } from "sonner";
 // Import our new components
 import LoadingState from "@/components/calculator/LoadingState";
 import LandingPageHero from "@/components/calculator/LandingPageHero";
+import IdentityResolutionExplainer from "@/components/calculator/IdentityResolutionExplainer";
 
 import FormSection from "@/components/calculator/FormSection";
 
@@ -136,6 +137,7 @@ const Index = () => {
         ) : !reportData ? (
           <>
             <LandingPageHero />
+            <IdentityResolutionExplainer />
 
             <FormSection
               apiError={apiError}
