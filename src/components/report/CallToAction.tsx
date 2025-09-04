@@ -140,6 +140,10 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
                   <span className="text-foreground">Anonymous visitor analytics</span>
                 </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span className="text-foreground">Email verification access ($0.005 each - use for any verifications)</span>
+                </div>
               </div>
             </div>
             
@@ -150,10 +154,6 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
                   <span className="text-foreground">Identify anonymous visitors ($1/lead)</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="text-foreground">Email verification ($0.005 each)</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
