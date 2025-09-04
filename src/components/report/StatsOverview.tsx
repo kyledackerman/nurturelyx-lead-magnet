@@ -34,7 +34,7 @@ const StatsOverview = ({
       <StatCard
         label="Lost Sales*"
         value={estimatedSalesLost.toLocaleString()}
-        description="<strong>Depends entirely</strong> on your <strong>1% conversion rate</strong>"
+        description={`<strong>Imagine your conversion rate</strong> - then apply it to the <strong>${missedLeads.toLocaleString()} leads above</strong>`}
         icon={ShoppingCart}
       />
 
