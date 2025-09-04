@@ -142,31 +142,31 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="text-foreground">Personal & Demographic</span>
+                  <span className="text-foreground">Know their exact age, income level, and lifestyle preferences</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="text-foreground">Household Composition</span>
+                  <span className="text-foreground">See their household size and family composition</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="text-foreground">Financial & Credit</span>
+                  <span className="text-foreground">Discover their credit score and spending power</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="text-foreground">Mortgage & Home Value</span>
+                  <span className="text-foreground">Find out if they're homeowners and their property value</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="text-foreground">Geographic / Location</span>
+                  <span className="text-foreground">Target them by precise location and neighborhood</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="text-foreground">Lifestyle & Political</span>
+                  <span className="text-foreground">Understand their political views and lifestyle choices</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="text-foreground">Children / Age Breakdown</span>
+                  <span className="text-foreground">Learn about their children's ages and family dynamics</span>
                 </div>
               </div>
             </div>
