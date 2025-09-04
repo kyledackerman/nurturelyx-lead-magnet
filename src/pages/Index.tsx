@@ -13,6 +13,7 @@ import LandingPageHero from "@/components/calculator/LandingPageHero";
 import IdentityResolutionExplainer from "@/components/calculator/IdentityResolutionExplainer";
 
 import FormSection from "@/components/calculator/FormSection";
+import CallToActionSection from "@/components/CallToActionSection";
 
 const Index = () => {
   const [isCalculating, setIsCalculating] = useState(false);
@@ -147,6 +148,7 @@ const Index = () => {
             />
 
             <IdentityResolutionExplainer />
+            <CallToActionSection />
             
           </>
         ) : (

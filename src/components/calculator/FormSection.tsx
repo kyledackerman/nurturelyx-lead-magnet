@@ -19,7 +19,7 @@ const FormSection = ({
   isCalculating,
 }: FormSectionProps) => {
   return (
-    <section className="bg-black py-12">
+    <section className="bg-black py-12" data-form-section="true">
       <div className="container mx-auto px-4 max-w-4xl">
         {apiError && (
           <div className="mb-8">
