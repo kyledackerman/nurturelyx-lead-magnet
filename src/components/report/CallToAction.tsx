@@ -58,82 +58,119 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
 
         {/* Solution section */}
         <div className="text-center space-y-4">
-          <h3 className="text-3xl font-bold text-foreground">Here's How to Fix This (It's Cheaper Than Your Coffee)</h3>
+          <h3 className="text-3xl font-bold text-foreground">Here's How to Fix This: Get Your Pixel First</h3>
           <p className="text-xl text-muted-foreground">
-            Stop the bleeding with NurturelyX. Choose your pricing model:
+            Step 1: Get your NurturelyX pixel to start tracking visitors<br/>
+            Step 2: Load credits to identify and convert them into leads
           </p>
         </div>
 
-        {/* Pricing explanation */}
-        <div className="bg-secondary/50 border border-border rounded-lg p-4 text-center">
-          <p className="text-foreground font-medium mb-2">Two Simple Pricing Options:</p>
-          <div className="text-muted-foreground text-sm">
-            <strong>Option 1:</strong> Pay $1 per verified lead (no monthly fee)<br/>
-            <strong>Option 2:</strong> Pay monthly platform fee + $0.005 per email verification
+        {/* Step 1: Platform Fee for Pixel */}
+        <div className="bg-secondary/50 border border-border rounded-lg p-6">
+          <h4 className="text-xl font-bold text-foreground text-center mb-4">Step 1: Get Your Pixel (Platform Fee)</h4>
+          <p className="text-center text-muted-foreground mb-6">
+            Choose your platform fee plan to access your tracking pixel:
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            {/* Monthly Platform Fee */}
+            <div className="bg-primary/10 border-2 border-primary rounded-lg p-6 text-center relative">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold">MOST POPULAR</span>
+              </div>
+              <div className="text-lg font-semibold text-primary mb-2">Monthly Platform Fee</div>
+              <div className="text-4xl font-bold text-foreground mb-2">$18</div>
+              <div className="text-primary mb-4">per month</div>
+              <div className="text-sm text-muted-foreground">Access to pixel + dashboard</div>
+            </div>
+
+            {/* Annual Platform Fee */}
+            <div className="bg-primary/5 border border-primary/50 rounded-lg p-6 text-center relative">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold">SAVE $66</span>
+              </div>
+              <div className="text-lg font-semibold text-primary mb-2">Annual Platform Fee</div>
+              <div className="text-4xl font-bold text-foreground mb-2">$150</div>
+              <div className="text-primary mb-4">per year</div>
+              <div className="text-sm text-muted-foreground">Save $66 annually</div>
+            </div>
           </div>
         </div>
 
-        {/* Pricing options */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Option 1 - Per Lead */}
-          <div className="bg-secondary/30 border border-border rounded-lg p-6 text-center relative">
-            <div className="text-lg font-semibold text-foreground mb-2">Pay Per Lead</div>
+        {/* Step 2: Credits for Identity Resolution */}
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
+          <h4 className="text-xl font-bold text-foreground text-center mb-4">Step 2: Load Credits to Resolve Identities</h4>
+          <p className="text-center text-muted-foreground mb-6">
+            Once you have your pixel, load credits to start identifying visitors and converting them to leads:
+          </p>
+          
+          <div className="bg-secondary/30 border border-border rounded-lg p-6 text-center max-w-md mx-auto">
+            <div className="text-lg font-semibold text-foreground mb-2">Identity Resolution Credits</div>
             <div className="text-4xl font-bold text-primary mb-2">$1</div>
             <div className="text-muted-foreground mb-4">per verified lead</div>
-            <div className="text-sm text-muted-foreground">No monthly fee • Good for: Testing</div>
-          </div>
-
-          {/* Option 2 - Platform Fee Monthly */}
-          <div className="bg-primary/10 border-2 border-primary rounded-lg p-6 text-center relative">
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold">MOST POPULAR</span>
+            <div className="text-sm text-muted-foreground">
+              + $0.005 per email verification<br/>
+              (Load as needed - no minimum purchase)
             </div>
-            <div className="text-lg font-semibold text-primary mb-2">Platform Fee (Monthly)</div>
-            <div className="text-4xl font-bold text-foreground mb-2">$18</div>
-            <div className="text-primary mb-4">per month</div>
-            <div className="text-sm text-muted-foreground">Unlimited leads + $0.005 per email verification</div>
-          </div>
-
-          {/* Option 3 - Annual */}
-          <div className="bg-primary/5 border border-primary/50 rounded-lg p-6 text-center relative">
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold">BEST VALUE</span>
-            </div>
-            <div className="text-lg font-semibold text-primary mb-2">Platform Fee (Annual)</div>
-            <div className="text-4xl font-bold text-foreground mb-2">$150</div>
-            <div className="text-primary mb-4">per year</div>
-            <div className="text-sm text-muted-foreground">Save $66 + unlimited leads</div>
           </div>
         </div>
 
-        {/* Value stack */}
+        {/* What's included breakdown */}
         <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
-          <h3 className="text-2xl font-bold text-foreground text-center mb-4">What You Get When You Join Today:</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-              <span className="text-foreground">Identify every anonymous visitor</span>
+          <h3 className="text-2xl font-bold text-foreground text-center mb-6">Here's What You Get:</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Included with Platform Fee */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-primary">✅ Included with Platform Fee:</h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span className="text-foreground">NurturelyX tracking pixel</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span className="text-foreground">Real-time visitor dashboard</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span className="text-foreground">Behavioral tracking & insights</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span className="text-foreground">Anonymous visitor analytics</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-              <span className="text-foreground">Real-time lead notifications</span>
+            
+            {/* Requires Credits */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-primary">🔓 Unlocked with Credits:</h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span className="text-foreground">Identify anonymous visitors ($1/lead)</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span className="text-foreground">Email verification ($0.005 each)</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span className="text-foreground">Complete contact information</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span className="text-foreground">Real-time lead notifications</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-              <span className="text-foreground">Email verification at $0.005 each</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-              <span className="text-foreground">$10 = 2,000 verifications</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-              <span className="text-foreground">Complete contact information</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-              <span className="text-foreground">Behavioral tracking & insights</span>
-            </div>
+          </div>
+          
+          <div className="mt-6 p-4 bg-secondary/50 rounded-lg text-center">
+            <p className="text-sm text-muted-foreground">
+              <strong className="text-foreground">Example:</strong> $10 in credits = 2,000 email verifications or 10 verified leads
+            </p>
           </div>
         </div>
 
@@ -156,7 +193,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
         <div className="text-center space-y-4">
           <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-4 text-xl font-bold shadow-2xl transform hover:scale-105 transition-all">
             <Zap className="w-6 h-6 mr-2" />
-            Stop The Bleeding Now - Get Started
+            Get Your Pixel Now
           </Button>
           
           <p className="text-xs text-muted-foreground max-w-md mx-auto">
