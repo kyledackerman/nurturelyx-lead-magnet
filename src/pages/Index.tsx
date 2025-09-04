@@ -137,8 +137,7 @@ const Index = () => {
         ) : !reportData ? (
           <>
             <LandingPageHero />
-            <IdentityResolutionExplainer />
-
+            
             <FormSection
               apiError={apiError}
               formDataCache={formDataCache}
@@ -147,6 +146,7 @@ const Index = () => {
               isCalculating={isCalculating}
             />
 
+            <IdentityResolutionExplainer />
             
           </>
         ) : (
