@@ -31,7 +31,7 @@ const glossaryItems = [
   {
     term: "Lead Identification Rate",
     definition:
-      "The percentage of anonymous website visitors that can be successfully identified. Industry average is 2-5%, while NurturelyX achieves up to 20%.",
+      "The percentage of anonymous website visitors that can be successfully identified. Industry average is 5%-15%, while NurturelyX achieves up to 25%-35%.",
   },
   {
     term: "Cookie-Less Tracking",
