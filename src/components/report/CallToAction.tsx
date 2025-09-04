@@ -68,24 +68,13 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
             Choose your platform fee plan to access your tracking pixel:
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+          <div className="max-w-md mx-auto">
             {/* Monthly Platform Fee */}
-            <div className="bg-primary/10 border-2 border-primary rounded-lg p-4 text-center relative">
+            <div className="bg-primary/10 border-2 border-primary rounded-lg p-6 text-center relative">
               <div className="text-lg font-semibold text-primary mb-2">Monthly Platform Fee</div>
               <div className="text-4xl font-bold text-foreground mb-2">$18</div>
               <div className="text-primary mb-4">per month</div>
               <div className="text-sm text-muted-foreground">Access to pixel + dashboard</div>
-            </div>
-
-            {/* Annual Platform Fee */}
-            <div className="bg-primary/5 border border-primary/50 rounded-lg p-4 text-center relative">
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold">SAVE $66</span>
-              </div>
-              <div className="text-lg font-semibold text-primary mb-2">Annual Platform Fee</div>
-              <div className="text-4xl font-bold text-foreground mb-2">$150</div>
-              <div className="text-primary mb-4">per year</div>
-              <div className="text-sm text-muted-foreground">Save $66 annually</div>
             </div>
           </div>
         </div>
