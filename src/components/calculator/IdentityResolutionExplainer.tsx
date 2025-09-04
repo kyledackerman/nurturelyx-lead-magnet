@@ -59,7 +59,7 @@ const IdentityResolutionExplainer = () => {
           
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6">
-              <h4 className="text-lg font-semibold text-destructive mb-3">❌ Other Tools (IP-Based Guessing)</h4>
+              <h4 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-3">❌ Other Tools (IP-Based Guessing)</h4>
               <ul className="text-sm text-muted-foreground space-y-2">
                 <li>• Guess company names from IP addresses</li>
                 <li>• Provide generic company info only</li>
