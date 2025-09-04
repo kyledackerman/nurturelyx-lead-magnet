@@ -123,10 +123,6 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="text-foreground">Real-time visitor dashboard</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
                   <span className="text-foreground">Secured & Encrypted Database of Leads</span>
                 </div>
                 <div className="flex items-center gap-3">
