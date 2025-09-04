@@ -20,7 +20,7 @@ const LandingPageHero = () => {
             </p>
           </div>
           
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
+          <div className="flex flex-wrap justify-start md:justify-center gap-4 mb-12">
             <div className="flex items-center">
               <div className="bg-accent bg-opacity-10 p-2 rounded-full">
                 <Database className="h-5 w-5 text-accent" />
