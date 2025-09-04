@@ -3,7 +3,7 @@ import { Database, Target, Zap } from "lucide-react";
 
 const LandingPageHero = () => {
   return (
-    <section className="bg-gradient-to-r from-background to-secondary py-16 md:py-24">
+    <section className="bg-black py-16 md:py-24">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-destructive/20 border border-destructive/30 rounded-lg p-4 mb-8 max-w-2xl mx-auto">
