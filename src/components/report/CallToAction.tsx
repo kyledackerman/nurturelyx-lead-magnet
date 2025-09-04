@@ -20,8 +20,8 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
   const hourlyLoss = dailyLoss / 24;
 
   return (
-    <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30 mt-8 px-8 py-10" data-cta-section="true">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30 mt-8 px-6 py-8" data-cta-section="true">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* Shocking headline */}
         <div className="text-center space-y-3">
           <div className="flex items-center justify-center gap-2 text-primary mb-2">
@@ -38,7 +38,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
         </div>
 
         {/* The cost of inaction */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-6 text-center">
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
           <h3 className="text-2xl font-bold text-foreground mb-3">Here's What Doing Nothing Costs You:</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div>
@@ -66,15 +66,15 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
         </div>
 
         {/* Step 1: Platform Fee for Pixel */}
-        <div className="bg-secondary/50 border border-border rounded-lg p-6">
-          <h4 className="text-xl font-bold text-foreground text-center mb-4">Step 1: Get Your Pixel (Platform Fee)</h4>
-          <p className="text-center text-muted-foreground mb-6">
+        <div className="bg-secondary/50 border border-border rounded-lg p-4">
+          <h4 className="text-xl font-bold text-foreground text-center mb-3">Step 1: Get Your Pixel (Platform Fee)</h4>
+          <p className="text-center text-muted-foreground mb-4">
             Choose your platform fee plan to access your tracking pixel:
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
             {/* Monthly Platform Fee */}
-            <div className="bg-primary/10 border-2 border-primary rounded-lg p-6 text-center relative">
+            <div className="bg-primary/10 border-2 border-primary rounded-lg p-4 text-center relative">
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                 <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold">MOST POPULAR</span>
               </div>
@@ -85,7 +85,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
             </div>
 
             {/* Annual Platform Fee */}
-            <div className="bg-primary/5 border border-primary/50 rounded-lg p-6 text-center relative">
+            <div className="bg-primary/5 border border-primary/50 rounded-lg p-4 text-center relative">
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                 <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold">SAVE $66</span>
               </div>
@@ -98,13 +98,13 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
         </div>
 
         {/* Step 2: Credits for Identity Resolution */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
-          <h4 className="text-xl font-bold text-foreground text-center mb-4">Step 2: Load Credits to Resolve Identities</h4>
-          <p className="text-center text-muted-foreground mb-6">
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+          <h4 className="text-xl font-bold text-foreground text-center mb-3">Step 2: Load Credits to Resolve Identities</h4>
+          <p className="text-center text-muted-foreground mb-4">
             Once you have your pixel, load credits to start identifying visitors and converting them to leads:
           </p>
           
-          <div className="bg-secondary/30 border border-border rounded-lg p-6 text-center max-w-md mx-auto">
+          <div className="bg-secondary/30 border border-border rounded-lg p-4 text-center max-w-md mx-auto">
             <div className="text-lg font-semibold text-foreground mb-2">Identity Resolution Credits</div>
             <div className="text-4xl font-bold text-primary mb-2">$1</div>
             <div className="text-muted-foreground mb-4">per verified lead</div>
@@ -116,8 +116,8 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
         </div>
 
         {/* What's included breakdown */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
-          <h3 className="text-2xl font-bold text-foreground text-center mb-6">Here's What You Get:</h3>
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+          <h3 className="text-2xl font-bold text-foreground text-center mb-4">Here's What You Get:</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Included with Platform Fee */}
@@ -182,7 +182,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
         </div>
 
         {/* Risk reversal */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-center">
           <p className="text-foreground">
             <strong className="text-primary">Zero Risk Guarantee:</strong> If you have more than 500 visitors per month and don't get at least 100 resolved identities, 
             we'll refund every penny and let you keep all the data we found.
