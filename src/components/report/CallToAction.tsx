@@ -59,10 +59,6 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
         {/* Solution section */}
         <div className="text-center space-y-4">
           <h3 className="text-3xl font-bold text-foreground">Here's How to Fix This: Get Your Pixel First</h3>
-          <p className="text-xl text-muted-foreground">
-            Step 1: Get your NurturelyX pixel to start tracking visitors<br/>
-            Step 2: Load credits to identify and convert them into leads
-          </p>
         </div>
 
         {/* Step 1: Platform Fee for Pixel */}
