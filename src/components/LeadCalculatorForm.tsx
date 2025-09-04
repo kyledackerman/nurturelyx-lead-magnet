@@ -82,8 +82,8 @@ const LeadCalculatorForm = ({
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <FormHeader onReset={handleResetClick} />
+      <CardHeader className="pb-4">
+        <FormHeader />
       </CardHeader>
       <CardContent>
         {apiError && (
@@ -138,30 +138,15 @@ const LeadCalculatorForm = ({
   );
 };
 
-// Form header component
-const FormHeader = ({ onReset }: { onReset?: () => void }) => (
-  <div className="flex items-center justify-between">
-    <div>
-      <CardTitle className="text-2xl font-bold text-center">
-        Calculate Your Missing Lead Opportunity
-      </CardTitle>
-      <CardDescription className="text-center">
-        Discover how many leads you're missing without requiring any technical
-        setup
-      </CardDescription>
-    </div>
-    {onReset && (
-      <Button
-        variant="outline"
-        onClick={onReset}
-        className="flex items-center gap-2 border-accent text-accent hover:bg-accent/10"
-        size="sm"
-        type="button"
-      >
-        <RefreshCw size={16} />
-        Restart
-      </Button>
-    )}
+// Form header component - simplified for better mobile experience
+const FormHeader = () => (
+  <div className="text-center space-y-2 px-2">
+    <CardTitle className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
+      Calculate Your Missing Lead Opportunity
+    </CardTitle>
+    <CardDescription className="text-sm sm:text-base text-muted-foreground max-w-lg mx-auto">
+      Discover how many leads you're missing without requiring any technical setup
+    </CardDescription>
   </div>
 );
 
