@@ -145,7 +145,7 @@ const FormHeader = () => (
       Calculate Your Missing Lead Opportunity
     </CardTitle>
     <CardDescription className="text-sm sm:text-base text-muted-foreground max-w-lg mx-auto">
-      Discover how many leads you're missing without requiring any technical setup
+      Discover how many leads you're missing without ID resolution technology installed on your website
     </CardDescription>
   </div>
 );
