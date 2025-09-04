@@ -40,7 +40,7 @@ const IdentityResolutionExplainer = () => {
             </div>
             <h3 className="text-xl font-semibold mb-3 text-foreground">Privacy Safe</h3>
             <p className="text-muted-foreground">
-              Uses business data only. No personal information is collected or stored about individual visitors.
+              Data is shared only with the website owner. We never sell, rent, or share your visitor data with anyone else.
             </p>
           </div>
         </div>
