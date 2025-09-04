@@ -185,8 +185,8 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
 
         {/* CTA buttons */}
         <div className="text-center space-y-4">
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-4 text-xl font-bold shadow-2xl transform hover:scale-105 transition-all">
-            <Zap className="w-6 h-6 mr-2" />
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-36 py-12 text-5xl font-bold shadow-2xl transform hover:scale-105 transition-all">
+            <Zap className="w-18 h-18 mr-6" />
             Get Your Pixel Now
           </Button>
           
