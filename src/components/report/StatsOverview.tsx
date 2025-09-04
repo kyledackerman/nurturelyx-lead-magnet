@@ -23,7 +23,7 @@ const StatsOverview = ({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
+    <div id="stats-overview" className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
       <StatCard
         label="Missed Leads"
         value={missedLeads.toLocaleString()}

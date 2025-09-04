@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -32,6 +33,16 @@ interface LeadReportProps {
 const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadReportProps) => {
   // Generate a consistent reportId if one doesn't exist
   const reportId = data.reportId || `report_${Date.now()}_${data.domain.replace(/\./g, '_')}`;
+  
+  useEffect(() => {
+    // Scroll to stats overview immediately after report renders
+    const statsSection = document.getElementById('stats-overview');
+    if (statsSection) {
+      setTimeout(() => {
+        statsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100); // Small delay to ensure DOM is ready
+    }
+  }, []);
   
   return (
     <div
