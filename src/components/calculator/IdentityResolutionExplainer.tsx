@@ -9,7 +9,7 @@ const IdentityResolutionExplainer = () => {
             What Is Identity Resolution?
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Think of it as giving your website digital glasses to see who your visitors really are
+            Think of it as giving your website digital vision—so you can finally see who your visitors really are.
           </p>
         </div>
 
@@ -18,9 +18,9 @@ const IdentityResolutionExplainer = () => {
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <Eye className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-3 text-foreground">See Hidden Visitors</h3>
+            <h3 className="text-xl font-semibold mb-3 text-foreground">Reveal Hidden Visitors</h3>
             <p className="text-muted-foreground">
-              Most website visitors browse without filling out forms. Identity resolution reveals who they are.
+              98% of visitors leave without filling out a form. Identity resolution uncovers who they are so you don't lose them.
             </p>
           </div>
 
@@ -30,7 +30,7 @@ const IdentityResolutionExplainer = () => {
             </div>
             <h3 className="text-xl font-semibold mb-3 text-foreground">Turn Traffic Into Leads</h3>
             <p className="text-muted-foreground">
-              Connect anonymous visitors to real companies and contacts. Turn website traffic into sales opportunities.
+              Match anonymous clicks to real companies and contacts. Convert wasted traffic into real sales opportunities.
             </p>
           </div>
 
@@ -38,9 +38,9 @@ const IdentityResolutionExplainer = () => {
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <Shield className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-3 text-foreground">Privacy Safe</h3>
+            <h3 className="text-xl font-semibold mb-3 text-foreground">Privacy-Safe by Design</h3>
             <p className="text-muted-foreground">
-              Data is shared only with the website owner. We never sell, rent, or share your visitor data with anyone else.
+              Your data stays yours. We never rent, sell, or share it—ever.
             </p>
           </div>
         </div>
@@ -51,14 +51,10 @@ const IdentityResolutionExplainer = () => {
           </h3>
           <div className="prose prose-sm max-w-none text-muted-foreground">
             <p className="mb-4">
-              Imagine your website visitors leave digital footprints. Identity resolution technology 
-              follows these footprints to match them with company databases. It's like having a 
-              detective that can tell you which businesses visited your site.
+              Every visitor leaves a digital footprint. Our technology connects those footprints to verified company databases—like a detective showing you exactly which businesses visited your site.
             </p>
             <p>
-              Without this technology, 98% of your website visitors remain anonymous. You never know 
-              who they are or how to follow up. With identity resolution, you can identify many of 
-              these visitors and turn them into sales opportunities.
+              Without identity resolution, your best prospects vanish in silence. With it, you can follow up, engage, and win deals you would have never known existed.
             </p>
           </div>
         </div>
