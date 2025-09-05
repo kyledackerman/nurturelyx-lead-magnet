@@ -27,23 +27,18 @@ const StatsOverview = ({
       <StatCard
         label="Missed Leads"
         value={missedLeads.toLocaleString()}
-        description="<strong>Guaranteed monthly leads with NurturelyX</strong>"
         icon={Users}
       />
 
       <StatCard
         label="Lost Sales*"
         value={estimatedSalesLost.toLocaleString()}
-        description="<strong>We've estimated only a 1% conversion rate. Imagine yours</strong>"
         icon={ShoppingCart}
       />
 
       <StatCard
         label="Lost Revenue"
         value={formatCurrency(monthlyRevenueLost)}
-        description={`<strong>${formatCurrency(
-          yearlyRevenueLost
-        )}</strong> annually`}
         icon={DollarSign}
       />
     </div>
