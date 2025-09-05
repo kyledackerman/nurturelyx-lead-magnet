@@ -17,7 +17,7 @@ const ReportHeader = ({ onEditData, onReset }: ReportHeaderProps) => {
   };
 
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex items-center gap-3 flex-wrap">
       {onEditData && (
         <Button
           variant="outline"
@@ -30,7 +30,7 @@ const ReportHeader = ({ onEditData, onReset }: ReportHeaderProps) => {
         </Button>
       )}
 
-      <div className="flex gap-2 ml-auto">
+      <div className="flex items-center gap-2 ml-auto">
         <Button
           variant="outline"
           onClick={onReset}
@@ -44,7 +44,7 @@ const ReportHeader = ({ onEditData, onReset }: ReportHeaderProps) => {
         <Button
           variant="outline"
           onClick={handlePrintReport}
-          className="flex items-center gap-2 text-white"
+          className="flex items-center gap-2 text-white border-accent hover:bg-accent/10"
           size="sm"
         >
           <Printer size={16} />

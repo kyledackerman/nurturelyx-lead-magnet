@@ -49,11 +49,13 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
       className="w-full max-w-6xl mx-auto space-y-8"
       id="leadReport"
     >
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start gap-4 flex-wrap">
         <ReportHeader onReset={onReset} onEditData={onEditData} />
         
         {!isPublicView && (
-          <ShareReportButton reportData={data} reportId={reportId} />
+          <div className="flex-shrink-0">
+            <ShareReportButton reportData={data} reportId={reportId} />
+          </div>
         )}
       </div>
 
