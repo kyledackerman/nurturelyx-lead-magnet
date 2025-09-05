@@ -68,11 +68,12 @@ const ShareReportButton = ({ reportData, reportId = "demo" }: ShareReportButtonP
       <DropdownMenuTrigger asChild>
         <Button 
           variant="outline" 
-          size="sm" 
-          className="gap-2 border-accent text-white hover:bg-accent/10"
+          size="xs" 
+          className="gap-1 border-accent text-white hover:bg-accent/10"
         >
-          <Share2 size={16} />
-          Share Report
+          <Share2 size={14} />
+          <span className="hidden sm:inline">Share Report</span>
+          <span className="sm:hidden">Share</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
