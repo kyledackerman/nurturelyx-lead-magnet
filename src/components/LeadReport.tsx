@@ -64,6 +64,15 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
         yearlyRevenueLost={data.yearlyRevenueLost}
       />
 
+      <div className="bg-secondary/50 border border-accent/20 rounded-lg p-4">
+        <p className="text-white/90 text-sm text-center">
+          <span className="font-semibold text-accent">Missed Leads:</span> Visitors who weren't identified • 
+          <span className="font-semibold text-accent"> Lost Sales*:</span> Estimated conversions from those visitors • 
+          <span className="font-semibold text-accent"> Lost Revenue:</span> Monthly opportunity being missed
+        </p>
+        <p className="text-white/70 text-xs text-center mt-1">*Based on industry conversion rates</p>
+      </div>
+
       <ChangelogCard reportData={data} />
 
       <ScrollToCTAButton />
