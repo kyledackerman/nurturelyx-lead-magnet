@@ -66,7 +66,7 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
 
       <div className="bg-secondary/50 border border-accent/20 rounded-lg p-4">
         <div className="text-white/90 text-sm text-center space-y-1">
-          <p><span className="font-semibold text-accent">Missed Leads:</span> Visitors who weren't identified</p>
+          <p><span className="font-semibold text-accent">Missed Leads:</span> Visitors who weren't identified but could have been with NurturelyX</p>
           <p><span className="font-semibold text-accent">Lost Sales*:</span> Estimated conversions from those visitors</p>
           <p><span className="font-semibold text-accent">Lost Revenue:</span> Monthly opportunity being missed</p>
         </div>
