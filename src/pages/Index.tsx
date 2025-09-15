@@ -3,8 +3,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadReport from "@/components/LeadReport";
 import { FormData, ReportData } from "@/types/report";
-import { calculateReportMetrics } from "@/services/apiService";
-import { fetchDomainData } from "@/services/spyfuService";
+import { fetchDomainData, calculateReportMetrics } from "@/services/spyfuService";
+import { reportService } from "@/services/reportService";
 import { toast } from "sonner";
 
 // Import our new components
@@ -68,7 +68,22 @@ const Index = () => {
 
       setCalculationProgress(100);
       setTimeout(() => {
+        // Store the generated report data for later use
         setReportData(fullReportData);
+        
+        // Save report to database in background
+        try {
+          reportService.saveReport(fullReportData).then((saveResult) => {
+            setReportData(prev => prev ? { ...prev, reportId: saveResult.reportId } : null);
+            console.log('Report saved:', saveResult);
+          }).catch((saveError) => {
+            console.error('Failed to save report:', saveError);
+            // Don't show error to user - report generation succeeded
+          });
+        } catch (saveError) {
+          console.error('Failed to save report:', saveError);
+        }
+        
         setIsCalculating(false);
         clearInterval(progressInterval);
 

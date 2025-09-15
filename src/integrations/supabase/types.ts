@@ -14,13 +14,118 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      report_shares: {
+        Row: {
+          id: string
+          platform: string
+          report_id: string
+          shared_at: string
+          shared_by_ip_hash: string
+        }
+        Insert: {
+          id?: string
+          platform: string
+          report_id: string
+          shared_at?: string
+          shared_by_ip_hash: string
+        }
+        Update: {
+          id?: string
+          platform?: string
+          report_id?: string
+          shared_at?: string
+          shared_by_ip_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_shares_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_views: {
+        Row: {
+          id: string
+          ip_address_hash: string
+          referrer: string | null
+          report_id: string
+          session_id: string
+          user_agent: string | null
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          ip_address_hash: string
+          referrer?: string | null
+          report_id: string
+          session_id: string
+          user_agent?: string | null
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          ip_address_hash?: string
+          referrer?: string | null
+          report_id?: string
+          session_id?: string
+          user_agent?: string | null
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_views_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          created_at: string
+          domain: string
+          id: string
+          is_public: boolean
+          report_data: Json
+          slug: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          id?: string
+          is_public?: boolean
+          report_data: Json
+          slug: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          id?: string
+          is_public?: boolean
+          report_data?: Json
+          slug?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_report_slug: {
+        Args: { domain_name: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

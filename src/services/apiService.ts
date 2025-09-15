@@ -135,6 +135,11 @@ export const calculateReportMetrics = (
   };
 };
 
+import { reportService } from './reportService';
+
+// Export report service functions
+export { reportService };
+
 // This function will be defined in domainDataService.ts and imported by users
 export const fetchDomainData = async (
   domain: string,

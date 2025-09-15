@@ -1,37 +1,39 @@
 
-import { Share2, Facebook, Twitter, Linkedin, Link, ClipboardCopy, CheckCheck } from "lucide-react";
+import { useState } from "react";
+import { Share2, Facebook, Twitter, Linkedin, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { useState } from "react";
 import { ReportData } from "@/types/report";
+import { reportService } from "@/services/reportService";
 
 interface ShareReportButtonProps {
   reportData: ReportData;
   reportId?: string;
 }
 
-const ShareReportButton = ({ reportData, reportId = "demo" }: ShareReportButtonProps) => {
-  const [isCopied, setIsCopied] = useState(false);
+const ShareReportButton = ({ reportData, reportId }: ShareReportButtonProps) => {
+  const [copied, setCopied] = useState(false);
+
+  // Generate shareable URL using the actual report slug or ID
+  const shareUrl = reportId 
+    ? reportService.generateShareUrl(reportId)
+    : `${window.location.origin}/report/demo-${reportData.domain.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
   
-  // Generate a share URL for the report using custom domain
-  const baseUrl = import.meta.env.VITE_BASE_URL || window.location.origin;
-  const shareUrl = `${baseUrl}/reports/${reportId}`;
-  
-  // Create share text with key metrics
-  const shareText = `I just discovered my website is losing ${new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(reportData.yearlyRevenueLost)} in revenue each year due to anonymous traffic! Check out my report:`;
-  
-  // Handle social media sharing
-  const handleShare = (platform: string) => {
+  // Generate social sharing text with key metrics
+  const shareText = reportService.generateShareText(reportData);
+
+  const handleShare = async (platform: string) => {
+    // Track sharing event
+    if (reportId) {
+      await reportService.trackShare(reportId, platform);
+    }
+
     let shareLink = "";
     
     switch (platform) {
@@ -42,19 +44,23 @@ const ShareReportButton = ({ reportData, reportId = "demo" }: ShareReportButtonP
         shareLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
         break;
       case "linkedin":
-        shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent("My Lead Opportunity Report")}&summary=${encodeURIComponent(shareText)}`;
+        shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent("Lead Opportunity Report")}&summary=${encodeURIComponent(shareText)}`;
         break;
       case "copy":
-        navigator.clipboard.writeText(shareUrl).then(() => {
-          setIsCopied(true);
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          setCopied(true);
           toast.success("Link copied to clipboard!", {
             description: "Share it with your team or on social media",
           });
-          setTimeout(() => setIsCopied(false), 3000);
-        });
-        break;
+          setTimeout(() => setCopied(false), 3000);
+        } catch (err) {
+          console.error('Failed to copy: ', err);
+          toast.error("Failed to copy link");
+        }
+        return;
       default:
-        break;
+        return;
     }
     
     if (shareLink) {
@@ -90,12 +96,12 @@ const ShareReportButton = ({ reportData, reportId = "demo" }: ShareReportButtonP
           <span>Share on LinkedIn</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleShare("copy")} className="cursor-pointer gap-2">
-          {isCopied ? (
-            <CheckCheck size={16} className="text-green-500" />
+          {copied ? (
+            <Check size={16} className="text-green-500" />
           ) : (
-            <ClipboardCopy size={16} />
+            <Copy size={16} />
           )}
-          <span>{isCopied ? "Copied!" : "Copy Link"}</span>
+          <span>{copied ? "Copied!" : "Copy Link"}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

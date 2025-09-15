@@ -1,1 +1,10 @@
 project_id = "apjlauuidcbvuplfcshg"
+
+[functions.save-report]
+verify_jwt = false
+
+[functions.get-report]
+verify_jwt = false
+
+[functions.track-share]
+verify_jwt = false
