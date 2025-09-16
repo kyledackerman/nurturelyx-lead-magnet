@@ -29,16 +29,15 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    if (req.method !== 'GET') {
+    if (req.method !== 'POST') {
       return new Response(
         JSON.stringify({ error: 'Method not allowed' }),
         { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const url = new URL(req.url);
-    const reportId = url.searchParams.get('id');
-    const slug = url.searchParams.get('slug');
+    const body = await req.json();
+    const { reportId, slug } = body;
 
     if (!reportId && !slug) {
       return new Response(

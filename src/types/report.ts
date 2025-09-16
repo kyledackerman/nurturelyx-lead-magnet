@@ -16,6 +16,7 @@ export interface ReportData extends FormData, ApiData {
   yearlyRevenueLost: number;
   monthlyRevenueData: MonthlyRevenueData[];
   reportId?: string; // Add reportId for public sharing
+  slug?: string; // Add slug for public sharing URLs
 }
 
 export interface NewApiDataT {

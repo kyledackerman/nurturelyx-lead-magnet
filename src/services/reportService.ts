@@ -31,13 +31,8 @@ export const reportService = {
   },
 
   async getReport(reportId?: string, slug?: string): Promise<GetReportResponse> {
-    const params = new URLSearchParams();
-    if (reportId) params.append('id', reportId);
-    if (slug) params.append('slug', slug);
-
     const { data, error } = await supabase.functions.invoke('get-report', {
-      body: null,
-      method: 'GET'
+      body: { reportId, slug }
     });
 
     if (error) {

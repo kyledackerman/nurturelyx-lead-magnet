@@ -15,15 +15,14 @@ import { reportService } from "@/services/reportService";
 interface ShareReportButtonProps {
   reportData: ReportData;
   reportId?: string;
+  slug?: string;
 }
 
-const ShareReportButton = ({ reportData, reportId }: ShareReportButtonProps) => {
+const ShareReportButton = ({ reportData, reportId, slug }: ShareReportButtonProps) => {
   const [copied, setCopied] = useState(false);
 
-  // Generate shareable URL using the actual report slug or ID
-  const shareUrl = reportId 
-    ? reportService.generateShareUrl(reportId)
-    : `${window.location.origin}/report/demo-${reportData.domain.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
+  // Generate shareable URL using the slug (preferred) or fallback to reportId
+  const shareUrl = slug ? reportService.generateShareUrl(slug) : '#';
   
   // Generate social sharing text with key metrics
   const shareText = reportService.generateShareText(reportData);

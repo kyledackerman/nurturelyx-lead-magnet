@@ -53,7 +53,7 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
         <ReportHeader onReset={onReset} onEditData={onEditData} />
         
         {!isPublicView && (
-          <ShareReportButton reportData={data} reportId={reportId} />
+          <ShareReportButton reportData={data} reportId={reportId} slug={data.slug} />
         )}
       </div>
 
@@ -126,7 +126,7 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
                   <li>How to improve lead generation</li>
                 </ul>
               </div>
-              <ShareReportButton reportData={data} reportId={reportId} />
+              <ShareReportButton reportData={data} reportId={reportId} slug={data.slug} />
             </div>
           </CardContent>
         </Card>

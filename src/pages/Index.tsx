@@ -74,7 +74,11 @@ const Index = () => {
         // Save report to database in background
         try {
           reportService.saveReport(fullReportData).then((saveResult) => {
-            setReportData(prev => prev ? { ...prev, reportId: saveResult.reportId } : null);
+            setReportData(prev => prev ? { 
+              ...prev, 
+              reportId: saveResult.reportId,
+              slug: saveResult.slug 
+            } : null);
             console.log('Report saved:', saveResult);
           }).catch((saveError) => {
             console.error('Failed to save report:', saveError);
