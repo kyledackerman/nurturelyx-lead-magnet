@@ -30,6 +30,34 @@ export const reportService = {
     return data;
   },
 
+  async getUserReports(userId: string) {
+    const { data, error } = await supabase
+      .from('reports')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching user reports:', error);
+      throw new Error('Failed to fetch reports');
+    }
+
+    return data;
+  },
+
+  async deleteReport(reportId: string, userId: string) {
+    const { error } = await supabase
+      .from('reports')
+      .delete()
+      .eq('id', reportId)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error deleting report:', error);
+      throw new Error('Failed to delete report');
+    }
+  },
+
   async getReport(reportId?: string, slug?: string): Promise<GetReportResponse> {
     const { data, error } = await supabase.functions.invoke('get-report', {
       body: { reportId, slug }

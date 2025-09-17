@@ -2,9 +2,11 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadReport from "@/components/LeadReport";
+import SaveReportPrompt from "@/components/SaveReportPrompt";
 import { FormData, ReportData } from "@/types/report";
 import { fetchDomainData, calculateReportMetrics } from "@/services/spyfuService";
 import { reportService } from "@/services/reportService";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 // Import our new components
@@ -16,11 +18,13 @@ import FormSection from "@/components/calculator/FormSection";
 import CallToActionSection from "@/components/CallToActionSection";
 
 const Index = () => {
+  const { user } = useAuth();
   const [isCalculating, setIsCalculating] = useState(false);
   const [calculationProgress, setCalculationProgress] = useState(0);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [formDataCache, setFormDataCache] = useState<FormData | null>(null);
+  const [showSavePrompt, setShowSavePrompt] = useState(false);
 
   const handleCalculate = async (formData: FormData) => {
     const domain = formData.domain || "example.com";
@@ -73,13 +77,21 @@ const Index = () => {
         
         // Save report to database in background
         try {
-          reportService.saveReport(fullReportData).then((saveResult) => {
+          reportService.saveReport(fullReportData, user?.id).then((saveResult) => {
             setReportData(prev => prev ? { 
               ...prev, 
               reportId: saveResult.reportId,
               slug: saveResult.slug 
             } : null);
             console.log('Report saved:', saveResult);
+            
+            // Show save confirmation message for logged in users
+            if (user) {
+              toast.success('Report saved to your account!', {
+                description: 'View it anytime in your dashboard.',
+                duration: 4000,
+              });
+            }
           }).catch((saveError) => {
             console.error('Failed to save report:', saveError);
             // Don't show error to user - report generation succeeded
@@ -90,6 +102,11 @@ const Index = () => {
         
         setIsCalculating(false);
         clearInterval(progressInterval);
+
+        // Show save prompt for anonymous users
+        if (!user) {
+          setShowSavePrompt(true);
+        }
 
         let dataSourceMessage = "";
         switch (apiData.dataSource) {
@@ -130,6 +147,7 @@ const Index = () => {
     setReportData(null);
     setApiError(null);
     setFormDataCache(null);
+    setShowSavePrompt(false);
     toast.success("All data cleared. You can start fresh!", {
       duration: 3000,
     });
@@ -138,6 +156,7 @@ const Index = () => {
   const handleEditData = () => {
     setReportData(null);
     setApiError(null); // Don't show error in edit mode
+    setShowSavePrompt(false);
     toast.info("Edit your information and submit again", {
       description: "Your previous entries have been preserved.",
       duration: 5000,
@@ -178,6 +197,11 @@ const Index = () => {
                 onReset={handleReset}
                 onEditData={handleEditData}
               />
+              
+              {/* Show save prompt for anonymous users */}
+              {showSavePrompt && !user && (
+                <SaveReportPrompt onDismiss={() => setShowSavePrompt(false)} />
+              )}
             </div>
           </section>
         )}
