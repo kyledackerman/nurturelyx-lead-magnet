@@ -14,7 +14,6 @@ export interface ReportData extends FormData, ApiData {
   estimatedSalesLost: number;
   monthlyRevenueLost: number;
   yearlyRevenueLost: number;
-  monthlyRevenueData: MonthlyRevenueData[];
   reportId?: string; // Add reportId for public sharing
   slug?: string; // Add slug for public sharing URLs
 }
@@ -22,7 +21,7 @@ export interface ReportData extends FormData, ApiData {
 export interface NewApiDataT {
   domain: string;
   dataSource: "api";
-  monthlyRevenueData: {
+  monthlyData: {
     month: string;
     searchMonth: number;
     searchYear: number;
@@ -46,22 +45,8 @@ export interface ApiData {
   backlinks: number;
   paidTraffic: number; // Added paid traffic from Google Analytics
   dataSource: "api" | "manual" | "both" | "fallback";
-  monthlyRevenueData: MonthlyRevenueData[];
 }
 
-export interface MonthlyRevenueData {
-  month: string;
-  year: number;
-  visitors: number;
-  organicVisitors: number;
-  paidVisitors: number;
-  leads: number;
-  missedLeads: number;
-  sales: number;
-  lostSales: number;
-  revenueLost: number;
-  lostRevenue: number;
-}
 
 // Define public report data interface
 export interface PublicReport {

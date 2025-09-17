@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ReportData } from "@/types/report";
-import MonthlyRevenueTable from "./MonthlyRevenueTable";
 import ReportTabs from "./report/ReportTabs";
 import VideoExplainer from "./report/VideoExplainer";
 import CompetitorComparison from "./report/CompetitorComparison";
@@ -78,21 +77,6 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
       <ScrollToCTAButton />
 
 
-      <Card className="bg-secondary animate-fade-in">
-        <CardHeader>
-          <CardTitle>Monthly Opportunity Breakdown</CardTitle>
-          <CardDescription className="text-white">
-            Historical data for {data.domain} over the last 6 months
-            <strong className="block mt-1 text-white">
-              Note: "Visitors" represents the combined total of organic and paid
-              traffic for each month
-            </strong>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <MonthlyRevenueTable data={data.monthlyRevenueData} />
-        </CardContent>
-      </Card>
 
       <VideoExplainer />
 

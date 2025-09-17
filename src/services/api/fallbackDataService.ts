@@ -19,6 +19,5 @@ export const generateFallbackData = (
     domainPower: Math.min(95, Math.floor(40 + domain.length * 1.5)),
     backlinks: Math.floor(baseTraffic * 0.5),
     dataSource: "fallback" as const,
-    monthlyRevenueData: [],
   };
 };

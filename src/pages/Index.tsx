@@ -55,9 +55,7 @@ const Index = () => {
         paidTraffic,
         formData.avgTransactionValue,
         apiData.organicTraffic,
-        apiData.paidTraffic,
-        apiData.monthlyRevenueData,
-        apiData.dataSource === "api"
+        apiData.paidTraffic
       );
 
       const fullReportData: ReportData = {
