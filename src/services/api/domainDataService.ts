@@ -153,6 +153,7 @@ export const fetchDomainData = async (
           domainPower: Math.min(95, Math.floor(40 + domain.length * 2)),
           backlinks: Math.floor(organicTrafficManual * 0.5),
           dataSource: "manual" as const,
+          monthlyRevenueData: [],
         };
       }
 
@@ -180,6 +181,7 @@ export const fetchDomainData = async (
         domainPower: Math.min(95, Math.floor(40 + domain.length * 2)),
         backlinks: Math.floor(organicTrafficManual * 0.5),
         dataSource: "manual" as const,
+        monthlyRevenueData: [],
       };
     }
 
