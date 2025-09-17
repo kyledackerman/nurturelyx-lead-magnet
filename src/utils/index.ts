@@ -23,12 +23,12 @@ export function formateNewApiDataToApiData(input: NewApiDataT): ApiData {
         visitors: monthData.monthlyOrganicClicks + monthData.monthlyPaidClicks,
         organicVisitors: monthData.monthlyOrganicClicks,
         paidVisitors: monthData.monthlyPaidClicks,
-        leads: monthData.totalAdsPurchased, // missedLeads
-        missedLeads: monthData.totalAdsPurchased, // Adding missedLeads
-        sales: 0, // estimatedSalesLost
-        lostSales: 0, // Adding lostSales
-        revenueLost: 0, // monthlyRevenueLost
-        lostRevenue: 0 // Adding lostRevenue
+        leads: 0, // Will be calculated by calculateReportMetrics
+        missedLeads: 0, // Will be calculated by calculateReportMetrics
+        sales: 0, // Will be calculated by calculateReportMetrics
+        lostSales: 0, // Will be calculated by calculateReportMetrics
+        revenueLost: 0, // Will be calculated by calculateReportMetrics
+        lostRevenue: 0 // Will be calculated by calculateReportMetrics
       });
 
       return acc;

@@ -51,13 +51,13 @@ const MonthlyRevenueTable = ({ data }: MonthlyRevenueTableProps) => {
                 {month.visitors.toLocaleString()}
               </TableCell>
               <TableCell className="text-right text-white">
-                {(month.missedLeads || month.leads).toLocaleString()}
+                {month.missedLeads.toLocaleString()}
               </TableCell>
               <TableCell className="text-right text-white">
-                {(month.lostSales || month.sales).toLocaleString()}
+                {month.lostSales.toLocaleString()}
               </TableCell>
               <TableCell className="text-right font-bold text-white">
-                {formatCurrency(month.lostRevenue || month.revenueLost)}
+                {formatCurrency(month.lostRevenue)}
               </TableCell>
             </TableRow>
           ))}

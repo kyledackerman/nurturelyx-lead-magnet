@@ -43,24 +43,10 @@ export const calculateReportMetrics = (
 
   if (isAPiData && monthlyApiData.length > 0) {
     monthlyApiData.map((row, index) => {
-      // totalTraffic =
-      //   (row.monthlyOrganicClicks || 0) +
-      //   (row.monthlyPaidClicks || 0);
-      // missedLeads = Math.floor(totalTraffic * visitorIdentificationRate);
-      // estimatedSalesLost = Math.floor(missedLeads * salesConversionRate);
-      // monthlyRevenueLost = estimatedSalesLost * avgTransactionValue;
-      // Calculate growth factor for this month (earlier months have lower values)
-      const monthGrowthFactor = Math.pow(growthRatio, index);
+      // Use actual visitor count from API data instead of applying growth factors
+      const monthTotalVisitors = row.visitors;
 
-      // Add a little randomness to the data for each month (95-105% variation)
-      const randomVariation = 0.95 + Math.random() * 0.1;
-
-      // Apply growth factor and random variation
-      const monthTotalVisitors = Math.floor(
-        currentVisitors * monthGrowthFactor * randomVariation
-      );
-
-      // Calculate derived metrics
+      // Calculate derived metrics based on actual visitor data
       const monthLeads = Math.floor(
         monthTotalVisitors * visitorIdentificationRate
       );
@@ -74,11 +60,11 @@ export const calculateReportMetrics = (
         organicVisitors: row.organicVisitors,
         paidVisitors: row.paidVisitors,
         leads: monthLeads,
-        missedLeads: monthLeads, // Adding the missing property
+        missedLeads: monthLeads,
         sales: monthSales,
-        lostSales: monthSales, // Adding the missing property
+        lostSales: monthSales,
         revenueLost: monthRevenue,
-        lostRevenue: monthRevenue // Adding the missing property
+        lostRevenue: monthRevenue
       });
     });
   } else {
@@ -117,11 +103,11 @@ export const calculateReportMetrics = (
         organicVisitors: monthOrganic,
         paidVisitors: monthPaid,
         leads: monthLeads,
-        missedLeads: monthLeads, // Adding the missing property
+        missedLeads: monthLeads,
         sales: monthSales,
-        lostSales: monthSales, // Adding the missing property
+        lostSales: monthSales,
         revenueLost: monthRevenue,
-        lostRevenue: monthRevenue // Adding the missing property
+        lostRevenue: monthRevenue
       });
     }
   }
