@@ -88,7 +88,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
           
           <div className="bg-secondary/30 border border-border rounded-lg p-4 text-center max-w-md mx-auto">
             <div className="text-lg font-semibold text-foreground mb-2">Identity Resolution Credits</div>
-            <div className="text-4xl font-bold text-primary mb-2">$1</div>
+            <div className="text-6xl font-bold text-primary mb-2">$1</div>
             <div className="text-muted-foreground mb-4">per lead</div>
             <div className="text-sm text-muted-foreground">
               (Load as needed - no minimum purchase)
