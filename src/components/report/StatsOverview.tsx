@@ -25,19 +25,19 @@ const StatsOverview = ({
   return (
     <div id="stats-overview" className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
       <StatCard
-        label="Missed Leads"
+        label="Monthly Missed Leads"
         value={missedLeads.toLocaleString()}
         icon={Users}
       />
 
       <StatCard
-        label="Lost Sales*"
+        label="Monthly Lost Sales*"
         value={estimatedSalesLost.toLocaleString()}
         icon={ShoppingCart}
       />
 
       <StatCard
-        label="Lost Revenue"
+        label="Monthly Lost Revenue"
         value={formatCurrency(monthlyRevenueLost)}
         icon={DollarSign}
       />
