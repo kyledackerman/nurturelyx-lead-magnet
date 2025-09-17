@@ -72,7 +72,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
             {/* Monthly Platform Fee */}
             <div className="bg-primary/10 border-2 border-primary rounded-lg p-6 text-center relative">
               <div className="text-lg font-semibold text-primary mb-2">Monthly Platform Fee</div>
-              <div className="text-4xl font-bold text-foreground mb-2">$18</div>
+              <div className="text-4xl font-bold text-foreground mb-2">$100</div>
               <div className="text-primary mb-4">per month</div>
               <div className="text-sm text-muted-foreground">Access to pixel + dashboard</div>
             </div>
@@ -112,7 +112,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="text-foreground">Secured & Encrypted Database of Leads</span>
+                  <span className="text-foreground">Secured & Encrypted Database for Leads</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
@@ -165,7 +165,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
         {/* Risk reversal */}
         <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-center">
           <p className="text-foreground">
-            <strong className="text-primary">Zero Risk Guarantee:</strong> If you have more than 500 visitors per month and don't get at least 100 resolved identities within the first 30 days of pixel installation, 
+            <strong className="text-primary">Zero Risk Guarantee:</strong> If you have 1,000 visitors per month or more and don't get at least 100 resolved identities within the first 30 days of pixel installation, 
             we'll refund every penny and let you keep all the data we found.
           </p>
         </div>
