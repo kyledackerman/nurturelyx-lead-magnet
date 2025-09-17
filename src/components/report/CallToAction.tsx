@@ -91,7 +91,6 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
             <div className="text-4xl font-bold text-primary mb-2">$1</div>
             <div className="text-muted-foreground mb-4">per lead</div>
             <div className="text-sm text-muted-foreground">
-              + $0.005 per email verification<br/>
               (Load as needed - no minimum purchase)
             </div>
           </div>
