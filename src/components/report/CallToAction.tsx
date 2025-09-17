@@ -72,7 +72,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
             {/* Monthly Platform Fee */}
             <div className="bg-primary/10 border-2 border-primary rounded-lg p-6 text-center relative">
               <div className="text-lg font-semibold text-primary mb-2">Monthly Platform Fee</div>
-              <div className="text-9xl font-bold text-foreground mb-2">$100</div>
+              <div className="text-6xl font-bold text-foreground mb-2">$100</div>
               <div className="text-primary mb-4">per month</div>
               <div className="text-sm text-muted-foreground">Access to pixel + dashboard</div>
             </div>
