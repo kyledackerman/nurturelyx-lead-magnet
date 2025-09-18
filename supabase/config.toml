@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.track-share]
 verify_jwt = false
+
+[functions.make-admin]
+verify_jwt = false
