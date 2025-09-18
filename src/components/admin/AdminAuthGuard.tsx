@@ -114,15 +114,5 @@ export const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
     );
   }
 
-  return (
-    <div>
-      <div className="fixed top-4 right-4 z-50">
-        <Button variant="outline" size="sm" onClick={handleLogout}>
-          <LogOut className="h-4 w-4 mr-2" />
-          Logout
-        </Button>
-      </div>
-      {children}
-    </div>
-  );
+  return <>{children}</>;
 };

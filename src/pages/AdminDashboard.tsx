@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
 import { AdminReportsTable } from "@/components/admin/AdminReportsTable";
+import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -95,6 +96,7 @@ const AdminDashboard = () => {
 
   return (
     <AdminAuthGuard>
+      <Header />
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
