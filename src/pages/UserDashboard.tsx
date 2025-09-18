@@ -10,7 +10,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportData } from '@/types/report';
 import { reportService } from '@/services/reportService';
-import { Eye, Share2, ExternalLink, Search, Calendar } from 'lucide-react';
+import { Eye, Share2, ExternalLink, Search, Calendar, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import Header from '@/components/Header';
 
 interface UserReport {
@@ -72,6 +73,19 @@ const UserDashboard = () => {
       await reportService.trackShare(report.id, 'clipboard');
     } catch (error) {
       toast.error('Failed to copy link');
+    }
+  };
+
+  const handleDelete = async (reportId: string, domain: string) => {
+    if (!user?.id) return;
+    
+    try {
+      await reportService.deleteReport(reportId, user.id);
+      setReports(reports.filter(report => report.id !== reportId));
+      toast.success(`Report for ${domain} deleted successfully`);
+    } catch (error) {
+      console.error('Error deleting report:', error);
+      toast.error('Failed to delete report');
     }
   };
 
@@ -250,6 +264,35 @@ const UserDashboard = () => {
                               <Share2 className="h-4 w-4" />
                               Share
                             </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Report</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete the report for "{report.domain}"? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(report.id, report.domain)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </TableCell>
                       </TableRow>
