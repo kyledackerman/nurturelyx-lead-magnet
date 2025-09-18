@@ -57,6 +57,8 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
         )}
       </div>
 
+      <ChangelogCard reportData={data} />
+
       <StatsOverview
         missedLeads={data.missedLeads}
         estimatedSalesLost={data.estimatedSalesLost}
@@ -74,8 +76,6 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
       </div>
 
       <ScrollToCTAButton />
-
-      <ChangelogCard reportData={data} />
 
       <ReportTabs data={data} />
 
