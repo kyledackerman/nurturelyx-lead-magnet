@@ -26,12 +26,9 @@ const LandingPageHero = () => {
             What if you could find out—in 2 minutes—exactly how much?
           </h2>
           
-          {/* Description in a subtle container */}
-          <div className="bg-accent/5 border border-accent/20 rounded-lg p-6 mb-8 animate-fade-in animation-delay-300">
-            <p className="text-xl text-accent mb-4 font-medium">
-              This free report runs your real traffic data and shows:
-            </p>
-          </div>
+          <p className="text-xl text-accent mb-8 font-medium animate-fade-in animation-delay-300">
+            This free report runs your real traffic data and shows:
+          </p>
           
           {/* Enhanced bullet points with icons and containers */}
           <div className="max-w-2xl mx-auto mb-8 animate-fade-in animation-delay-400">
@@ -71,12 +68,9 @@ const LandingPageHero = () => {
             </div>
           </div>
           
-          {/* Closing CTA with emphasis */}
-          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-6 animate-fade-in animation-delay-500">
-            <p className="text-xl font-semibold text-destructive">
-              Don't spend another dollar on ads until you see this.
-            </p>
-          </div>
+          <p className="text-xl font-semibold text-destructive animate-fade-in animation-delay-500">
+            Don't spend another dollar on ads until you see this.
+          </p>
         </div>
       </div>
     </section>
