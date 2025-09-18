@@ -75,13 +75,13 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
 
       <ChangelogCard reportData={data} />
 
+      <ReportTabs data={data} />
+
       <ScrollToCTAButton />
 
 
 
       <VideoExplainer />
-
-      <ReportTabs data={data} />
 
       <CompetitorComparison data={data} />
 
