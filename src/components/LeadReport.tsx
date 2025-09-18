@@ -73,11 +73,11 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
         <p className="text-white/70 text-xs text-center mt-2">*Based on industry conversion rates</p>
       </div>
 
+      <ScrollToCTAButton />
+
       <ChangelogCard reportData={data} />
 
       <ReportTabs data={data} />
-
-      <ScrollToCTAButton />
 
 
 
