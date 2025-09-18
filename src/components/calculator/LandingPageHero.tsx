@@ -3,9 +3,8 @@ import { TrendingDown, DollarSign, Target, Zap } from "lucide-react";
 
 const LandingPageHero = () => {
   return (
-    <section className="relative bg-gradient-to-br from-black via-gray-900 to-black py-16 md:py-24 overflow-hidden">
+    <section className="relative bg-black py-16 md:py-24 overflow-hidden">
       {/* Background accent elements */}
-      <div className="absolute inset-0 bg-gradient-to-r from-accent/5 to-transparent"></div>
       <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
       
       <div className="container mx-auto px-4 relative z-10">
