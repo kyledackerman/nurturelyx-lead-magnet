@@ -12,8 +12,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { HelpCircle } from "lucide-react";
+import { ReportData } from "@/types/report";
+import { formatCurrency } from "@/lib/utils";
 
-const faqItems = [
+const getFaqItems = (data: ReportData) => [
   {
     question: "How accurate is your visitor identification?",
     answer: "Our identity resolution technology identifies 15-30% of anonymous website visitors using advanced data matching algorithms. We only provide verified contact information with high confidence scores, ensuring quality leads for your sales team."
@@ -28,7 +30,7 @@ const faqItems = [
   },
   {
     question: "What's the typical ROI for businesses using NurturelyX?",
-    answer: "Most clients see 3-5x ROI within 90 days. By converting previously anonymous visitors into qualified leads, you're essentially creating revenue from traffic that was previously lost forever."
+    answer: `Based on your specific data, you're currently losing $${formatCurrency(data.yearlyRevenueLost)} annually from unidentified visitors. With NurturelyX, you could recover a significant portion of this lost revenue. Most clients see 3-5x ROI within 90 days, meaning for every dollar invested, you could see $3-5 in return. With your average transaction value of $${formatCurrency(data.avgTransactionValue)}, converting just a few additional leads per month creates substantial value.`
   },
   {
     question: "Does this work with my existing CRM and tools?",
@@ -40,11 +42,11 @@ const faqItems = [
   },
   {
     question: "How is this different from other lead generation tools?",
-    answer: "Unlike forms or chatbots that require visitor action, we identify visitors who never filled out a form or engaged. This captures 85-95% of website traffic that traditional methods miss completely."
+    answer: "Unlike forms or chatbots that require visitor action, we identify visitors who never filled out a form or engaged. This captures 20-35% of website traffic that traditional methods miss completely - visitors who browse your site but never take action."
   },
   {
     question: "What if I have low website traffic?",
-    answer: "Even with modest traffic (500+ monthly visitors), you can generate significant additional leads. The key is that we're identifying visitors you're already getting - not requiring you to drive more traffic."
+    answer: "Even with modest traffic (500+ monthly visitors), you can generate significant additional leads. The key is that we're identifying visitors you're already getting - not requiring you to drive more traffic. To grow your traffic, consider partnering with a local SEO team to build authority in your market area. You can also create valuable social media content and helpful blog articles that draw visitors to your website to learn, giving you more opportunities for identification and outreach."
   },
   {
     question: "Is there a long-term contract required?",
@@ -56,7 +58,13 @@ const faqItems = [
   }
 ];
 
-const FAQ = () => {
+interface FAQProps {
+  data: ReportData;
+}
+
+const FAQ = ({ data }: FAQProps) => {
+  const faqItems = getFaqItems(data);
+  
   return (
     <Card className="bg-secondary mt-8">
       <CardHeader>

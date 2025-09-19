@@ -84,7 +84,7 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
 
       <VideoExplainer />
 
-      <FAQ />
+      <FAQ data={data} />
 
       <CompetitorComparison data={data} />
 
