@@ -11,7 +11,7 @@ const VideoExplainer = () => {
   return (
     <Card className="bg-secondary mt-8">
       <CardHeader>
-        <CardTitle>How This Works</CardTitle>
+        <CardTitle>How Identity Resolution Works</CardTitle>
         <CardDescription className="text-white">
           Watch our 6-minute explainer video
         </CardDescription>
