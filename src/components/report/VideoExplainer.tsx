@@ -24,7 +24,7 @@ const VideoExplainer = () => {
             poster="https://storage.googleapis.com/msgsndr/nhc9xkcyzpaPrEARWW66/media/685aaf88f1a84877bce891b5.webp"
           >
             <source
-              src="https://storage.googleapis.com/msgsndr/nhc9xkcyzpaPrEARWW66/media/68cd998d27afc880a78266a7.mp4"
+              src="https://storage.googleapis.com/msgsndr/nhc9xkcyzpaPrEARWW66/media/68cdb0502a247e0db3deb950.mp4"
               type="video/mp4"
             />
             Your browser does not support the video tag.
