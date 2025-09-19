@@ -20,7 +20,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
   const hourlyLoss = dailyLoss / 24;
 
   return (
-    <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30 mt-8 px-6 py-8" data-cta-section="true">
+    <Card className="bg-primary/5 border-primary/10 mt-8 px-6 py-8" data-cta-section="true">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Shocking headline */}
         <div className="text-center space-y-3">
@@ -38,7 +38,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
         </div>
 
         {/* The cost of inaction */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
+        <div className="bg-primary/5 border border-primary/10 rounded-lg p-4 text-center">
           <h3 className="text-2xl font-bold text-foreground mb-3">Here's What Doing Nothing Costs You:</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div>
@@ -70,7 +70,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
           
           <div className="max-w-md mx-auto">
             {/* Monthly Platform Fee */}
-            <div className="bg-primary/10 border-2 border-primary rounded-lg p-6 text-center relative">
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-6 text-center relative">
               <div className="text-lg font-semibold text-primary mb-2">Monthly Platform Fee</div>
               <div className="text-6xl font-bold text-foreground mb-2">$100</div>
               <div className="text-primary mb-4">per month</div>
@@ -80,7 +80,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
         </div>
 
         {/* Step 2: Credits for Identity Resolution */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+        <div className="bg-primary/5 border border-primary/10 rounded-lg p-4">
           <h4 className="text-xl font-bold text-foreground text-center mb-3">Step 2: Load Credits to Resolve Identities</h4>
           <p className="text-center text-muted-foreground mb-4">
             Once you have your pixel, load credits to start identifying visitors and converting them to leads:
@@ -97,7 +97,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
         </div>
 
         {/* What's included breakdown */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+        <div className="bg-primary/5 border border-primary/10 rounded-lg p-4">
           <h3 className="text-2xl font-bold text-foreground text-center mb-4">Here's What You Get:</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -162,7 +162,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
         </div>
 
         {/* Risk reversal */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-center">
+        <div className="bg-primary/5 border border-primary/10 rounded-lg p-3 text-center">
           <p className="text-foreground">
             <strong className="text-primary">Zero Risk Guarantee:</strong> If you have 1,000 visitors per month or more and don't get at least 100 resolved identities within the first 30 days of pixel installation, 
             we'll refund every penny and let you keep all the data we found.

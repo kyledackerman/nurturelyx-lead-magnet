@@ -46,7 +46,7 @@ const IdentityResolutionExplainer = () => {
         </div>
 
         {/* Differentiation callout */}
-        <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-8 mb-12">
+        <div className="bg-primary/5 border border-primary/10 rounded-lg p-8 mb-12">
           <div className="text-center">
             <h3 className="text-2xl font-bold mb-4 text-foreground">
               This is <span className="text-primary">NOT</span> Like Those Other Tools
@@ -58,7 +58,7 @@ const IdentityResolutionExplainer = () => {
           </div>
           
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6">
+            <div className="bg-destructive/10 border border-destructive/10 rounded-lg p-6">
               <h4 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-3">❌ Other Tools (IP-Based Guessing)</h4>
               <ul className="text-sm text-muted-foreground space-y-2">
                 <li>• Guess company names from IP addresses</li>
@@ -68,7 +68,7 @@ const IdentityResolutionExplainer = () => {
               </ul>
             </div>
             
-            <div className="bg-primary/10 border border-primary/20 rounded-lg p-6">
+            <div className="bg-primary/10 border border-primary/10 rounded-lg p-6">
               <h4 className="text-lg font-semibold text-primary mb-3">✅ Our Identity Resolution</h4>
               <ul className="text-sm text-muted-foreground space-y-2">
                 <li>• Real names, emails & phone numbers</li>
