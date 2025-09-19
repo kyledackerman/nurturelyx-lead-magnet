@@ -11,6 +11,7 @@ import { ReportData } from "@/types/report";
 
 import ReportTabs from "./report/ReportTabs";
 import VideoExplainer from "./report/VideoExplainer";
+import FAQ from "./report/FAQ";
 import CompetitorComparison from "./report/CompetitorComparison";
 import Testimonials from "./report/Testimonials";
 import Glossary from "./report/Glossary";
@@ -82,6 +83,8 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
 
 
       <VideoExplainer />
+
+      <FAQ />
 
       <CompetitorComparison data={data} />
 
