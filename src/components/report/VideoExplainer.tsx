@@ -11,24 +11,24 @@ const VideoExplainer = () => {
   return (
     <Card className="bg-secondary mt-8">
       <CardHeader>
-        <CardTitle>How NurturelyX Works</CardTitle>
+        <CardTitle>How This Works</CardTitle>
         <CardDescription className="text-white">
-          Watch our 2-minute explainer video
+          Watch our 6-minute explainer video
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="relative aspect-video rounded-lg overflow-hidden bg-background">
-          {/* Placeholder for the video - will be replaced with actual video later */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-accent/90 p-4 rounded-full cursor-pointer hover:bg-accent transition-colors">
-              <Play className="h-8 w-8 text-accent-foreground" />
-            </div>
-          </div>
-          <img
-            src="/placeholder.svg"
-            alt="Video Thumbnail"
-            className="w-full h-full object-cover opacity-50"
-          />
+          <video
+            className="w-full h-full object-cover"
+            controls
+            poster="https://storage.googleapis.com/msgsndr/nhc9xkcyzpaPrEARWW66/media/685aaf88f1a84877bce891b5.webp"
+          >
+            <source
+              src="https://storage.googleapis.com/msgsndr/nhc9xkcyzpaPrEARWW66/media/68cd998d27afc880a78266a7.mp4"
+              type="video/mp4"
+            />
+            Your browser does not support the video tag.
+          </video>
         </div>
         <div className="mt-4 text-sm text-white">
           <p>In this video, learn how NurturelyX:</p>
