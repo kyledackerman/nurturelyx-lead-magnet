@@ -13,11 +13,11 @@ const LandingPageHero = () => {
           <div className="relative mb-4 animate-fade-in">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground relative">
               Your Website Is Leaking
-              <span className="block text-transparent bg-gradient-to-r from-destructive to-destructive/80 bg-clip-text">
+              <span className="block text-transparent bg-gradient-to-r from-red-500 to-red-400 bg-clip-text">
                 Cash.
               </span>
             </h1>
-            <div className="absolute -top-4 -right-4 text-destructive/80">
+            <div className="absolute -top-4 -right-4 text-red-500">
               <TrendingDown className="w-8 h-8 md:w-12 md:h-12 animate-pulse" />
             </div>
           </div>
@@ -36,7 +36,7 @@ const LandingPageHero = () => {
               <div className="bg-card/50 border border-accent/10 rounded-lg p-4 text-left hover:bg-card/70 transition-colors">
                 <div className="flex items-start">
                   <div className="bg-accent/20 p-2 rounded-full mr-4 mt-1">
-                    <Target className="w-5 h-5 text-accent" />
+                    <Target className="w-5 h-5 text-blue-400" />
                   </div>
                   <span className="text-lg text-gray-300 font-medium">
                     How many buyers are slipping through your fingers
@@ -47,7 +47,7 @@ const LandingPageHero = () => {
               <div className="bg-card/50 border border-accent/10 rounded-lg p-4 text-left hover:bg-card/70 transition-colors">
                 <div className="flex items-start">
                   <div className="bg-accent/20 p-2 rounded-full mr-4 mt-1">
-                    <DollarSign className="w-5 h-5 text-accent" />
+                    <DollarSign className="w-5 h-5 text-blue-400" />
                   </div>
                   <span className="text-lg text-gray-300 font-medium">
                     What those lost sales are worth in $$$
@@ -58,7 +58,7 @@ const LandingPageHero = () => {
               <div className="bg-card/50 border border-accent/10 rounded-lg p-4 text-left hover:bg-card/70 transition-colors">
                 <div className="flex items-start">
                   <div className="bg-accent/20 p-2 rounded-full mr-4 mt-1">
-                    <Zap className="w-5 h-5 text-accent" />
+                    <Zap className="w-5 h-5 text-blue-400" />
                   </div>
                   <span className="text-lg text-gray-300 font-medium">
                     How to fix it starting today
@@ -68,7 +68,7 @@ const LandingPageHero = () => {
             </div>
           </div>
           
-          <p className="text-xl font-semibold text-destructive animate-fade-in animation-delay-500">
+          <p className="text-xl font-semibold text-red-500 animate-fade-in animation-delay-500">
             Don't spend another dollar on ads until you see this.
           </p>
         </div>
