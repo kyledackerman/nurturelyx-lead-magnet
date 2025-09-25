@@ -16,6 +16,13 @@ interface ReportSummary {
   user_id: string | null;
   slug: string;
   id: string;
+  report_data: {
+    organicTraffic?: number;
+    paidTraffic?: number;
+    missedLeads?: number;
+    yearlyRevenueLost?: number;
+    avgTransactionValue?: number;
+  };
 }
 
 interface AdminStats {
@@ -53,13 +60,26 @@ const AdminDashboard = () => {
     try {
       const { data, error } = await supabase
         .from('reports')
-        .select('id, domain, created_at, is_public, user_id, slug')
+        .select('id, domain, created_at, is_public, user_id, slug, report_data')
         .order('created_at', { ascending: false })
         .limit(100);
 
       if (error) throw error;
-      setReports(data || []);
-      setFilteredReports(data || []);
+      
+      // Type cast the report_data from Json to our interface
+      const typedData = (data || []).map(report => ({
+        ...report,
+        report_data: report.report_data as {
+          organicTraffic?: number;
+          paidTraffic?: number;
+          missedLeads?: number;
+          yearlyRevenueLost?: number;
+          avgTransactionValue?: number;
+        }
+      }));
+      
+      setReports(typedData);
+      setFilteredReports(typedData);
     } catch (error) {
       console.error('Error fetching reports:', error);
       toast.error('Failed to fetch reports');

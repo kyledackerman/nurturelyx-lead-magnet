@@ -19,6 +19,13 @@ interface ReportData {
   user_id: string | null;
   slug: string;
   id: string;
+  report_data: {
+    organicTraffic?: number;
+    paidTraffic?: number;
+    missedLeads?: number;
+    yearlyRevenueLost?: number;
+    avgTransactionValue?: number;
+  };
 }
 
 interface AdminReportsTableProps {
@@ -38,6 +45,27 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
       hour: '2-digit',
       minute: '2-digit',
     }).format(new Date(dateString));
+  };
+
+  const formatCurrency = (value?: number) => {
+    if (!value) return 'N/A';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const formatNumber = (value?: number) => {
+    if (!value) return 'N/A';
+    return new Intl.NumberFormat('en-US').format(value);
+  };
+
+  const getTrafficColor = (traffic?: number) => {
+    if (!traffic) return 'text-muted-foreground';
+    if (traffic >= 50000) return 'text-green-600';
+    if (traffic >= 10000) return 'text-yellow-600';
+    return 'text-red-600';
   };
 
   const copyToClipboard = async (text: string, id: string) => {
@@ -81,6 +109,10 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
         <TableHeader>
           <TableRow>
             <TableHead>Domain</TableHead>
+            <TableHead className="text-center">Organic Traffic</TableHead>
+            <TableHead className="text-center">Paid Traffic</TableHead>
+            <TableHead className="text-center">Missed Leads</TableHead>
+            <TableHead className="text-center">Revenue Lost</TableHead>
             <TableHead>Created</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Owner</TableHead>
@@ -112,6 +144,26 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
                       <Copy className={`h-3 w-3 ${copiedId === report.id ? 'text-green-500' : ''}`} />
                     </Button>
                   </div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <span className={`font-medium ${getTrafficColor(report.report_data?.organicTraffic)}`}>
+                    {formatNumber(report.report_data?.organicTraffic)}
+                  </span>
+                </TableCell>
+                <TableCell className="text-center">
+                  <span className={`font-medium ${getTrafficColor(report.report_data?.paidTraffic)}`}>
+                    {formatNumber(report.report_data?.paidTraffic)}
+                  </span>
+                </TableCell>
+                <TableCell className="text-center">
+                  <span className="font-medium text-red-600">
+                    {formatNumber(report.report_data?.missedLeads)}
+                  </span>
+                </TableCell>
+                <TableCell className="text-center">
+                  <span className="font-bold text-red-600">
+                    {formatCurrency(report.report_data?.yearlyRevenueLost)}
+                  </span>
                 </TableCell>
                 <TableCell>
                   <span className="text-sm text-muted-foreground">
