@@ -24,6 +24,7 @@ interface ReportData {
     paidTraffic?: number;
     missedLeads?: number;
     yearlyRevenueLost?: number;
+    monthlyRevenueLost?: number;
     avgTransactionValue?: number;
   };
 }
@@ -33,12 +34,12 @@ interface AdminReportsTableProps {
   loading: boolean;
 }
 
-type SortKey = 'domain' | 'organicTraffic' | 'paidTraffic' | 'missedLeads' | 'yearlyRevenueLost' | 'created_at';
+type SortKey = 'domain' | 'organicTraffic' | 'paidTraffic' | 'missedLeads' | 'monthlyRevenueLost' | 'created_at';
 type SortDirection = 'asc' | 'desc';
 
 export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<SortKey>('yearlyRevenueLost');
+  const [sortBy, setSortBy] = useState<SortKey>('monthlyRevenueLost');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortedReports, setSortedReports] = useState<ReportData[]>([]);
   const adminUserId = "850078c3-247c-4904-9b9a-ebec624d4ef5";
@@ -98,29 +99,29 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
 
   const getRevenueColor = (revenue?: number) => {
     if (!revenue) return 'text-muted-foreground';
-    if (revenue >= 100000) return 'text-red-700 font-bold';
-    if (revenue >= 50000) return 'text-red-600 font-bold';
-    if (revenue >= 25000) return 'text-orange-600 font-semibold';
-    if (revenue >= 10000) return 'text-orange-500 font-medium';
-    if (revenue >= 5000) return 'text-yellow-600 font-medium';
+    if (revenue >= 8500) return 'text-red-700 font-bold';
+    if (revenue >= 4200) return 'text-red-600 font-bold';
+    if (revenue >= 2100) return 'text-orange-600 font-semibold';
+    if (revenue >= 850) return 'text-orange-500 font-medium';
+    if (revenue >= 420) return 'text-yellow-600 font-medium';
     return 'text-green-600 font-medium';
   };
 
   const getRowBackground = (report: ReportData) => {
-    const revenue = report.report_data?.yearlyRevenueLost || 0;
+    const revenue = report.report_data?.monthlyRevenueLost || 0;
     const leads = report.report_data?.missedLeads || 0;
     const isYourReport = report.user_id === adminUserId;
     
     if (isYourReport) return "bg-primary/10 border-primary/30 hover:bg-primary/15";
-    if (revenue >= 50000 || leads >= 500) return "bg-red-50 border-red-200 hover:bg-red-100";
-    if (revenue >= 25000 || leads >= 200) return "bg-orange-50 border-orange-200 hover:bg-orange-100";
+    if (revenue >= 4200 || leads >= 500) return "bg-red-50 border-red-200 hover:bg-red-100";
+    if (revenue >= 2100 || leads >= 200) return "bg-orange-50 border-orange-200 hover:bg-orange-100";
     return "hover:bg-muted/50";
   };
 
   const isHighPriority = (report: ReportData) => {
-    const revenue = report.report_data?.yearlyRevenueLost || 0;
+    const revenue = report.report_data?.monthlyRevenueLost || 0;
     const leads = report.report_data?.missedLeads || 0;
-    return revenue >= 50000 || leads >= 500;
+    return revenue >= 4200 || leads >= 500;
   };
 
   // Sorting logic
@@ -155,9 +156,9 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
           aValue = a.report_data?.missedLeads || 0;
           bValue = b.report_data?.missedLeads || 0;
           break;
-        case 'yearlyRevenueLost':
-          aValue = a.report_data?.yearlyRevenueLost || 0;
-          bValue = b.report_data?.yearlyRevenueLost || 0;
+        case 'monthlyRevenueLost':
+          aValue = a.report_data?.monthlyRevenueLost || 0;
+          bValue = b.report_data?.monthlyRevenueLost || 0;
           break;
         case 'created_at':
           aValue = new Date(a.created_at);
@@ -251,7 +252,7 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
             <SortableHeader label="Organic Traffic" sortKey="organicTraffic" className="text-center" />
             <SortableHeader label="Paid Traffic" sortKey="paidTraffic" className="text-center" />
             <SortableHeader label="Missed Leads" sortKey="missedLeads" className="text-center" />
-            <SortableHeader label="Revenue Lost" sortKey="yearlyRevenueLost" className="text-center" />
+            <SortableHeader label="Monthly Revenue Lost" sortKey="monthlyRevenueLost" className="text-center" />
             <SortableHeader label="Created" sortKey="created_at" />
             <TableHead>Status</TableHead>
             <TableHead>Owner</TableHead>
@@ -305,8 +306,8 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className={getRevenueColor(report.report_data?.yearlyRevenueLost)}>
-                    {formatCurrency(report.report_data?.yearlyRevenueLost)}
+                  <span className={getRevenueColor(report.report_data?.monthlyRevenueLost)}>
+                    {formatCurrency(report.report_data?.monthlyRevenueLost)}
                   </span>
                 </TableCell>
                 <TableCell>
