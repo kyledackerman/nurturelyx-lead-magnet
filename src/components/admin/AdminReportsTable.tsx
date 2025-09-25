@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Eye, Copy } from "lucide-react";
+import { ExternalLink, Eye, Copy, ChevronUp, ChevronDown, AlertTriangle, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
 interface ReportData {
@@ -33,10 +33,17 @@ interface AdminReportsTableProps {
   loading: boolean;
 }
 
+type SortKey = 'domain' | 'organicTraffic' | 'paidTraffic' | 'missedLeads' | 'yearlyRevenueLost' | 'created_at';
+type SortDirection = 'asc' | 'desc';
+
 export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortKey>('yearlyRevenueLost');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [sortedReports, setSortedReports] = useState<ReportData[]>([]);
   const adminUserId = "850078c3-247c-4904-9b9a-ebec624d4ef5";
 
+  // Enhanced formatting functions
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
@@ -61,12 +68,144 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
     return new Intl.NumberFormat('en-US').format(value);
   };
 
-  const getTrafficColor = (traffic?: number) => {
+  // Enhanced color coding functions
+  const getOrganicTrafficColor = (traffic?: number) => {
     if (!traffic) return 'text-muted-foreground';
-    if (traffic >= 50000) return 'text-green-600';
-    if (traffic >= 10000) return 'text-yellow-600';
-    return 'text-red-600';
+    if (traffic >= 100000) return 'text-emerald-600 font-bold';
+    if (traffic >= 50000) return 'text-green-600 font-semibold';
+    if (traffic >= 20000) return 'text-lime-600 font-medium';
+    if (traffic >= 5000) return 'text-yellow-600 font-medium';
+    return 'text-red-500 font-medium';
   };
+
+  const getPaidTrafficColor = (traffic?: number) => {
+    if (!traffic) return 'text-muted-foreground';
+    if (traffic >= 50000) return 'text-blue-600 font-bold';
+    if (traffic >= 20000) return 'text-blue-500 font-semibold';
+    if (traffic >= 5000) return 'text-cyan-600 font-medium';
+    if (traffic >= 1000) return 'text-orange-500 font-medium';
+    return 'text-red-500 font-medium';
+  };
+
+  const getMissedLeadsColor = (leads?: number) => {
+    if (!leads) return 'text-muted-foreground';
+    if (leads >= 1000) return 'text-red-700 font-bold';
+    if (leads >= 500) return 'text-red-600 font-semibold';
+    if (leads >= 100) return 'text-orange-600 font-medium';
+    if (leads >= 50) return 'text-yellow-600 font-medium';
+    return 'text-green-600 font-medium';
+  };
+
+  const getRevenueColor = (revenue?: number) => {
+    if (!revenue) return 'text-muted-foreground';
+    if (revenue >= 100000) return 'text-red-700 font-bold';
+    if (revenue >= 50000) return 'text-red-600 font-bold';
+    if (revenue >= 25000) return 'text-orange-600 font-semibold';
+    if (revenue >= 10000) return 'text-orange-500 font-medium';
+    if (revenue >= 5000) return 'text-yellow-600 font-medium';
+    return 'text-green-600 font-medium';
+  };
+
+  const getRowBackground = (report: ReportData) => {
+    const revenue = report.report_data?.yearlyRevenueLost || 0;
+    const leads = report.report_data?.missedLeads || 0;
+    const isYourReport = report.user_id === adminUserId;
+    
+    if (isYourReport) return "bg-primary/10 border-primary/30 hover:bg-primary/15";
+    if (revenue >= 50000 || leads >= 500) return "bg-red-50 border-red-200 hover:bg-red-100";
+    if (revenue >= 25000 || leads >= 200) return "bg-orange-50 border-orange-200 hover:bg-orange-100";
+    return "hover:bg-muted/50";
+  };
+
+  const isHighPriority = (report: ReportData) => {
+    const revenue = report.report_data?.yearlyRevenueLost || 0;
+    const leads = report.report_data?.missedLeads || 0;
+    return revenue >= 50000 || leads >= 500;
+  };
+
+  // Sorting logic
+  const handleSort = (key: SortKey) => {
+    if (sortBy === key) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(key);
+      setSortDirection('desc');
+    }
+  };
+
+  const getSortedReports = () => {
+    const sorted = [...reports].sort((a, b) => {
+      let aValue: any = '';
+      let bValue: any = '';
+
+      switch (sortBy) {
+        case 'domain':
+          aValue = a.domain.toLowerCase();
+          bValue = b.domain.toLowerCase();
+          break;
+        case 'organicTraffic':
+          aValue = a.report_data?.organicTraffic || 0;
+          bValue = b.report_data?.organicTraffic || 0;
+          break;
+        case 'paidTraffic':
+          aValue = a.report_data?.paidTraffic || 0;
+          bValue = b.report_data?.paidTraffic || 0;
+          break;
+        case 'missedLeads':
+          aValue = a.report_data?.missedLeads || 0;
+          bValue = b.report_data?.missedLeads || 0;
+          break;
+        case 'yearlyRevenueLost':
+          aValue = a.report_data?.yearlyRevenueLost || 0;
+          bValue = b.report_data?.yearlyRevenueLost || 0;
+          break;
+        case 'created_at':
+          aValue = new Date(a.created_at);
+          bValue = new Date(b.created_at);
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return sorted;
+  };
+
+  useEffect(() => {
+    setSortedReports(getSortedReports());
+  }, [reports, sortBy, sortDirection]);
+
+  const SortableHeader = ({ 
+    label, 
+    sortKey, 
+    className = "" 
+  }: { 
+    label: string; 
+    sortKey: SortKey; 
+    className?: string 
+  }) => (
+    <TableHead 
+      className={`cursor-pointer hover:bg-muted/50 transition-colors ${className}`}
+      onClick={() => handleSort(sortKey)}
+    >
+      <div className="flex items-center justify-center gap-1">
+        {label}
+        {sortBy === sortKey ? (
+          sortDirection === 'asc' ? 
+            <ChevronUp className="h-4 w-4" /> : 
+            <ChevronDown className="h-4 w-4" />
+        ) : (
+          <div className="h-4 w-4 opacity-30">
+            <ChevronDown className="h-4 w-4" />
+          </div>
+        )}
+      </div>
+    </TableHead>
+  );
 
   const copyToClipboard = async (text: string, id: string) => {
     try {
@@ -108,28 +247,33 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Domain</TableHead>
-            <TableHead className="text-center">Organic Traffic</TableHead>
-            <TableHead className="text-center">Paid Traffic</TableHead>
-            <TableHead className="text-center">Missed Leads</TableHead>
-            <TableHead className="text-center">Revenue Lost</TableHead>
-            <TableHead>Created</TableHead>
+            <SortableHeader label="Domain" sortKey="domain" />
+            <SortableHeader label="Organic Traffic" sortKey="organicTraffic" className="text-center" />
+            <SortableHeader label="Paid Traffic" sortKey="paidTraffic" className="text-center" />
+            <SortableHeader label="Missed Leads" sortKey="missedLeads" className="text-center" />
+            <SortableHeader label="Revenue Lost" sortKey="yearlyRevenueLost" className="text-center" />
+            <SortableHeader label="Created" sortKey="created_at" />
             <TableHead>Status</TableHead>
             <TableHead>Owner</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {reports.map((report) => {
+          {sortedReports.map((report) => {
             const isYourReport = report.user_id === adminUserId;
+            const highPriority = isHighPriority(report);
+            
             return (
               <TableRow 
                 key={report.id}
-                className={isYourReport ? "bg-primary/5 border-primary/20" : ""}
+                className={getRowBackground(report)}
               >
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
                     <span>{report.domain}</span>
+                    {highPriority && (
+                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                    )}
                     {isYourReport && (
                       <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
                         Your Report
@@ -146,22 +290,22 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
                   </div>
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className={`font-medium ${getTrafficColor(report.report_data?.organicTraffic)}`}>
+                  <span className={getOrganicTrafficColor(report.report_data?.organicTraffic)}>
                     {formatNumber(report.report_data?.organicTraffic)}
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className={`font-medium ${getTrafficColor(report.report_data?.paidTraffic)}`}>
+                  <span className={getPaidTrafficColor(report.report_data?.paidTraffic)}>
                     {formatNumber(report.report_data?.paidTraffic)}
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className="font-medium text-red-600">
+                  <span className={getMissedLeadsColor(report.report_data?.missedLeads)}>
                     {formatNumber(report.report_data?.missedLeads)}
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className="font-bold text-red-600">
+                  <span className={getRevenueColor(report.report_data?.yearlyRevenueLost)}>
                     {formatCurrency(report.report_data?.yearlyRevenueLost)}
                   </span>
                 </TableCell>
