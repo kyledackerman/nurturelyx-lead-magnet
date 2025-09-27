@@ -11,10 +11,8 @@ import { toast } from "sonner";
 
 // Import our new components
 import LoadingState from "@/components/calculator/LoadingState";
-import LandingPageHero from "@/components/calculator/LandingPageHero";
+import HeroWithForm from "@/components/calculator/HeroWithForm";
 import IdentityResolutionExplainer from "@/components/calculator/IdentityResolutionExplainer";
-
-import FormSection from "@/components/calculator/FormSection";
 import CallToActionSection from "@/components/CallToActionSection";
 
 const Index = () => {
@@ -175,9 +173,7 @@ const Index = () => {
           />
         ) : !reportData ? (
           <>
-            <LandingPageHero />
-            
-            <FormSection
+            <HeroWithForm
               apiError={apiError}
               formDataCache={formDataCache}
               onCalculate={handleCalculate}
