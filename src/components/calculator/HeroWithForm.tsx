@@ -50,10 +50,10 @@ const HeroWithForm = ({
             </p>
             
             {/* Enhanced bullet points with icons */}
-            <div className="space-y-3 animate-fade-in animation-delay-400">
-              <div className="bg-card/50 border border-accent/10 rounded-lg p-3 lg:p-4 hover:bg-card/70 transition-colors">
-                <div className="flex items-start">
-                  <div className="bg-accent/20 p-2 rounded-full mr-3 mt-1 flex-shrink-0">
+            <div className="space-y-4 md:space-y-5 animate-fade-in animation-delay-400 my-6 md:my-8">
+              <div className="bg-card/50 border border-accent/10 rounded-lg p-4 md:p-5 lg:p-6 hover:bg-card/70 transition-colors">
+                <div className="flex items-center">
+                  <div className="bg-accent/20 p-2.5 md:p-3 rounded-full mr-4 md:mr-5 flex-shrink-0">
                     <Target className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400" />
                   </div>
                   <span className="text-base lg:text-lg text-gray-300 font-medium">
@@ -62,9 +62,9 @@ const HeroWithForm = ({
                 </div>
               </div>
               
-              <div className="bg-card/50 border border-accent/10 rounded-lg p-3 lg:p-4 hover:bg-card/70 transition-colors">
-                <div className="flex items-start">
-                  <div className="bg-accent/20 p-2 rounded-full mr-3 mt-1 flex-shrink-0">
+              <div className="bg-card/50 border border-accent/10 rounded-lg p-4 md:p-5 lg:p-6 hover:bg-card/70 transition-colors">
+                <div className="flex items-center">
+                  <div className="bg-accent/20 p-2.5 md:p-3 rounded-full mr-4 md:mr-5 flex-shrink-0">
                     <DollarSign className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400" />
                   </div>
                   <span className="text-base lg:text-lg text-gray-300 font-medium">
@@ -73,9 +73,9 @@ const HeroWithForm = ({
                 </div>
               </div>
               
-              <div className="bg-card/50 border border-accent/10 rounded-lg p-3 lg:p-4 hover:bg-card/70 transition-colors">
-                <div className="flex items-start">
-                  <div className="bg-accent/20 p-2 rounded-full mr-3 mt-1 flex-shrink-0">
+              <div className="bg-card/50 border border-accent/10 rounded-lg p-4 md:p-5 lg:p-6 hover:bg-card/70 transition-colors">
+                <div className="flex items-center">
+                  <div className="bg-accent/20 p-2.5 md:p-3 rounded-full mr-4 md:mr-5 flex-shrink-0">
                     <Zap className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400" />
                   </div>
                   <span className="text-base lg:text-lg text-gray-300 font-medium">
