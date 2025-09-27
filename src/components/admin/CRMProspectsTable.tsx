@@ -63,8 +63,12 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
   const [nextFollowUp, setNextFollowUp] = useState("");
 
   // Define getPriority function before using it
-  const getPriority = (report: ReportData): 'hot' | 'warm' | 'cold' => {
-    const monthlyRevenue = report.report_data?.monthlyRevenueLost || 0;
+  const getPriority = (report: ReportData | null): 'hot' | 'warm' | 'cold' => {
+    if (!report || !report.report_data) {
+      return 'cold';
+    }
+    
+    const monthlyRevenue = report.report_data.monthlyRevenueLost || 0;
     const activity = activities[report.id];
     
     if (activity?.priority) return activity.priority as 'hot' | 'warm' | 'cold';
@@ -432,7 +436,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                             <div>
                               <label className="text-sm font-medium">Priority</label>
                               <Select 
-                                value={activities[selectedReport?.id || '']?.priority || getPriority(selectedReport!)} 
+                                value={activities[selectedReport?.id || '']?.priority || (selectedReport ? getPriority(selectedReport) : 'cold')} 
                                 onValueChange={(value) => {
                                   if (selectedReport) {
                                     updateActivity(selectedReport.id, { priority: value });
