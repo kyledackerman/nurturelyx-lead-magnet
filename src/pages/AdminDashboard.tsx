@@ -11,6 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { supabase } from "@/integrations/supabase/client";
 import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target } from "lucide-react";
 import { toast } from "sonner";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface ReportSummary {
   domain: string;
@@ -36,6 +37,11 @@ interface AdminStats {
   highValueProspects: number;
 }
 
+interface ChartDataPoint {
+  date: string;
+  reports: number;
+}
+
 const AdminDashboard = () => {
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [filteredReports, setFilteredReports] = useState<ReportSummary[]>([]);
@@ -49,10 +55,12 @@ const AdminDashboard = () => {
     highValueProspects: 0,
   });
   const [crmOpen, setCrmOpen] = useState(true);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
 
   useEffect(() => {
     fetchReports();
     fetchStats();
+    fetchChartData();
   }, []);
 
   useEffect(() => {
@@ -127,6 +135,49 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchChartData = async () => {
+    try {
+      const { data: allReports, error } = await supabase
+        .from('reports')
+        .select('created_at')
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      // Group reports by date (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const dateMap = new Map<string, number>();
+      
+      // Initialize all dates in the last 30 days with 0
+      for (let i = 0; i < 30; i++) {
+        const date = new Date(thirtyDaysAgo);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        dateMap.set(dateStr, 0);
+      }
+
+      // Count reports for each date
+      allReports?.forEach(report => {
+        const reportDate = report.created_at.split('T')[0];
+        if (dateMap.has(reportDate)) {
+          dateMap.set(reportDate, (dateMap.get(reportDate) || 0) + 1);
+        }
+      });
+
+      // Convert to chart format
+      const chartData: ChartDataPoint[] = Array.from(dateMap.entries()).map(([date, count]) => ({
+        date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        reports: count
+      }));
+
+      setChartData(chartData);
+    } catch (error) {
+      console.error('Error fetching chart data:', error);
+    }
+  };
+
   return (
     <AdminAuthGuard>
       <Header />
@@ -140,7 +191,11 @@ const AdminDashboard = () => {
                 Monitor submitted domains and report analytics
               </p>
             </div>
-            <Button onClick={fetchReports} disabled={loading}>
+            <Button onClick={() => {
+              fetchReports();
+              fetchStats();
+              fetchChartData();
+            }} disabled={loading}>
               Refresh Data
             </Button>
           </div>
@@ -198,6 +253,52 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Reports Over Time Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Reports Over Time (Last 30 Days)
+              </CardTitle>
+              <CardDescription>
+                Track report submissions and identify trends
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="date" 
+                      className="text-muted-foreground"
+                      fontSize={12}
+                    />
+                    <YAxis 
+                      className="text-muted-foreground"
+                      fontSize={12}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '6px'
+                      }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="reports" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={2}
+                      dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, fill: 'hsl(var(--primary))' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* CRM Section */}
           <Card>
