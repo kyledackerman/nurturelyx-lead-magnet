@@ -12,9 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Phone, Mail, MessageSquare, Eye, Copy, TrendingUp, Flame, Thermometer, Snowflake, Calendar, Plus } from "lucide-react";
+import { Phone, Mail, MessageSquare, Eye, Copy, TrendingUp, Flame, Thermometer, Snowflake, Calendar, Plus, User } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { ProspectProfile } from "./ProspectProfile";
 
 interface ReportData {
   domain: string;
@@ -58,6 +59,8 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all');
   const [activities, setActivities] = useState<Record<string, ProspectActivity>>({});
   const [selectedReport, setSelectedReport] = useState<ReportData | null>(null);
+  const [profileReport, setProfileReport] = useState<ReportData | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [notes, setNotes] = useState("");
   const [contactMethod, setContactMethod] = useState("");
   const [nextFollowUp, setNextFollowUp] = useState("");
@@ -366,18 +369,30 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                       <span className="text-muted-foreground text-sm">Not scheduled</span>
                     )}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openReport(report.slug)}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                      
-                      <Dialog>
+                   <TableCell>
+                     <div className="flex items-center gap-2">
+                       <Button
+                         variant="ghost"
+                         size="sm"
+                         onClick={() => {
+                           setProfileReport(report);
+                           setIsProfileOpen(true);
+                         }}
+                       >
+                         <User className="h-4 w-4 mr-1" />
+                         Profile
+                       </Button>
+                       
+                       <Button
+                         variant="ghost"
+                         size="sm"
+                         onClick={() => openReport(report.slug)}
+                       >
+                         <Eye className="h-4 w-4 mr-1" />
+                         View
+                       </Button>
+                       
+                       <Dialog>
                         <DialogTrigger asChild>
                           <Button
                             variant="ghost"
@@ -504,6 +519,13 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
           </TableBody>
         </Table>
       </div>
+
+      <ProspectProfile
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        report={profileReport}
+        onActivityUpdate={fetchActivities}
+      />
     </div>
   );
 };
