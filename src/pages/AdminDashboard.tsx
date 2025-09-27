@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
 import { AdminReportsTable } from "@/components/admin/AdminReportsTable";
 import { CRMProspectsTable } from "@/components/admin/CRMProspectsTable";
+import { AdminManagement } from "@/components/admin/AdminManagement";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -411,6 +412,9 @@ const AdminDashboard = () => {
               </CollapsibleContent>
             </Collapsible>
           </Card>
+
+          {/* Admin Management */}
+          <AdminManagement />
 
           {/* Search */}
           <Card>

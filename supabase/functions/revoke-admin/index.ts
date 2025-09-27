@@ -58,17 +58,11 @@ serve(async (req) => {
       )
     }
 
-    // Create service role client for admin operations
-    const serviceClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const { user_id } = await req.json()
 
-    const { email } = await req.json()
-
-    if (!email) {
+    if (!user_id) {
       return new Response(
-        JSON.stringify({ error: 'Email is required' }),
+        JSON.stringify({ error: 'User ID is required' }),
         { 
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -76,54 +70,36 @@ serve(async (req) => {
       )
     }
 
-    // Get user by email using service client
-    const { data: userData, error: userError } = await serviceClient.auth.admin.listUsers()
-    if (userError) throw userError
-
-    const targetUser = userData.users.find(u => u.email === email)
-    if (!targetUser) {
+    // Prevent self-revocation
+    if (user_id === user.id) {
       return new Response(
-        JSON.stringify({ error: 'User not found' }),
+        JSON.stringify({ error: 'Cannot revoke your own admin privileges' }),
         { 
-          status: 404,
+          status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
 
-    // Check if user already has admin role
-    const { data: existingRole, error: checkError } = await serviceClient
+    // Create service role client for admin operations
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    // Remove admin role
+    const { error: deleteError } = await serviceClient
       .from('user_roles')
-      .select('*')
-      .eq('user_id', targetUser.id)
+      .delete()
+      .eq('user_id', user_id)
       .eq('role', 'admin')
-      .single()
 
-    if (existingRole) {
-      return new Response(
-        JSON.stringify({ message: 'User is already an admin' }),
-        { 
-          status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
-    }
-
-    // Add admin role
-    const { error: insertError } = await serviceClient
-      .from('user_roles')
-      .insert({
-        user_id: targetUser.id,
-        role: 'admin'
-      })
-
-    if (insertError) throw insertError
+    if (deleteError) throw deleteError
 
     return new Response(
       JSON.stringify({ 
-        message: 'User successfully granted admin access',
-        user_id: targetUser.id,
-        email: targetUser.email
+        message: 'Admin privileges successfully revoked',
+        user_id: user_id 
       }),
       { 
         status: 200,

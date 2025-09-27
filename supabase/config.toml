@@ -10,4 +10,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.make-admin]
-verify_jwt = false
+verify_jwt = true
+
+[functions.revoke-admin]
+verify_jwt = true
