@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target } from "lucide-react";
 import { toast } from "sonner";
@@ -56,12 +57,17 @@ const AdminDashboard = () => {
   });
   const [crmOpen, setCrmOpen] = useState(true);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+  const [timePeriod, setTimePeriod] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
 
   useEffect(() => {
     fetchReports();
     fetchStats();
-    fetchChartData();
+    fetchChartData(timePeriod);
   }, []);
+
+  useEffect(() => {
+    fetchChartData(timePeriod);
+  }, [timePeriod]);
 
   useEffect(() => {
     const filtered = reports.filter(report =>
@@ -135,7 +141,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchChartData = async () => {
+  const fetchChartData = async (period: 'weekly' | 'monthly' | 'yearly') => {
     try {
       const { data: allReports, error } = await supabase
         .from('reports')
@@ -144,33 +150,85 @@ const AdminDashboard = () => {
 
       if (error) throw error;
 
-      // Group reports by date (last 30 days)
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const now = new Date();
+      let startDate: Date;
+      let dateFormat: (date: Date) => string;
+      let periods: number;
+      let incrementType: 'day' | 'month';
+
+      // Configure based on time period
+      switch (period) {
+        case 'weekly':
+          startDate = new Date(now);
+          startDate.setDate(startDate.getDate() - 7);
+          periods = 7;
+          incrementType = 'day';
+          dateFormat = (date) => date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+          break;
+        case 'yearly':
+          startDate = new Date(now);
+          startDate.setMonth(startDate.getMonth() - 12);
+          periods = 12;
+          incrementType = 'month';
+          dateFormat = (date) => date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+          break;
+        default: // monthly
+          startDate = new Date(now);
+          startDate.setDate(startDate.getDate() - 30);
+          periods = 30;
+          incrementType = 'day';
+          dateFormat = (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
 
       const dateMap = new Map<string, number>();
       
-      // Initialize all dates in the last 30 days with 0
-      for (let i = 0; i < 30; i++) {
-        const date = new Date(thirtyDaysAgo);
-        date.setDate(date.getDate() + i);
-        const dateStr = date.toISOString().split('T')[0];
+      // Initialize all periods with 0
+      for (let i = 0; i < periods; i++) {
+        const date = new Date(startDate);
+        if (incrementType === 'day') {
+          date.setDate(date.getDate() + i);
+        } else {
+          date.setMonth(date.getMonth() + i);
+        }
+        const dateStr = period === 'yearly' 
+          ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+          : date.toISOString().split('T')[0];
         dateMap.set(dateStr, 0);
       }
 
-      // Count reports for each date
+      // Count reports for each period
       allReports?.forEach(report => {
-        const reportDate = report.created_at.split('T')[0];
-        if (dateMap.has(reportDate)) {
-          dateMap.set(reportDate, (dateMap.get(reportDate) || 0) + 1);
+        const reportDate = new Date(report.created_at);
+        let key: string;
+        
+        if (period === 'yearly') {
+          key = `${reportDate.getFullYear()}-${String(reportDate.getMonth() + 1).padStart(2, '0')}`;
+        } else {
+          key = report.created_at.split('T')[0];
+        }
+        
+        if (dateMap.has(key)) {
+          dateMap.set(key, (dateMap.get(key) || 0) + 1);
         }
       });
 
       // Convert to chart format
-      const chartData: ChartDataPoint[] = Array.from(dateMap.entries()).map(([date, count]) => ({
-        date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        reports: count
-      }));
+      const chartData: ChartDataPoint[] = Array.from(dateMap.entries()).map(([dateKey, count]) => {
+        let displayDate: string;
+        
+        if (period === 'yearly') {
+          const [year, month] = dateKey.split('-');
+          const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+          displayDate = dateFormat(date);
+        } else {
+          displayDate = dateFormat(new Date(dateKey));
+        }
+        
+        return {
+          date: displayDate,
+          reports: count
+        };
+      });
 
       setChartData(chartData);
     } catch (error) {
@@ -194,7 +252,7 @@ const AdminDashboard = () => {
             <Button onClick={() => {
               fetchReports();
               fetchStats();
-              fetchChartData();
+              fetchChartData(timePeriod);
             }} disabled={loading}>
               Refresh Data
             </Button>
@@ -257,13 +315,36 @@ const AdminDashboard = () => {
           {/* Reports Over Time Chart */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Reports Over Time (Last 30 Days)
-              </CardTitle>
-              <CardDescription>
-                Track report submissions and identify trends
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Reports Over Time ({
+                      timePeriod === 'weekly' ? 'Last 7 Days' : 
+                      timePeriod === 'yearly' ? 'Last 12 Months' : 
+                      'Last 30 Days'
+                    })
+                  </CardTitle>
+                  <CardDescription>
+                    Track report submissions and identify trends
+                  </CardDescription>
+                </div>
+                <ToggleGroup 
+                  type="single" 
+                  value={timePeriod} 
+                  onValueChange={(value) => value && setTimePeriod(value as 'weekly' | 'monthly' | 'yearly')}
+                >
+                  <ToggleGroupItem value="weekly" aria-label="Weekly view">
+                    Week
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="monthly" aria-label="Monthly view">
+                    Month
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="yearly" aria-label="Yearly view">
+                    Year
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="h-80 w-full">
