@@ -57,8 +57,8 @@ interface CRMProspectsTableProps {
   loading: boolean;
 }
 
-type StatusFilter = 'all' | 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed_won' | 'closed_lost';
-type PriorityFilter = 'all' | 'hot' | 'warm' | 'cold';
+type StatusFilter = 'all' | 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed_won' | 'closed_lost' | 'not_viable';
+type PriorityFilter = 'all' | 'hot' | 'warm' | 'cold' | 'not_viable';
 
 export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -151,6 +151,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
       case 'hot': return 'bg-red-100 text-red-800 border-red-300';
       case 'warm': return 'bg-orange-100 text-orange-800 border-orange-300';
       case 'cold': return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'not_viable': return 'bg-slate-100 text-slate-800 border-slate-300';
       default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
@@ -163,6 +164,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
       case 'proposal': return 'bg-purple-100 text-purple-800';
       case 'closed_won': return 'bg-emerald-100 text-emerald-800';
       case 'closed_lost': return 'bg-red-100 text-red-800';
+      case 'not_viable': return 'bg-slate-100 text-slate-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -309,6 +311,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
             <SelectItem value="proposal">Proposal</SelectItem>
             <SelectItem value="closed_won">Closed Won</SelectItem>
             <SelectItem value="closed_lost">Closed Lost</SelectItem>
+            <SelectItem value="not_viable">Not Viable</SelectItem>
           </SelectContent>
         </Select>
 
@@ -321,6 +324,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
             <SelectItem value="hot">🔥 Hot ($5K+ monthly)</SelectItem>
             <SelectItem value="warm">🌡️ Warm ($2K+ monthly)</SelectItem>
             <SelectItem value="cold">❄️ Cold (Under $2K)</SelectItem>
+            <SelectItem value="not_viable">🚫 Not Viable</SelectItem>
           </SelectContent>
         </Select>
 
@@ -470,6 +474,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                                   <SelectItem value="proposal">Proposal</SelectItem>
                                   <SelectItem value="closed_won">Closed Won</SelectItem>
                                   <SelectItem value="closed_lost">Closed Lost</SelectItem>
+                                  <SelectItem value="not_viable">Not Viable</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
@@ -487,11 +492,12 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                                 <SelectTrigger>
                                   <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="hot">🔥 Hot</SelectItem>
-                                  <SelectItem value="warm">🌡️ Warm</SelectItem>
-                                  <SelectItem value="cold">❄️ Cold</SelectItem>
-                                </SelectContent>
+                                 <SelectContent>
+                                   <SelectItem value="hot">🔥 Hot</SelectItem>
+                                   <SelectItem value="warm">🌡️ Warm</SelectItem>
+                                   <SelectItem value="cold">❄️ Cold</SelectItem>
+                                   <SelectItem value="not_viable">🚫 Not Viable</SelectItem>
+                                 </SelectContent>
                               </Select>
                             </div>
 

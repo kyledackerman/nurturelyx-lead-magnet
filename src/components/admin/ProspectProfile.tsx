@@ -151,6 +151,7 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
       case 'hot': return 'bg-red-100 text-red-800 border-red-300';
       case 'warm': return 'bg-orange-100 text-orange-800 border-orange-300';
       case 'cold': return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'not_viable': return 'bg-slate-100 text-slate-800 border-slate-300';
       default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
@@ -163,6 +164,7 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
       case 'proposal': return 'bg-purple-100 text-purple-800';
       case 'closed_won': return 'bg-emerald-100 text-emerald-800';
       case 'closed_lost': return 'bg-red-100 text-red-800';
+      case 'not_viable': return 'bg-slate-100 text-slate-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
