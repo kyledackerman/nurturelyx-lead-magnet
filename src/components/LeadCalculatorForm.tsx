@@ -126,8 +126,8 @@ const LeadCalculatorForm = ({
 // Form header component - simplified for better mobile experience
 const FormHeader = () => (
   <div className="text-center space-y-2 px-2">
-    <CardTitle className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
-      Get Your Free Report and Estimate Your Missing Lead Opportunity
+    <CardTitle className="text-2xl sm:text-4xl font-bold text-foreground leading-tight">
+      Get Free Report
     </CardTitle>
     <CardDescription className="text-sm sm:text-base text-muted-foreground max-w-lg mx-auto">
       Discover how many leads you're missing without ID resolution technology
