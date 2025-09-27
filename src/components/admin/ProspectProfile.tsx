@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { 
   User, 
   DollarSign, 
@@ -76,6 +78,7 @@ interface ProspectProfileProps {
 export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: ProspectProfileProps) => {
   const [activities, setActivities] = useState<ProspectActivity[]>([]);
   const [loading, setLoading] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     if (isOpen && report) {
@@ -175,6 +178,43 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
       case 'phone': return <Phone className="h-4 w-4" />;
       case 'linkedin': return <MessageSquare className="h-4 w-4" />;
       default: return <Activity className="h-4 w-4" />;
+    }
+  };
+
+  const updateActivity = async (updates: Partial<ProspectActivity>) => {
+    if (!report) return;
+    
+    setUpdating(true);
+    try {
+      const latestActivity = activities[0];
+      
+      if (latestActivity) {
+        const { error } = await supabase
+          .from('prospect_activities')
+          .update(updates)
+          .eq('id', latestActivity.id);
+        
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('prospect_activities')
+          .insert({
+            report_id: report.id,
+            activity_type: 'status_update',
+            ...updates,
+          });
+        
+        if (error) throw error;
+      }
+      
+      toast.success('Activity updated successfully');
+      fetchAllActivities();
+      onActivityUpdate?.();
+    } catch (error) {
+      console.error('Error updating activity:', error);
+      toast.error('Failed to update activity');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -283,29 +323,56 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Status</p>
-                    <Badge variant="secondary" className={getStatusColor(latestActivity?.status || 'new')}>
-                      {(latestActivity?.status || 'new').replace('_', ' ').toUpperCase()}
-                    </Badge>
+                    <Label htmlFor="status">Status</Label>
+                    <Select 
+                      value={latestActivity?.status || 'new'} 
+                      onValueChange={(value) => updateActivity({ status: value })}
+                      disabled={updating}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="new">New</SelectItem>
+                        <SelectItem value="contacted">Contacted</SelectItem>
+                        <SelectItem value="qualified">Qualified</SelectItem>
+                        <SelectItem value="proposal">Proposal</SelectItem>
+                        <SelectItem value="closed_won">Closed Won</SelectItem>
+                        <SelectItem value="closed_lost">Closed Lost</SelectItem>
+                        <SelectItem value="not_viable">Not Viable</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Priority</p>
-                    <Badge variant="outline" className={getPriorityColor(latestActivity?.priority || 'cold')}>
-                      {(latestActivity?.priority || 'cold').toUpperCase()}
-                    </Badge>
+                    <Label htmlFor="priority">Priority</Label>
+                    <Select 
+                      value={latestActivity?.priority || 'cold'} 
+                      onValueChange={(value) => updateActivity({ priority: value })}
+                      disabled={updating}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="hot">🔥 Hot</SelectItem>
+                        <SelectItem value="warm">🌡️ Warm</SelectItem>
+                        <SelectItem value="cold">❄️ Cold</SelectItem>
+                        <SelectItem value="not_viable">🚫 Not Viable</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  {latestActivity?.next_follow_up && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Next Follow-up</p>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Calendar className="h-4 w-4" />
-                        {formatDateShort(latestActivity.next_follow_up)}
-                      </div>
-                    </div>
-                  )}
                 </div>
+                {latestActivity?.next_follow_up && (
+                  <div className="mt-4">
+                    <p className="text-sm text-muted-foreground">Next Follow-up</p>
+                    <div className="flex items-center gap-1 text-sm">
+                      <Calendar className="h-4 w-4" />
+                      {formatDateShort(latestActivity.next_follow_up)}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
