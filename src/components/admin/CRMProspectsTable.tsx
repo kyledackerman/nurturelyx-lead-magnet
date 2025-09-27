@@ -11,11 +11,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Phone, Mail, MessageSquare, Eye, Copy, TrendingUp, Flame, Thermometer, Snowflake, Calendar, Plus, User } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Phone, Mail, MessageSquare, Eye, Copy, TrendingUp, Flame, Thermometer, Snowflake, Calendar, Plus, User, CalendarIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ProspectProfile } from "./ProspectProfile";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface ReportData {
   domain: string;
@@ -63,7 +69,8 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [notes, setNotes] = useState("");
   const [contactMethod, setContactMethod] = useState("");
-  const [nextFollowUp, setNextFollowUp] = useState("");
+  const [nextFollowUp, setNextFollowUp] = useState<Date | undefined>(undefined);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Define getPriority function before using it
   const getPriority = (report: ReportData | null): 'hot' | 'warm' | 'cold' => {
@@ -210,22 +217,44 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
   };
 
   const handleAddActivity = async () => {
-    if (!selectedReport) return;
+    if (!selectedReport) {
+      toast.error('No report selected');
+      return;
+    }
     
+    if (!notes.trim() && !contactMethod && !nextFollowUp) {
+      toast.error('Please add at least one field (notes, contact method, or follow-up date)');
+      return;
+    }
+    
+    setIsUpdating(true);
     try {
+      console.log('Saving activity with data:', {
+        notes: notes.trim() || undefined,
+        contact_method: contactMethod || undefined,
+        next_follow_up: nextFollowUp ? nextFollowUp.toISOString() : undefined,
+        activity_type: 'note',
+      });
+
       await updateActivity(selectedReport.id, {
-        notes,
-        contact_method: contactMethod,
-        next_follow_up: nextFollowUp ? new Date(nextFollowUp).toISOString() : undefined,
+        notes: notes.trim() || undefined,
+        contact_method: contactMethod || undefined,
+        next_follow_up: nextFollowUp ? nextFollowUp.toISOString() : undefined,
         activity_type: 'note',
       });
       
+      // Clear form
       setNotes("");
       setContactMethod("");
-      setNextFollowUp("");
+      setNextFollowUp(undefined);
       setSelectedReport(null);
+      
+      toast.success('Activity saved successfully');
     } catch (error) {
       console.error('Error adding activity:', error);
+      toast.error('Failed to save activity. Please try again.');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -403,7 +432,12 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                               if (existingActivity) {
                                 setNotes(existingActivity.notes || "");
                                 setContactMethod(existingActivity.contact_method || "");
-                                setNextFollowUp(existingActivity.next_follow_up?.split('T')[0] || "");
+                                setNextFollowUp(existingActivity.next_follow_up ? new Date(existingActivity.next_follow_up) : undefined);
+                              } else {
+                                // Clear form for new activity
+                                setNotes("");
+                                setContactMethod("");
+                                setNextFollowUp(undefined);
                               }
                             }}
                           >
@@ -417,7 +451,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                           </DialogHeader>
                           <div className="space-y-4">
                             <div>
-                              <label className="text-sm font-medium">Status</label>
+                              <Label htmlFor="status">Status</Label>
                               <Select 
                                 value={activities[selectedReport?.id || '']?.status || 'new'} 
                                 onValueChange={(value) => {
@@ -441,7 +475,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                             </div>
                             
                             <div>
-                              <label className="text-sm font-medium">Priority</label>
+                              <Label htmlFor="priority">Priority</Label>
                               <Select 
                                 value={activities[selectedReport?.id || '']?.priority || (selectedReport ? getPriority(selectedReport) : 'cold')} 
                                 onValueChange={(value) => {
@@ -487,22 +521,52 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                             </div>
 
                             <div>
-                              <label className="text-sm font-medium">Next Follow-up Date</label>
-                              <input
-                                type="date"
-                                value={nextFollowUp}
-                                onChange={(e) => setNextFollowUp(e.target.value)}
-                                className="w-full p-2 border rounded-md"
-                              />
+                              <Label htmlFor="follow-up-date">Next Follow-up Date</Label>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    id="follow-up-date"
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal",
+                                      !nextFollowUp && "text-muted-foreground"
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {nextFollowUp ? format(nextFollowUp, "PPP") : <span>Pick a date</span>}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <CalendarComponent
+                                    mode="single"
+                                    selected={nextFollowUp}
+                                    onSelect={setNextFollowUp}
+                                    initialFocus
+                                    className={cn("p-3 pointer-events-auto")}
+                                  />
+                                </PopoverContent>
+                              </Popover>
                             </div>
 
                             <div className="flex gap-2">
-                              <Button onClick={handleAddActivity} className="flex-1">
-                                Save Activity
+                              <Button 
+                                onClick={handleAddActivity} 
+                                className="flex-1"
+                                disabled={isUpdating}
+                              >
+                                {isUpdating ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Saving...
+                                  </>
+                                ) : (
+                                  'Save Activity'
+                                )}
                               </Button>
                               <Button
                                 variant="outline"
                                 onClick={() => copyToClipboard(selectedReport?.domain || '')}
+                                disabled={isUpdating}
                               >
                                 <Copy className="h-4 w-4 mr-1" />
                                 Copy Domain
