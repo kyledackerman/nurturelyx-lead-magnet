@@ -13,7 +13,7 @@ export const FormActions = ({ onReset, isCalculating, canCalculate }: FormAction
       <div className="flex gap-4">
         <Button 
           type="submit" 
-          className={`w-full gradient-bg text-xl py-6`}
+          className={`w-full gradient-bg text-4xl py-6`}
           disabled={isCalculating || !canCalculate}
         >
           {isCalculating ? (
