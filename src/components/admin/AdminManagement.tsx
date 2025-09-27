@@ -27,34 +27,17 @@ export const AdminManagement = () => {
 
   const fetchAdmins = async () => {
     try {
-      // Get all admin user_roles with user emails
-      const { data: adminRoles, error } = await supabase
-        .from('user_roles')
-        .select('user_id, role, created_at')
-        .eq('role', 'admin');
+      const { data, error } = await supabase.functions.invoke('get-admins');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching admins:', error);
+        throw error;
+      }
 
-      // Get user details for each admin
-      const adminPromises = adminRoles.map(async (role) => {
-        const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(role.user_id);
-        if (userError) {
-          console.error('Error fetching user:', userError);
-          return null;
-        }
-        return {
-          id: role.user_id,
-          email: user?.email || 'Unknown',
-          created_at: role.created_at,
-          role: role.role
-        };
-      });
-
-      const adminUsers = await Promise.all(adminPromises);
-      setAdmins(adminUsers.filter(Boolean) as AdminUser[]);
-    } catch (error) {
+      setAdmins(data.admins || []);
+    } catch (error: any) {
       console.error('Error fetching admins:', error);
-      toast.error('Failed to fetch admin list');
+      toast.error(error.message || 'Failed to fetch admin list');
     } finally {
       setLoading(false);
     }

@@ -14,3 +14,6 @@ verify_jwt = true
 
 [functions.revoke-admin]
 verify_jwt = true
+
+[functions.get-admins]
+verify_jwt = true
