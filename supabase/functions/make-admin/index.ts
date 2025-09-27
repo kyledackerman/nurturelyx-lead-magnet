@@ -81,17 +81,35 @@ serve(async (req) => {
     if (userError) throw userError
 
     const targetUser = userData.users.find(u => u.email === email)
+    
     if (!targetUser) {
+      // User doesn't exist - send invitation email
+      const { data: inviteData, error: inviteError } = await serviceClient.auth.admin.inviteUserByEmail(email, {
+        data: { 
+          invited_as_admin: true,
+          invited_by: user.email 
+        },
+        redirectTo: `${req.headers.get('origin') || 'https://x1.nurturely.io'}/admin`
+      })
+      
+      if (inviteError) {
+        throw new Error(`Failed to send invitation: ${inviteError.message}`)
+      }
+
       return new Response(
-        JSON.stringify({ error: 'User not found' }),
+        JSON.stringify({ 
+          message: 'Admin invitation sent successfully',
+          email: email,
+          invited_user_id: inviteData.user?.id
+        }),
         { 
-          status: 404,
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
 
-    // Check if user already has admin role
+    // User exists - check if already admin
     const { data: existingRole, error: checkError } = await serviceClient
       .from('user_roles')
       .select('*')
@@ -109,7 +127,7 @@ serve(async (req) => {
       )
     }
 
-    // Add admin role
+    // Add admin role to existing user
     const { error: insertError } = await serviceClient
       .from('user_roles')
       .insert({

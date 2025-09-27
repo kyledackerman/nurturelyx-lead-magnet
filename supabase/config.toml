@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.get-admins]
 verify_jwt = true
+
+[functions.handle-auth-signup]
+verify_jwt = false
