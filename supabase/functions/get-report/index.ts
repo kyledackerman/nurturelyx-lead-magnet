@@ -76,18 +76,23 @@ serve(async (req) => {
     const referrer = req.headers.get('referer') || null;
     const sessionId = req.headers.get('x-session-id') || `${Date.now()}-${Math.random()}`;
 
-    // Don't await this - let it run in background
-    supabase
-      .from('report_views')
-      .insert({
-        report_id: report.id,
-        ip_address_hash: hashIP(clientIP),
-        user_agent: userAgent,
-        referrer: referrer,
-        session_id: sessionId
-      })
-      .then(() => console.log('View recorded'))
-      .catch(err => console.error('Failed to record view:', err));
+    // Record view analytics in background
+    (async () => {
+      try {
+        await supabase
+          .from('report_views')
+          .insert({
+            report_id: report.id,
+            ip_address_hash: hashIP(clientIP),
+            user_agent: userAgent,
+            referrer: referrer,
+            session_id: sessionId
+          });
+        console.log('View recorded');
+      } catch (err) {
+        console.error('Failed to record view:', err);
+      }
+    })();
 
     return new Response(
       JSON.stringify({ 
