@@ -62,6 +62,18 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
   const [contactMethod, setContactMethod] = useState("");
   const [nextFollowUp, setNextFollowUp] = useState("");
 
+  // Define getPriority function before using it
+  const getPriority = (report: ReportData): 'hot' | 'warm' | 'cold' => {
+    const monthlyRevenue = report.report_data?.monthlyRevenueLost || 0;
+    const activity = activities[report.id];
+    
+    if (activity?.priority) return activity.priority as 'hot' | 'warm' | 'cold';
+    
+    if (monthlyRevenue >= 5000) return 'hot';
+    if (monthlyRevenue >= 2000) return 'warm';
+    return 'cold';
+  };
+
   // Filter reports to only show those with revenue lost
   const prospects = reports.filter(report => 
     (report.report_data?.monthlyRevenueLost || 0) > 0 || 
@@ -109,17 +121,6 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
     } catch (error) {
       console.error('Error fetching activities:', error);
     }
-  };
-
-  const getPriority = (report: ReportData): 'hot' | 'warm' | 'cold' => {
-    const monthlyRevenue = report.report_data?.monthlyRevenueLost || 0;
-    const activity = activities[report.id];
-    
-    if (activity?.priority) return activity.priority as 'hot' | 'warm' | 'cold';
-    
-    if (monthlyRevenue >= 5000) return 'hot';
-    if (monthlyRevenue >= 2000) return 'warm';
-    return 'cold';
   };
 
   const getPriorityIcon = (priority: string) => {
