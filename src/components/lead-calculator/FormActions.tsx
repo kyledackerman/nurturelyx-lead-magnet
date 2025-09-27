@@ -10,10 +10,10 @@ interface FormActionsProps {
 export const FormActions = ({ onReset, isCalculating, canCalculate }: FormActionsProps) => {
   return (
     <>
-      <div className="flex gap-4 mt-8">
+      <div className="flex gap-4 mt-6 md:mt-8 lg:mt-10">
         <Button 
           type="submit" 
-          className={`w-full gradient-bg text-4xl py-8 px-8`}
+          className={`w-full gradient-bg text-lg md:text-xl lg:text-2xl xl:text-3xl py-4 px-6 md:py-5 md:px-7 lg:py-6 lg:px-8 xl:py-7 xl:px-9 h-auto`}
           disabled={isCalculating || !canCalculate}
         >
           {isCalculating ? (
