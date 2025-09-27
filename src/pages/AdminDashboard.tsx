@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
 import { AdminReportsTable } from "@/components/admin/AdminReportsTable";
+import { CRMProspectsTable } from "@/components/admin/CRMProspectsTable";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, Globe, Calendar } from "lucide-react";
+import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target } from "lucide-react";
 import { toast } from "sonner";
 
 interface ReportSummary {
@@ -30,6 +33,7 @@ interface AdminStats {
   uniqueDomains: number;
   reportsToday: number;
   publicReports: number;
+  highValueProspects: number;
 }
 
 const AdminDashboard = () => {
@@ -42,7 +46,9 @@ const AdminDashboard = () => {
     uniqueDomains: 0,
     reportsToday: 0,
     publicReports: 0,
+    highValueProspects: 0,
   });
+  const [crmOpen, setCrmOpen] = useState(true);
 
   useEffect(() => {
     fetchReports();
@@ -92,7 +98,7 @@ const AdminDashboard = () => {
     try {
       const { data: allReports, error } = await supabase
         .from('reports')
-        .select('domain, created_at, is_public');
+        .select('domain, created_at, is_public, report_data');
 
       if (error) throw error;
 
@@ -102,12 +108,19 @@ const AdminDashboard = () => {
         r.created_at.startsWith(today)
       ).length || 0;
       const publicReports = allReports?.filter(r => r.is_public).length || 0;
+      
+      // Count high-value prospects (reports with monthly revenue lost > 0)
+      const highValueProspects = allReports?.filter(r => {
+        const reportData = r.report_data as any;
+        return (reportData?.monthlyRevenueLost || 0) > 0 || (reportData?.yearlyRevenueLost || 0) > 0;
+      }).length || 0;
 
       setStats({
         totalReports: allReports?.length || 0,
         uniqueDomains,
         reportsToday,
         publicReports,
+        highValueProspects,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -133,7 +146,7 @@ const AdminDashboard = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
@@ -173,7 +186,49 @@ const AdminDashboard = () => {
                 <div className="text-2xl font-bold">{stats.publicReports}</div>
               </CardContent>
             </Card>
+
+            <Card className="border-orange-200 bg-orange-50">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">High-Value Prospects</CardTitle>
+                <Target className="h-4 w-4 text-orange-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-700">{stats.highValueProspects}</div>
+                <p className="text-xs text-orange-600 mt-1">Domains with revenue loss</p>
+              </CardContent>
+            </Card>
           </div>
+
+          {/* CRM Section */}
+          <Card>
+            <Collapsible open={crmOpen} onOpenChange={setCrmOpen}>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-orange-600" />
+                      <CardTitle>CRM - High-Value Prospects</CardTitle>
+                      <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                        {stats.highValueProspects} prospects
+                      </Badge>
+                    </div>
+                    {crmOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </div>
+                  <CardDescription>
+                    Domains with monthly revenue loss - prime targets for outreach and conversion
+                  </CardDescription>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent>
+                  <CRMProspectsTable 
+                    reports={filteredReports} 
+                    loading={loading}
+                  />
+                </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
 
           {/* Search */}
           <Card>

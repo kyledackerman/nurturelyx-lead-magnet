@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      prospect_activities: {
+        Row: {
+          activity_type: string
+          contact_method: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          next_follow_up: string | null
+          notes: string | null
+          priority: string
+          report_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          activity_type: string
+          contact_method?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          next_follow_up?: string | null
+          notes?: string | null
+          priority?: string
+          report_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          activity_type?: string
+          contact_method?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          next_follow_up?: string | null
+          notes?: string | null
+          priority?: string
+          report_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_prospect_activities_report"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_shares: {
         Row: {
           id: string
