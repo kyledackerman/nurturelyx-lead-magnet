@@ -332,16 +332,8 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div>
-                      <div className="font-semibold text-red-600">
-                        {formatCurrency(monthlyRevenue)}/mo
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {formatCurrency(yearlyRevenue)}/year potential
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {report.report_data?.missedLeads || 0} missed leads
-                      </div>
+                    <div className="font-semibold text-red-600">
+                      {formatCurrency(monthlyRevenue)}
                     </div>
                   </TableCell>
                   <TableCell>
