@@ -13,7 +13,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target } from "lucide-react";
+import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -43,7 +43,9 @@ interface AdminStats {
 
 interface ChartDataPoint {
   date: string;
-  reports: number;
+  adminReports: number;
+  nonAdminReports: number;
+  total: number;
 }
 
 const AdminDashboard = () => {
@@ -147,12 +149,26 @@ const AdminDashboard = () => {
 
   const fetchChartData = async (period: 'weekly' | 'monthly' | 'yearly') => {
     try {
-      const { data: allReports, error } = await supabase
+      // First, get all reports
+      const { data: allReports, error: reportsError } = await supabase
         .from('reports')
-        .select('created_at')
+        .select('created_at, user_id')
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (reportsError) throw reportsError;
+
+      // Then, get all user roles
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Create a map of user_id to role for quick lookup
+      const roleMap = new Map<string, string>();
+      userRoles?.forEach(ur => {
+        roleMap.set(ur.user_id, ur.role);
+      });
 
       const now = new Date();
       let startDate: Date;
@@ -184,7 +200,7 @@ const AdminDashboard = () => {
           dateFormat = (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       }
 
-      const dateMap = new Map<string, number>();
+      const dateMap = new Map<string, { admin: number; nonAdmin: number }>();
       
       // Initialize all periods with 0
       for (let i = 0; i < periods; i++) {
@@ -197,10 +213,10 @@ const AdminDashboard = () => {
         const dateStr = period === 'yearly' 
           ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
           : date.toISOString().split('T')[0];
-        dateMap.set(dateStr, 0);
+        dateMap.set(dateStr, { admin: 0, nonAdmin: 0 });
       }
 
-      // Count reports for each period
+      // Count reports for each period, separating admin vs non-admin
       allReports?.forEach(report => {
         const reportDate = new Date(report.created_at);
         let key: string;
@@ -212,12 +228,23 @@ const AdminDashboard = () => {
         }
         
         if (dateMap.has(key)) {
-          dateMap.set(key, (dateMap.get(key) || 0) + 1);
+          const current = dateMap.get(key)!;
+          // Check if user is admin or super_admin
+          const userRole = report.user_id ? roleMap.get(report.user_id) : null;
+          const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+          
+          if (isAdmin) {
+            current.admin += 1;
+          } else {
+            current.nonAdmin += 1;
+          }
+          
+          dateMap.set(key, current);
         }
       });
 
       // Convert to chart format
-      const chartData: ChartDataPoint[] = Array.from(dateMap.entries()).map(([dateKey, count]) => {
+      const chartData: ChartDataPoint[] = Array.from(dateMap.entries()).map(([dateKey, counts]) => {
         let displayDate: string;
         
         if (period === 'yearly') {
@@ -230,7 +257,9 @@ const AdminDashboard = () => {
         
         return {
           date: displayDate,
-          reports: count
+          adminReports: counts.admin,
+          nonAdminReports: counts.nonAdmin,
+          total: counts.admin + counts.nonAdmin
         };
       });
 
@@ -263,49 +292,44 @@ const AdminDashboard = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                 <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.totalReports}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stats.reportsToday > 0 ? `+${stats.reportsToday} today` : 'No reports today'}
+                </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                 <CardTitle className="text-sm font-medium">Unique Domains</CardTitle>
                 <Globe className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.uniqueDomains}</div>
+                <p className="text-xs text-muted-foreground mt-1">Analyzed domains</p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Reports Today</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.reportsToday}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                 <CardTitle className="text-sm font-medium">Public Reports</CardTitle>
-                <Globe className="h-4 w-4 text-muted-foreground" />
+                <Eye className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.publicReports}</div>
+                <p className="text-xs text-muted-foreground mt-1">Publicly viewable</p>
               </CardContent>
             </Card>
 
             <Card className="border-orange-200 bg-orange-50">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                 <CardTitle className="text-sm font-medium">High-Value Prospects</CardTitle>
                 <Target className="h-4 w-4 text-orange-600" />
               </CardHeader>
@@ -323,14 +347,14 @@ const AdminDashboard = () => {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
-                    Reports Over Time ({
+                    Report Submissions by User Type ({
                       timePeriod === 'weekly' ? 'Last 7 Days' : 
                       timePeriod === 'yearly' ? 'Last 12 Months' : 
                       'Last 30 Days'
                     })
                   </CardTitle>
                   <CardDescription>
-                    Track report submissions and identify trends
+                    Compare admin vs non-admin report submissions
                   </CardDescription>
                 </div>
                 <ToggleGroup 
@@ -370,14 +394,28 @@ const AdminDashboard = () => {
                         border: '1px solid hsl(var(--border))',
                         borderRadius: '6px'
                       }}
+                      formatter={(value, name) => [
+                        value,
+                        name === 'adminReports' ? 'Admin Reports' : 'Non-Admin Reports'
+                      ]}
                     />
                     <Line 
                       type="monotone" 
-                      dataKey="reports" 
+                      dataKey="adminReports" 
                       stroke="hsl(var(--primary))" 
                       strokeWidth={2}
                       dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
                       activeDot={{ r: 6, fill: 'hsl(var(--primary))' }}
+                      name="Admin Reports"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="nonAdminReports" 
+                      stroke="hsl(var(--chart-2))" 
+                      strokeWidth={2}
+                      dot={{ fill: 'hsl(var(--chart-2))', strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, fill: 'hsl(var(--chart-2))' }}
+                      name="Non-Admin Reports"
                     />
                   </LineChart>
                 </ResponsiveContainer>
