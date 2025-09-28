@@ -137,7 +137,7 @@ const LeaderboardTab = ({ timeFilter = 'monthly' }: LeaderboardTabProps) => {
         admin.qualityScore = (admin.averageRevenuePerReport * 0.7) + (admin.conversionQuality * admin.averageRevenuePerReport * 0.3);
         
         // Composite score: (Total Revenue Lost / 1000 * 0.7) + (Total Leads * 0.3)
-        admin.compositeScore = (admin.totalRevenueLost / 1000 * 0.7) + (admin.totalLeads * 0.3);
+        admin.compositeScore = Math.round((admin.totalRevenueLost / 1000 * 0.7) + (admin.totalLeads * 0.3));
         
         return admin;
       });
