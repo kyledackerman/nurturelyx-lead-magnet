@@ -73,14 +73,20 @@ const LeaderboardTab = ({ timeFilter = 'monthly' }: LeaderboardTabProps) => {
 
       if (error) throw error;
 
-      // Get unique admin IDs and fetch their emails from auth.users
-      const adminIds = [...new Set(reports?.map(r => r.user_id).filter(Boolean))];
+      // Fetch admin emails using the get-admins edge function
+      const { data: adminData, error: adminError } = await supabase.functions.invoke('get-admins');
       
-      // Get admin emails from user_roles table which should have better access
-      const { data: admins } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .in('user_id', adminIds);
+      if (adminError) {
+        console.error('Error fetching admin emails:', adminError);
+      }
+
+      // Create a mapping of user IDs to emails
+      const adminEmailMap = new Map<string, string>();
+      if (adminData?.admins) {
+        adminData.admins.forEach((admin: any) => {
+          adminEmailMap.set(admin.id, admin.email);
+        });
+      }
 
       // Calculate performance metrics for each admin
       const adminMap = new Map<string, AdminPerformance>();
@@ -89,7 +95,7 @@ const LeaderboardTab = ({ timeFilter = 'monthly' }: LeaderboardTabProps) => {
         if (!report.user_id) return;
 
         const adminId = report.user_id;
-        const adminEmail = adminId; // Use ID as email fallback for now
+        const adminEmail = adminEmailMap.get(adminId) || adminId; // Use email from map or fallback to ID
         const reportData = report.report_data as any;
         
         const monthlyRevenueLost = reportData?.monthlyRevenueLost || 0;
@@ -130,8 +136,8 @@ const LeaderboardTab = ({ timeFilter = 'monthly' }: LeaderboardTabProps) => {
         // Quality score: combination of avg revenue and conversion rate
         admin.qualityScore = (admin.averageRevenuePerReport * 0.7) + (admin.conversionQuality * admin.averageRevenuePerReport * 0.3);
         
-        // Composite score: (Total Revenue Lost * 0.7) + (Total Leads * 100 * 0.3)
-        admin.compositeScore = (admin.totalRevenueLost * 0.7) + (admin.totalLeads * 100 * 0.3);
+        // Composite score: (Total Revenue Lost / 1000 * 0.7) + (Total Leads * 0.3)
+        admin.compositeScore = (admin.totalRevenueLost / 1000 * 0.7) + (admin.totalLeads * 0.3);
         
         return admin;
       });
