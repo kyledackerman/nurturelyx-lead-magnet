@@ -3,6 +3,7 @@ import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
 import { AdminReportsTable } from "@/components/admin/AdminReportsTable";
 import { CRMProspectsTable } from "@/components/admin/CRMProspectsTable";
 import { AdminManagement } from "@/components/admin/AdminManagement";
+import LeaderboardTab from "@/components/admin/LeaderboardTab";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target } from "lucide-react";
 import { toast } from "sonner";
@@ -59,6 +61,7 @@ const AdminDashboard = () => {
   const [crmOpen, setCrmOpen] = useState(true);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [timePeriod, setTimePeriod] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
+  const [leaderboardTimeFilter, setLeaderboardTimeFilter] = useState<'daily' | 'weekly' | 'monthly' | 'all-time'>('monthly');
 
   useEffect(() => {
     fetchReports();
@@ -382,65 +385,102 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* CRM Section */}
-          <Card>
-            <Collapsible open={crmOpen} onOpenChange={setCrmOpen}>
-              <CollapsibleTrigger asChild>
-                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5 text-orange-600" />
-                      <CardTitle>CRM - High-Value Prospects</CardTitle>
-                      <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                        {stats.highValueProspects} prospects
-                      </Badge>
-                    </div>
-                    {crmOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </div>
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+              <TabsTrigger value="crm">CRM</TabsTrigger>
+              <TabsTrigger value="admin">Admin Management</TabsTrigger>
+              <TabsTrigger value="reports">Reports</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-6">
+              {/* Move chart here for overview */}
+            </TabsContent>
+
+            <TabsContent value="leaderboard" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Performance Rankings</h3>
+                <ToggleGroup 
+                  type="single" 
+                  value={leaderboardTimeFilter} 
+                  onValueChange={(value) => value && setLeaderboardTimeFilter(value as 'daily' | 'weekly' | 'monthly' | 'all-time')}
+                  className="border rounded-lg"
+                >
+                  <ToggleGroupItem value="daily" className="text-xs">Daily</ToggleGroupItem>
+                  <ToggleGroupItem value="weekly" className="text-xs">Weekly</ToggleGroupItem>
+                  <ToggleGroupItem value="monthly" className="text-xs">Monthly</ToggleGroupItem>
+                  <ToggleGroupItem value="all-time" className="text-xs">All Time</ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+              <LeaderboardTab timeFilter={leaderboardTimeFilter} />
+            </TabsContent>
+
+            <TabsContent value="crm" className="space-y-6">
+              {/* CRM Section */}
+              <Card>
+                <Collapsible open={crmOpen} onOpenChange={setCrmOpen}>
+                  <CollapsibleTrigger asChild>
+                    <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-5 w-5 text-orange-600" />
+                          <CardTitle>CRM - High-Value Prospects</CardTitle>
+                          <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                            {stats.highValueProspects} prospects
+                          </Badge>
+                        </div>
+                        {crmOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </div>
+                      <CardDescription>
+                        Domains with monthly revenue loss - prime targets for outreach and conversion
+                      </CardDescription>
+                    </CardHeader>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent>
+                      <CRMProspectsTable 
+                        reports={filteredReports} 
+                        loading={loading}
+                      />
+                    </CardContent>
+                  </CollapsibleContent>
+                </Collapsible>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="admin" className="space-y-6">
+              <AdminManagement />
+            </TabsContent>
+
+            <TabsContent value="reports" className="space-y-6">
+              {/* Search */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Submitted Domains</CardTitle>
                   <CardDescription>
-                    Domains with monthly revenue loss - prime targets for outreach and conversion
+                    Search and filter through all submitted domain reports
                   </CardDescription>
                 </CardHeader>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
                 <CardContent>
-                  <CRMProspectsTable 
+                  <div className="flex items-center space-x-2 mb-4">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search domains..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="max-w-sm"
+                    />
+                  </div>
+                  
+                  <AdminReportsTable 
                     reports={filteredReports} 
                     loading={loading}
                   />
                 </CardContent>
-              </CollapsibleContent>
-            </Collapsible>
-          </Card>
-
-          {/* Admin Management */}
-          <AdminManagement />
-
-          {/* Search */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Submitted Domains</CardTitle>
-              <CardDescription>
-                Search and filter through all submitted domain reports
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-2 mb-4">
-                <Search className="h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search domains..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="max-w-sm"
-                />
-              </div>
-              
-              <AdminReportsTable 
-                reports={filteredReports} 
-                loading={loading}
-              />
-            </CardContent>
-          </Card>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </AdminAuthGuard>
