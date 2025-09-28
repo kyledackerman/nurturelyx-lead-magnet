@@ -252,6 +252,10 @@ export type Database = {
         Args: { user_uuid?: string }
         Returns: boolean
       }
+      is_super_admin: {
+        Args: { user_uuid?: string }
+        Returns: boolean
+      }
       log_business_context: {
         Args: {
           p_context: string

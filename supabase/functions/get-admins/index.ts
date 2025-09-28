@@ -70,11 +70,11 @@ Deno.serve(async (req) => {
       }
     );
 
-    // Get all admin user_roles
+    // Get all admin and super_admin user_roles
     const { data: adminRoles, error: rolesError } = await serviceRoleClient
       .from('user_roles')
       .select('user_id, role, created_at')
-      .eq('role', 'admin');
+      .in('role', ['admin', 'super_admin']);
 
     if (rolesError) {
       console.error('Error fetching admin roles:', rolesError);

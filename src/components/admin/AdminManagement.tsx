@@ -12,7 +12,7 @@ interface AdminUser {
   id: string;
   email: string;
   created_at: string;
-  role: string;
+  role: 'admin' | 'super_admin';
 }
 
 export const AdminManagement = () => {
@@ -20,10 +20,28 @@ export const AdminManagement = () => {
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
+  const [settingUpSuperAdmin, setSettingUpSuperAdmin] = useState(false);
 
   useEffect(() => {
     fetchAdmins();
+    setupSuperAdmin();
   }, []);
+
+  const setupSuperAdmin = async () => {
+    try {
+      setSettingUpSuperAdmin(true);
+      const { data, error } = await supabase.functions.invoke('grant-super-admin');
+      if (error) {
+        console.error('Error setting up super admin:', error);
+      } else {
+        console.log('Super admin setup:', data);
+      }
+    } catch (error) {
+      console.error('Error setting up super admin:', error);
+    } finally {
+      setSettingUpSuperAdmin(false);
+    }
+  };
 
   const fetchAdmins = async () => {
     try {
@@ -142,9 +160,9 @@ export const AdminManagement = () => {
                       <Mail className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">{admin.email}</span>
                     </div>
-                    <Badge variant="secondary">
+                    <Badge variant={admin.role === 'super_admin' ? 'default' : 'secondary'}>
                       <Shield className="h-3 w-3 mr-1" />
-                      Admin
+                      {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
                     </Badge>
                   </div>
                   
@@ -160,9 +178,10 @@ export const AdminManagement = () => {
                           variant="outline" 
                           size="sm"
                           className="text-destructive hover:text-destructive"
+                          disabled={admin.role === 'super_admin'}
                         >
                           <UserMinus className="h-3 w-3 mr-1" />
-                          Revoke
+                          {admin.role === 'super_admin' ? 'Protected' : 'Revoke'}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
