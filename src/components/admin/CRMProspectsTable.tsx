@@ -187,31 +187,75 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
     }).format(new Date(dateString));
   };
 
-  const updateActivity = async (reportId: string, updates: Partial<ProspectActivity>) => {
+  const updateActivity = async (reportId: string, activityData: Partial<ProspectActivity>) => {
     try {
-      const existingActivity = activities[reportId];
-      
+      const { data: existingActivity } = await supabase
+        .from('prospect_activities')
+        .select('*')
+        .eq('report_id', reportId)
+        .single();
+
+      let businessContext = '';
+      const oldActivity = existingActivity;
+
       if (existingActivity) {
+        // Generate business context for updates
+        if (activityData.status && activityData.status !== existingActivity.status) {
+          businessContext += `Status changed from "${existingActivity.status}" to "${activityData.status}". `;
+        }
+        if (activityData.priority && activityData.priority !== existingActivity.priority) {
+          businessContext += `Priority changed from "${existingActivity.priority}" to "${activityData.priority}". `;
+        }
+        if (activityData.contact_method && activityData.contact_method !== existingActivity.contact_method) {
+          businessContext += `Contact method updated to "${activityData.contact_method}". `;
+        }
+
         const { error } = await supabase
           .from('prospect_activities')
-          .update(updates)
+          .update({
+            ...activityData,
+            updated_at: new Date().toISOString()
+          })
           .eq('id', existingActivity.id);
-        
+
         if (error) throw error;
+
+        // Log business context if we have meaningful changes
+        if (businessContext.trim()) {
+          const { auditService } = await import('@/services/auditService');
+          await auditService.logBusinessContext(
+            'prospect_activities',
+            existingActivity.id,
+            businessContext.trim()
+          );
+        }
       } else {
-        const { error } = await supabase
+        businessContext = `New prospect activity created with status "${activityData.status || 'new'}" and priority "${activityData.priority || 'cold'}".`;
+
+        const { data: newActivity, error } = await supabase
           .from('prospect_activities')
           .insert({
             report_id: reportId,
-            activity_type: 'note',
-            ...updates,
-          });
-        
+            activity_type: 'status_update',
+            ...activityData
+          })
+          .select()
+          .single();
+
         if (error) throw error;
+
+        // Log business context for new activity
+        const { auditService } = await import('@/services/auditService');
+        await auditService.logBusinessContext(
+          'prospect_activities',
+          newActivity.id,
+          businessContext
+        );
       }
-      
+
+      // Refresh activities
+      await fetchActivities();
       toast.success('Activity updated successfully');
-      fetchActivities();
     } catch (error) {
       console.error('Error updating activity:', error);
       toast.error('Failed to update activity');

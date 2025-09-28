@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action_type: string
+          business_context: string | null
+          changed_at: string
+          changed_by: string | null
+          created_at: string
+          field_name: string | null
+          id: string
+          ip_address: string | null
+          new_value: string | null
+          old_value: string | null
+          record_id: string
+          session_id: string | null
+          table_name: string
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          business_context?: string | null
+          changed_at?: string
+          changed_by?: string | null
+          created_at?: string
+          field_name?: string | null
+          id?: string
+          ip_address?: string | null
+          new_value?: string | null
+          old_value?: string | null
+          record_id: string
+          session_id?: string | null
+          table_name: string
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          business_context?: string | null
+          changed_at?: string
+          changed_by?: string | null
+          created_at?: string
+          field_name?: string | null
+          id?: string
+          ip_address?: string | null
+          new_value?: string | null
+          old_value?: string | null
+          record_id?: string
+          session_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       prospect_activities: {
         Row: {
           activity_type: string
@@ -200,6 +251,28 @@ export type Database = {
       is_admin: {
         Args: { user_uuid?: string }
         Returns: boolean
+      }
+      log_business_context: {
+        Args: {
+          p_context: string
+          p_ip_address?: string
+          p_record_id: string
+          p_session_id?: string
+          p_table_name: string
+          p_user_agent?: string
+        }
+        Returns: undefined
+      }
+      log_field_changes: {
+        Args: {
+          p_action_type: string
+          p_changed_by?: string
+          p_new_row?: Json
+          p_old_row?: Json
+          p_record_id: string
+          p_table_name: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

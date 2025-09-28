@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { AuditTrailViewer } from "./AuditTrailViewer";
 
 interface ReportData {
   domain: string;
@@ -181,38 +182,94 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
     }
   };
 
-  const updateActivity = async (updates: Partial<ProspectActivity>) => {
-    if (!report) return;
+  const updateActivity = async (reportId: string, updates: Partial<ProspectActivity>) => {
+    if (!reportId) return;
     
     setUpdating(true);
     try {
-      const latestActivity = activities[0];
-      
-      if (latestActivity) {
+      // Get existing activity
+      const { data: existingActivity } = await supabase
+        .from('prospect_activities')
+        .select('*')
+        .eq('report_id', reportId)
+        .single();
+
+      let businessContext = '';
+
+      if (existingActivity) {
+        // Generate business context for updates
+        if (updates.status && updates.status !== existingActivity.status) {
+          businessContext += `Status changed from "${existingActivity.status}" to "${updates.status}". `;
+        }
+        if (updates.priority && updates.priority !== existingActivity.priority) {
+          businessContext += `Priority changed from "${existingActivity.priority}" to "${updates.priority}". `;
+        }
+        if (updates.contact_method && updates.contact_method !== existingActivity.contact_method) {
+          businessContext += `Contact method updated to "${updates.contact_method}". `;
+        }
+        if (updates.notes && updates.notes !== existingActivity.notes) {
+          businessContext += `Notes updated. `;
+        }
+        if (updates.next_follow_up !== existingActivity.next_follow_up) {
+          if (updates.next_follow_up) {
+            businessContext += `Follow-up scheduled for ${formatDateShort(updates.next_follow_up)}. `;
+          } else {
+            businessContext += `Follow-up date cleared. `;
+          }
+        }
+
+        // Update existing activity
         const { error } = await supabase
           .from('prospect_activities')
-          .update(updates)
-          .eq('id', latestActivity.id);
-        
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingActivity.id);
+
         if (error) throw error;
+
+        // Log business context if we have meaningful changes
+        if (businessContext.trim()) {
+          const { auditService } = await import('@/services/auditService');
+          await auditService.logBusinessContext(
+            'prospect_activities',
+            existingActivity.id,
+            businessContext.trim()
+          );
+        }
       } else {
-        const { error } = await supabase
+        // Create new activity
+        businessContext = `New prospect created with status "${updates.status || 'new'}" and priority "${updates.priority || 'cold'}".`;
+
+        const { data: newActivity, error } = await supabase
           .from('prospect_activities')
           .insert({
-            report_id: report.id,
-            activity_type: 'status_change',
-            ...updates,
-          });
-        
+            report_id: reportId,
+            activity_type: 'status_update',
+            ...updates
+          })
+          .select()
+          .single();
+
         if (error) throw error;
+
+        // Log business context for new activity
+        const { auditService } = await import('@/services/auditService');
+        await auditService.logBusinessContext(
+          'prospect_activities',
+          newActivity.id,
+          businessContext
+        );
       }
+
+      // Refresh activities
+      await fetchAllActivities();
       
-      toast.success('Activity updated successfully');
-      fetchAllActivities();
-      onActivityUpdate?.();
+      toast.success('Prospect updated successfully');
     } catch (error) {
       console.error('Error updating activity:', error);
-      toast.error('Failed to update activity');
+      toast.error('Failed to update prospect');
     } finally {
       setUpdating(false);
     }
@@ -328,7 +385,7 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                     <Label htmlFor="status">Status</Label>
                     <Select 
                       value={latestActivity?.status || 'new'} 
-                      onValueChange={(value) => updateActivity({ status: value })}
+                      onValueChange={(value) => updateActivity(report.id, { status: value })}
                       disabled={updating}
                     >
                       <SelectTrigger>
@@ -349,7 +406,7 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                     <Label htmlFor="priority">Priority</Label>
                     <Select 
                       value={latestActivity?.priority || 'cold'} 
-                      onValueChange={(value) => updateActivity({ priority: value })}
+                      onValueChange={(value) => updateActivity(report.id, { priority: value })}
                       disabled={updating}
                     >
                       <SelectTrigger>
@@ -523,6 +580,14 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                 )}
               </CardContent>
             </Card>
+
+            {/* Comprehensive Audit Trail */}
+            <AuditTrailViewer
+              recordId={report?.id}
+              tableName="reports"
+              title="Complete Audit Trail"
+              maxHeight="400px"
+            />
           </TabsContent>
         </Tabs>
       </SheetContent>
