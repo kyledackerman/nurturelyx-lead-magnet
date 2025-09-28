@@ -13,7 +13,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye } from "lucide-react";
+import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users } from "lucide-react";
 import { toast } from "sonner";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -37,7 +37,8 @@ interface AdminStats {
   totalReports: number;
   uniqueDomains: number;
   reportsToday: number;
-  publicReports: number;
+  adminReports: number;
+  nonAdminReports: number;
   highValueProspects: number;
 }
 
@@ -57,7 +58,8 @@ const AdminDashboard = () => {
     totalReports: 0,
     uniqueDomains: 0,
     reportsToday: 0,
-    publicReports: 0,
+    adminReports: 0,
+    nonAdminReports: 0,
     highValueProspects: 0,
   });
   const [crmOpen, setCrmOpen] = useState(true);
@@ -116,18 +118,46 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const { data: allReports, error } = await supabase
+      // Get all reports with user_id
+      const { data: allReports, error: reportsError } = await supabase
         .from('reports')
-        .select('domain, created_at, is_public, report_data');
+        .select('domain, created_at, user_id, report_data');
 
-      if (error) throw error;
+      if (reportsError) throw reportsError;
+
+      // Get all user roles
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Create a map of user_id to role for quick lookup
+      const roleMap = new Map<string, string>();
+      userRoles?.forEach(ur => {
+        roleMap.set(ur.user_id, ur.role);
+      });
 
       const today = new Date().toISOString().split('T')[0];
       const uniqueDomains = new Set(allReports?.map(r => r.domain) || []).size;
       const reportsToday = allReports?.filter(r => 
         r.created_at.startsWith(today)
       ).length || 0;
-      const publicReports = allReports?.filter(r => r.is_public).length || 0;
+      
+      // Separate admin vs non-admin reports
+      let adminReports = 0;
+      let nonAdminReports = 0;
+      
+      allReports?.forEach(report => {
+        const userRole = report.user_id ? roleMap.get(report.user_id) : null;
+        const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+        
+        if (isAdmin) {
+          adminReports++;
+        } else {
+          nonAdminReports++;
+        }
+      });
       
       // Count high-value prospects (reports with monthly revenue lost > 0)
       const highValueProspects = allReports?.filter(r => {
@@ -139,7 +169,8 @@ const AdminDashboard = () => {
         totalReports: allReports?.length || 0,
         uniqueDomains,
         reportsToday,
-        publicReports,
+        adminReports,
+        nonAdminReports,
         highValueProspects,
       });
     } catch (error) {
@@ -295,19 +326,6 @@ const AdminDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.totalReports}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {stats.reportsToday > 0 ? `+${stats.reportsToday} today` : 'No reports today'}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                 <CardTitle className="text-sm font-medium">Unique Domains</CardTitle>
                 <Globe className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -319,12 +337,23 @@ const AdminDashboard = () => {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                <CardTitle className="text-sm font-medium">Public Reports</CardTitle>
-                <Eye className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">Admin Reports</CardTitle>
+                <Shield className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.publicReports}</div>
-                <p className="text-xs text-muted-foreground mt-1">Publicly viewable</p>
+                <div className="text-2xl font-bold">{stats.adminReports}</div>
+                <p className="text-xs text-muted-foreground mt-1">Internal submissions</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                <CardTitle className="text-sm font-medium">Non-Admin Reports</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.nonAdminReports}</div>
+                <p className="text-xs text-muted-foreground mt-1">External submissions</p>
               </CardContent>
             </Card>
 
