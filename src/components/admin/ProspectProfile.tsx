@@ -200,7 +200,7 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
           .from('prospect_activities')
           .insert({
             report_id: report.id,
-            activity_type: 'status_update',
+            activity_type: 'status_change',
             ...updates,
           });
         
