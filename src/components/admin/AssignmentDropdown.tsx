@@ -58,12 +58,22 @@ export const AssignmentDropdown = ({
 
       if (error) throw error;
 
-      // Get user details for each admin
+      // Deduplicate users and prioritize highest role (super_admin > admin)
+      const userRoleMap = new Map();
+      data.forEach(item => {
+        const existingRole = userRoleMap.get(item.user_id);
+        if (!existingRole || item.role === 'super_admin') {
+          userRoleMap.set(item.user_id, item.role);
+        }
+      });
+
+      // Get user details for each unique admin
       const adminDetails = await Promise.all(
-        data.map(async (admin) => {
-          const { data: userData, error: userError } = await supabase.auth.admin.getUserById(admin.user_id);
+        Array.from(userRoleMap.entries()).map(async ([user_id, role]) => {
+          const { data: userData, error: userError } = await supabase.auth.admin.getUserById(user_id);
           return {
-            ...admin,
+            user_id,
+            role,
             email: userData.user?.email,
             display_name: userData.user?.user_metadata?.display_name || userData.user?.email?.split('@')[0]
           };
