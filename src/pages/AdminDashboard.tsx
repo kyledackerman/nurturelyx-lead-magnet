@@ -434,14 +434,10 @@ const AdminDashboard = () => {
                         border: '1px solid hsl(var(--border))',
                         borderRadius: '6px'
                       }}
-                      formatter={(value, dataKey) => {
-                        let label = 'Unknown';
-                        if (dataKey === 'adminReports') label = 'Admin Reports';
-                        else if (dataKey === 'nonAdminReports') label = 'Non-Admin Reports';
-                        else if (dataKey === 'revenueLineReports') label = 'High-Value Domains';
-                        
-                        return [value, label];
-                      }}
+                      formatter={(value, name) => [
+                        value,
+                        name // The name parameter already contains the correct labels
+                      ]}
                     />
                     <Line 
                       type="monotone" 
