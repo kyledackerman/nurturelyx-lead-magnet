@@ -13,10 +13,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   User, 
   DollarSign, 
-  Calendar, 
+  Calendar as CalendarIcon, 
   Activity, 
   Phone, 
   Mail, 
@@ -27,11 +31,17 @@ import {
   TrendingDown,
   Clock,
   Building,
-  Target
+  Target,
+  Edit,
+  Save,
+  X,
+  Plus
 } from "lucide-react";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AuditTrailViewer } from "./AuditTrailViewer";
+import { cn } from "@/lib/utils";
 
 interface ReportData {
   domain: string;
@@ -80,12 +90,35 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
   const [activities, setActivities] = useState<ProspectActivity[]>([]);
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
+  
+  // Editing states
+  const [editingDomain, setEditingDomain] = useState(false);
+  const [domainValue, setDomainValue] = useState('');
+  const [editingTransactionValue, setEditingTransactionValue] = useState(false);
+  const [transactionValue, setTransactionValue] = useState(0);
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesValue, setNotesValue] = useState('');
+  const [contactMethod, setContactMethod] = useState('');
+  const [followUpDate, setFollowUpDate] = useState<Date | undefined>();
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     if (isOpen && report) {
       fetchAllActivities();
+      // Initialize editing values
+      setDomainValue(report.domain || '');
+      setTransactionValue(report.report_data?.avgTransactionValue || 0);
     }
   }, [isOpen, report]);
+
+  useEffect(() => {
+    if (activities.length > 0) {
+      const latest = activities[0];
+      setNotesValue(latest.notes || '');
+      setContactMethod(latest.contact_method || '');
+      setFollowUpDate(latest.next_follow_up ? new Date(latest.next_follow_up) : undefined);
+    }
+  }, [activities]);
 
   const fetchAllActivities = async () => {
     if (!report) return;
@@ -275,6 +308,101 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
     }
   };
 
+  const updateDomain = async () => {
+    if (!report || !domainValue.trim()) return;
+    
+    setUpdating(true);
+    try {
+      const { error } = await supabase
+        .from('reports')
+        .update({ domain: domainValue.trim() })
+        .eq('id', report.id);
+
+      if (error) throw error;
+      
+      toast.success('Domain updated successfully');
+      setEditingDomain(false);
+      onActivityUpdate?.();
+    } catch (error) {
+      console.error('Error updating domain:', error);
+      toast.error('Failed to update domain');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const updateTransactionValue = async () => {
+    if (!report || transactionValue <= 0) return;
+    
+    setUpdating(true);
+    try {
+      const updatedReportData = {
+        ...report.report_data,
+        avgTransactionValue: transactionValue
+      };
+
+      const { error } = await supabase
+        .from('reports')
+        .update({ report_data: updatedReportData })
+        .eq('id', report.id);
+
+      if (error) throw error;
+      
+      toast.success('Transaction value updated successfully');
+      setEditingTransactionValue(false);
+      onActivityUpdate?.();
+    } catch (error) {
+      console.error('Error updating transaction value:', error);
+      toast.error('Failed to update transaction value');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const updateNotes = async () => {
+    if (!report) return;
+    
+    const updates = {
+      notes: notesValue.trim(),
+      contact_method: contactMethod || null,
+      next_follow_up: followUpDate ? followUpDate.toISOString() : null
+    };
+
+    await updateActivity(report.id, updates);
+    setEditingNotes(false);
+  };
+
+  const addNewActivity = async () => {
+    if (!report) return;
+    
+    setUpdating(true);
+    try {
+      const { data: newActivity, error } = await supabase
+        .from('prospect_activities')
+        .insert({
+          report_id: report.id,
+          activity_type: 'manual_entry',
+          status: activities[0]?.status || 'new',
+          priority: activities[0]?.priority || 'cold',
+          notes: '',
+          contact_method: null,
+          next_follow_up: null
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await fetchAllActivities();
+      toast.success('New activity added');
+    } catch (error) {
+      console.error('Error adding activity:', error);
+      toast.error('Failed to add activity');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   const latestActivity = activities[0];
   const monthlyRevenue = report?.report_data?.monthlyRevenueLost || 0;
   const yearlyRevenue = report?.report_data?.yearlyRevenueLost || 0;
@@ -288,7 +416,36 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
           <div className="flex items-center gap-3">
             <Building className="h-6 w-6 text-primary" />
             <div className="flex-1">
-              <SheetTitle className="text-xl">{report?.domain}</SheetTitle>
+              {editingDomain ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={domainValue}
+                    onChange={(e) => setDomainValue(e.target.value)}
+                    className="text-xl font-semibold"
+                    placeholder="Enter domain name"
+                  />
+                  <Button size="sm" onClick={updateDomain} disabled={updating}>
+                    <Save className="h-4 w-4" />
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => {
+                    setEditingDomain(false);
+                    setDomainValue(report?.domain || '');
+                  }}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <SheetTitle className="text-xl">{report?.domain}</SheetTitle>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setEditingDomain(true)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
               <SheetDescription>
                 Prospect profile • Created {report && formatDateShort(report.created_at)}
               </SheetDescription>
@@ -362,9 +519,40 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-5 w-5 text-green-500" />
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm text-muted-foreground">Avg Transaction</p>
-                      <p className="text-xl font-bold">{formatCurrency(avgTransactionValue)}</p>
+                      {editingTransactionValue ? (
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            type="number"
+                            value={transactionValue}
+                            onChange={(e) => setTransactionValue(Number(e.target.value))}
+                            className="text-xl font-bold h-8"
+                            min="0"
+                            step="0.01"
+                          />
+                          <Button size="xs" onClick={updateTransactionValue} disabled={updating}>
+                            <Save className="h-3 w-3" />
+                          </Button>
+                          <Button size="xs" variant="outline" onClick={() => {
+                            setEditingTransactionValue(false);
+                            setTransactionValue(report?.report_data?.avgTransactionValue || 0);
+                          }}>
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <p className="text-xl font-bold">{formatCurrency(avgTransactionValue)}</p>
+                          <Button
+                            size="xs"
+                            variant="ghost"
+                            onClick={() => setEditingTransactionValue(true)}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -421,15 +609,111 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                     </Select>
                   </div>
                 </div>
-                {latestActivity?.next_follow_up && (
-                  <div className="mt-4">
-                    <p className="text-sm text-muted-foreground">Next Follow-up</p>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Calendar className="h-4 w-4" />
-                      {formatDateShort(latestActivity.next_follow_up)}
-                    </div>
+                
+                {/* Contact Method and Follow-up */}
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <Label htmlFor="contact-method">Contact Method</Label>
+                    <Select 
+                      value={contactMethod} 
+                      onValueChange={setContactMethod}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="phone">Phone</SelectItem>
+                        <SelectItem value="linkedin">LinkedIn</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
+                  <div>
+                    <Label htmlFor="follow-up">Next Follow-up</Label>
+                    <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {followUpDate ? format(followUpDate, "PPP") : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={followUpDate}
+                          onSelect={(date) => {
+                            setFollowUpDate(date);
+                            setShowDatePicker(false);
+                          }}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                        {followUpDate && (
+                          <div className="p-3 border-t">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setFollowUpDate(undefined);
+                                setShowDatePicker(false);
+                              }}
+                              className="w-full"
+                            >
+                              Clear Date
+                            </Button>
+                          </div>
+                        )}
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+
+                {/* Notes Section */}
+                <div className="mt-4">
+                  <Label htmlFor="notes">Notes</Label>
+                  <div className="mt-1">
+                    {editingNotes ? (
+                      <div className="space-y-2">
+                        <Textarea
+                          value={notesValue}
+                          onChange={(e) => setNotesValue(e.target.value)}
+                          placeholder="Add notes about this prospect..."
+                          rows={3}
+                        />
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={updateNotes} disabled={updating}>
+                            <Save className="h-4 w-4 mr-1" />
+                            Save
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => {
+                            setEditingNotes(false);
+                            setNotesValue(latestActivity?.notes || '');
+                          }}>
+                            <X className="h-4 w-4 mr-1" />
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div 
+                        className="min-h-[80px] p-3 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => setEditingNotes(true)}
+                      >
+                        {notesValue ? (
+                          <p className="text-sm">{notesValue}</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic">Click to add notes...</p>
+                        )}
+                        <Edit className="h-4 w-4 mt-2 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -514,13 +798,19 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
           <TabsContent value="activity" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  Activity Timeline
-                  {activities.length > 0 && (
-                    <Badge variant="secondary">{activities.length}</Badge>
-                  )}
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    Activity Timeline
+                    {activities.length > 0 && (
+                      <Badge variant="secondary">{activities.length}</Badge>
+                    )}
+                  </CardTitle>
+                  <Button onClick={addNewActivity} disabled={updating} size="sm">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Activity
+                  </Button>
+                </div>
                 <CardDescription>
                   Complete history of interactions with this prospect
                 </CardDescription>
