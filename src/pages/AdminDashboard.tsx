@@ -46,6 +46,7 @@ interface ChartDataPoint {
   date: string;
   adminReports: number;
   nonAdminReports: number;
+  revenueLineReports: number;
   total: number;
 }
 
@@ -180,10 +181,10 @@ const AdminDashboard = () => {
 
   const fetchChartData = async (period: 'weekly' | 'monthly' | 'yearly') => {
     try {
-      // First, get all reports
+      // First, get all reports with report_data
       const { data: allReports, error: reportsError } = await supabase
         .from('reports')
-        .select('created_at, user_id')
+        .select('created_at, user_id, report_data')
         .order('created_at', { ascending: true });
 
       if (reportsError) throw reportsError;
@@ -231,7 +232,7 @@ const AdminDashboard = () => {
           dateFormat = (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       }
 
-      const dateMap = new Map<string, { admin: number; nonAdmin: number }>();
+      const dateMap = new Map<string, { admin: number; nonAdmin: number; revenueLoss: number }>();
       
       // Initialize all periods with 0
       for (let i = 0; i < periods; i++) {
@@ -244,10 +245,10 @@ const AdminDashboard = () => {
         const dateStr = period === 'yearly' 
           ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
           : date.toISOString().split('T')[0];
-        dateMap.set(dateStr, { admin: 0, nonAdmin: 0 });
+        dateMap.set(dateStr, { admin: 0, nonAdmin: 0, revenueLoss: 0 });
       }
 
-      // Count reports for each period, separating admin vs non-admin
+      // Count reports for each period, separating admin vs non-admin and revenue loss
       allReports?.forEach(report => {
         const reportDate = new Date(report.created_at);
         let key: string;
@@ -260,14 +261,23 @@ const AdminDashboard = () => {
         
         if (dateMap.has(key)) {
           const current = dateMap.get(key)!;
+          
           // Check if user is admin or super_admin
           const userRole = report.user_id ? roleMap.get(report.user_id) : null;
           const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+          
+          // Check if report has revenue loss
+          const reportData = report.report_data as any;
+          const hasRevenueLoss = (reportData?.monthlyRevenueLost || 0) > 0 || (reportData?.yearlyRevenueLost || 0) > 0;
           
           if (isAdmin) {
             current.admin += 1;
           } else {
             current.nonAdmin += 1;
+          }
+          
+          if (hasRevenueLoss) {
+            current.revenueLoss += 1;
           }
           
           dateMap.set(key, current);
@@ -290,6 +300,7 @@ const AdminDashboard = () => {
           date: displayDate,
           adminReports: counts.admin,
           nonAdminReports: counts.nonAdmin,
+          revenueLineReports: counts.revenueLoss,
           total: counts.admin + counts.nonAdmin
         };
       });
@@ -376,14 +387,14 @@ const AdminDashboard = () => {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
-                    Report Submissions by User Type ({
+                    Report Submissions & Revenue Impact ({
                       timePeriod === 'weekly' ? 'Last 7 Days' : 
                       timePeriod === 'yearly' ? 'Last 12 Months' : 
                       'Last 30 Days'
                     })
                   </CardTitle>
                   <CardDescription>
-                    Compare admin vs non-admin report submissions
+                    Admin vs non-admin submissions plus high-value domains with revenue loss
                   </CardDescription>
                 </div>
                 <ToggleGroup 
@@ -425,7 +436,9 @@ const AdminDashboard = () => {
                       }}
                       formatter={(value, name) => [
                         value,
-                        name === 'adminReports' ? 'Admin Reports' : 'Non-Admin Reports'
+                        name === 'adminReports' ? 'Admin Reports' : 
+                        name === 'nonAdminReports' ? 'Non-Admin Reports' :
+                        'High-Value Domains'
                       ]}
                     />
                     <Line 
@@ -445,6 +458,15 @@ const AdminDashboard = () => {
                       dot={{ fill: 'hsl(var(--chart-2))', strokeWidth: 2, r: 4 }}
                       activeDot={{ r: 6, fill: 'hsl(var(--chart-2))' }}
                       name="Non-Admin Reports"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="revenueLineReports" 
+                      stroke="hsl(var(--destructive))" 
+                      strokeWidth={2}
+                      dot={{ fill: 'hsl(var(--destructive))', strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, fill: 'hsl(var(--destructive))' }}
+                      name="High-Value Domains"
                     />
                   </LineChart>
                 </ResponsiveContainer>
