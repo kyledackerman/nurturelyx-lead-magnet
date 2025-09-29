@@ -100,14 +100,12 @@ export const AssignmentDropdown = ({
 
         if (error) throw error;
       } else {
-        // Create new activity with assignment
+        // Create new activity with assignment (status and priority use DB defaults)
         const { error } = await supabase
           .from('prospect_activities')
           .insert({
             report_id: reportId,
             activity_type: 'assignment',
-            status: 'new',
-            priority: 'cold',
             ...assignmentData
           });
 
