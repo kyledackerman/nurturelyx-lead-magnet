@@ -16,7 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Phone, Mail, MessageSquare, Eye, Copy, TrendingUp, Flame, Thermometer, Snowflake, Calendar, Plus, User, CalendarIcon, Loader2, UserCheck } from "lucide-react";
+import { Phone, Mail, MessageSquare, Eye, Copy, TrendingUp, Flame, Thermometer, Snowflake, Calendar, Plus, User, CalendarIcon, Loader2, UserCheck, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ProspectProfile } from "./ProspectProfile";
@@ -481,9 +482,20 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                       {getPriorityIcon(priority)}
                       <div>
                         <div className="font-semibold">{report.domain}</div>
-                        <Badge variant="outline" className={`text-xs mt-1 ${getPriorityColor(priority)}`}>
-                          {priority.toUpperCase()} PRIORITY
-                        </Badge>
+                        <Select 
+                          value={priority}
+                          onValueChange={(value) => updateActivity(report.id, { priority: value })}
+                        >
+                          <SelectTrigger className={cn("w-fit border-0 h-auto px-2 py-1 text-xs mt-1", getPriorityColor(priority))}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="hot">🔥 Hot</SelectItem>
+                            <SelectItem value="warm">🌡️ Warm</SelectItem>
+                            <SelectItem value="cold">❄️ Cold</SelectItem>
+                            <SelectItem value="not_viable">🚫 Not Viable</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </TableCell>
@@ -501,9 +513,23 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                     />
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className={getStatusColor(status)}>
-                      {status.replace('_', ' ').toUpperCase()}
-                    </Badge>
+                    <Select 
+                      value={status}
+                      onValueChange={(value) => updateActivity(report.id, { status: value })}
+                    >
+                      <SelectTrigger className={cn("w-fit border-0 h-auto px-3 py-1.5", getStatusColor(status))}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="new">New</SelectItem>
+                        <SelectItem value="contacted">Contacted</SelectItem>
+                        <SelectItem value="qualified">Qualified</SelectItem>
+                        <SelectItem value="proposal">Proposal</SelectItem>
+                        <SelectItem value="closed_won">Closed Won</SelectItem>
+                        <SelectItem value="closed_lost">Closed Lost</SelectItem>
+                        <SelectItem value="not_viable">Not Viable</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell>
                     {activity ? (
@@ -531,7 +557,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                     )}
                   </TableCell>
                    <TableCell>
-                     <div className="flex items-center gap-2 flex-wrap">
+                     <div className="flex items-center gap-2">
                        <AssignmentDropdown
                          currentAssignedTo={assignedTo}
                          reportId={report.id}
@@ -541,191 +567,132 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                          }}
                        />
                        
-                       <Button
-                         variant="ghost"
-                         size="sm"
-                         onClick={() => {
-                           setProfileReport(report);
-                           setIsProfileOpen(true);
-                         }}
-                       >
-                         <User className="h-4 w-4 mr-1" />
-                         Profile
-                       </Button>
-                       
-                       <Button
-                         variant="ghost"
-                         size="sm"
-                         onClick={() => openReport(report.slug)}
-                       >
-                         <Eye className="h-4 w-4 mr-1" />
-                         View
-                       </Button>
-                       
-                       <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedReport(report);
-                              const existingActivity = activities[report.id];
-                              if (existingActivity) {
-                                setNotes(existingActivity.notes || "");
-                                setContactMethod(existingActivity.contact_method || "");
-                                setNextFollowUp(existingActivity.next_follow_up ? new Date(existingActivity.next_follow_up) : undefined);
-                              } else {
-                                // Clear form for new activity
-                                setNotes("");
-                                setContactMethod("");
-                                setNextFollowUp(undefined);
-                              }
-                            }}
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Add Activity
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Update CRM Activity - {selectedReport?.domain}</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <Label htmlFor="status">Status</Label>
-                              <Select 
-                                value={activities[selectedReport?.id || '']?.status || 'new'} 
-                                onValueChange={(value) => {
-                                  if (selectedReport) {
-                                    updateActivity(selectedReport.id, { status: value });
-                                  }
-                                }}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="new">New</SelectItem>
-                                  <SelectItem value="contacted">Contacted</SelectItem>
-                                  <SelectItem value="qualified">Qualified</SelectItem>
-                                  <SelectItem value="proposal">Proposal</SelectItem>
-                                  <SelectItem value="closed_won">Closed Won</SelectItem>
-                                  <SelectItem value="closed_lost">Closed Lost</SelectItem>
-                                  <SelectItem value="not_viable">Not Viable</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            
-                            <div>
-                              <Label htmlFor="priority">Priority</Label>
-                              <Select 
-                                value={activities[selectedReport?.id || '']?.priority || (selectedReport ? getPriority(selectedReport) : 'cold')} 
-                                onValueChange={(value) => {
-                                  if (selectedReport) {
-                                    updateActivity(selectedReport.id, { priority: value });
-                                  }
-                                }}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                 <SelectContent>
-                                   <SelectItem value="hot">🔥 Hot</SelectItem>
-                                   <SelectItem value="warm">🌡️ Warm</SelectItem>
-                                   <SelectItem value="cold">❄️ Cold</SelectItem>
-                                   <SelectItem value="not_viable">🚫 Not Viable</SelectItem>
-                                 </SelectContent>
-                              </Select>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium">Contact Method</label>
-                              <Select value={contactMethod} onValueChange={setContactMethod}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="How did you contact them?" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="email">Email</SelectItem>
-                                  <SelectItem value="phone">Phone</SelectItem>
-                                  <SelectItem value="linkedin">LinkedIn</SelectItem>
-                                  <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium">Notes</label>
-                              <Textarea
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="Add notes about this prospect..."
-                                rows={3}
-                              />
-                            </div>
-
-                            <div>
-                              <Label htmlFor="follow-up-date">Next Follow-up Date</Label>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    id="follow-up-date"
-                                    variant="outline"
-                                    className={cn(
-                                      "w-full justify-start text-left font-normal",
-                                      !nextFollowUp && "text-muted-foreground"
-                                    )}
-                                  >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {nextFollowUp ? format(nextFollowUp, "PPP") : <span>Pick a date</span>}
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                  <CalendarComponent
-                                    mode="single"
-                                    selected={nextFollowUp}
-                                    onSelect={setNextFollowUp}
-                                    initialFocus
-                                    className={cn("p-3 pointer-events-auto")}
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                            </div>
-
-                            <div className="flex gap-2">
-                              <Button 
-                                onClick={handleAddActivity} 
-                                className="flex-1"
-                                disabled={isUpdating}
-                              >
-                                {isUpdating ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Saving...
-                                  </>
-                                ) : (
-                                  'Save Activity'
-                                )}
-                              </Button>
-                              <Button
-                                variant="outline"
-                                onClick={() => copyToClipboard(selectedReport?.domain || '')}
-                                disabled={isUpdating}
-                              >
-                                <Copy className="h-4 w-4 mr-1" />
-                                Copy Domain
-                              </Button>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </TableCell>
+                       <DropdownMenu>
+                         <DropdownMenuTrigger asChild>
+                           <Button variant="ghost" size="sm">
+                             <MoreVertical className="h-4 w-4" />
+                           </Button>
+                         </DropdownMenuTrigger>
+                         <DropdownMenuContent align="end">
+                           <DropdownMenuItem onClick={() => {
+                             setProfileReport(report);
+                             setIsProfileOpen(true);
+                           }}>
+                             <User className="h-4 w-4 mr-2" />
+                             View Profile
+                           </DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => openReport(report.slug)}>
+                             <Eye className="h-4 w-4 mr-2" />
+                             View Report
+                           </DropdownMenuItem>
+                           <DropdownMenuSeparator />
+                           <DropdownMenuItem onClick={() => {
+                             setSelectedReport(report);
+                             const existingActivity = activities[report.id];
+                             if (existingActivity) {
+                               setNotes(existingActivity.notes || "");
+                               setContactMethod(existingActivity.contact_method || "");
+                               setNextFollowUp(existingActivity.next_follow_up ? new Date(existingActivity.next_follow_up) : undefined);
+                             } else {
+                               setNotes("");
+                               setContactMethod("");
+                               setNextFollowUp(undefined);
+                             }
+                           }}>
+                             <Plus className="h-4 w-4 mr-2" />
+                             Add Detailed Activity
+                           </DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => copyToClipboard(report.domain)}>
+                             <Copy className="h-4 w-4 mr-2" />
+                             Copy Domain
+                           </DropdownMenuItem>
+                         </DropdownMenuContent>
+                       </DropdownMenu>
+                     </div>
+                   </TableCell>
                 </TableRow>
               );
             })}
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!selectedReport} onOpenChange={(open) => !open && setSelectedReport(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Detailed Activity - {selectedReport?.domain}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Contact Method</label>
+              <Select value={contactMethod} onValueChange={setContactMethod}>
+                <SelectTrigger>
+                  <SelectValue placeholder="How did you contact them?" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="phone">Phone</SelectItem>
+                  <SelectItem value="linkedin">LinkedIn</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Notes</label>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Add notes about this prospect..."
+                rows={4}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="follow-up-date">Next Follow-up Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="follow-up-date"
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !nextFollowUp && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {nextFollowUp ? format(nextFollowUp, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={nextFollowUp}
+                    onSelect={setNextFollowUp}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <Button 
+              onClick={handleAddActivity} 
+              className="w-full"
+              disabled={isUpdating}
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Activity'
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <ProspectProfile
         isOpen={isProfileOpen}
