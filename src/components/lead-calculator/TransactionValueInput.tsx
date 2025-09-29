@@ -22,7 +22,7 @@ export const TransactionValueInput = ({
 
   return (
     <div className="mb-8 mt-10">
-      <label htmlFor="transaction-value" className="block mb-2 text-base font-medium text-white">
+      <label htmlFor="transaction-value" className="block mb-2 text-lg font-medium text-white">
         What is your average transaction value?
       </label>
       <div className="relative">

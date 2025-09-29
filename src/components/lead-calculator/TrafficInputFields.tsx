@@ -15,7 +15,7 @@ export const TrafficInputFields = ({ formData, handleChange, errors, showTraffic
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="domain" className="block font-medium text-base">
+        <Label htmlFor="domain" className="block font-medium text-lg">
           Website URL
         </Label>
         <Input
