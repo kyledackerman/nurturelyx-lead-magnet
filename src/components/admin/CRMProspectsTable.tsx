@@ -161,32 +161,21 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
 
   const fetchAdminUsers = async () => {
     try {
-      const { data: userRoles, error } = await supabase
-        .from('user_roles')
-        .select('user_id, role')
-        .in('role', ['admin', 'super_admin']);
+      const { data, error } = await supabase
+        .functions.invoke('get-admins');
 
       if (error) throw error;
 
-      // Get user details for each admin
+      // Map the response to our adminDetails structure
       const adminDetails: Record<string, { email: string; display_name?: string; role: string }> = {};
       
-      await Promise.all(
-        userRoles.map(async (userRole) => {
-          try {
-            const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userRole.user_id);
-            if (!userError && userData.user) {
-              adminDetails[userRole.user_id] = {
-                email: userData.user.email || '',
-                display_name: userData.user.user_metadata?.display_name || userData.user.email?.split('@')[0],
-                role: userRole.role
-              };
-            }
-          } catch (err) {
-            console.error('Error fetching user details:', err);
-          }
-        })
-      );
+      (data.admins || []).forEach((admin: any) => {
+        adminDetails[admin.id] = {
+          email: admin.email || '',
+          display_name: admin.email?.split('@')[0],
+          role: admin.role
+        };
+      });
 
       setAdminUsers(adminDetails);
     } catch (error) {

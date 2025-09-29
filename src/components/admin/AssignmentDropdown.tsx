@@ -51,38 +51,22 @@ export const AssignmentDropdown = ({
 
   const fetchAdmins = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('user_id, role')
-        .in('role', ['admin', 'super_admin']);
-
+      const { data, error } = await supabase.functions.invoke('get-admins');
+      
       if (error) throw error;
 
-      // Deduplicate users and prioritize highest role (super_admin > admin)
-      const userRoleMap = new Map();
-      data.forEach(item => {
-        const existingRole = userRoleMap.get(item.user_id);
-        if (!existingRole || item.role === 'super_admin') {
-          userRoleMap.set(item.user_id, item.role);
-        }
-      });
+      // Map the response to our Admin interface
+      const adminList: Admin[] = (data.admins || []).map((admin: any) => ({
+        user_id: admin.id,
+        role: admin.role,
+        email: admin.email,
+        display_name: admin.email?.split('@')[0]
+      }));
 
-      // Get user details for each unique admin
-      const adminDetails = await Promise.all(
-        Array.from(userRoleMap.entries()).map(async ([user_id, role]) => {
-          const { data: userData, error: userError } = await supabase.auth.admin.getUserById(user_id);
-          return {
-            user_id,
-            role,
-            email: userData.user?.email,
-            display_name: userData.user?.user_metadata?.display_name || userData.user?.email?.split('@')[0]
-          };
-        })
-      );
-
-      setAdmins(adminDetails);
+      setAdmins(adminList);
     } catch (error) {
       console.error('Error fetching admins:', error);
+      toast.error('Failed to load admin list');
     }
   };
 
