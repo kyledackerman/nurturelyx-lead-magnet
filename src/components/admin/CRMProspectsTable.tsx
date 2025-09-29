@@ -505,11 +505,13 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                     </div>
                   </TableCell>
                   <TableCell>
-                    <OwnershipBadge 
-                      assignedTo={assignedTo}
-                      assignedAdminName={assignedAdmin?.display_name || assignedAdmin?.email}
-                      assignedAdminRole={assignedAdmin?.role}
-                      size="sm"
+                    <AssignmentDropdown
+                      currentAssignedTo={assignedTo || null}
+                      reportId={report.id}
+                      onAssignmentChange={() => {
+                        fetchActivities();
+                        fetchAdminUsers();
+                      }}
                     />
                   </TableCell>
                   <TableCell>
@@ -557,16 +559,6 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                     )}
                   </TableCell>
                    <TableCell>
-                     <div className="flex items-center gap-2">
-                       <AssignmentDropdown
-                         currentAssignedTo={assignedTo}
-                         reportId={report.id}
-                         onAssignmentChange={() => {
-                           fetchActivities();
-                           fetchAdminUsers();
-                         }}
-                       />
-                       
                        <DropdownMenu>
                          <DropdownMenuTrigger asChild>
                            <Button variant="ghost" size="sm">
@@ -605,10 +597,9 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                            <DropdownMenuItem onClick={() => copyToClipboard(report.domain)}>
                              <Copy className="h-4 w-4 mr-2" />
                              Copy Domain
-                           </DropdownMenuItem>
-                         </DropdownMenuContent>
-                       </DropdownMenu>
-                     </div>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                    </TableCell>
                 </TableRow>
               );
