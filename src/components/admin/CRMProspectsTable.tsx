@@ -16,10 +16,13 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Phone, Mail, MessageSquare, Eye, Copy, TrendingUp, Flame, Thermometer, Snowflake, Calendar, Plus, User, CalendarIcon, Loader2 } from "lucide-react";
+import { Phone, Mail, MessageSquare, Eye, Copy, TrendingUp, Flame, Thermometer, Snowflake, Calendar, Plus, User, CalendarIcon, Loader2, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ProspectProfile } from "./ProspectProfile";
+import { AssignmentDropdown } from "./AssignmentDropdown";
+import { OwnershipBadge } from "./OwnershipBadge";
+import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +53,9 @@ interface ProspectActivity {
   next_follow_up?: string;
   created_at: string;
   updated_at: string;
+  assigned_to?: string;
+  assigned_by?: string;
+  assigned_at?: string;
 }
 
 interface CRMProspectsTableProps {
@@ -59,10 +65,13 @@ interface CRMProspectsTableProps {
 
 type StatusFilter = 'all' | 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed_won' | 'closed_lost' | 'not_viable';
 type PriorityFilter = 'all' | 'hot' | 'warm' | 'cold' | 'not_viable';
+type OwnershipFilter = 'all' | 'mine' | 'unassigned' | 'assigned';
 
 export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) => {
+  const { user } = useAuth();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all');
+  const [ownershipFilter, setOwnershipFilter] = useState<OwnershipFilter>('all');
   const [activities, setActivities] = useState<Record<string, ProspectActivity>>({});
   const [selectedReport, setSelectedReport] = useState<ReportData | null>(null);
   const [profileReport, setProfileReport] = useState<ReportData | null>(null);
@@ -71,6 +80,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
   const [contactMethod, setContactMethod] = useState("");
   const [nextFollowUp, setNextFollowUp] = useState<Date | undefined>(undefined);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [adminUsers, setAdminUsers] = useState<Record<string, { email: string; display_name?: string; role: string }>>({});
 
   // Define getPriority function before using it
   const getPriority = (report: ReportData | null): 'hot' | 'warm' | 'cold' => {
@@ -99,15 +109,26 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
     const activity = activities[report.id];
     const status = activity?.status || 'new';
     const priority = getPriority(report);
+    const assignedTo = activity?.assigned_to;
     
     const statusMatch = statusFilter === 'all' || status === statusFilter;
     const priorityMatch = priorityFilter === 'all' || priority === priorityFilter;
     
-    return statusMatch && priorityMatch;
+    let ownershipMatch = true;
+    if (ownershipFilter === 'mine') {
+      ownershipMatch = assignedTo === user?.id;
+    } else if (ownershipFilter === 'unassigned') {
+      ownershipMatch = !assignedTo;
+    } else if (ownershipFilter === 'assigned') {
+      ownershipMatch = !!assignedTo;
+    }
+    
+    return statusMatch && priorityMatch && ownershipMatch;
   });
 
   useEffect(() => {
     fetchActivities();
+    fetchAdminUsers();
   }, [prospects]);
 
   const fetchActivities = async () => {
@@ -134,6 +155,41 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
       setActivities(latestActivities);
     } catch (error) {
       console.error('Error fetching activities:', error);
+    }
+  };
+
+  const fetchAdminUsers = async () => {
+    try {
+      const { data: userRoles, error } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('role', ['admin', 'super_admin']);
+
+      if (error) throw error;
+
+      // Get user details for each admin
+      const adminDetails: Record<string, { email: string; display_name?: string; role: string }> = {};
+      
+      await Promise.all(
+        userRoles.map(async (userRole) => {
+          try {
+            const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userRole.user_id);
+            if (!userError && userData.user) {
+              adminDetails[userRole.user_id] = {
+                email: userData.user.email || '',
+                display_name: userData.user.user_metadata?.display_name || userData.user.email?.split('@')[0],
+                role: userRole.role
+              };
+            }
+          } catch (err) {
+            console.error('Error fetching user details:', err);
+          }
+        })
+      );
+
+      setAdminUsers(adminDetails);
+    } catch (error) {
+      console.error('Error fetching admin users:', error);
     }
   };
 
@@ -342,7 +398,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex gap-4 items-center">
+      <div className="flex gap-4 items-center flex-wrap">
         <Select value={statusFilter} onValueChange={(value: StatusFilter) => setStatusFilter(value)}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Filter by status" />
@@ -372,6 +428,23 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
           </SelectContent>
         </Select>
 
+        <Select value={ownershipFilter} onValueChange={(value: OwnershipFilter) => setOwnershipFilter(value)}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filter by ownership" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Prospects</SelectItem>
+            <SelectItem value="mine">
+              <div className="flex items-center gap-2">
+                <UserCheck className="h-4 w-4" />
+                My Prospects
+              </div>
+            </SelectItem>
+            <SelectItem value="assigned">Assigned</SelectItem>
+            <SelectItem value="unassigned">Unassigned</SelectItem>
+          </SelectContent>
+        </Select>
+
         <div className="text-sm text-muted-foreground">
           Showing {filteredProspects.length} of {prospects.length} prospects
         </div>
@@ -384,6 +457,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
             <TableRow>
               <TableHead>Domain & Priority</TableHead>
               <TableHead>Revenue Opportunity</TableHead>
+              <TableHead>Assigned To</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Last Activity</TableHead>
               <TableHead>Next Follow-up</TableHead>
@@ -397,6 +471,8 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
               const status = activity?.status || 'new';
               const monthlyRevenue = report.report_data?.monthlyRevenueLost || 0;
               const yearlyRevenue = report.report_data?.yearlyRevenueLost || 0;
+              const assignedTo = activity?.assigned_to;
+              const assignedAdmin = assignedTo ? adminUsers[assignedTo] : null;
               
               return (
                 <TableRow key={report.id} className="hover:bg-muted/50">
@@ -415,6 +491,14 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                     <div className="font-semibold text-red-600">
                       {formatCurrency(monthlyRevenue)}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <OwnershipBadge 
+                      assignedTo={assignedTo}
+                      assignedAdminName={assignedAdmin?.display_name || assignedAdmin?.email}
+                      assignedAdminRole={assignedAdmin?.role}
+                      size="sm"
+                    />
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary" className={getStatusColor(status)}>
@@ -447,7 +531,16 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                     )}
                   </TableCell>
                    <TableCell>
-                     <div className="flex items-center gap-2">
+                     <div className="flex items-center gap-2 flex-wrap">
+                       <AssignmentDropdown
+                         currentAssignedTo={assignedTo}
+                         reportId={report.id}
+                         onAssignmentChange={() => {
+                           fetchActivities();
+                           fetchAdminUsers();
+                         }}
+                       />
+                       
                        <Button
                          variant="ghost"
                          size="sm"

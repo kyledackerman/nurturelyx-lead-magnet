@@ -35,12 +35,17 @@ import {
   Edit,
   Save,
   X,
-  Plus
+  Plus,
+  UserCheck,
+  Shield
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AuditTrailViewer } from "./AuditTrailViewer";
+import { AssignmentDropdown } from "./AssignmentDropdown";
+import { OwnershipBadge } from "./OwnershipBadge";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
 interface ReportData {
@@ -77,6 +82,9 @@ interface ProspectActivity {
   next_follow_up?: string;
   created_at: string;
   updated_at: string;
+  assigned_to?: string;
+  assigned_by?: string;
+  assigned_at?: string;
 }
 
 interface ProspectProfileProps {
@@ -87,9 +95,12 @@ interface ProspectProfileProps {
 }
 
 export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: ProspectProfileProps) => {
+  const { user } = useAuth();
   const [activities, setActivities] = useState<ProspectActivity[]>([]);
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [assignedAdmin, setAssignedAdmin] = useState<{ email: string; display_name?: string; role: string } | null>(null);
   
   // Editing states
   const [editingDomain, setEditingDomain] = useState(false);
@@ -105,11 +116,12 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
   useEffect(() => {
     if (isOpen && report) {
       fetchAllActivities();
+      checkSuperAdminStatus();
       // Initialize editing values
       setDomainValue(report.domain || '');
       setTransactionValue(report.report_data?.avgTransactionValue || 0);
     }
-  }, [isOpen, report]);
+  }, [isOpen, report, user]);
 
   useEffect(() => {
     if (activities.length > 0) {
@@ -117,8 +129,51 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
       setNotesValue(latest.notes || '');
       setContactMethod(latest.contact_method || '');
       setFollowUpDate(latest.next_follow_up ? new Date(latest.next_follow_up) : undefined);
+      
+      // Fetch assigned admin details
+      if (latest.assigned_to) {
+        fetchAssignedAdminDetails(latest.assigned_to);
+      } else {
+        setAssignedAdmin(null);
+      }
     }
   }, [activities]);
+
+  const checkSuperAdminStatus = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase.rpc('is_super_admin');
+      if (error) throw error;
+      setIsSuperAdmin(data);
+    } catch (error) {
+      console.error('Error checking super admin status:', error);
+    }
+  };
+
+  const fetchAssignedAdminDetails = async (userId: string) => {
+    try {
+      const { data: userData, error } = await supabase.auth.admin.getUserById(userId);
+      if (error) throw error;
+      
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+      
+      if (roleError) throw roleError;
+      
+      setAssignedAdmin({
+        email: userData.user?.email || '',
+        display_name: userData.user?.user_metadata?.display_name || userData.user?.email?.split('@')[0],
+        role: roleData.role
+      });
+    } catch (error) {
+      console.error('Error fetching assigned admin details:', error);
+      setAssignedAdmin(null);
+    }
+  };
 
   const fetchAllActivities = async () => {
     if (!report) return;
@@ -408,6 +463,9 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
   const yearlyRevenue = report?.report_data?.yearlyRevenueLost || 0;
   const missedLeads = report?.report_data?.missedLeads || 0;
   const avgTransactionValue = report?.report_data?.avgTransactionValue || 0;
+  const assignedTo = latestActivity?.assigned_to;
+  
+  const canEdit = isSuperAdmin || !assignedTo || assignedTo === user?.id;
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -450,31 +508,99 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                 Prospect profile • Created {report && formatDateShort(report.created_at)}
               </SheetDescription>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => copyToClipboard(report?.domain || '')}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={openReport}
-              >
-                <ExternalLink className="h-4 w-4" />
-              </Button>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyToClipboard(report?.domain || '')}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openReport}
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              </div>
+              <OwnershipBadge 
+                assignedTo={assignedTo}
+                assignedAdminName={assignedAdmin?.display_name || assignedAdmin?.email}
+                assignedAdminRole={assignedAdmin?.role}
+              />
             </div>
           </div>
         </SheetHeader>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="assignment">Assignment</TabsTrigger>
             <TabsTrigger value="revenue">Revenue Details</TabsTrigger>
             <TabsTrigger value="activity">Activity History</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="assignment" className="space-y-6">
+            {/* Assignment Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCheck className="h-5 w-5" />
+                  Prospect Assignment
+                </CardTitle>
+                <CardDescription>
+                  Manage who is responsible for this high-value prospect
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Currently Assigned To</Label>
+                  <OwnershipBadge 
+                    assignedTo={assignedTo}
+                    assignedAdminName={assignedAdmin?.display_name || assignedAdmin?.email}
+                    assignedAdminRole={assignedAdmin?.role}
+                  />
+                </div>
+                
+                {assignedTo && latestActivity?.assigned_at && (
+                  <div className="text-sm text-muted-foreground">
+                    Assigned on {formatDate(latestActivity.assigned_at)}
+                    {latestActivity.assigned_by && latestActivity.assigned_by !== assignedTo && (
+                      <span> by {latestActivity.assigned_by === user?.id ? 'you' : 'another admin'}</span>
+                    )}
+                  </div>
+                )}
+                
+                {(isSuperAdmin || (!assignedTo)) && (
+                  <div className="space-y-2">
+                    <Label>Reassign Prospect</Label>
+                    <AssignmentDropdown
+                      currentAssignedTo={assignedTo}
+                      reportId={report?.id || ''}
+                      onAssignmentChange={() => {
+                        fetchAllActivities();
+                        onActivityUpdate?.();
+                      }}
+                    />
+                  </div>
+                )}
+                
+                {assignedTo && assignedTo !== user?.id && !isSuperAdmin && (
+                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <div className="flex items-center gap-2 text-yellow-800">
+                      <Shield className="h-4 w-4" />
+                      <span className="text-sm font-medium">Limited Access</span>
+                    </div>
+                    <p className="text-sm text-yellow-700 mt-1">
+                      This prospect is assigned to another admin. You can view but not edit.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="overview" className="space-y-6">
             {/* Quick Stats */}
@@ -544,13 +670,15 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                       ) : (
                         <div className="flex items-center gap-2">
                           <p className="text-xl font-bold">{formatCurrency(avgTransactionValue)}</p>
-                          <Button
-                            size="xs"
-                            variant="ghost"
-                            onClick={() => setEditingTransactionValue(true)}
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
+                          {canEdit && (
+                            <Button
+                              size="xs"
+                              variant="ghost"
+                              onClick={() => setEditingTransactionValue(true)}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -574,7 +702,7 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                     <Select 
                       value={latestActivity?.status || 'new'} 
                       onValueChange={(value) => updateActivity(report.id, { status: value })}
-                      disabled={updating}
+                      disabled={updating || !canEdit}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -595,7 +723,7 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                     <Select 
                       value={latestActivity?.priority || 'cold'} 
                       onValueChange={(value) => updateActivity(report.id, { priority: value })}
-                      disabled={updating}
+                      disabled={updating || !canEdit}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -617,6 +745,7 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                     <Select 
                       value={contactMethod} 
                       onValueChange={setContactMethod}
+                      disabled={!canEdit}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select method" />
@@ -637,6 +766,7 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                         <Button
                           variant="outline"
                           className="w-full justify-start text-left font-normal"
+                          disabled={!canEdit}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {followUpDate ? format(followUpDate, "PPP") : <span>Pick a date</span>}
@@ -686,7 +816,7 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                           rows={3}
                         />
                         <div className="flex gap-2">
-                          <Button size="sm" onClick={updateNotes} disabled={updating}>
+                          <Button size="sm" onClick={updateNotes} disabled={updating || !canEdit}>
                             <Save className="h-4 w-4 mr-1" />
                             Save
                           </Button>
@@ -701,8 +831,12 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                       </div>
                     ) : (
                       <div 
-                        className="min-h-[80px] p-3 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => setEditingNotes(true)}
+                        className={`min-h-[80px] p-3 border rounded-md transition-colors ${
+                          canEdit 
+                            ? 'cursor-pointer hover:bg-muted/50' 
+                            : 'cursor-not-allowed opacity-60'
+                        }`}
+                        onClick={() => canEdit && setEditingNotes(true)}
                       >
                         {notesValue ? (
                           <p className="text-sm">{notesValue}</p>

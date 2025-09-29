@@ -68,6 +68,9 @@ export type Database = {
       prospect_activities: {
         Row: {
           activity_type: string
+          assigned_at: string | null
+          assigned_by: string | null
+          assigned_to: string | null
           contact_method: string | null
           created_at: string
           created_by: string | null
@@ -81,6 +84,9 @@ export type Database = {
         }
         Insert: {
           activity_type: string
+          assigned_at?: string | null
+          assigned_by?: string | null
+          assigned_to?: string | null
           contact_method?: string | null
           created_at?: string
           created_by?: string | null
@@ -94,6 +100,9 @@ export type Database = {
         }
         Update: {
           activity_type?: string
+          assigned_at?: string | null
+          assigned_by?: string | null
+          assigned_to?: string | null
           contact_method?: string | null
           created_at?: string
           created_by?: string | null
