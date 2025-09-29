@@ -132,6 +132,11 @@ const FormHeader = () => (
     <CardDescription className="text-sm sm:text-base text-muted-foreground max-w-lg mx-auto">
       Discover how many leads you're missing without ID resolution technology
     </CardDescription>
+    <div className="mt-3">
+      <span className="inline-flex items-center text-sm font-medium text-green-600">
+        ✓ No opt-in required • Get your data instantly
+      </span>
+    </div>
   </div>
 );
 
