@@ -557,7 +557,7 @@ const AdminDashboard = () => {
                 <Globe className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.uniqueDomains}</div>
+                <div className="text-4xl font-bold">{stats.uniqueDomains}</div>
                 <div className="flex gap-3 mt-2 text-xs">
                   <span className="text-green-600">Today: +{stats.uniqueDomainsToday}</span>
                   <span className="text-muted-foreground">Yesterday: +{stats.uniqueDomainsYesterday}</span>
@@ -571,7 +571,7 @@ const AdminDashboard = () => {
                 <Shield className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.adminReports}</div>
+                <div className="text-4xl font-bold">{stats.adminReports}</div>
                 <div className="flex gap-3 mt-2 text-xs">
                   <span className="text-green-600">Today: +{stats.adminReportsToday}</span>
                   <span className="text-muted-foreground">Yesterday: +{stats.adminReportsYesterday}</span>
@@ -585,7 +585,7 @@ const AdminDashboard = () => {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.nonAdminReports}</div>
+                <div className="text-4xl font-bold">{stats.nonAdminReports}</div>
                 <div className="flex gap-3 mt-2 text-xs">
                   <span className="text-green-600">Today: +{stats.nonAdminReportsToday}</span>
                   <span className="text-muted-foreground">Yesterday: +{stats.nonAdminReportsYesterday}</span>
@@ -599,12 +599,12 @@ const AdminDashboard = () => {
                 <Target className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-700">{stats.highValueProspects}</div>
+                <div className="text-4xl font-bold text-orange-700">{stats.highValueProspects}</div>
                 <div className="flex gap-3 mt-2 text-xs">
                   <span className="text-green-600">Today: +{stats.highValueProspectsToday}</span>
                   <span className="text-muted-foreground">Yesterday: +{stats.highValueProspectsYesterday}</span>
                 </div>
-                <p className="text-xs text-orange-600 mt-1">Significant revenue loss</p>
+                <p className="text-xs text-orange-600 mt-1">Significant revenue loss (&gt; $5,000/month)</p>
               </CardContent>
             </Card>
           </div>
