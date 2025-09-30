@@ -17,6 +17,7 @@ import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp,
 import { toast } from "sonner";
 import { ComposedChart, Area, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
+import AdminManual from "@/components/admin/AdminManual";
 import { FormData, ReportData } from "@/types/report";
 import { fetchDomainData, calculateReportMetrics } from "@/services/spyfuService";
 import { reportService } from "@/services/reportService";
@@ -684,7 +685,7 @@ const AdminDashboard = () => {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
-              {/* Move chart here for overview */}
+              <AdminManual />
             </TabsContent>
 
             <TabsContent value="generate" className="space-y-6">
