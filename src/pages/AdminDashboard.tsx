@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { ComposedChart, Area, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import LeadCalculatorForm from "@/components/LeadCalculatorForm";
+import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
 import { FormData, ReportData } from "@/types/report";
 import { fetchDomainData, calculateReportMetrics } from "@/services/spyfuService";
 import { reportService } from "@/services/reportService";
@@ -705,7 +705,7 @@ const AdminDashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <LeadCalculatorForm
+                    <AdminLeadCalculatorForm
                       onCalculate={handleGenerateReport}
                       onReset={handleResetReport}
                       isCalculating={isGeneratingReport}
