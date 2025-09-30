@@ -49,6 +49,9 @@ serve(async (req) => {
                      req.headers.get('x-forwarded-for') || 
                      req.headers.get('x-real-ip') || 
                      'unknown';
+    const userAgent = req.headers.get('user-agent') || '';
+    const referrer = req.headers.get('referer') || null;
+    const sessionId = req.headers.get('x-session-id') || `${Date.now()}-${Math.random()}`;
     
     if (!checkRateLimit(clientIP, 300, 15 * 60 * 1000)) {
       return new Response(
@@ -106,15 +109,6 @@ serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    // Record view analytics (in background, don't wait)
-    const clientIP = req.headers.get('cf-connecting-ip') || 
-                     req.headers.get('x-forwarded-for') || 
-                     req.headers.get('x-real-ip') || 
-                     'unknown';
-    const userAgent = req.headers.get('user-agent') || '';
-    const referrer = req.headers.get('referer') || null;
-    const sessionId = req.headers.get('x-session-id') || `${Date.now()}-${Math.random()}`;
 
     // Record view analytics in background
     (async () => {
