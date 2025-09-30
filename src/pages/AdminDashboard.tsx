@@ -496,21 +496,23 @@ const AdminDashboard = () => {
                           borderRadius: '6px'
                         }}
                       />
-                      <Area 
-                        type="monotone" 
-                        dataKey="revenueLineReports" 
-                        fill="hsl(var(--chart-5) / 0.4)"
-                        stroke="hsl(var(--chart-5))"
-                        name="High-Value Domains"
-                      />
                       <Line 
                         type="monotone" 
                         dataKey="total" 
-                        stroke="hsl(var(--chart-3))" 
+                        stroke="#60a5fa" 
                         strokeWidth={2.5}
-                        dot={{ fill: 'hsl(var(--chart-3))', strokeWidth: 2, r: 4 }}
+                        dot={{ fill: '#60a5fa', strokeWidth: 2, r: 4 }}
                         activeDot={{ r: 6 }}
                         name="Total Reports"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="revenueLineReports" 
+                        stroke="#ef4444"
+                        strokeWidth={2.5}
+                        dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
+                        activeDot={{ r: 6 }}
+                        name="High-Value Domains"
                       />
                     </ComposedChart>
                   </ResponsiveContainer>
