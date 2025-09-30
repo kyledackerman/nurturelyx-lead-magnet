@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users } from "lucide-react";
 import { toast } from "sonner";
-import { ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 interface ReportSummary {
   domain: string;
@@ -434,26 +434,25 @@ const AdminDashboard = () => {
                         border: '1px solid hsl(var(--border))',
                         borderRadius: '6px'
                       }}
-                      formatter={(value, name) => [
-                        value,
-                        name
-                      ]}
+                      formatter={(value, name) => [value, name]}
                     />
-                    <Area 
-                      type="monotone" 
+                    <Legend 
+                      wrapperStyle={{ paddingTop: '20px' }}
+                      iconType="square"
+                    />
+                    <Bar 
                       dataKey="adminReports" 
                       stackId="reports"
-                      stroke="hsl(var(--primary))" 
-                      fill="hsl(var(--primary) / 0.6)"
+                      fill="hsl(var(--primary))"
                       name="Admin Reports"
+                      radius={[0, 0, 4, 4]}
                     />
-                    <Area 
-                      type="monotone" 
+                    <Bar 
                       dataKey="nonAdminReports" 
                       stackId="reports"
-                      stroke="hsl(var(--chart-2))" 
-                      fill="hsl(var(--chart-2) / 0.6)"
+                      fill="hsl(var(--chart-2))"
                       name="Non-Admin Reports"
+                      radius={[4, 4, 0, 0]}
                     />
                     <Line 
                       type="monotone" 
