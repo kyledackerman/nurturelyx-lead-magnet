@@ -443,20 +443,22 @@ const AdminDashboard = () => {
                           borderRadius: '6px'
                         }}
                       />
-                      <Area 
+                      <Line 
                         type="monotone" 
                         dataKey="adminReports" 
-                        stackId="sources"
-                        stroke="hsl(var(--primary))" 
-                        fill="hsl(var(--primary) / 0.6)"
+                        stroke="#60a5fa"
+                        strokeWidth={2.5}
+                        dot={{ fill: '#60a5fa', strokeWidth: 2, r: 4 }}
+                        activeDot={{ r: 6 }}
                         name="Admin Reports"
                       />
-                      <Area 
+                      <Line 
                         type="monotone" 
                         dataKey="nonAdminReports" 
-                        stackId="sources"
-                        stroke="hsl(var(--chart-2))" 
-                        fill="hsl(var(--chart-2) / 0.6)"
+                        stroke="#ef4444"
+                        strokeWidth={2.5}
+                        dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
+                        activeDot={{ r: 6 }}
                         name="Non-Admin Reports"
                       />
                     </ComposedChart>
