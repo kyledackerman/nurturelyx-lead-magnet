@@ -13,9 +13,16 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users } from "lucide-react";
+import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { ComposedChart, Area, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import LeadCalculatorForm from "@/components/LeadCalculatorForm";
+import { FormData, ReportData } from "@/types/report";
+import { fetchDomainData, calculateReportMetrics } from "@/services/spyfuService";
+import { reportService } from "@/services/reportService";
+import LeadReport from "@/components/LeadReport";
+import LoadingState from "@/components/calculator/LoadingState";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ReportSummary {
   domain: string;
@@ -51,6 +58,7 @@ interface ChartDataPoint {
 }
 
 const AdminDashboard = () => {
+  const { user } = useAuth();
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [filteredReports, setFilteredReports] = useState<ReportSummary[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,6 +75,13 @@ const AdminDashboard = () => {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [timePeriod, setTimePeriod] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
   const [leaderboardTimeFilter, setLeaderboardTimeFilter] = useState<'daily' | 'weekly' | 'monthly' | 'all-time'>('monthly');
+  
+  // Report generation state
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [reportProgress, setReportProgress] = useState(0);
+  const [generatedReport, setGeneratedReport] = useState<ReportData | null>(null);
+  const [reportFormData, setReportFormData] = useState<FormData | null>(null);
+  const [reportApiError, setReportApiError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchReports();
@@ -311,6 +326,136 @@ const AdminDashboard = () => {
     }
   };
 
+  // Report generation handler - identical to Index.tsx
+  const handleGenerateReport = async (formData: FormData) => {
+    const domain = formData.domain || "example.com";
+
+    setIsGeneratingReport(true);
+    setReportApiError(null);
+    setReportProgress(0);
+    setReportFormData({ ...formData, domain });
+
+    const progressInterval = setInterval(() => {
+      setReportProgress((prev) => {
+        if (prev < 90) return prev + Math.random() * 15;
+        return prev;
+      });
+    }, 500);
+
+    try {
+      // Fetch domain data from SpyFu
+      const apiData = await fetchDomainData(
+        domain,
+        formData.organicTrafficManual,
+        formData.isUnsureOrganic
+      );
+
+      setReportProgress(95);
+
+      const paidTraffic = formData.isUnsurePaid
+        ? 0
+        : formData.monthlyVisitors || 0;
+
+      const metrics = calculateReportMetrics(
+        paidTraffic,
+        formData.avgTransactionValue,
+        apiData.organicTraffic,
+        apiData.paidTraffic,
+        apiData.monthlyRevenueData,
+        apiData.dataSource === "api"
+      );
+
+      const fullReportData: ReportData = {
+        ...formData,
+        ...apiData,
+        ...metrics,
+      };
+
+      setReportProgress(100);
+      setTimeout(() => {
+        setGeneratedReport(fullReportData);
+        
+        // Save report to database in background
+        try {
+          reportService.saveReport(fullReportData, user?.id).then((saveResult) => {
+            setGeneratedReport(prev => prev ? { 
+              ...prev, 
+              reportId: saveResult.reportId,
+              slug: saveResult.slug 
+            } : null);
+            console.log('Report saved:', saveResult);
+            
+            toast.success('Report saved successfully!', {
+              description: 'Report has been added to the database.',
+              duration: 4000,
+            });
+            
+            // Refresh the reports list
+            fetchReports();
+          }).catch((saveError) => {
+            console.error('Failed to save report:', saveError);
+          });
+        } catch (saveError) {
+          console.error('Failed to save report:', saveError);
+        }
+        
+        setIsGeneratingReport(false);
+        clearInterval(progressInterval);
+
+        let dataSourceMessage = "";
+        switch (apiData.dataSource) {
+          case "api":
+            dataSourceMessage = "using SpyFu data";
+            break;
+          case "manual":
+            dataSourceMessage = "using manually entered data";
+            break;
+          case "both":
+            dataSourceMessage = "using combined SpyFu and manual data";
+            break;
+          case "fallback":
+            dataSourceMessage = "using industry estimates (API unavailable)";
+            break;
+        }
+
+        toast.success(`Report generated successfully ${dataSourceMessage}`, {
+          duration: 5000,
+        });
+      }, 500);
+    } catch (error) {
+      console.error("Error calculating report:", error);
+      const errorMsg =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      setReportApiError(errorMsg);
+      setIsGeneratingReport(false);
+      clearInterval(progressInterval);
+
+      toast.error("Failed to generate report", {
+        description: "Please provide traffic data manually to continue.",
+        duration: 8000,
+      });
+    }
+  };
+
+  const handleResetReport = () => {
+    setGeneratedReport(null);
+    setReportApiError(null);
+    setReportFormData(null);
+    setReportProgress(0);
+    toast.success("Report cleared", {
+      duration: 3000,
+    });
+  };
+
+  const handleEditReport = () => {
+    setGeneratedReport(null);
+    setReportApiError(null);
+    toast.info("Edit your information and submit again", {
+      description: "Your previous entries have been preserved.",
+      duration: 5000,
+    });
+  };
+
   return (
     <AdminAuthGuard>
       <Header />
@@ -526,9 +671,13 @@ const AdminDashboard = () => {
           </div>
 
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+              <TabsTrigger value="generate">
+                <FileText className="h-4 w-4 mr-2" />
+                Generate Report
+              </TabsTrigger>
               <TabsTrigger value="crm">CRM</TabsTrigger>
               <TabsTrigger value="admin">Admin Management</TabsTrigger>
               <TabsTrigger value="reports">Reports</TabsTrigger>
@@ -538,10 +687,48 @@ const AdminDashboard = () => {
               {/* Move chart here for overview */}
             </TabsContent>
 
+            <TabsContent value="generate" className="space-y-6">
+              {isGeneratingReport ? (
+                <LoadingState
+                  calculationProgress={reportProgress}
+                  onReset={handleResetReport}
+                />
+              ) : !generatedReport ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Generate Lead Report
+                    </CardTitle>
+                    <CardDescription>
+                      Run internal reports for prospecting and analysis. Reports are saved to the database with normal tracking.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <LeadCalculatorForm
+                      onCalculate={handleGenerateReport}
+                      onReset={handleResetReport}
+                      isCalculating={isGeneratingReport}
+                      initialData={reportFormData}
+                      apiError={reportApiError}
+                    />
+                  </CardContent>
+                </Card>
+              ) : (
+                <div>
+                  <LeadReport
+                    data={generatedReport}
+                    onReset={handleResetReport}
+                    onEditData={handleEditReport}
+                  />
+                </div>
+              )}
+            </TabsContent>
+
             <TabsContent value="leaderboard" className="space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Performance Rankings</h3>
-                <ToggleGroup 
+                <ToggleGroup
                   type="single" 
                   value={leaderboardTimeFilter} 
                   onValueChange={(value) => value && setLeaderboardTimeFilter(value as 'daily' | 'weekly' | 'monthly' | 'all-time')}
