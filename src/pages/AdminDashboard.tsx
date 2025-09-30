@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users } from "lucide-react";
 import { toast } from "sonner";
-import { ComposedChart, Area, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { ComposedChart, Area, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface ReportSummary {
   domain: string;
@@ -443,9 +443,10 @@ const AdminDashboard = () => {
                           borderRadius: '6px'
                         }}
                       />
+                      <Legend />
                       <Line 
                         type="monotone" 
-                        dataKey="adminReports" 
+                        dataKey="adminReports"
                         stroke="#60a5fa"
                         strokeWidth={2.5}
                         dot={{ fill: '#60a5fa', strokeWidth: 2, r: 4 }}
@@ -498,9 +499,10 @@ const AdminDashboard = () => {
                           borderRadius: '6px'
                         }}
                       />
+                      <Legend />
                       <Line 
                         type="monotone" 
-                        dataKey="total" 
+                        dataKey="total"
                         stroke="#60a5fa" 
                         strokeWidth={2.5}
                         dot={{ fill: '#60a5fa', strokeWidth: 2, r: 4 }}
