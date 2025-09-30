@@ -17,6 +17,26 @@ function hashIP(ip: string): string {
   return Math.abs(hash).toString(36);
 }
 
+// Simple in-memory rate limiter
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+
+  if (!entry || entry.resetAt < now) {
+    rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+
+  if (entry.count >= limit) {
+    return false;
+  }
+
+  entry.count++;
+  return true;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -24,6 +44,26 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limiting: 300 requests per 15 minutes per IP (generous for read operations)
+    const clientIP = req.headers.get('cf-connecting-ip') || 
+                     req.headers.get('x-forwarded-for') || 
+                     req.headers.get('x-real-ip') || 
+                     'unknown';
+    
+    if (!checkRateLimit(clientIP, 300, 15 * 60 * 1000)) {
+      return new Response(
+        JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': '900'
+          } 
+        }
+      );
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''

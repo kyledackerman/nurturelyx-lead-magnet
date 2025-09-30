@@ -6,6 +6,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Simple in-memory rate limiter
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+
+  if (!entry || entry.resetAt < now) {
+    rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+
+  if (entry.count >= limit) {
+    return false;
+  }
+
+  entry.count++;
+  return true;
+}
+
+// Cleanup old entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitStore.entries()) {
+    if (entry.resetAt < now) {
+      rateLimitStore.delete(key);
+    }
+  }
+}, 60000); // Cleanup every minute
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -13,6 +43,26 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limiting: 50 requests per 15 minutes per IP
+    const clientIP = req.headers.get('cf-connecting-ip') || 
+                     req.headers.get('x-forwarded-for') || 
+                     req.headers.get('x-real-ip') || 
+                     'unknown';
+    
+    if (!checkRateLimit(clientIP, 50, 15 * 60 * 1000)) {
+      return new Response(
+        JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': '900'
+          } 
+        }
+      );
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -28,9 +78,17 @@ serve(async (req) => {
     const body = await req.json();
     const { reportData, userId = null } = body;
 
-    if (!reportData || !reportData.domain) {
+    // Input validation
+    if (!reportData || typeof reportData !== 'object') {
       return new Response(
-        JSON.stringify({ error: 'Report data and domain are required' }),
+        JSON.stringify({ error: 'Invalid request data' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!reportData.domain || typeof reportData.domain !== 'string' || reportData.domain.length > 255) {
+      return new Response(
+        JSON.stringify({ error: 'Valid domain is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -65,7 +123,7 @@ serve(async (req) => {
     if (error) {
       console.error('Error saving report:', error);
       return new Response(
-        JSON.stringify({ error: 'Failed to save report' }),
+        JSON.stringify({ error: 'Unable to save report. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

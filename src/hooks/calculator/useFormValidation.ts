@@ -1,6 +1,8 @@
 
 import { useState, useEffect } from "react";
 import { FormData } from "@/types/report";
+import { calculatorFormSchema, cleanAndValidateDomain } from "@/lib/validation";
+import { z } from "zod";
 
 export function useFormValidation(formData: FormData, showTrafficFields: boolean) {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -17,26 +19,32 @@ export function useFormValidation(formData: FormData, showTrafficFields: boolean
     }
   };
 
-  // Validate the form
+  // Validate the form using Zod schema
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
     
-    if (!formData.domain.trim()) {
-      newErrors.domain = "Please enter a valid domain";
-    }
-    
-    if (showTrafficFields) {
-      if (formData.isUnsurePaid === false && (!formData.monthlyVisitors || formData.monthlyVisitors < 0)) {
-        newErrors.monthlyVisitors = "Please enter a valid number of monthly paid visitors";
-      }
+    try {
+      // Clean and validate domain
+      const cleanedDomain = cleanAndValidateDomain(formData.domain);
       
-      if (formData.isUnsureOrganic === false && (!formData.organicTrafficManual || formData.organicTrafficManual < 0)) {
-        newErrors.organicTrafficManual = "Please enter a valid number of monthly organic visitors";
+      // Validate using Zod schema
+      calculatorFormSchema.parse({
+        domain: cleanedDomain,
+        monthlyVisitors: formData.monthlyVisitors,
+        organicTrafficManual: formData.organicTrafficManual,
+        avgTransactionValue: formData.avgTransactionValue,
+        isUnsurePaid: formData.isUnsurePaid,
+        isUnsureOrganic: formData.isUnsureOrganic,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        error.errors.forEach((err) => {
+          const field = err.path[0] as string;
+          newErrors[field] = err.message;
+        });
+      } else {
+        newErrors.domain = "An unexpected error occurred during validation";
       }
-    }
-    
-    if (formData.avgTransactionValue <= 0) {
-      newErrors.avgTransactionValue = "Please enter a valid transaction value greater than zero";
     }
     
     setErrors(newErrors);

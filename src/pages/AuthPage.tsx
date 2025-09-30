@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
+import { signUpSchema, signInSchema, sanitizeInput } from '@/lib/validation';
+import { z } from 'zod';
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -34,19 +36,39 @@ const AuthPage = () => {
     setError('');
     setLoading(true);
 
-    if (!isLogin && password !== confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
-      return;
-    }
-
     try {
+      // Sanitize inputs
+      const sanitizedEmail = sanitizeInput(email);
+      const sanitizedPassword = password; // Don't sanitize password, just validate
+
+      // Validate inputs using Zod
+      if (isLogin) {
+        signInSchema.parse({ email: sanitizedEmail, password: sanitizedPassword });
+      } else {
+        if (password !== confirmPassword) {
+          setError('Passwords do not match');
+          setLoading(false);
+          return;
+        }
+        signUpSchema.parse({ email: sanitizedEmail, password: sanitizedPassword });
+      }
+
+      // Proceed with authentication
       const { error } = isLogin 
-        ? await signIn(email, password)
-        : await signUp(email, password);
+        ? await signIn(sanitizedEmail, sanitizedPassword)
+        : await signUp(sanitizedEmail, sanitizedPassword);
 
       if (error) {
-        setError(error.message);
+        // Generic error messages to avoid information disclosure
+        if (error.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password');
+        } else if (error.message.includes('User already registered')) {
+          setError('An account with this email already exists');
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Please check your email to confirm your account');
+        } else {
+          setError('Authentication failed. Please try again.');
+        }
       } else {
         if (isLogin) {
           toast.success('Welcome back!');
@@ -57,7 +79,12 @@ const AuthPage = () => {
         }
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      if (err instanceof z.ZodError) {
+        // Display first validation error
+        setError(err.errors[0].message);
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
