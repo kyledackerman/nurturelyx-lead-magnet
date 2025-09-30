@@ -31,19 +31,19 @@ const AdminManual = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5" />
-            Quick Start Guide
+            Quick Start Guide for Sales
           </CardTitle>
-          <CardDescription>Get up and running in minutes</CardDescription>
+          <CardDescription>Master this tool in minutes to demonstrate value to prospects</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4">
             <div className="space-y-2">
               <h4 className="font-semibold flex items-center gap-2">
                 <Badge variant="outline">Step 1</Badge>
-                Configure Your SpyFu API
+                Understand the Dashboard Metrics
               </h4>
               <p className="text-sm text-muted-foreground pl-16">
-                Navigate to the Generate Report tab and enter your SpyFu API key. This enables real-time traffic data fetching for accurate lead reports.
+                Review the Overview tab to understand key metrics: total reports generated, unique domains analyzed, and high-value prospects identified. These numbers help you understand the scale of opportunity in your pipeline.
               </p>
             </div>
             
@@ -53,27 +53,27 @@ const AdminManual = () => {
                 Generate Your First Report
               </h4>
               <p className="text-sm text-muted-foreground pl-16">
-                Enter a domain name, average transaction value, and estimated close rate. The system will analyze visitor traffic and calculate revenue loss from unidentified leads.
+                Navigate to the Report Generation tab and enter a prospect's domain name. Add their traffic and conversion data to calculate missed lead opportunities and show the revenue they're leaving on the table.
               </p>
             </div>
             
             <div className="space-y-2">
               <h4 className="font-semibold flex items-center gap-2">
                 <Badge variant="outline">Step 3</Badge>
-                Review CRM and Qualify Leads
+                Present the Value Story
               </h4>
               <p className="text-sm text-muted-foreground pl-16">
-                Check the CRM tab to see all generated reports. Assign prospects to team members, set priorities, and track follow-up activities.
+                Use the generated report to demonstrate concrete, quantified value to your prospect. Focus on the "missed revenue" numbers and how visitor identification can recover those lost opportunities.
               </p>
             </div>
             
             <div className="space-y-2">
               <h4 className="font-semibold flex items-center gap-2">
                 <Badge variant="outline">Step 4</Badge>
-                Monitor Performance
+                Share & Follow Up in CRM
               </h4>
               <p className="text-sm text-muted-foreground pl-16">
-                Use the Leaderboard tab to track which domains have the highest revenue potential and conversion opportunities.
+                Share the report publicly with your prospect, add them to the CRM for follow-up tracking, and monitor their status through your sales pipeline using the CRM and Leaderboard tabs.
               </p>
             </div>
           </div>
@@ -1060,6 +1060,25 @@ const AdminManual = () => {
               </div>
 
               <div>
+                <h3 className="text-lg font-semibold mb-3">Composite Score Formula</h3>
+                <div className="bg-muted p-4 rounded-lg mb-4">
+                  <code className="text-sm font-mono block text-center">
+                    Composite Score = (Total Revenue Lost ÷ 1,000 × 0.7) + (Total Leads × 0.3)
+                  </code>
+                </div>
+                <div className="space-y-2 text-sm text-muted-foreground mb-4">
+                  <p>
+                    This formula balances <strong className="text-foreground">revenue impact (70% weight)</strong> with <strong className="text-foreground">lead volume (30% weight)</strong>. 
+                    It rewards both finding high-value opportunities and maintaining consistent prospecting activity.
+                  </p>
+                  <p>
+                    <strong className="text-foreground">Why this matters:</strong> A salesperson who identifies one $500K opportunity scores higher than someone who generates 
+                    ten $10K opportunities, but consistent lead generation is still rewarded to encourage ongoing activity.
+                  </p>
+                </div>
+              </div>
+
+              <div>
                 <h3 className="text-lg font-semibold mb-3">Key Metrics Explained</h3>
                 <div className="space-y-3">
                   <Card>
@@ -1166,171 +1185,6 @@ const AdminManual = () => {
           </AccordionContent>
         </AccordionItem>
 
-        {/* Technical Setup */}
-        <AccordionItem value="technical-setup" className="border rounded-lg px-4">
-          <AccordionTrigger className="text-lg font-semibold hover:no-underline">
-            <div className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Technical Setup & Troubleshooting
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="space-y-4 pt-4">
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-3">SpyFu API Configuration</h3>
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <p className="font-semibold mb-2">Getting Your API Key</p>
-                    <ol className="list-decimal list-inside ml-4 space-y-1 text-muted-foreground">
-                      <li>Log in to your SpyFu account at spyfu.com</li>
-                      <li>Navigate to Account Settings → API Access</li>
-                      <li>Generate a new API key or copy your existing key</li>
-                      <li>Keep this key secure - treat it like a password</li>
-                    </ol>
-                  </div>
-
-                  <div>
-                    <p className="font-semibold mb-2">Entering the API Key</p>
-                    <ol className="list-decimal list-inside ml-4 space-y-1 text-muted-foreground">
-                      <li>Go to Generate Report tab in admin dashboard</li>
-                      <li>Scroll to "SpyFu API Configuration" section</li>
-                      <li>Paste your API key into the input field</li>
-                      <li>Click "Save API Key"</li>
-                      <li>Test the connection by generating a report</li>
-                    </ol>
-                  </div>
-
-                  <Alert>
-                    <AlertDescription className="text-xs">
-                      <strong>API Limits:</strong> SpyFu has rate limits and monthly query quotas depending on your plan. 
-                      Monitor your usage to avoid unexpected interruptions.
-                    </AlertDescription>
-                  </Alert>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Proxy Server Management</h3>
-                <div className="space-y-3 text-sm">
-                  <p className="text-muted-foreground">
-                    The system supports proxy servers for API requests to bypass rate limits or IP restrictions:
-                  </p>
-                  
-                  <div>
-                    <p className="font-semibold mb-1">Local Proxy Setup</p>
-                    <ol className="list-decimal list-inside ml-4 space-y-1 text-muted-foreground">
-                      <li>Install and configure a local proxy server (e.g., CORS Anywhere)</li>
-                      <li>Start the proxy server on your local machine</li>
-                      <li>Toggle "Use Local Proxy" in the admin form</li>
-                      <li>Test the connection before generating reports</li>
-                    </ol>
-                  </div>
-
-                  <div>
-                    <p className="font-semibold mb-1">Custom Proxy URL</p>
-                    <p className="text-muted-foreground">
-                      For production environments, configure a custom proxy URL in the system settings. 
-                      This should point to a dedicated proxy service with proper authentication.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Common Errors & Solutions</h3>
-                <div className="space-y-3">
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base text-destructive">Error: "Failed to fetch domain data"</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-sm space-y-2">
-                      <p className="font-semibold">Possible Causes:</p>
-                      <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
-                        <li>Invalid or expired SpyFu API key</li>
-                        <li>Rate limit exceeded</li>
-                        <li>Domain not found in SpyFu database</li>
-                        <li>Network connectivity issues</li>
-                      </ul>
-                      <p className="font-semibold mt-3">Solutions:</p>
-                      <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
-                        <li>Verify API key is correct and active</li>
-                        <li>Wait 5-10 minutes if rate limited</li>
-                        <li>Use manual traffic entry as fallback</li>
-                        <li>Check internet connection and firewall settings</li>
-                      </ul>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base text-destructive">Error: "Invalid domain format"</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-sm space-y-2">
-                      <p className="font-semibold">Possible Causes:</p>
-                      <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
-                        <li>Domain includes protocol (http://, https://)</li>
-                        <li>Domain includes paths (/about, /contact)</li>
-                        <li>Invalid characters in domain name</li>
-                      </ul>
-                      <p className="font-semibold mt-3">Solutions:</p>
-                      <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
-                        <li>Enter only the root domain (example.com)</li>
-                        <li>Remove all paths and parameters</li>
-                        <li>Ensure proper domain format (letters, numbers, hyphens, dots only)</li>
-                      </ul>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base text-destructive">Error: "Permission denied"</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-sm space-y-2">
-                      <p className="font-semibold">Possible Causes:</p>
-                      <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
-                        <li>User doesn't have admin privileges</li>
-                        <li>Session expired or authentication lost</li>
-                        <li>Database RLS policies blocking access</li>
-                      </ul>
-                      <p className="font-semibold mt-3">Solutions:</p>
-                      <ul className="list-disc list-inside ml-4 space-y-1 text-muted-foreground">
-                        <li>Verify admin role in Admin Management tab</li>
-                        <li>Log out and log back in</li>
-                        <li>Contact super admin to grant proper permissions</li>
-                      </ul>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Database Maintenance</h3>
-                <div className="space-y-3">
-                  <Alert>
-                    <AlertDescription className="text-sm">
-                      <strong>Regular Backups:</strong> Database backups are handled automatically by the hosting provider. 
-                      Contact your super admin or technical team for backup restoration if needed.
-                    </AlertDescription>
-                  </Alert>
-                  
-                  <Alert>
-                    <AlertDescription className="text-sm">
-                      <strong>Performance Monitoring:</strong> If the dashboard becomes slow, it may be due to database query inefficiencies. 
-                      Check with your technical team about indexing and query optimization.
-                    </AlertDescription>
-                  </Alert>
-                  
-                  <Alert>
-                    <AlertDescription className="text-sm">
-                      <strong>Data Integrity:</strong> The system includes audit logs that track all changes. 
-                      If data appears incorrect or missing, review the audit trail to identify what happened.
-                    </AlertDescription>
-                  </Alert>
-                </div>
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
       </Accordion>
 
       {/* Footer */}
