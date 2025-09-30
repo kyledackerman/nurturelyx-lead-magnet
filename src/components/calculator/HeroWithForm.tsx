@@ -42,7 +42,7 @@ const HeroWithForm = ({
             </div>
             
             <h2 className="text-xl md:text-2xl lg:text-3xl font-semibold text-gray-300 leading-relaxed animate-fade-in animation-delay-200">
-              What if you could find out—in 2 minutes—exactly how much?
+              What if you could find out—in just 10 seconds—exactly how much?
             </h2>
             
             <p className="text-lg md:text-xl text-accent font-medium leading-relaxed animate-fade-in animation-delay-300">
