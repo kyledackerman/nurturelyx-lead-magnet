@@ -604,7 +604,7 @@ const AdminDashboard = () => {
                   <span className="text-green-600">Today: +{stats.highValueProspectsToday}</span>
                   <span className="text-muted-foreground">Yesterday: +{stats.highValueProspectsYesterday}</span>
                 </div>
-                <p className="text-xs text-orange-600 mt-1">Revenue lost &gt; $5,000/month</p>
+                <p className="text-xs text-orange-600 mt-1">Significant revenue loss</p>
               </CardContent>
             </Card>
           </div>
