@@ -69,25 +69,7 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
     return new Intl.NumberFormat('en-US').format(value);
   };
 
-  // Enhanced color coding functions
-  const getOrganicTrafficColor = (traffic?: number) => {
-    if (!traffic) return 'text-muted-foreground';
-    if (traffic >= 100000) return 'text-emerald-600 font-bold';
-    if (traffic >= 50000) return 'text-green-600 font-semibold';
-    if (traffic >= 20000) return 'text-lime-600 font-medium';
-    if (traffic >= 5000) return 'text-yellow-600 font-medium';
-    return 'text-red-500 font-medium';
-  };
-
-  const getPaidTrafficColor = (traffic?: number) => {
-    if (!traffic) return 'text-muted-foreground';
-    if (traffic >= 50000) return 'text-blue-600 font-bold';
-    if (traffic >= 20000) return 'text-blue-500 font-semibold';
-    if (traffic >= 5000) return 'text-cyan-600 font-medium';
-    if (traffic >= 1000) return 'text-orange-500 font-medium';
-    return 'text-red-500 font-medium';
-  };
-
+  // Color coding functions for key metrics
   const getMissedLeadsColor = (leads?: number) => {
     if (!leads) return 'text-muted-foreground';
     if (leads >= 1000) return 'text-red-700 font-bold';
@@ -291,12 +273,12 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
                   </div>
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className={getOrganicTrafficColor(report.report_data?.organicTraffic)}>
+                  <span className="text-foreground">
                     {formatNumber(report.report_data?.organicTraffic)}
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className={getPaidTrafficColor(report.report_data?.paidTraffic)}>
+                  <span className="text-foreground">
                     {formatNumber(report.report_data?.paidTraffic)}
                   </span>
                 </TableCell>
