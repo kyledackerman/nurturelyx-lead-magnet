@@ -44,10 +44,18 @@ interface ReportSummary {
 interface AdminStats {
   totalReports: number;
   uniqueDomains: number;
+  uniqueDomainsToday: number;
+  uniqueDomainsYesterday: number;
   reportsToday: number;
   adminReports: number;
+  adminReportsToday: number;
+  adminReportsYesterday: number;
   nonAdminReports: number;
+  nonAdminReportsToday: number;
+  nonAdminReportsYesterday: number;
   highValueProspects: number;
+  highValueProspectsToday: number;
+  highValueProspectsYesterday: number;
 }
 
 interface ChartDataPoint {
@@ -67,10 +75,18 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState<AdminStats>({
     totalReports: 0,
     uniqueDomains: 0,
+    uniqueDomainsToday: 0,
+    uniqueDomainsYesterday: 0,
     reportsToday: 0,
     adminReports: 0,
+    adminReportsToday: 0,
+    adminReportsYesterday: 0,
     nonAdminReports: 0,
+    nonAdminReportsToday: 0,
+    nonAdminReportsYesterday: 0,
     highValueProspects: 0,
+    highValueProspectsToday: 0,
+    highValueProspectsYesterday: 0,
   });
   const [crmOpen, setCrmOpen] = useState(true);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
@@ -155,40 +171,94 @@ const AdminDashboard = () => {
         roleMap.set(ur.user_id, ur.role);
       });
 
-      const today = new Date().toISOString().split('T')[0];
-      const uniqueDomains = new Set(allReports?.map(r => r.domain) || []).size;
-      const reportsToday = allReports?.filter(r => 
-        r.created_at.startsWith(today)
-      ).length || 0;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
       
-      // Separate admin vs non-admin reports
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      // Filter reports by time period
+      const todayReports = allReports?.filter((r) => {
+        const reportDate = new Date(r.created_at);
+        return reportDate >= today;
+      }) || [];
+      
+      const yesterdayReports = allReports?.filter((r) => {
+        const reportDate = new Date(r.created_at);
+        return reportDate >= yesterday && reportDate < today;
+      }) || [];
+
+      // Calculate unique domains
+      const uniqueDomains = new Set(allReports?.map(r => r.domain) || []).size;
+      const uniqueDomainsToday = new Set(todayReports.map(r => r.domain)).size;
+      const uniqueDomainsYesterday = new Set(yesterdayReports.map(r => r.domain)).size;
+      
+      // Helper function to check if user is admin
+      const isAdminUser = (userId: string | null) => {
+        if (!userId) return false;
+        const userRole = roleMap.get(userId);
+        return userRole === 'admin' || userRole === 'super_admin';
+      };
+      
+      // Calculate admin reports
       let adminReports = 0;
+      let adminReportsToday = 0;
+      let adminReportsYesterday = 0;
       let nonAdminReports = 0;
+      let nonAdminReportsToday = 0;
+      let nonAdminReportsYesterday = 0;
       
       allReports?.forEach(report => {
-        const userRole = report.user_id ? roleMap.get(report.user_id) : null;
-        const isAdmin = userRole === 'admin' || userRole === 'super_admin';
-        
-        if (isAdmin) {
+        if (isAdminUser(report.user_id)) {
           adminReports++;
         } else {
           nonAdminReports++;
         }
       });
       
-      // Count high-value prospects (reports with monthly revenue lost > 0)
-      const highValueProspects = allReports?.filter(r => {
+      todayReports.forEach(report => {
+        if (isAdminUser(report.user_id)) {
+          adminReportsToday++;
+        } else {
+          nonAdminReportsToday++;
+        }
+      });
+      
+      yesterdayReports.forEach(report => {
+        if (isAdminUser(report.user_id)) {
+          adminReportsYesterday++;
+        } else {
+          nonAdminReportsYesterday++;
+        }
+      });
+      
+      // Helper function to check if high value prospect
+      const isHighValue = (r: any) => {
         const reportData = r.report_data as any;
-        return (reportData?.monthlyRevenueLost || 0) > 0 || (reportData?.yearlyRevenueLost || 0) > 0;
-      }).length || 0;
+        const monthlyRevenueLost = reportData?.monthlyRevenueLost || 0;
+        return monthlyRevenueLost > 5000;
+      };
+      
+      // Count high-value prospects
+      const highValueProspects = allReports?.filter(isHighValue).length || 0;
+      const highValueProspectsToday = todayReports.filter(isHighValue).length;
+      const highValueProspectsYesterday = yesterdayReports.filter(isHighValue).length;
 
       setStats({
         totalReports: allReports?.length || 0,
         uniqueDomains,
-        reportsToday,
+        uniqueDomainsToday,
+        uniqueDomainsYesterday,
+        reportsToday: todayReports.length,
         adminReports,
+        adminReportsToday,
+        adminReportsYesterday,
         nonAdminReports,
+        nonAdminReportsToday,
+        nonAdminReportsYesterday,
         highValueProspects,
+        highValueProspectsToday,
+        highValueProspectsYesterday,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -488,7 +558,10 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.uniqueDomains}</div>
-                <p className="text-xs text-muted-foreground mt-1">Analyzed domains</p>
+                <div className="flex gap-3 mt-2 text-xs">
+                  <span className="text-green-600">Today: +{stats.uniqueDomainsToday}</span>
+                  <span className="text-muted-foreground">Yesterday: +{stats.uniqueDomainsYesterday}</span>
+                </div>
               </CardContent>
             </Card>
 
@@ -499,7 +572,10 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.adminReports}</div>
-                <p className="text-xs text-muted-foreground mt-1">Internal submissions</p>
+                <div className="flex gap-3 mt-2 text-xs">
+                  <span className="text-green-600">Today: +{stats.adminReportsToday}</span>
+                  <span className="text-muted-foreground">Yesterday: +{stats.adminReportsYesterday}</span>
+                </div>
               </CardContent>
             </Card>
 
@@ -510,7 +586,10 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.nonAdminReports}</div>
-                <p className="text-xs text-muted-foreground mt-1">External submissions</p>
+                <div className="flex gap-3 mt-2 text-xs">
+                  <span className="text-green-600">Today: +{stats.nonAdminReportsToday}</span>
+                  <span className="text-muted-foreground">Yesterday: +{stats.nonAdminReportsYesterday}</span>
+                </div>
               </CardContent>
             </Card>
 
@@ -521,7 +600,11 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-orange-700">{stats.highValueProspects}</div>
-                <p className="text-xs text-orange-600 mt-1">Domains with revenue loss</p>
+                <div className="flex gap-3 mt-2 text-xs">
+                  <span className="text-green-600">Today: +{stats.highValueProspectsToday}</span>
+                  <span className="text-muted-foreground">Yesterday: +{stats.highValueProspectsYesterday}</span>
+                </div>
+                <p className="text-xs text-orange-600 mt-1">Revenue lost &gt; $5,000/month</p>
               </CardContent>
             </Card>
           </div>
