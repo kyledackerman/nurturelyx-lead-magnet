@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users } from "lucide-react";
 import { toast } from "sonner";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface ReportSummary {
   domain: string;
@@ -417,7 +417,7 @@ const AdminDashboard = () => {
             <CardContent>
               <div className="h-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
+                  <ComposedChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis 
                       dataKey="date" 
@@ -436,37 +436,35 @@ const AdminDashboard = () => {
                       }}
                       formatter={(value, name) => [
                         value,
-                        name // The name parameter already contains the correct labels
+                        name
                       ]}
                     />
-                    <Line 
+                    <Area 
                       type="monotone" 
                       dataKey="adminReports" 
+                      stackId="reports"
                       stroke="hsl(var(--primary))" 
-                      strokeWidth={2}
-                      dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6, fill: 'hsl(var(--primary))' }}
+                      fill="hsl(var(--primary) / 0.6)"
                       name="Admin Reports"
                     />
-                    <Line 
+                    <Area 
                       type="monotone" 
                       dataKey="nonAdminReports" 
+                      stackId="reports"
                       stroke="hsl(var(--chart-2))" 
-                      strokeWidth={2}
-                      dot={{ fill: 'hsl(var(--chart-2))', strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6, fill: 'hsl(var(--chart-2))' }}
+                      fill="hsl(var(--chart-2) / 0.6)"
                       name="Non-Admin Reports"
                     />
                     <Line 
                       type="monotone" 
                       dataKey="revenueLineReports" 
                       stroke="hsl(var(--destructive))" 
-                      strokeWidth={2}
-                      dot={{ fill: 'hsl(var(--destructive))', strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6, fill: 'hsl(var(--destructive))' }}
+                      strokeWidth={3}
+                      dot={{ fill: 'hsl(var(--destructive))', strokeWidth: 2, r: 5 }}
+                      activeDot={{ r: 7, fill: 'hsl(var(--destructive))' }}
                       name="High-Value Domains"
                     />
-                  </LineChart>
+                  </ComposedChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
