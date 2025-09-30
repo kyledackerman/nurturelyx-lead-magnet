@@ -7,8 +7,8 @@ export const DEFAULT_FORM_STATE: FormData = {
   domain: "",
   monthlyVisitors: 0,
   organicTrafficManual: 0,
-  isUnsureOrganic: false,
-  isUnsurePaid: false,
+  isUnsureOrganic: true,
+  isUnsurePaid: true,
   avgTransactionValue: 0,
 };
 

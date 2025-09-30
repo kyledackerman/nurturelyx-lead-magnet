@@ -25,33 +25,9 @@ export const calculatorFormSchema = z.object({
   monthlyVisitors: z.number().min(0, "Monthly visitors must be 0 or greater").optional(),
   organicTrafficManual: z.number().min(0, "Organic traffic must be 0 or greater").optional(),
   avgTransactionValue: z.number().min(0.01, "Transaction value must be greater than zero"),
-  isUnsurePaid: z.boolean(),
-  isUnsureOrganic: z.boolean(),
-}).refine(
-  (data) => {
-    // If user is sure about paid traffic, require monthlyVisitors
-    if (!data.isUnsurePaid && (!data.monthlyVisitors || data.monthlyVisitors <= 0)) {
-      return false;
-    }
-    return true;
-  },
-  {
-    message: "Please provide monthly paid visitors or check 'Not sure'",
-    path: ["monthlyVisitors"],
-  }
-).refine(
-  (data) => {
-    // If user is sure about organic traffic, require organicTrafficManual
-    if (!data.isUnsureOrganic && (!data.organicTrafficManual || data.organicTrafficManual <= 0)) {
-      return false;
-    }
-    return true;
-  },
-  {
-    message: "Please provide organic traffic or check 'Not sure'",
-    path: ["organicTrafficManual"],
-  }
-);
+  isUnsurePaid: z.boolean().optional(),
+  isUnsureOrganic: z.boolean().optional(),
+});
 
 // Auth form validation schemas
 export const authEmailSchema = z

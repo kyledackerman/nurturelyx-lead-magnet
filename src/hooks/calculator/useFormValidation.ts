@@ -53,18 +53,21 @@ export function useFormValidation(formData: FormData, showTrafficFields: boolean
 
   // Update canCalculate based on validation status
   useEffect(() => {
-    // Basic validation check for important fields
+    // Simplified validation - only require domain and transaction value
     const isValid = Boolean(
       formData.domain.trim() && 
-      formData.avgTransactionValue > 0 &&
-      (!showTrafficFields || 
-        (formData.isUnsurePaid || formData.monthlyVisitors > 0) &&
-        (formData.isUnsureOrganic || (formData.organicTrafficManual && formData.organicTrafficManual > 0))
-      )
+      formData.avgTransactionValue > 0
     );
     
+    console.log('Form validation state:', {
+      domain: formData.domain.trim(),
+      avgTransactionValue: formData.avgTransactionValue,
+      isValid,
+      errors: Object.keys(errors)
+    });
+    
     setCanCalculate(isValid);
-  }, [formData, showTrafficFields]);
+  }, [formData, showTrafficFields, errors]);
 
   return {
     errors,
