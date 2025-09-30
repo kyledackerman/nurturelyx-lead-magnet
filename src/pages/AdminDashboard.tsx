@@ -387,14 +387,14 @@ const AdminDashboard = () => {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
-                    Report Submissions & Revenue Impact ({
+                    Report Submissions & Quality Metrics ({
                       timePeriod === 'weekly' ? 'Last 7 Days' : 
                       timePeriod === 'yearly' ? 'Last 12 Months' : 
                       'Last 30 Days'
                     })
                   </CardTitle>
                   <CardDescription>
-                    Admin vs non-admin submissions plus high-value domains with revenue loss
+                    Report sources (left axis) and overall volume/quality metrics (right axis)
                   </CardDescription>
                 </div>
                 <ToggleGroup 
@@ -424,9 +424,20 @@ const AdminDashboard = () => {
                       className="text-muted-foreground"
                       fontSize={12}
                     />
+                    {/* Left Y-Axis for Admin/Non-Admin Reports */}
                     <YAxis 
+                      yAxisId="left"
                       className="text-muted-foreground"
                       fontSize={12}
+                      label={{ value: 'Report Sources', angle: -90, position: 'insideLeft', style: { fill: 'hsl(var(--muted-foreground))' } }}
+                    />
+                    {/* Right Y-Axis for Total/High-Value */}
+                    <YAxis 
+                      yAxisId="right"
+                      orientation="right"
+                      className="text-muted-foreground"
+                      fontSize={12}
+                      label={{ value: 'Volume & Quality', angle: 90, position: 'insideRight', style: { fill: 'hsl(var(--muted-foreground))' } }}
                     />
                     <Tooltip 
                       contentStyle={{
@@ -439,30 +450,48 @@ const AdminDashboard = () => {
                         name
                       ]}
                     />
+                    {/* Left Axis: Admin Reports (stacked) */}
                     <Area 
+                      yAxisId="left"
                       type="monotone" 
                       dataKey="adminReports" 
-                      stackId="reports"
+                      stackId="sources"
                       stroke="hsl(var(--primary))" 
                       fill="hsl(var(--primary) / 0.6)"
                       name="Admin Reports"
                     />
+                    {/* Left Axis: Non-Admin Reports (stacked) */}
                     <Area 
+                      yAxisId="left"
                       type="monotone" 
                       dataKey="nonAdminReports" 
-                      stackId="reports"
+                      stackId="sources"
                       stroke="hsl(var(--chart-2))" 
                       fill="hsl(var(--chart-2) / 0.6)"
                       name="Non-Admin Reports"
                     />
+                    {/* Right Axis: Total Reports */}
                     <Line 
+                      yAxisId="right"
+                      type="monotone" 
+                      dataKey="total" 
+                      stroke="hsl(var(--chart-3))" 
+                      strokeWidth={2.5}
+                      dot={{ fill: 'hsl(var(--chart-3))', strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6 }}
+                      name="Total Reports"
+                    />
+                    {/* Right Axis: High-Value Domains */}
+                    <Line 
+                      yAxisId="right"
                       type="monotone" 
                       dataKey="revenueLineReports" 
-                      stroke="hsl(var(--destructive))" 
-                      strokeWidth={3}
-                      dot={{ fill: 'hsl(var(--destructive))', strokeWidth: 2, r: 5 }}
-                      activeDot={{ r: 7, fill: 'hsl(var(--destructive))' }}
+                      stroke="hsl(var(--chart-5))" 
+                      strokeWidth={2.5}
+                      dot={{ fill: 'hsl(var(--chart-5))', strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6 }}
                       name="High-Value Domains"
+                      strokeDasharray="5 5"
                     />
                   </ComposedChart>
                 </ResponsiveContainer>
