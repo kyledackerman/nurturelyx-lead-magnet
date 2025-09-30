@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users } from "lucide-react";
 import { toast } from "sonner";
-import { ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { ComposedChart, Area, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface ReportSummary {
   domain: string;
@@ -380,124 +380,144 @@ const AdminDashboard = () => {
             </Card>
           </div>
 
-          {/* Reports Over Time Chart */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
+          {/* Analytics Section with Shared Time Period Toggle */}
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold">Analytics Overview</h3>
+                <p className="text-sm text-muted-foreground">
+                  {timePeriod === 'weekly' ? 'Last 7 Days' : 
+                   timePeriod === 'yearly' ? 'Last 12 Months' : 
+                   'Last 30 Days'}
+                </p>
+              </div>
+              <ToggleGroup 
+                type="single" 
+                value={timePeriod} 
+                onValueChange={(value) => value && setTimePeriod(value as 'weekly' | 'monthly' | 'yearly')}
+                className="bg-muted/50"
+              >
+                <ToggleGroupItem value="weekly" aria-label="Weekly view">
+                  Week
+                </ToggleGroupItem>
+                <ToggleGroupItem value="monthly" aria-label="Monthly view">
+                  Month
+                </ToggleGroupItem>
+                <ToggleGroupItem value="yearly" aria-label="Yearly view">
+                  Year
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+
+            {/* Side-by-Side Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Chart 1: Report Sources */}
+              <Card>
+                <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Report Submissions & Quality Metrics ({
-                      timePeriod === 'weekly' ? 'Last 7 Days' : 
-                      timePeriod === 'yearly' ? 'Last 12 Months' : 
-                      'Last 30 Days'
-                    })
+                    <Users className="h-5 w-5" />
+                    Report Sources & User Adoption
                   </CardTitle>
                   <CardDescription>
-                    Report sources (left axis) and overall volume/quality metrics (right axis)
+                    Admin vs non-admin submission trends
                   </CardDescription>
-                </div>
-                <ToggleGroup 
-                  type="single" 
-                  value={timePeriod} 
-                  onValueChange={(value) => value && setTimePeriod(value as 'weekly' | 'monthly' | 'yearly')}
-                >
-                  <ToggleGroupItem value="weekly" aria-label="Weekly view">
-                    Week
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="monthly" aria-label="Monthly view">
-                    Month
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="yearly" aria-label="Yearly view">
-                    Year
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis 
-                      dataKey="date" 
-                      className="text-muted-foreground"
-                      fontSize={12}
-                    />
-                    {/* Left Y-Axis for Admin/Non-Admin Reports */}
-                    <YAxis 
-                      yAxisId="left"
-                      className="text-muted-foreground"
-                      fontSize={12}
-                      label={{ value: 'Report Sources', angle: -90, position: 'insideLeft', style: { fill: 'hsl(var(--muted-foreground))' } }}
-                    />
-                    {/* Right Y-Axis for Total/High-Value */}
-                    <YAxis 
-                      yAxisId="right"
-                      orientation="right"
-                      className="text-muted-foreground"
-                      fontSize={12}
-                      label={{ value: 'Volume & Quality', angle: 90, position: 'insideRight', style: { fill: 'hsl(var(--muted-foreground))' } }}
-                    />
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '6px'
-                      }}
-                      formatter={(value, name) => [
-                        value,
-                        name
-                      ]}
-                    />
-                    {/* Left Axis: Admin Reports (stacked) */}
-                    <Area 
-                      yAxisId="left"
-                      type="monotone" 
-                      dataKey="adminReports" 
-                      stackId="sources"
-                      stroke="hsl(var(--primary))" 
-                      fill="hsl(var(--primary) / 0.6)"
-                      name="Admin Reports"
-                    />
-                    {/* Left Axis: Non-Admin Reports (stacked) */}
-                    <Area 
-                      yAxisId="left"
-                      type="monotone" 
-                      dataKey="nonAdminReports" 
-                      stackId="sources"
-                      stroke="hsl(var(--chart-2))" 
-                      fill="hsl(var(--chart-2) / 0.6)"
-                      name="Non-Admin Reports"
-                    />
-                    {/* Right Axis: Total Reports */}
-                    <Line 
-                      yAxisId="right"
-                      type="monotone" 
-                      dataKey="total" 
-                      stroke="hsl(var(--chart-3))" 
-                      strokeWidth={2.5}
-                      dot={{ fill: 'hsl(var(--chart-3))', strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6 }}
-                      name="Total Reports"
-                    />
-                    {/* Right Axis: High-Value Domains */}
-                    <Line 
-                      yAxisId="right"
-                      type="monotone" 
-                      dataKey="revenueLineReports" 
-                      stroke="hsl(var(--chart-5))" 
-                      strokeWidth={2.5}
-                      dot={{ fill: 'hsl(var(--chart-5))', strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6 }}
-                      name="High-Value Domains"
-                      strokeDasharray="5 5"
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <ComposedChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis 
+                        dataKey="date" 
+                        className="text-muted-foreground"
+                        fontSize={12}
+                      />
+                      <YAxis 
+                        className="text-muted-foreground"
+                        fontSize={12}
+                        label={{ value: 'Reports', angle: -90, position: 'insideLeft', style: { fill: 'hsl(var(--muted-foreground))' } }}
+                      />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--card))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '6px'
+                        }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="adminReports" 
+                        stackId="sources"
+                        stroke="hsl(var(--primary))" 
+                        fill="hsl(var(--primary) / 0.6)"
+                        name="Admin Reports"
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="nonAdminReports" 
+                        stackId="sources"
+                        stroke="hsl(var(--chart-2))" 
+                        fill="hsl(var(--chart-2) / 0.6)"
+                        name="Non-Admin Reports"
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Chart 2: Volume & Quality Metrics */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Volume & Quality Trends
+                  </CardTitle>
+                  <CardDescription>
+                    Total reports and high-value domain detection
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <ComposedChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis 
+                        dataKey="date" 
+                        className="text-muted-foreground"
+                        fontSize={12}
+                      />
+                      <YAxis 
+                        className="text-muted-foreground"
+                        fontSize={12}
+                        label={{ value: 'Count', angle: -90, position: 'insideLeft', style: { fill: 'hsl(var(--muted-foreground))' } }}
+                      />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--card))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '6px'
+                        }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="revenueLineReports" 
+                        fill="hsl(var(--chart-5) / 0.4)"
+                        stroke="hsl(var(--chart-5))"
+                        name="High-Value Domains"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="total" 
+                        stroke="hsl(var(--chart-3))" 
+                        strokeWidth={2.5}
+                        dot={{ fill: 'hsl(var(--chart-3))', strokeWidth: 2, r: 4 }}
+                        activeDot={{ r: 6 }}
+                        name="Total Reports"
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
 
           <Tabs defaultValue="overview" className="w-full">
             <TabsList className="grid w-full grid-cols-5">
