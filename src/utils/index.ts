@@ -2,14 +2,22 @@
 import { ApiData, MonthlyRevenueData, NewApiDataT } from "@/types/report";
 
 export function formateNewApiDataToApiData(input: NewApiDataT): ApiData {
-  // Find the most recent month by (searchYear, searchMonth) - no "latest non-zero" logic
-  let referenceMonth = input.monthlyRevenueData[input.monthlyRevenueData.length - 1];
+  // Find the last month with actual traffic data
+  let referenceMonth = input.monthlyRevenueData
+    .slice()
+    .reverse()
+    .find(m => m.monthlyOrganicClicks > 0 || m.monthlyPaidClicks > 0);
   
+  if (!referenceMonth) {
+    // Fallback to last month if no traffic found
+    referenceMonth = input.monthlyRevenueData[input.monthlyRevenueData.length - 1];
+  }
+
   if (!referenceMonth) {
     throw new Error("SpyFu returned no monthly data");
   }
 
-  console.log(`Using reference month: ${referenceMonth.month}/${referenceMonth.searchYear} (most recent)`);
+  console.log(`Using reference month: ${referenceMonth.month}/${referenceMonth.searchYear} (organic: ${referenceMonth.monthlyOrganicClicks}, paid: ${referenceMonth.monthlyPaidClicks})`);
 
   const aggregatedData = input.monthlyRevenueData.reduce(
     (acc, monthData) => {
