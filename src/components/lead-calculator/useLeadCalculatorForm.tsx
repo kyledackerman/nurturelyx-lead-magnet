@@ -73,10 +73,12 @@ export function useLeadCalculatorForm(initialData?: FormData | null) {
       setApiData(fetchedData);
 
       const calculatedMetrics = calculateReportMetrics(
-        formData.monthlyVisitors,
+        formData.isUnsurePaid ? 0 : (formData.monthlyVisitors || 0),
         formData.avgTransactionValue,
         fetchedData.organicTraffic,
-        fetchedData.paidTraffic
+        fetchedData.paidTraffic,
+        fetchedData.monthlyRevenueData,
+        fetchedData.dataSource === "api"
       );
 
       setReportMetrics(calculatedMetrics);

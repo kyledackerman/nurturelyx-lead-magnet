@@ -1,8 +1,8 @@
 import { ApiData, NewApiDataT, ReportData } from "@/types/report";
-import { isValidDomain, cleanDomain } from "./spyfuConfig";
+import { isValidDomain, cleanDomain, SPYFU_API_USERNAME, SPYFU_API_KEY } from "./spyfuConfig";
 import { generateFallbackData } from "./fallbackDataService";
 import { formateNewApiDataToApiData } from "@/utils";
-import { BASE_URL } from "@/envs";
+
 
 // Function to fetch domain data from SpyFu API via proxy
 export const fetchDomainData = async (
@@ -42,18 +42,15 @@ export const fetchDomainData = async (
     //   };
     // }
 
-    // Try to get real data from the SpyFu API via our proxy
+    // Try to get real data directly from SpyFu "Get All Domain Stats" endpoint
     try {
-      // Use relative path for API and ensure no caching
-      const proxyUrl = `${BASE_URL}/proxy/spyfu?domain=${encodeURIComponent(
-        cleanedDomain
-      )}`;
-      console.log(`Fetching real data via relative path: ${proxyUrl}`);
+      const spyfuUrl = `https://www.spyfu.com/apis/domain_stats_api/v2/getAllDomainStats?domain=${encodeURIComponent(cleanedDomain)}&countryCode=US&api_username=${encodeURIComponent(SPYFU_API_USERNAME)}&api_key=${encodeURIComponent(SPYFU_API_KEY)}`;
+      console.log(`Fetching SpyFu series: ${spyfuUrl}`);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
-      const response = await fetch(proxyUrl, {
+      const response = await fetch(spyfuUrl, {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -69,80 +66,89 @@ export const fetchDomainData = async (
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        console.error(
-          "API response error:",
-          response.status,
-          response.statusText
-        );
-        throw new Error(`API returned status ${response.status}`);
+        console.error("SpyFu API response error:", response.status, response.statusText);
+        throw new Error(`SpyFu API returned status ${response.status}`);
       }
 
-      // Get response text first to avoid "body stream already read" errors
-      // let responseText;
-      // try {
-      //   responseText = await response.text();
-      // } catch (textError) {
-      //   console.error("Failed to read response text:", textError);
-      //   throw new Error("Failed to read server response");
-      // }
+      const raw: any = await response.json();
 
-      // // Check if response contains HTML markers
-      // if (
-      //   responseText.includes("<!DOCTYPE") ||
-      //   responseText.includes("<html")
-      // ) {
-      //   throw new Error(
-      //     "Server returned HTML instead of JSON. API routes may not be configured correctly."
-      //   );
-      // }
+      // Normalize possible response shapes to an array of monthly rows
+      const rawRows: any[] = Array.isArray(raw)
+        ? raw
+        : (raw?.data || raw?.domainStats || raw?.stats || raw?.results || raw?.rows || []);
 
-      // // Check if response is empty
-      // if (!responseText || responseText.trim() === "") {
-      //   throw new Error("Empty response from API server");
-      // }
+      if (!Array.isArray(rawRows) || rawRows.length === 0) {
+        throw new Error("SpyFu returned no rows");
+      }
 
-      // let data;
-      // try {
-      //   // Parse the response text as JSON
-      //   data = JSON.parse(responseText);
-      // } catch (jsonError) {
-      //   console.error("Error parsing API response:", jsonError);
-      //   console.error("Response preview:", responseText.substring(0, 200));
+      const monthMap: Record<string, number> = {
+        jan: 1, january: 1,
+        feb: 2, february: 2,
+        mar: 3, march: 3,
+        apr: 4, april: 4,
+        may: 5,
+        jun: 6, june: 6,
+        jul: 7, july: 7,
+        aug: 8, august: 8,
+        sep: 9, sept: 9, september: 9,
+        oct: 10, october: 10,
+        nov: 11, november: 11,
+        dec: 12, december: 12,
+      };
 
-      //   if (
-      //     responseText.includes("<!DOCTYPE") ||
-      //     responseText.includes("<html")
-      //   ) {
-      //     throw new Error(
-      //       "Server returned HTML instead of JSON. API routes may not be configured correctly."
-      //     );
-      //   }
+      const toMonthNumber = (m: any): number => {
+        if (typeof m === "number" && m >= 1 && m <= 12) return m;
+        if (typeof m === "string") {
+          const key = m.trim().toLowerCase();
+          if (monthMap[key] != null) return monthMap[key];
+          const parsed = parseInt(key, 10);
+          if (!isNaN(parsed) && parsed >= 1 && parsed <= 12) return parsed;
+        }
+        return 0;
+      };
 
-      //   throw new Error("Invalid JSON response from API server");
-      // }
+      const monthly = rawRows.map((r: any) => {
+        const monthNum =
+          toMonthNumber(r.month ?? r.Month ?? r.searchMonth ?? r.search_date_month ?? r.searchMonthNumber);
+        const year =
+          r.searchYear ?? r.Year ?? r.search_date_year ?? r.year ?? new Date().getFullYear();
+        const organic =
+          r.monthlyOrganicClicks ?? r.organicClicks ?? r.organic ?? r.organic_traffic ?? 0;
+        const paid =
+          r.monthlyPaidClicks ?? r.paidClicks ?? r.paid ?? r.paid_traffic ?? 0;
+        const totalOrganicResults =
+          r.totalOrganicResults ?? r.organicKeywords ?? r.keywords ?? 0;
+        const strength = r.strength ?? r.domainStrength ?? r.domainPower ?? 0;
 
-      // // Check if data contains error
-      // if (data?.error) {
-      //   console.error("API returned error:", data.error);
-      //   throw new Error(data.error);
-      // }
+        return {
+          month: monthNum,
+          searchYear: year,
+          monthlyOrganicClicks: Math.max(0, Math.floor(organic)),
+          monthlyPaidClicks: Math.max(0, Math.floor(paid)),
+          totalOrganicResults: Math.max(0, Math.floor(totalOrganicResults)),
+          strength: Math.max(0, Math.floor(strength)),
+          totalAdsPurchased: 0,
+        };
+      }).filter((m: any) => m.month >= 1 && m.month <= 12);
 
-      const data = await response.json();
+      if (!monthly.length) {
+        throw new Error("No valid monthly rows after normalization");
+      }
 
-      const NewData = data as NewApiDataT;
+      const NewData: NewApiDataT = {
+        domain: cleanedDomain as any,
+        dataSource: "api",
+        monthlyRevenueData: monthly as any,
+      };
 
-      // Extract the relevant metrics from the API response
-      console.log("------data-api", data);
-      
+      console.log(`SpyFu series normalized: ${monthly.length} months`);
       const apiData = formateNewApiDataToApiData(NewData);
-
-      console.log("Analysis complete - using real SpyFu data");
+      console.log("Analysis complete - using real SpyFu series data");
 
       return apiData;
     } catch (error: any) {
-      console.warn("API data fetch failed:", error);
+      console.warn("SpyFu series fetch failed:", error);
 
-      // If user provided manual organic traffic, use it to construct manual data
       if (organicTrafficManual !== undefined && organicTrafficManual > 0) {
         console.log("Using manual organic traffic input:", organicTrafficManual);
         return {
@@ -156,7 +162,6 @@ export const fetchDomainData = async (
         };
       }
 
-      // No fallback - surface the error
       throw new Error(`Failed to fetch SpyFu data: ${error.message}`);
     }
   } catch (error: any) {
