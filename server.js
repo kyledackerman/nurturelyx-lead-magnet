@@ -146,9 +146,15 @@ app.get("/proxy/spyfu", async (req, res) => {
       return res.status(500).json({ error: "SpyFu API credentials are missing" });
     }
 
-    const url = `https://www.spyfu.com/apis/domain_stats_api/v2/getDomainStatsForExactDate?domain=${domain}&month=3&year=2023&countryCode=US&api_username=${username}&api_key=${apiKey}`;
+    // Use recent date for API call (September 2024 for reliable data)
+    const currentDate = new Date();
+    const month = 9; // September - recent month with reliable data
+    const year = 2024;
+    
+    const url = `https://www.spyfu.com/apis/domain_stats_api/v2/getDomainStatsForExactDate?domain=${domain}&month=${month}&year=${year}&countryCode=US&api_username=${username}&api_key=${apiKey}`;
 
-    console.log(`Fetching SpyFu API: ${url}`);
+    console.log(`🔍 Fetching SpyFu API for ${domain} (${month}/${year})`);
+    console.log(`📡 API URL: ${url.replace(apiKey, 'HIDDEN')}`);
     const response = await fetch(url, {
       timeout: 15000, // 15 second timeout
       headers: {
@@ -167,7 +173,9 @@ app.get("/proxy/spyfu", async (req, res) => {
     }
 
     const data = await response.json();
-    console.log("SpyFu API call successful");
+    console.log("✅ SpyFu API call successful");
+    console.log(`📊 Response data keys: ${Object.keys(data).join(', ')}`);
+    
     // Force content type to be JSON
     res.setHeader('Content-Type', 'application/json');
     res.json(data);
