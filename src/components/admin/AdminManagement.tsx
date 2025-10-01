@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UserPlus, UserMinus, Shield, Mail, Clock } from "lucide-react";
+import { UserPlus, UserMinus, Shield, Mail, Clock, KeyRound } from "lucide-react";
+import { DirectPasswordReset } from "./DirectPasswordReset";
 
 interface AdminUser {
   id: string;
@@ -21,11 +22,22 @@ export const AdminManagement = () => {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
   const [settingUpSuperAdmin, setSettingUpSuperAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [resetPasswordUserId, setResetPasswordUserId] = useState<string | null>(null);
+  const [resetPasswordUserEmail, setResetPasswordUserEmail] = useState<string>("");
 
   useEffect(() => {
+    checkSuperAdmin();
     fetchAdmins();
     setupSuperAdmin();
   }, []);
+
+  const checkSuperAdmin = async () => {
+    const { data, error } = await supabase.rpc('is_super_admin');
+    if (!error && data) {
+      setIsSuperAdmin(true);
+    }
+  };
 
   const setupSuperAdmin = async () => {
     try {
@@ -172,6 +184,20 @@ export const AdminManagement = () => {
                       {new Date(admin.created_at).toLocaleDateString()}
                     </div>
                     
+                    {isSuperAdmin && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setResetPasswordUserId(admin.id);
+                          setResetPasswordUserEmail(admin.email);
+                        }}
+                      >
+                        <KeyRound className="h-3 w-3 mr-1" />
+                        Reset Password
+                      </Button>
+                    )}
+                    
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button 
@@ -209,6 +235,20 @@ export const AdminManagement = () => {
             </div>
           )}
         </div>
+
+        {resetPasswordUserId && (
+          <DirectPasswordReset
+            userId={resetPasswordUserId}
+            userEmail={resetPasswordUserEmail}
+            open={!!resetPasswordUserId}
+            onOpenChange={(open) => {
+              if (!open) {
+                setResetPasswordUserId(null);
+                setResetPasswordUserEmail("");
+              }
+            }}
+          />
+        )}
       </CardContent>
     </Card>
   );
