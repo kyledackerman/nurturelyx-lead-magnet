@@ -3,6 +3,7 @@ import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
 import { AdminReportsTable } from "@/components/admin/AdminReportsTable";
 import { CRMProspectsTable } from "@/components/admin/CRMProspectsTable";
 import { AdminManagement } from "@/components/admin/AdminManagement";
+import { PasswordManagement } from "@/components/admin/PasswordManagement";
 import LeaderboardTab from "@/components/admin/LeaderboardTab";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -755,7 +756,7 @@ const AdminDashboard = () => {
           </div>
 
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
               <TabsTrigger value="generate">
@@ -763,6 +764,10 @@ const AdminDashboard = () => {
                 Generate Report
               </TabsTrigger>
               <TabsTrigger value="crm">CRM</TabsTrigger>
+              <TabsTrigger value="password">
+                <Shield className="h-4 w-4 mr-2" />
+                Password
+              </TabsTrigger>
               <TabsTrigger value="admin">Admin Management</TabsTrigger>
               <TabsTrigger value="reports">Reports</TabsTrigger>
             </TabsList>
@@ -862,6 +867,10 @@ const AdminDashboard = () => {
 
             <TabsContent value="admin" className="space-y-6">
               <AdminManagement />
+            </TabsContent>
+
+            <TabsContent value="password" className="space-y-6">
+              <PasswordManagement />
             </TabsContent>
 
             <TabsContent value="reports" className="space-y-6">
