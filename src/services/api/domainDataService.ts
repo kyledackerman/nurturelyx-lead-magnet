@@ -133,11 +133,12 @@ export const fetchDomainData = async (
 
       // Extract the relevant metrics from the API response
       console.log("------data-api", data);
+      
+      // formateNewApiDataToApiData will throw if all months are zeros
       const apiData = formateNewApiDataToApiData(NewData);
 
       console.log("Analysis complete - using real SpyFu data");
 
-      // return apiData;
       return apiData;
     } catch (error: any) {
       console.warn("API data fetch failed:", error);

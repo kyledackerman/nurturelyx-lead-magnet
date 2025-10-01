@@ -2,52 +2,52 @@
 import { ApiData, MonthlyRevenueData, NewApiDataT } from "@/types/report";
 
 export function formateNewApiDataToApiData(input: NewApiDataT): ApiData {
+  // Find the latest month with non-zero traffic data
+  let referenceMonth = null;
+  for (let i = input.monthlyRevenueData.length - 1; i >= 0; i--) {
+    const monthData = input.monthlyRevenueData[i];
+    const totalTraffic = (monthData.monthlyOrganicClicks || 0) + (monthData.monthlyPaidClicks || 0);
+    if (totalTraffic > 0 || monthData.totalOrganicResults > 0) {
+      referenceMonth = monthData;
+      console.log(`Using reference month: ${monthData.month}/${monthData.searchYear} with ${totalTraffic} total traffic`);
+      break;
+    }
+  }
+
+  // If all months are zeros, throw error
+  if (!referenceMonth) {
+    throw new Error("SpyFu returned no usable data for recent months. All traffic values are zero.");
+  }
+
   const aggregatedData = input.monthlyRevenueData.reduce(
     (acc, monthData) => {
-      // const totalTraffic =
-      //   (monthData.monthlyOrganicClicks || 0) +
-      //   (monthData.monthlyPaidClicks || 0);
-      // const missedLeads = Math.floor(totalTraffic * visitorIdentificationRate);
-      // const estimatedSalesLost = Math.floor(missedLeads * salesConversionRate);
-      // const monthlyRevenueLost = estimatedSalesLost * avgTransactionValue;
-
-      acc.organicTraffic = monthData.monthlyOrganicClicks || 0;
-      acc.paidTraffic = monthData.monthlyPaidClicks || 0;
-      acc.organicKeywords = monthData.totalOrganicResults || 0;
-      acc.domainPower = monthData.strength || 0; // Summing strength (adjust logic if needed)
-      acc.backlinks = 0; // Mocking backlinks (adjust based on requirements)
-
       acc.monthlyRevenueData.push({
         month: monthData.month,
         year: monthData.searchYear,
         visitors: monthData.monthlyOrganicClicks + monthData.monthlyPaidClicks,
         organicVisitors: monthData.monthlyOrganicClicks,
         paidVisitors: monthData.monthlyPaidClicks,
-        leads: monthData.totalAdsPurchased, // missedLeads
-        missedLeads: monthData.totalAdsPurchased, // Adding missedLeads
-        sales: 0, // estimatedSalesLost
-        lostSales: 0, // Adding lostSales
-        revenueLost: 0, // monthlyRevenueLost
-        lostRevenue: 0 // Adding lostRevenue
+        leads: monthData.totalAdsPurchased,
+        missedLeads: monthData.totalAdsPurchased,
+        sales: 0,
+        lostSales: 0,
+        revenueLost: 0,
+        lostRevenue: 0
       });
 
       return acc;
     },
     {
-      organicTraffic: 0,
-      organicKeywords: 0,
-      domainPower: 0,
+      // Use the reference month (latest non-zero) for headline metrics
+      organicTraffic: referenceMonth.monthlyOrganicClicks || 0,
+      paidTraffic: referenceMonth.monthlyPaidClicks || 0,
+      organicKeywords: referenceMonth.totalOrganicResults || 0,
+      domainPower: referenceMonth.strength || 0,
       backlinks: 0,
-      paidTraffic: 0,
-      dataSource: input.dataSource, // Copy dataSource directly
+      dataSource: input.dataSource,
       monthlyRevenueData: [] as MonthlyRevenueData[],
     }
   );
-
-  // Averaging domainPower (optional logic)
-  if (input.monthlyRevenueData.length > 0) {
-    aggregatedData.domainPower /= input.monthlyRevenueData.length;
-  }
 
   return aggregatedData;
 }
