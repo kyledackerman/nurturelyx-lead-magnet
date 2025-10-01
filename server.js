@@ -137,33 +137,42 @@ app.get("/proxy/spyfu", async (req, res) => {
       return res.status(400).json({ error: "Domain parameter is required" });
     }
 
-    // Use environment variables for SpyFu API credentials with fallbacks
-    const username = process.env.SPYFU_API_USERNAME || 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
-    const apiKey = process.env.SPYFU_API_KEY || 'VESAPD8P';
+    // Sanitize environment variables by trimming (prevents \r contamination)
+    const username = (process.env.SPYFU_API_USERNAME || '').trim() || 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
+    const apiKey = (process.env.SPYFU_API_KEY || '').trim() || 'VESAPD8P';
 
-    if (!username || !apiKey) {
-      console.error("SpyFu API credentials are missing");
-      return res.status(500).json({ error: "SpyFu API credentials are missing" });
-    }
+    // Hardcoded fallback credentials for retry
+    const fallbackUsername = 'bd5d70b5-7793-4c6e-b012-2a62616bf1af';
+    const fallbackApiKey = 'VESAPD8P';
 
-    // Calculate previous month to ensure data availability
+    // Get current month and year for real-time data
     const now = new Date();
-    const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const month = previousMonth.getMonth() + 1; // JavaScript months are 0-indexed
-    const year = previousMonth.getFullYear();
+    const month = now.getMonth() + 1; // JavaScript months are 0-indexed
+    const year = now.getFullYear();
 
-    console.log(`Requesting SpyFu data for ${domain} - Month: ${month}, Year: ${year}`);
+    console.log(`Requesting SpyFu data for ${domain} - Current Month: ${month}, Year: ${year}`);
 
-    const url = `https://www.spyfu.com/apis/domain_stats_api/v2/getDomainStatsForExactDate?domain=${domain}&month=${month}&year=${year}&countryCode=US&api_username=${username}&api_key=${apiKey}`;
+    const makeSpyFuRequest = async (user, key) => {
+      const url = `https://www.spyfu.com/apis/domain_stats_api/v2/getDomainStatsForExactDate?domain=${domain}&month=${month}&year=${year}&countryCode=US&api_username=${user}&api_key=${key}`;
+      
+      console.log(`Fetching SpyFu API for domain: ${domain}`);
+      return await fetch(url, {
+        timeout: 15000, // 15 second timeout
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (compatible; RailwayApp/1.0)'
+        }
+      });
+    };
 
-    console.log(`Fetching SpyFu API: ${url}`);
-    const response = await fetch(url, {
-      timeout: 15000, // 15 second timeout
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (compatible; RailwayApp/1.0)'
-      }
-    });
+    // Try primary credentials first
+    let response = await makeSpyFuRequest(username, apiKey);
+    
+    // If auth fails, retry with hardcoded credentials
+    if (!response.ok && (response.status === 401 || response.status === 403)) {
+      console.warn(`Auth failed with primary credentials (${response.status}), retrying with fallback credentials`);
+      response = await makeSpyFuRequest(fallbackUsername, fallbackApiKey);
+    }
     
     if (!response.ok) {
       console.error(`SpyFu API Error: ${response.status} - ${response.statusText}`);
@@ -175,7 +184,7 @@ app.get("/proxy/spyfu", async (req, res) => {
     }
 
     const data = await response.json();
-    console.log("SpyFu API call successful");
+    console.log(`SpyFu API call successful for ${domain} (${month}/${year})`);
     // Force content type to be JSON
     res.setHeader('Content-Type', 'application/json');
     res.json(data);

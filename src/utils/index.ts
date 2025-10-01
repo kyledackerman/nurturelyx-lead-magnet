@@ -2,22 +2,14 @@
 import { ApiData, MonthlyRevenueData, NewApiDataT } from "@/types/report";
 
 export function formateNewApiDataToApiData(input: NewApiDataT): ApiData {
-  // Find the latest month with non-zero traffic data
-  let referenceMonth = null;
-  for (let i = input.monthlyRevenueData.length - 1; i >= 0; i--) {
-    const monthData = input.monthlyRevenueData[i];
-    const totalTraffic = (monthData.monthlyOrganicClicks || 0) + (monthData.monthlyPaidClicks || 0);
-    if (totalTraffic > 0 || monthData.totalOrganicResults > 0) {
-      referenceMonth = monthData;
-      console.log(`Using reference month: ${monthData.month}/${monthData.searchYear} with ${totalTraffic} total traffic`);
-      break;
-    }
+  // Find the most recent month by (searchYear, searchMonth) - no "latest non-zero" logic
+  let referenceMonth = input.monthlyRevenueData[input.monthlyRevenueData.length - 1];
+  
+  if (!referenceMonth) {
+    throw new Error("SpyFu returned no monthly data");
   }
 
-  // If all months are zeros, throw error
-  if (!referenceMonth) {
-    throw new Error("SpyFu returned no usable data for recent months. All traffic values are zero.");
-  }
+  console.log(`Using reference month: ${referenceMonth.month}/${referenceMonth.searchYear} (most recent)`);
 
   const aggregatedData = input.monthlyRevenueData.reduce(
     (acc, monthData) => {
@@ -38,7 +30,7 @@ export function formateNewApiDataToApiData(input: NewApiDataT): ApiData {
       return acc;
     },
     {
-      // Use the reference month (latest non-zero) for headline metrics
+      // Use the most recent month for headline metrics (even if zeros)
       organicTraffic: referenceMonth.monthlyOrganicClicks || 0,
       paidTraffic: referenceMonth.monthlyPaidClicks || 0,
       organicKeywords: referenceMonth.totalOrganicResults || 0,

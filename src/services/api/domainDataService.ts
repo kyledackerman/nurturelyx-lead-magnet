@@ -134,7 +134,6 @@ export const fetchDomainData = async (
       // Extract the relevant metrics from the API response
       console.log("------data-api", data);
       
-      // formateNewApiDataToApiData will throw if all months are zeros
       const apiData = formateNewApiDataToApiData(NewData);
 
       console.log("Analysis complete - using real SpyFu data");
@@ -143,10 +142,9 @@ export const fetchDomainData = async (
     } catch (error: any) {
       console.warn("API data fetch failed:", error);
 
-      // If there's manual traffic data available, use it
+      // If user provided manual organic traffic, use it to construct manual data
       if (organicTrafficManual !== undefined && organicTrafficManual > 0) {
-        console.log("Using manual traffic data as fallback");
-
+        console.log("Using manual organic traffic input:", organicTrafficManual);
         return {
           organicKeywords: Math.floor(organicTrafficManual * 0.3),
           organicTraffic: organicTrafficManual,
@@ -158,23 +156,15 @@ export const fetchDomainData = async (
         };
       }
 
-      // Generate fallback data based on domain name
-      const fallbackData = generateFallbackData(cleanedDomain);
-
-      console.log("Using fallback data based on domain estimates");
-
-      return {
-        ...fallbackData,
-        dataSource: "fallback" as const,
-      };
+      // No fallback - surface the error
+      throw new Error(`Failed to fetch SpyFu data: ${error.message}`);
     }
   } catch (error: any) {
-    console.error(`Error fetching domain data:`, error);
+    console.error("Error in fetchDomainData:", error);
 
-    // If user provided manual data, use it as fallback
+    // If user provided manual organic traffic, use it
     if (organicTrafficManual !== undefined && organicTrafficManual > 0) {
-      console.log("Using manual traffic data as fallback after error");
-
+      console.log("Using manual organic traffic input:", organicTrafficManual);
       return {
         organicKeywords: Math.floor(organicTrafficManual * 0.3),
         organicTraffic: organicTrafficManual,
@@ -186,27 +176,7 @@ export const fetchDomainData = async (
       };
     }
 
-    // If domain is provided, generate fallback data
-    if (domain && domain.trim() !== "") {
-      const cleanedDomain = cleanDomain(domain);
-      const fallbackData = generateFallbackData(cleanedDomain);
-
-      console.log("Using fallback estimates for domain");
-
-      return {
-        ...fallbackData,
-        dataSource: "fallback" as const,
-      };
-    }
-
-    // If all attempts failed, show a clear error message
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : `Please check your domain and try again, or enter your traffic manually to continue.`;
-
-    console.error(`Failed to analyze ${domain}:`, errorMessage);
-
-    throw new Error(`Please enter your traffic values manually to continue.`);
+    // No synthetic fallback - throw the error
+    throw error;
   }
 };
