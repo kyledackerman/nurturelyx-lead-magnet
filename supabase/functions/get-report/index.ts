@@ -108,10 +108,7 @@ serve(async (req) => {
     }
 
     // Record view analytics (in background, don't wait)
-    const clientIP = req.headers.get('cf-connecting-ip') || 
-                     req.headers.get('x-forwarded-for') || 
-                     req.headers.get('x-real-ip') || 
-                     'unknown';
+    // Reuse clientIP from rate limiting (already declared above)
     const userAgent = req.headers.get('user-agent') || '';
     const referrer = req.headers.get('referer') || null;
     const sessionId = req.headers.get('x-session-id') || `${Date.now()}-${Math.random()}`;
