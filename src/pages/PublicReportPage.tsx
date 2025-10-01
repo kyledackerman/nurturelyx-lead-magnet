@@ -68,7 +68,8 @@ const PublicReportPage = () => {
             <>
               <div className="mb-8 max-w-3xl mx-auto text-center">
                 <h1 className="text-3xl font-bold text-foreground mb-4">
-                  Lead Opportunity Report for {reportData.domain}
+                  Lead Opportunity Report for{" "}
+                  <span className="text-primary text-4xl">{reportData.domain}</span>
                 </h1>
                 <p className="text-muted-foreground mb-6">
                   This report shows how much revenue this website is potentially losing 
