@@ -146,7 +146,15 @@ app.get("/proxy/spyfu", async (req, res) => {
       return res.status(500).json({ error: "SpyFu API credentials are missing" });
     }
 
-    const url = `https://www.spyfu.com/apis/domain_stats_api/v2/getDomainStatsForExactDate?domain=${domain}&month=3&year=2023&countryCode=US&api_username=${username}&api_key=${apiKey}`;
+    // Calculate previous month to ensure data availability
+    const now = new Date();
+    const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const month = previousMonth.getMonth() + 1; // JavaScript months are 0-indexed
+    const year = previousMonth.getFullYear();
+
+    console.log(`Requesting SpyFu data for ${domain} - Month: ${month}, Year: ${year}`);
+
+    const url = `https://www.spyfu.com/apis/domain_stats_api/v2/getDomainStatsForExactDate?domain=${domain}&month=${month}&year=${year}&countryCode=US&api_username=${username}&api_key=${apiKey}`;
 
     console.log(`Fetching SpyFu API: ${url}`);
     const response = await fetch(url, {
