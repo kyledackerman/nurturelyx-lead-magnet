@@ -28,10 +28,10 @@ export const calculateReportMetrics = (
   const visitorIdentificationRate = 0.2; // 20% visitor identification rate
   const salesConversionRate = 0.01; // 1% lead-to-sale conversion rate (1 per 100)
 
-  const missedLeads = Math.floor(totalTraffic * visitorIdentificationRate);
-  const estimatedSalesLost = Math.floor(missedLeads * salesConversionRate);
-  const monthlyRevenueLost = estimatedSalesLost * avgTransactionValue;
-  const yearlyRevenueLost = monthlyRevenueLost * 12;
+  let missedLeads = Math.floor(totalTraffic * visitorIdentificationRate);
+  let estimatedSalesLost = Math.floor(missedLeads * salesConversionRate);
+  let monthlyRevenueLost = estimatedSalesLost * avgTransactionValue;
+  let yearlyRevenueLost = monthlyRevenueLost * 12;
 
   // Generate 6 months of historical data with 20% overall growth
   const today = new Date();
@@ -41,46 +41,51 @@ export const calculateReportMetrics = (
   const currentVisitors = totalTraffic;
   const growthRatio = Math.pow(0.8, 1 / 5); // To achieve 20% decline from current to 6 months ago
 
-  if (isAPiData && monthlyApiData.length > 0) {
-    monthlyApiData.map((row, index) => {
-      // totalTraffic =
-      //   (row.monthlyOrganicClicks || 0) +
-      //   (row.monthlyPaidClicks || 0);
-      // missedLeads = Math.floor(totalTraffic * visitorIdentificationRate);
-      // estimatedSalesLost = Math.floor(missedLeads * salesConversionRate);
-      // monthlyRevenueLost = estimatedSalesLost * avgTransactionValue;
-      // Calculate growth factor for this month (earlier months have lower values)
-      const monthGrowthFactor = Math.pow(growthRatio, index);
+  if (isAPiData && monthlyApiData && monthlyApiData.length > 0) {
+    const rows = monthlyApiData;
+    const reference = [...rows]
+      .reverse()
+      .find((r) => (r.visitors ?? ((r.organicVisitors ?? 0) + (r.paidVisitors ?? 0))) > 0) ?? rows[rows.length - 1];
 
-      // Add a little randomness to the data for each month (95-105% variation)
-      const randomVariation = 0.95 + Math.random() * 0.1;
+    const refVisitors = reference
+      ? (reference.visitors ?? ((reference.organicVisitors ?? 0) + (reference.paidVisitors ?? 0)))
+      : 0;
 
-      // Apply growth factor and random variation
-      const monthTotalVisitors = Math.floor(
-        currentVisitors * monthGrowthFactor * randomVariation
-      );
+    // Override headline metrics from reference month
+    missedLeads = Math.floor(refVisitors * visitorIdentificationRate);
+    estimatedSalesLost = Math.floor(missedLeads * salesConversionRate);
+    monthlyRevenueLost = estimatedSalesLost * avgTransactionValue;
+    yearlyRevenueLost = monthlyRevenueLost * 12;
 
-      // Calculate derived metrics
-      const monthLeads = Math.floor(
-        monthTotalVisitors * visitorIdentificationRate
-      );
-      const monthSales = Math.floor(monthLeads * salesConversionRate);
-      const monthRevenue = monthSales * avgTransactionValue;
+    // Rebuild monthly series directly from API rows
+    monthlyRevenueData.length = 0; // clear
+    rows.forEach((row) => {
+      const totalVisitors = row.visitors ?? ((row.organicVisitors ?? 0) + (row.paidVisitors ?? 0));
+      const leads = Math.floor(totalVisitors * visitorIdentificationRate);
+      const sales = Math.floor(leads * salesConversionRate);
+      const revenue = sales * avgTransactionValue;
+
+      const organic = row.organicVisitors ?? Math.floor(totalVisitors * 0.7);
+      const paid = row.paidVisitors ?? Math.max(0, totalVisitors - organic);
 
       monthlyRevenueData.push({
         month: row.month,
         year: row.year,
-        visitors: row.visitors,
-        organicVisitors: row.organicVisitors,
-        paidVisitors: row.paidVisitors,
-        leads: monthLeads,
-        missedLeads: monthLeads, // Adding the missing property
-        sales: monthSales,
-        lostSales: monthSales, // Adding the missing property
-        revenueLost: monthRevenue,
-        lostRevenue: monthRevenue // Adding the missing property
+        visitors: totalVisitors,
+        organicVisitors: organic,
+        paidVisitors: paid,
+        leads,
+        missedLeads: leads,
+        sales,
+        lostSales: sales,
+        revenueLost: revenue,
+        lostRevenue: revenue,
       });
     });
+
+    console.log(
+      `Using API monthly series: ${rows.length} months; headline from ${reference?.month}/${reference?.year} visitors=${refVisitors}`
+    );
   } else {
     for (let i = 5; i >= 0; i--) {
       const monthDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
