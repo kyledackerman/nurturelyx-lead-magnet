@@ -25,7 +25,6 @@ import { reportService } from "@/services/reportService";
 import LeadReport from "@/components/LeadReport";
 import LoadingState from "@/components/calculator/LoadingState";
 import { useAuth } from "@/hooks/useAuth";
-
 interface ReportSummary {
   domain: string;
   created_at: string;
@@ -41,7 +40,6 @@ interface ReportSummary {
     avgTransactionValue?: number;
   };
 }
-
 interface AdminStats {
   totalReports: number;
   uniqueDomains: number;
@@ -58,7 +56,6 @@ interface AdminStats {
   highValueProspectsToday: number;
   highValueProspectsYesterday: number;
 }
-
 interface ChartDataPoint {
   date: string;
   adminReports: number;
@@ -66,9 +63,10 @@ interface ChartDataPoint {
   revenueLineReports: number;
   total: number;
 }
-
 const AdminDashboard = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [filteredReports, setFilteredReports] = useState<ReportSummary[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -87,47 +85,41 @@ const AdminDashboard = () => {
     nonAdminReportsYesterday: 0,
     highValueProspects: 0,
     highValueProspectsToday: 0,
-    highValueProspectsYesterday: 0,
+    highValueProspectsYesterday: 0
   });
   const [crmOpen, setCrmOpen] = useState(true);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [timePeriod, setTimePeriod] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
   const [leaderboardTimeFilter, setLeaderboardTimeFilter] = useState<'daily' | 'weekly' | 'monthly' | 'all-time'>('monthly');
-  
+
   // Report generation state
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [reportProgress, setReportProgress] = useState(0);
   const [generatedReport, setGeneratedReport] = useState<ReportData | null>(null);
   const [reportFormData, setReportFormData] = useState<FormData | null>(null);
   const [reportApiError, setReportApiError] = useState<string | null>(null);
-
   useEffect(() => {
     fetchReports();
     fetchStats();
     fetchChartData(timePeriod);
   }, []);
-
   useEffect(() => {
     fetchChartData(timePeriod);
   }, [timePeriod]);
-
   useEffect(() => {
-    const filtered = reports.filter(report =>
-      report.domain.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filtered = reports.filter(report => report.domain.toLowerCase().includes(searchTerm.toLowerCase()));
     setFilteredReports(filtered);
   }, [searchTerm, reports]);
-
   const fetchReports = async () => {
     try {
-      const { data, error } = await supabase
-        .from('reports')
-        .select('id, domain, created_at, is_public, user_id, slug, report_data')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
+      const {
+        data,
+        error
+      } = await supabase.from('reports').select('id, domain, created_at, is_public, user_id, slug, report_data').order('created_at', {
+        ascending: false
+      }).limit(100);
       if (error) throw error;
-      
+
       // Type cast the report_data from Json to our interface
       const typedData = (data || []).map(report => ({
         ...report,
@@ -139,7 +131,6 @@ const AdminDashboard = () => {
           avgTransactionValue?: number;
         }
       }));
-      
       setReports(typedData);
       setFilteredReports(typedData);
     } catch (error) {
@@ -149,21 +140,20 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
-
   const fetchStats = async () => {
     try {
       // Get all reports with user_id
-      const { data: allReports, error: reportsError } = await supabase
-        .from('reports')
-        .select('domain, created_at, user_id, report_data');
-
+      const {
+        data: allReports,
+        error: reportsError
+      } = await supabase.from('reports').select('domain, created_at, user_id, report_data');
       if (reportsError) throw reportsError;
 
       // Get all user roles
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-
+      const {
+        data: userRoles,
+        error: rolesError
+      } = await supabase.from('user_roles').select('user_id, role');
       if (rolesError) throw rolesError;
 
       // Create a map of user_id to role for quick lookup
@@ -171,20 +161,17 @@ const AdminDashboard = () => {
       userRoles?.forEach(ur => {
         roleMap.set(ur.user_id, ur.role);
       });
-
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
 
       // Filter reports by time period
-      const todayReports = allReports?.filter((r) => {
+      const todayReports = allReports?.filter(r => {
         const reportDate = new Date(r.created_at);
         return reportDate >= today;
       }) || [];
-      
-      const yesterdayReports = allReports?.filter((r) => {
+      const yesterdayReports = allReports?.filter(r => {
         const reportDate = new Date(r.created_at);
         return reportDate >= yesterday && reportDate < today;
       }) || [];
@@ -193,14 +180,14 @@ const AdminDashboard = () => {
       const uniqueDomains = new Set(allReports?.map(r => r.domain) || []).size;
       const uniqueDomainsToday = new Set(todayReports.map(r => r.domain)).size;
       const uniqueDomainsYesterday = new Set(yesterdayReports.map(r => r.domain)).size;
-      
+
       // Helper function to check if user is admin
       const isAdminUser = (userId: string | null) => {
         if (!userId) return false;
         const userRole = roleMap.get(userId);
         return userRole === 'admin' || userRole === 'super_admin';
       };
-      
+
       // Calculate admin reports
       let adminReports = 0;
       let adminReportsToday = 0;
@@ -208,7 +195,6 @@ const AdminDashboard = () => {
       let nonAdminReports = 0;
       let nonAdminReportsToday = 0;
       let nonAdminReportsYesterday = 0;
-      
       allReports?.forEach(report => {
         if (isAdminUser(report.user_id)) {
           adminReports++;
@@ -216,7 +202,6 @@ const AdminDashboard = () => {
           nonAdminReports++;
         }
       });
-      
       todayReports.forEach(report => {
         if (isAdminUser(report.user_id)) {
           adminReportsToday++;
@@ -224,7 +209,6 @@ const AdminDashboard = () => {
           nonAdminReportsToday++;
         }
       });
-      
       yesterdayReports.forEach(report => {
         if (isAdminUser(report.user_id)) {
           adminReportsYesterday++;
@@ -232,19 +216,18 @@ const AdminDashboard = () => {
           nonAdminReportsYesterday++;
         }
       });
-      
+
       // Helper function to check if high value prospect
       const isHighValue = (r: any) => {
         const reportData = r.report_data as any;
         const monthlyRevenueLost = reportData?.monthlyRevenueLost || 0;
         return monthlyRevenueLost > 5000;
       };
-      
+
       // Count high-value prospects
       const highValueProspects = allReports?.filter(isHighValue).length || 0;
       const highValueProspectsToday = todayReports.filter(isHighValue).length;
       const highValueProspectsYesterday = yesterdayReports.filter(isHighValue).length;
-
       setStats({
         totalReports: allReports?.length || 0,
         uniqueDomains,
@@ -259,28 +242,28 @@ const AdminDashboard = () => {
         nonAdminReportsYesterday,
         highValueProspects,
         highValueProspectsToday,
-        highValueProspectsYesterday,
+        highValueProspectsYesterday
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
   };
-
   const fetchChartData = async (period: 'weekly' | 'monthly' | 'yearly') => {
     try {
       // First, get all reports with report_data
-      const { data: allReports, error: reportsError } = await supabase
-        .from('reports')
-        .select('created_at, user_id, report_data')
-        .order('created_at', { ascending: true });
-
+      const {
+        data: allReports,
+        error: reportsError
+      } = await supabase.from('reports').select('created_at, user_id, report_data').order('created_at', {
+        ascending: true
+      });
       if (reportsError) throw reportsError;
 
       // Then, get all user roles
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-
+      const {
+        data: userRoles,
+        error: rolesError
+      } = await supabase.from('user_roles').select('user_id, role');
       if (rolesError) throw rolesError;
 
       // Create a map of user_id to role for quick lookup
@@ -288,7 +271,6 @@ const AdminDashboard = () => {
       userRoles?.forEach(ur => {
         roleMap.set(ur.user_id, ur.role);
       });
-
       const now = new Date();
       let startDate: Date;
       let dateFormat: (date: Date) => string;
@@ -302,25 +284,38 @@ const AdminDashboard = () => {
           startDate.setDate(startDate.getDate() - 7);
           periods = 7;
           incrementType = 'day';
-          dateFormat = (date) => date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+          dateFormat = date => date.toLocaleDateString('en-US', {
+            weekday: 'short',
+            day: 'numeric'
+          });
           break;
         case 'yearly':
           startDate = new Date(now);
           startDate.setMonth(startDate.getMonth() - 12);
           periods = 12;
           incrementType = 'month';
-          dateFormat = (date) => date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+          dateFormat = date => date.toLocaleDateString('en-US', {
+            month: 'short',
+            year: '2-digit'
+          });
           break;
-        default: // monthly
+        default:
+          // monthly
           startDate = new Date(now);
           startDate.setDate(startDate.getDate() - 30);
           periods = 30;
           incrementType = 'day';
-          dateFormat = (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          dateFormat = date => date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+          });
       }
+      const dateMap = new Map<string, {
+        admin: number;
+        nonAdmin: number;
+        revenueLoss: number;
+      }>();
 
-      const dateMap = new Map<string, { admin: number; nonAdmin: number; revenueLoss: number }>();
-      
       // Initialize all periods with 0
       for (let i = 0; i < periods; i++) {
         const date = new Date(startDate);
@@ -329,44 +324,41 @@ const AdminDashboard = () => {
         } else {
           date.setMonth(date.getMonth() + i);
         }
-        const dateStr = period === 'yearly' 
-          ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-          : date.toISOString().split('T')[0];
-        dateMap.set(dateStr, { admin: 0, nonAdmin: 0, revenueLoss: 0 });
+        const dateStr = period === 'yearly' ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` : date.toISOString().split('T')[0];
+        dateMap.set(dateStr, {
+          admin: 0,
+          nonAdmin: 0,
+          revenueLoss: 0
+        });
       }
 
       // Count reports for each period, separating admin vs non-admin and revenue loss
       allReports?.forEach(report => {
         const reportDate = new Date(report.created_at);
         let key: string;
-        
         if (period === 'yearly') {
           key = `${reportDate.getFullYear()}-${String(reportDate.getMonth() + 1).padStart(2, '0')}`;
         } else {
           key = report.created_at.split('T')[0];
         }
-        
         if (dateMap.has(key)) {
           const current = dateMap.get(key)!;
-          
+
           // Check if user is admin or super_admin
           const userRole = report.user_id ? roleMap.get(report.user_id) : null;
           const isAdmin = userRole === 'admin' || userRole === 'super_admin';
-          
+
           // Check if report has revenue loss
           const reportData = report.report_data as any;
           const hasRevenueLoss = (reportData?.monthlyRevenueLost || 0) > 0 || (reportData?.yearlyRevenueLost || 0) > 0;
-          
           if (isAdmin) {
             current.admin += 1;
           } else {
             current.nonAdmin += 1;
           }
-          
           if (hasRevenueLoss) {
             current.revenueLoss += 1;
           }
-          
           dateMap.set(key, current);
         }
       });
@@ -374,7 +366,6 @@ const AdminDashboard = () => {
       // Convert to chart format
       const chartData: ChartDataPoint[] = Array.from(dateMap.entries()).map(([dateKey, counts]) => {
         let displayDate: string;
-        
         if (period === 'yearly') {
           const [year, month] = dateKey.split('-');
           const date = new Date(parseInt(year), parseInt(month) - 1, 1);
@@ -382,7 +373,6 @@ const AdminDashboard = () => {
         } else {
           displayDate = dateFormat(new Date(dateKey));
         }
-        
         return {
           date: displayDate,
           adminReports: counts.admin,
@@ -391,7 +381,6 @@ const AdminDashboard = () => {
           total: counts.admin + counts.nonAdmin
         };
       });
-
       setChartData(chartData);
     } catch (error) {
       console.error('Error fetching chart data:', error);
@@ -401,79 +390,58 @@ const AdminDashboard = () => {
   // Report generation handler - identical to Index.tsx
   const handleGenerateReport = async (formData: FormData) => {
     const domain = formData.domain || "example.com";
-
     setIsGeneratingReport(true);
     setReportApiError(null);
     setReportProgress(0);
-    setReportFormData({ ...formData, domain });
-
+    setReportFormData({
+      ...formData,
+      domain
+    });
     const progressInterval = setInterval(() => {
-      setReportProgress((prev) => {
+      setReportProgress(prev => {
         if (prev < 90) return prev + Math.random() * 15;
         return prev;
       });
     }, 500);
-
     try {
       // Fetch domain data from SpyFu
-      const apiData = await fetchDomainData(
-        domain,
-        formData.organicTrafficManual,
-        formData.isUnsureOrganic
-      );
-
+      const apiData = await fetchDomainData(domain, formData.organicTrafficManual, formData.isUnsureOrganic);
       setReportProgress(95);
-
-      const paidTraffic = formData.isUnsurePaid
-        ? 0
-        : formData.monthlyVisitors || 0;
-
-      const metrics = calculateReportMetrics(
-        paidTraffic,
-        formData.avgTransactionValue,
-        apiData.organicTraffic,
-        apiData.paidTraffic,
-        apiData.monthlyRevenueData,
-        apiData.dataSource === "api"
-      );
-
+      const paidTraffic = formData.isUnsurePaid ? 0 : formData.monthlyVisitors || 0;
+      const metrics = calculateReportMetrics(paidTraffic, formData.avgTransactionValue, apiData.organicTraffic, apiData.paidTraffic, apiData.monthlyRevenueData, apiData.dataSource === "api");
       const fullReportData: ReportData = {
         ...formData,
         ...apiData,
-        ...metrics,
+        ...metrics
       };
-
       setReportProgress(100);
       setTimeout(() => {
         setGeneratedReport(fullReportData);
-        
+
         // Save report to database in background
         try {
-          reportService.saveReport(fullReportData, user?.id).then((saveResult) => {
-            setGeneratedReport(prev => prev ? { 
-              ...prev, 
+          reportService.saveReport(fullReportData, user?.id).then(saveResult => {
+            setGeneratedReport(prev => prev ? {
+              ...prev,
               reportId: saveResult.reportId,
-              slug: saveResult.slug 
+              slug: saveResult.slug
             } : null);
             console.log('Report saved:', saveResult);
-            
             toast.success('Report saved successfully!', {
               description: 'Report has been added to the database.',
-              duration: 4000,
+              duration: 4000
             });
-            
+
             // Refresh the reports list
             fetchReports();
-          }).catch((saveError) => {
+          }).catch(saveError => {
             console.error('Failed to save report:', saveError);
           });
         } catch (saveError) {
           console.error('Failed to save report:', saveError);
         }
-        
         setIsGeneratingReport(false);
         clearInterval(progressInterval);
-
         let dataSourceMessage = "";
         switch (apiData.dataSource) {
           case "api":
@@ -489,47 +457,40 @@ const AdminDashboard = () => {
             dataSourceMessage = "using industry estimates (API unavailable)";
             break;
         }
-
         toast.success(`Report generated successfully ${dataSourceMessage}`, {
-          duration: 5000,
+          duration: 5000
         });
       }, 500);
     } catch (error) {
       console.error("Error calculating report:", error);
-      const errorMsg =
-        error instanceof Error ? error.message : "Unknown error occurred";
+      const errorMsg = error instanceof Error ? error.message : "Unknown error occurred";
       setReportApiError(errorMsg);
       setIsGeneratingReport(false);
       clearInterval(progressInterval);
-
       toast.error("Failed to generate report", {
         description: "Please provide traffic data manually to continue.",
-        duration: 8000,
+        duration: 8000
       });
     }
   };
-
   const handleResetReport = () => {
     setGeneratedReport(null);
     setReportApiError(null);
     setReportFormData(null);
     setReportProgress(0);
     toast.success("Report cleared", {
-      duration: 3000,
+      duration: 3000
     });
   };
-
   const handleEditReport = () => {
     setGeneratedReport(null);
     setReportApiError(null);
     toast.info("Edit your information and submit again", {
       description: "Your previous entries have been preserved.",
-      duration: 5000,
+      duration: 5000
     });
   };
-
-  return (
-    <AdminAuthGuard>
+  return <AdminAuthGuard>
       <Header />
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto space-y-6">
@@ -542,10 +503,10 @@ const AdminDashboard = () => {
               </p>
             </div>
             <Button onClick={() => {
-              fetchReports();
-              fetchStats();
-              fetchChartData(timePeriod);
-            }} disabled={loading}>
+            fetchReports();
+            fetchStats();
+            fetchChartData(timePeriod);
+          }} disabled={loading}>
               Refresh Data
             </Button>
           </div>
@@ -616,17 +577,10 @@ const AdminDashboard = () => {
               <div>
                 <h3 className="text-lg font-semibold">Analytics Overview</h3>
                 <p className="text-sm text-muted-foreground">
-                  {timePeriod === 'weekly' ? 'Last 7 Days' : 
-                   timePeriod === 'yearly' ? 'Last 12 Months' : 
-                   'Last 30 Days'}
+                  {timePeriod === 'weekly' ? 'Last 7 Days' : timePeriod === 'yearly' ? 'Last 12 Months' : 'Last 30 Days'}
                 </p>
               </div>
-              <ToggleGroup 
-                type="single" 
-                value={timePeriod} 
-                onValueChange={(value) => value && setTimePeriod(value as 'weekly' | 'monthly' | 'yearly')}
-                className="bg-muted/50"
-              >
+              <ToggleGroup type="single" value={timePeriod} onValueChange={value => value && setTimePeriod(value as 'weekly' | 'monthly' | 'yearly')} className="bg-muted/50">
                 <ToggleGroupItem value="weekly" aria-label="Weekly view">
                   Week
                 </ToggleGroupItem>
@@ -656,42 +610,35 @@ const AdminDashboard = () => {
                   <ResponsiveContainer width="100%" height={280}>
                     <ComposedChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis 
-                        dataKey="date" 
-                        className="text-muted-foreground"
-                        fontSize={12}
-                      />
-                      <YAxis 
-                        className="text-muted-foreground"
-                        fontSize={12}
-                        label={{ value: 'Reports', angle: -90, position: 'insideLeft', style: { fill: 'hsl(var(--muted-foreground))' } }}
-                      />
-                      <Tooltip 
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '6px'
-                        }}
-                      />
+                      <XAxis dataKey="date" className="text-muted-foreground" fontSize={12} />
+                      <YAxis className="text-muted-foreground" fontSize={12} label={{
+                      value: 'Reports',
+                      angle: -90,
+                      position: 'insideLeft',
+                      style: {
+                        fill: 'hsl(var(--muted-foreground))'
+                      }
+                    }} />
+                      <Tooltip contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px'
+                    }} />
                       <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="adminReports"
-                        stroke="#60a5fa"
-                        strokeWidth={2.5}
-                        dot={{ fill: '#60a5fa', strokeWidth: 2, r: 4 }}
-                        activeDot={{ r: 6 }}
-                        name="Admin Reports"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="nonAdminReports" 
-                        stroke="#ef4444"
-                        strokeWidth={2.5}
-                        dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
-                        activeDot={{ r: 6 }}
-                        name="Non-Admin Reports"
-                      />
+                      <Line type="monotone" dataKey="adminReports" stroke="#60a5fa" strokeWidth={2.5} dot={{
+                      fill: '#60a5fa',
+                      strokeWidth: 2,
+                      r: 4
+                    }} activeDot={{
+                      r: 6
+                    }} name="Admin Reports" />
+                      <Line type="monotone" dataKey="nonAdminReports" stroke="#ef4444" strokeWidth={2.5} dot={{
+                      fill: '#ef4444',
+                      strokeWidth: 2,
+                      r: 4
+                    }} activeDot={{
+                      r: 6
+                    }} name="Non-Admin Reports" />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -712,42 +659,35 @@ const AdminDashboard = () => {
                   <ResponsiveContainer width="100%" height={280}>
                     <ComposedChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis 
-                        dataKey="date" 
-                        className="text-muted-foreground"
-                        fontSize={12}
-                      />
-                      <YAxis 
-                        className="text-muted-foreground"
-                        fontSize={12}
-                        label={{ value: 'Count', angle: -90, position: 'insideLeft', style: { fill: 'hsl(var(--muted-foreground))' } }}
-                      />
-                      <Tooltip 
-                        contentStyle={{
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '6px'
-                        }}
-                      />
+                      <XAxis dataKey="date" className="text-muted-foreground" fontSize={12} />
+                      <YAxis className="text-muted-foreground" fontSize={12} label={{
+                      value: 'Count',
+                      angle: -90,
+                      position: 'insideLeft',
+                      style: {
+                        fill: 'hsl(var(--muted-foreground))'
+                      }
+                    }} />
+                      <Tooltip contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px'
+                    }} />
                       <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="total"
-                        stroke="#60a5fa" 
-                        strokeWidth={2.5}
-                        dot={{ fill: '#60a5fa', strokeWidth: 2, r: 4 }}
-                        activeDot={{ r: 6 }}
-                        name="Total Reports"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="revenueLineReports" 
-                        stroke="#ef4444"
-                        strokeWidth={2.5}
-                        dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
-                        activeDot={{ r: 6 }}
-                        name="High-Value Domains"
-                      />
+                      <Line type="monotone" dataKey="total" stroke="#60a5fa" strokeWidth={2.5} dot={{
+                      fill: '#60a5fa',
+                      strokeWidth: 2,
+                      r: 4
+                    }} activeDot={{
+                      r: 6
+                    }} name="Total Reports" />
+                      <Line type="monotone" dataKey="revenueLineReports" stroke="#ef4444" strokeWidth={2.5} dot={{
+                      fill: '#ef4444',
+                      strokeWidth: 2,
+                      r: 4
+                    }} activeDot={{
+                      r: 6
+                    }} name="High-Value Domains" />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -777,13 +717,7 @@ const AdminDashboard = () => {
             </TabsContent>
 
             <TabsContent value="generate" className="space-y-6">
-              {isGeneratingReport ? (
-                <LoadingState
-                  calculationProgress={reportProgress}
-                  onReset={handleResetReport}
-                />
-              ) : !generatedReport ? (
-                <Card>
+              {isGeneratingReport ? <LoadingState calculationProgress={reportProgress} onReset={handleResetReport} /> : !generatedReport ? <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <FileText className="h-5 w-5" />
@@ -794,35 +728,17 @@ const AdminDashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <AdminLeadCalculatorForm
-                      onCalculate={handleGenerateReport}
-                      onReset={handleResetReport}
-                      isCalculating={isGeneratingReport}
-                      initialData={reportFormData}
-                      apiError={reportApiError}
-                    />
+                    <AdminLeadCalculatorForm onCalculate={handleGenerateReport} onReset={handleResetReport} isCalculating={isGeneratingReport} initialData={reportFormData} apiError={reportApiError} />
                   </CardContent>
-                </Card>
-              ) : (
-                <div>
-                  <LeadReport
-                    data={generatedReport}
-                    onReset={handleResetReport}
-                    onEditData={handleEditReport}
-                  />
-                </div>
-              )}
+                </Card> : <div>
+                  <LeadReport data={generatedReport} onReset={handleResetReport} onEditData={handleEditReport} />
+                </div>}
             </TabsContent>
 
             <TabsContent value="leaderboard" className="space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Performance Rankings</h3>
-                <ToggleGroup
-                  type="single" 
-                  value={leaderboardTimeFilter} 
-                  onValueChange={(value) => value && setLeaderboardTimeFilter(value as 'daily' | 'weekly' | 'monthly' | 'all-time')}
-                  className="border rounded-lg"
-                >
+                <ToggleGroup type="single" value={leaderboardTimeFilter} onValueChange={value => value && setLeaderboardTimeFilter(value as 'daily' | 'weekly' | 'monthly' | 'all-time')} className="border rounded-lg">
                   <ToggleGroupItem value="daily" className="text-xs">Daily</ToggleGroupItem>
                   <ToggleGroupItem value="weekly" className="text-xs">Weekly</ToggleGroupItem>
                   <ToggleGroupItem value="monthly" className="text-xs">Monthly</ToggleGroupItem>
@@ -855,10 +771,7 @@ const AdminDashboard = () => {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <CardContent>
-                      <CRMProspectsTable 
-                        reports={filteredReports} 
-                        loading={loading}
-                      />
+                      <CRMProspectsTable reports={filteredReports} loading={loading} />
                     </CardContent>
                   </CollapsibleContent>
                 </Collapsible>
@@ -885,26 +798,16 @@ const AdminDashboard = () => {
                 <CardContent>
                   <div className="flex items-center space-x-2 mb-4">
                     <Search className="h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search domains..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="max-w-sm"
-                    />
+                    <Input placeholder="Search domains..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="max-w-sm" />
                   </div>
                   
-                  <AdminReportsTable 
-                    reports={filteredReports} 
-                    loading={loading}
-                  />
+                  <AdminReportsTable reports={filteredReports} loading={loading} />
                 </CardContent>
               </Card>
             </TabsContent>
           </Tabs>
         </div>
       </div>
-    </AdminAuthGuard>
-  );
+    </AdminAuthGuard>;
 };
-
 export default AdminDashboard;
