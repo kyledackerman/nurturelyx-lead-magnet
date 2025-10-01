@@ -42,6 +42,54 @@ export function formatNumberWithSuffix(num: number): string {
   return num.toString();
 }
 
+// Eastern Time Zone (America/New_York) date formatting utilities
+const EASTERN_TIMEZONE = 'America/New_York';
+
+// Format date in Eastern Time - Full format with time
+export function formatDateEastern(dateString: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: EASTERN_TIMEZONE,
+  }).format(new Date(dateString));
+}
+
+// Format date in Eastern Time - Long format with time
+export function formatDateLongEastern(dateString: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: EASTERN_TIMEZONE,
+  }).format(new Date(dateString));
+}
+
+// Format date in Eastern Time - Short format without year for recent dates
+export function formatDateShortEastern(dateString: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: EASTERN_TIMEZONE,
+  }).format(new Date(dateString));
+}
+
+// Format date in Eastern Time - Date only, no time
+export function formatDateOnlyEastern(dateString: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: EASTERN_TIMEZONE,
+  }).format(new Date(dateString));
+}
+
 // Create a shareable message for social media
 export function createShareableMessage(domain: string, yearlyRevenueLost: number): string {
   const formattedAmount = new Intl.NumberFormat("en-US", {

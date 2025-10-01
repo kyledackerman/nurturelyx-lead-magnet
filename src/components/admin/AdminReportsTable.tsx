@@ -44,7 +44,7 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
   const [sortedReports, setSortedReports] = useState<ReportData[]>([]);
   const adminUserId = "850078c3-247c-4904-9b9a-ebec624d4ef5";
 
-  // Enhanced formatting functions
+  // Enhanced formatting functions with Eastern Time Zone
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
@@ -52,6 +52,7 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'America/New_York',
     }).format(new Date(dateString));
   };
 

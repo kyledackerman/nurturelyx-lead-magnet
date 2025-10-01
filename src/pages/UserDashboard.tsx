@@ -98,6 +98,7 @@ const UserDashboard = () => {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+      timeZone: 'America/New_York',
     });
   };
 

@@ -230,6 +230,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'America/New_York',
     }).format(new Date(dateString));
   };
 
