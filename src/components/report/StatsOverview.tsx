@@ -40,6 +40,7 @@ const StatsOverview = ({
         label="Monthly Lost Revenue"
         value={formatCurrency(monthlyRevenueLost)}
         icon={DollarSign}
+        isHighValue={monthlyRevenueLost > 5000}
       />
     </div>
   );
