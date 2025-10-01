@@ -223,7 +223,7 @@ const UserDashboard = () => {
                       <TableHead>Domain</TableHead>
                       <TableHead>Date Created</TableHead>
                       <TableHead>Missed Leads</TableHead>
-                      <TableHead>Lost Revenue</TableHead>
+                      <TableHead>Monthly Lost Revenue</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -237,7 +237,7 @@ const UserDashboard = () => {
                           {(report.report_data.missedLeads || 0).toLocaleString()}
                         </TableCell>
                         <TableCell>
-                          {formatCurrency(report.report_data.yearlyRevenueLost || 0)}
+                          {formatCurrency(report.report_data.monthlyRevenueLost || 0)}
                         </TableCell>
                         <TableCell>
                           <Badge variant={report.is_public ? "secondary" : "outline"}>
