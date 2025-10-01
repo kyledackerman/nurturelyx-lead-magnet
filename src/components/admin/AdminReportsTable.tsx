@@ -39,12 +39,12 @@ type SortDirection = 'asc' | 'desc';
 
 export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<SortKey>('created_at');
+  const [sortBy, setSortBy] = useState<SortKey>('monthlyRevenueLost');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortedReports, setSortedReports] = useState<ReportData[]>([]);
   const adminUserId = "850078c3-247c-4904-9b9a-ebec624d4ef5";
 
-  // Enhanced formatting functions with Eastern Time Zone
+  // Enhanced formatting functions
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
@@ -52,7 +52,6 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: 'America/New_York',
     }).format(new Date(dateString));
   };
 

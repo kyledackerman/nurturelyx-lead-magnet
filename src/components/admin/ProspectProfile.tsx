@@ -212,7 +212,6 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: 'America/New_York',
     }).format(new Date(dateString));
   };
 
@@ -221,7 +220,6 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-      timeZone: 'America/New_York',
     }).format(new Date(dateString));
   };
 

@@ -70,85 +70,81 @@ export const fetchDomainData = async (
 
       if (!response.ok) {
         console.error(
-          "❌ API response error:",
+          "API response error:",
           response.status,
           response.statusText
         );
-        throw new Error(`API returned status ${response.status}: ${response.statusText}`);
+        throw new Error(`API returned status ${response.status}`);
       }
-
-      console.log("📥 Received response, parsing...");
 
       // Get response text first to avoid "body stream already read" errors
-      let responseText;
-      try {
-        responseText = await response.text();
-        console.log("📄 Response text length:", responseText.length);
-      } catch (textError) {
-        console.error("❌ Failed to read response text:", textError);
-        throw new Error("Failed to read server response. Please try again.");
-      }
+      // let responseText;
+      // try {
+      //   responseText = await response.text();
+      // } catch (textError) {
+      //   console.error("Failed to read response text:", textError);
+      //   throw new Error("Failed to read server response");
+      // }
 
-      // Check if response contains HTML markers
-      if (
-        responseText.includes("<!DOCTYPE") ||
-        responseText.includes("<html")
-      ) {
-        console.error("❌ Server returned HTML instead of JSON");
-        throw new Error(
-          "Server configuration error. Please contact support."
-        );
-      }
+      // // Check if response contains HTML markers
+      // if (
+      //   responseText.includes("<!DOCTYPE") ||
+      //   responseText.includes("<html")
+      // ) {
+      //   throw new Error(
+      //     "Server returned HTML instead of JSON. API routes may not be configured correctly."
+      //   );
+      // }
 
-      // Check if response is empty
-      if (!responseText || responseText.trim() === "") {
-        console.error("❌ Empty response from API server");
-        throw new Error("Empty response from server. Please try again.");
-      }
+      // // Check if response is empty
+      // if (!responseText || responseText.trim() === "") {
+      //   throw new Error("Empty response from API server");
+      // }
 
-      let data;
-      try {
-        // Parse the response text as JSON
-        data = JSON.parse(responseText);
-        console.log("✅ Successfully parsed JSON response");
-        console.log("📊 Response data keys:", Object.keys(data));
-      } catch (jsonError) {
-        console.error("❌ Error parsing API response:", jsonError);
-        console.error("Response preview:", responseText.substring(0, 200));
+      // let data;
+      // try {
+      //   // Parse the response text as JSON
+      //   data = JSON.parse(responseText);
+      // } catch (jsonError) {
+      //   console.error("Error parsing API response:", jsonError);
+      //   console.error("Response preview:", responseText.substring(0, 200));
 
-        throw new Error("Invalid response format from server. Please try again.");
-      }
+      //   if (
+      //     responseText.includes("<!DOCTYPE") ||
+      //     responseText.includes("<html")
+      //   ) {
+      //     throw new Error(
+      //       "Server returned HTML instead of JSON. API routes may not be configured correctly."
+      //     );
+      //   }
 
-      // Check if data contains error
-      if (data?.error) {
-        console.error("❌ API returned error:", data.error);
-        throw new Error(data.error);
-      }
+      //   throw new Error("Invalid JSON response from API server");
+      // }
 
-      // Validate that we have the expected data structure
-      if (!data || typeof data !== 'object') {
-        console.error("❌ Invalid data structure received");
-        throw new Error("Invalid data received from SpyFu API. Please try again.");
-      }
+      // // Check if data contains error
+      // if (data?.error) {
+      //   console.error("API returned error:", data.error);
+      //   throw new Error(data.error);
+      // }
+
+      const data = await response.json();
 
       const NewData = data as NewApiDataT;
 
       // Extract the relevant metrics from the API response
-      console.log("📊 Raw API data:", data);
+      console.log("------data-api", data);
       const apiData = formateNewApiDataToApiData(NewData);
 
-      console.log("✅ Analysis complete - using REAL SpyFu data");
-      console.log("📈 Organic Traffic:", apiData.organicTraffic);
-      console.log("🔑 Organic Keywords:", apiData.organicKeywords);
-      console.log("💰 Paid Traffic:", apiData.paidTraffic);
+      console.log("Analysis complete - using real SpyFu data");
 
+      // return apiData;
       return apiData;
     } catch (error: any) {
-      console.error("❌ API data fetch failed:", error.message);
+      console.warn("API data fetch failed:", error);
 
       // If there's manual traffic data available, use it
       if (organicTrafficManual !== undefined && organicTrafficManual > 0) {
-        console.log("✅ Using manual traffic data (user-provided)");
+        console.log("Using manual traffic data as fallback");
 
         return {
           organicKeywords: Math.floor(organicTrafficManual * 0.3),
@@ -161,18 +157,22 @@ export const fetchDomainData = async (
         };
       }
 
-      // NO FALLBACK DATA - Force user to enter manual data
-      console.error("❌ No manual data provided. User must enter traffic data manually.");
-      throw new Error(
-        `Unable to retrieve SpyFu data for ${cleanedDomain}. Please enter your organic traffic manually to continue.`
-      );
+      // Generate fallback data based on domain name
+      const fallbackData = generateFallbackData(cleanedDomain);
+
+      console.log("Using fallback data based on domain estimates");
+
+      return {
+        ...fallbackData,
+        dataSource: "fallback" as const,
+      };
     }
   } catch (error: any) {
-    console.error(`❌ Error fetching domain data:`, error);
+    console.error(`Error fetching domain data:`, error);
 
-    // If user provided manual data, use it
+    // If user provided manual data, use it as fallback
     if (organicTrafficManual !== undefined && organicTrafficManual > 0) {
-      console.log("✅ Using manual traffic data (user-provided after error)");
+      console.log("Using manual traffic data as fallback after error");
 
       return {
         organicKeywords: Math.floor(organicTrafficManual * 0.3),
@@ -185,14 +185,27 @@ export const fetchDomainData = async (
       };
     }
 
-    // NO FALLBACK DATA - Force user to enter manual data
+    // If domain is provided, generate fallback data
+    if (domain && domain.trim() !== "") {
+      const cleanedDomain = cleanDomain(domain);
+      const fallbackData = generateFallbackData(cleanedDomain);
+
+      console.log("Using fallback estimates for domain");
+
+      return {
+        ...fallbackData,
+        dataSource: "fallback" as const,
+      };
+    }
+
+    // If all attempts failed, show a clear error message
     const errorMessage =
       error instanceof Error
         ? error.message
-        : `Unable to retrieve data for ${domain}. Please enter your organic traffic manually to continue.`;
+        : `Please check your domain and try again, or enter your traffic manually to continue.`;
 
-    console.error(`❌ Failed to analyze ${domain}:`, errorMessage);
+    console.error(`Failed to analyze ${domain}:`, errorMessage);
 
-    throw new Error(errorMessage);
+    throw new Error(`Please enter your traffic values manually to continue.`);
   }
 };
