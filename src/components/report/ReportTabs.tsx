@@ -11,10 +11,10 @@ const ReportTabs = ({ data }: ReportTabsProps) => {
   return (
     <Tabs defaultValue="overview" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="overview" className="text-white">
+        <TabsTrigger value="overview">
           Domain Overview
         </TabsTrigger>
-        <TabsTrigger value="solution" className="text-white">
+        <TabsTrigger value="solution">
           NurturelyX Solution
         </TabsTrigger>
       </TabsList>
