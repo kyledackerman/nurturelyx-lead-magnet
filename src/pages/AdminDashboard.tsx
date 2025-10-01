@@ -557,7 +557,7 @@ const AdminDashboard = () => {
 
             <Card className="border-orange-200 bg-orange-50">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                <CardTitle className="text-sm font-medium text-foreground">High-Value Prospects</CardTitle>
+                <CardTitle className="text-sm font-medium text-black">High-Value Prospects</CardTitle>
                 <Target className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
