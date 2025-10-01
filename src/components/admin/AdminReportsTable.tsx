@@ -72,8 +72,8 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
   // Color coding functions for key metrics
   const getMissedLeadsColor = (leads?: number) => {
     if (!leads) return 'text-muted-foreground';
-    if (leads >= 1000) return 'text-red-700 font-bold';
-    if (leads >= 500) return 'text-red-600 font-semibold';
+    if (leads >= 1000) return 'text-amber-600 font-bold';
+    if (leads >= 500) return 'text-orange-600 font-semibold';
     if (leads >= 100) return 'text-orange-600 font-medium';
     if (leads >= 50) return 'text-yellow-600 font-medium';
     return 'text-green-600 font-medium';
@@ -81,8 +81,8 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
 
   const getRevenueColor = (revenue?: number) => {
     if (!revenue) return 'text-muted-foreground';
-    if (revenue >= 8500) return 'text-red-700 font-bold';
-    if (revenue >= 4200) return 'text-red-600 font-bold';
+    if (revenue >= 8500) return 'text-amber-600 font-bold';
+    if (revenue >= 4200) return 'text-amber-600 font-bold';
     if (revenue >= 2100) return 'text-orange-600 font-semibold';
     if (revenue >= 850) return 'text-orange-500 font-medium';
     if (revenue >= 420) return 'text-yellow-600 font-medium';
@@ -95,7 +95,7 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
     const isYourReport = report.user_id === adminUserId;
     
     if (isYourReport) return "bg-primary/10 border-primary/30 hover:bg-primary/15";
-    if (revenue >= 4200 || leads >= 500) return "bg-red-50 border-red-200 hover:bg-red-100";
+    if (revenue >= 4200 || leads >= 500) return "border-l-4 border-amber-500/60 hover:bg-muted/50";
     if (revenue >= 2100 || leads >= 200) return "bg-orange-50 border-orange-200 hover:bg-orange-100";
     return "hover:bg-muted/50";
   };
@@ -255,7 +255,7 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
                   <div className="flex items-center gap-2">
                     <span>{report.domain}</span>
                     {highPriority && (
-                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                      <AlertTriangle className="h-4 w-4 text-amber-500" />
                     )}
                     {isYourReport && (
                       <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
