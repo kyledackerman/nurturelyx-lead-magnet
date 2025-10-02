@@ -14,9 +14,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users, FileText } from "lucide-react";
+import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users, FileText, Share2, Clock } from "lucide-react";
 import { toast } from "sonner";
-import { ComposedChart, Area, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { ComposedChart, Area, Line, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
 import AdminManual from "@/components/admin/AdminManual";
 import { FormData, ReportData } from "@/types/report";
@@ -73,6 +73,47 @@ interface ViewsChartDataPoint {
   uniqueVisitors: number;
   totalViews: number;
 }
+
+interface TrafficStats {
+  totalViewsAllTime: number;
+  uniqueVisitorsAllTime: number;
+  totalSharesAllTime: number;
+  avgViewsPerReport: number;
+}
+
+interface TrafficSource {
+  referrer: string;
+  count: number;
+  percentage: number;
+}
+
+interface SharePlatform {
+  platform: string;
+  count: number;
+}
+
+interface HourlyData {
+  hour: number;
+  views: number;
+}
+
+interface TopReport {
+  domain: string;
+  report_id: string;
+  total_views: number;
+  unique_visitors: number;
+  share_count: number;
+  slug: string;
+}
+
+interface RecentView {
+  id: string;
+  domain: string;
+  viewed_at: string;
+  referrer: string | null;
+  user_agent: string | null;
+  session_id: string;
+}
 const AdminDashboard = () => {
   const {
     user
@@ -108,6 +149,19 @@ const AdminDashboard = () => {
   const [viewsTimePeriod, setViewsTimePeriod] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
   const [leaderboardTimeFilter, setLeaderboardTimeFilter] = useState<'daily' | 'weekly' | 'monthly' | 'all-time'>('monthly');
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  
+  // Analytics tab state
+  const [trafficStats, setTrafficStats] = useState<TrafficStats>({
+    totalViewsAllTime: 0,
+    uniqueVisitorsAllTime: 0,
+    totalSharesAllTime: 0,
+    avgViewsPerReport: 0,
+  });
+  const [trafficSources, setTrafficSources] = useState<TrafficSource[]>([]);
+  const [sharePlatforms, setSharePlatforms] = useState<SharePlatform[]>([]);
+  const [hourlyData, setHourlyData] = useState<HourlyData[]>([]);
+  const [topReports, setTopReports] = useState<TopReport[]>([]);
+  const [recentViews, setRecentViews] = useState<RecentView[]>([]);
 
   // Report generation state
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
@@ -120,6 +174,12 @@ const AdminDashboard = () => {
     fetchStats();
     fetchChartData(timePeriod);
     fetchViewsChartData(viewsTimePeriod);
+    fetchTrafficStats();
+    fetchTrafficSources();
+    fetchShareDistribution();
+    fetchHourlyHeatmap();
+    fetchTopReports();
+    fetchRecentViews();
 
     // Set up real-time subscription for new reports
     const channel = supabase
@@ -137,6 +197,12 @@ const AdminDashboard = () => {
           fetchStats();
           fetchChartData(timePeriod);
           fetchViewsChartData(viewsTimePeriod);
+          fetchTrafficStats();
+          fetchTrafficSources();
+          fetchShareDistribution();
+          fetchHourlyHeatmap();
+          fetchTopReports();
+          fetchRecentViews();
           setLastUpdated(new Date());
         }
       )
@@ -148,6 +214,12 @@ const AdminDashboard = () => {
       fetchStats();
       fetchChartData(timePeriod);
       fetchViewsChartData(viewsTimePeriod);
+      fetchTrafficStats();
+      fetchTrafficSources();
+      fetchShareDistribution();
+      fetchHourlyHeatmap();
+      fetchTopReports();
+      fetchRecentViews();
       setLastUpdated(new Date());
     }, 60000);
 
@@ -440,6 +512,214 @@ const AdminDashboard = () => {
       setViewsChartData(chartData);
     } catch (error) {
       console.error('Error fetching views chart data:', error);
+    }
+  };
+
+  const fetchTrafficStats = async () => {
+    try {
+      const { data: allViews, error: viewsError } = await supabase
+        .from('report_views')
+        .select('report_id, session_id');
+      
+      if (viewsError) throw viewsError;
+
+      const { data: allShares, error: sharesError } = await supabase
+        .from('report_shares')
+        .select('id');
+      
+      if (sharesError) throw sharesError;
+
+      const totalViewsAllTime = allViews?.length || 0;
+      const uniqueVisitorsAllTime = new Set(allViews?.map(v => v.session_id) || []).size;
+      const totalSharesAllTime = allShares?.length || 0;
+      
+      // Calculate unique reports viewed
+      const uniqueReportsViewed = new Set(allViews?.map(v => v.report_id) || []).size;
+      const avgViewsPerReport = uniqueReportsViewed > 0 ? totalViewsAllTime / uniqueReportsViewed : 0;
+
+      setTrafficStats({
+        totalViewsAllTime,
+        uniqueVisitorsAllTime,
+        totalSharesAllTime,
+        avgViewsPerReport: Math.round(avgViewsPerReport * 10) / 10,
+      });
+    } catch (error) {
+      console.error('Error fetching traffic stats:', error);
+    }
+  };
+
+  const fetchTrafficSources = async () => {
+    try {
+      const { data: allViews, error } = await supabase
+        .from('report_views')
+        .select('referrer');
+      
+      if (error) throw error;
+
+      const referrerCounts = new Map<string, number>();
+      const total = allViews?.length || 0;
+
+      allViews?.forEach(view => {
+        const referrer = view.referrer || 'Direct';
+        referrerCounts.set(referrer, (referrerCounts.get(referrer) || 0) + 1);
+      });
+
+      const sources: TrafficSource[] = Array.from(referrerCounts.entries())
+        .map(([referrer, count]) => ({
+          referrer,
+          count,
+          percentage: Math.round((count / total) * 100)
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+
+      setTrafficSources(sources);
+    } catch (error) {
+      console.error('Error fetching traffic sources:', error);
+    }
+  };
+
+  const fetchShareDistribution = async () => {
+    try {
+      const { data: allShares, error } = await supabase
+        .from('report_shares')
+        .select('platform');
+      
+      if (error) throw error;
+
+      const platformCounts = new Map<string, number>();
+
+      allShares?.forEach(share => {
+        const platform = share.platform || 'Unknown';
+        platformCounts.set(platform, (platformCounts.get(platform) || 0) + 1);
+      });
+
+      const platforms: SharePlatform[] = Array.from(platformCounts.entries())
+        .map(([platform, count]) => ({ platform, count }))
+        .sort((a, b) => b.count - a.count);
+
+      setSharePlatforms(platforms);
+    } catch (error) {
+      console.error('Error fetching share distribution:', error);
+    }
+  };
+
+  const fetchHourlyHeatmap = async () => {
+    try {
+      const { data: allViews, error } = await supabase
+        .from('report_views')
+        .select('viewed_at');
+      
+      if (error) throw error;
+
+      const hourCounts = new Array(24).fill(0);
+
+      allViews?.forEach(view => {
+        const hour = new Date(view.viewed_at).getHours();
+        hourCounts[hour]++;
+      });
+
+      const hourlyData: HourlyData[] = hourCounts.map((views, hour) => ({
+        hour,
+        views
+      }));
+
+      setHourlyData(hourlyData);
+    } catch (error) {
+      console.error('Error fetching hourly heatmap:', error);
+    }
+  };
+
+  const fetchTopReports = async () => {
+    try {
+      const { data: views, error: viewsError } = await supabase
+        .from('report_views')
+        .select('report_id, session_id');
+      
+      if (viewsError) throw viewsError;
+
+      const { data: shares, error: sharesError } = await supabase
+        .from('report_shares')
+        .select('report_id');
+      
+      if (sharesError) throw sharesError;
+
+      const reportMetrics = new Map<string, { views: number; sessions: Set<string>; shares: number }>();
+
+      views?.forEach(view => {
+        if (!reportMetrics.has(view.report_id)) {
+          reportMetrics.set(view.report_id, { views: 0, sessions: new Set(), shares: 0 });
+        }
+        const metrics = reportMetrics.get(view.report_id)!;
+        metrics.views++;
+        metrics.sessions.add(view.session_id);
+      });
+
+      shares?.forEach(share => {
+        if (reportMetrics.has(share.report_id)) {
+          reportMetrics.get(share.report_id)!.shares++;
+        }
+      });
+
+      const { data: reports, error: reportsError } = await supabase
+        .from('reports')
+        .select('id, domain, slug')
+        .in('id', Array.from(reportMetrics.keys()));
+      
+      if (reportsError) throw reportsError;
+
+      const topReports: TopReport[] = reports?.map(report => {
+        const metrics = reportMetrics.get(report.id)!;
+        return {
+          domain: report.domain,
+          report_id: report.id,
+          total_views: metrics.views,
+          unique_visitors: metrics.sessions.size,
+          share_count: metrics.shares,
+          slug: report.slug
+        };
+      })
+      .sort((a, b) => b.total_views - a.total_views)
+      .slice(0, 10) || [];
+
+      setTopReports(topReports);
+    } catch (error) {
+      console.error('Error fetching top reports:', error);
+    }
+  };
+
+  const fetchRecentViews = async () => {
+    try {
+      const { data: views, error } = await supabase
+        .from('report_views')
+        .select('id, report_id, viewed_at, referrer, user_agent, session_id')
+        .order('viewed_at', { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+
+      const reportIds = views?.map(v => v.report_id) || [];
+      const { data: reports, error: reportsError } = await supabase
+        .from('reports')
+        .select('id, domain')
+        .in('id', reportIds);
+      
+      if (reportsError) throw reportsError;
+
+      const reportMap = new Map(reports?.map(r => [r.id, r.domain]) || []);
+
+      const recentViews: RecentView[] = views?.map(view => ({
+        id: view.id,
+        domain: reportMap.get(view.report_id) || 'Unknown',
+        viewed_at: view.viewed_at,
+        referrer: view.referrer,
+        user_agent: view.user_agent,
+        session_id: view.session_id
+      })) || [];
+
+      setRecentViews(recentViews);
+    } catch (error) {
+      console.error('Error fetching recent views:', error);
     }
   };
 
@@ -782,37 +1062,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-blue-200 bg-blue-50">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                <CardTitle className="text-sm font-medium text-black">Page Views Today</CardTitle>
-                <Eye className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-bold text-blue-700">{stats.totalViewsToday}</div>
-                <div className="flex gap-3 mt-2 text-xs">
-                  <span className={stats.totalViewsToday >= stats.totalViewsYesterday ? "text-green-600" : "text-red-600"}>
-                    {stats.totalViewsToday >= stats.totalViewsYesterday ? "↑" : "↓"} {Math.abs(stats.totalViewsToday - stats.totalViewsYesterday)} from yesterday
-                  </span>
-                  <span className="text-muted-foreground">Yesterday: {stats.totalViewsYesterday}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-purple-200 bg-purple-50">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                <CardTitle className="text-sm font-medium text-black">Unique Visitors Today</CardTitle>
-                <Users className="h-4 w-4 text-purple-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-bold text-purple-700">{stats.uniqueVisitorsToday}</div>
-                <div className="flex gap-3 mt-2 text-xs">
-                  <span className={stats.uniqueVisitorsToday >= stats.uniqueVisitorsYesterday ? "text-green-600" : "text-red-600"}>
-                    {stats.uniqueVisitorsToday >= stats.uniqueVisitorsYesterday ? "↑" : "↓"} {Math.abs(stats.uniqueVisitorsToday - stats.uniqueVisitorsYesterday)} from yesterday
-                  </span>
-                  <span className="text-muted-foreground">Yesterday: {stats.uniqueVisitorsYesterday}</span>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Analytics Section with Shared Time Period Toggle */}
@@ -943,82 +1192,22 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Daily Visitor Activity Chart */}
-          <div className="mt-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-lg font-semibold">Daily Visitor Activity</h3>
-                <p className="text-sm text-muted-foreground">
-                  {viewsTimePeriod === 'weekly' ? 'Last 7 Days' : viewsTimePeriod === 'yearly' ? 'Last 12 Months' : 'Last 30 Days'}
-                </p>
-              </div>
-              <ToggleGroup type="single" value={viewsTimePeriod} onValueChange={value => value && setViewsTimePeriod(value as 'weekly' | 'monthly' | 'yearly')} className="bg-muted/50">
-                <ToggleGroupItem value="weekly" aria-label="Weekly view">
-                  Week
-                </ToggleGroupItem>
-                <ToggleGroupItem value="monthly" aria-label="Monthly view">
-                  Month
-                </ToggleGroupItem>
-                <ToggleGroupItem value="yearly" aria-label="Yearly view">
-                  Year
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Eye className="h-5 w-5" />
-                  Report Views & Unique Visitors
-                </CardTitle>
-                <CardDescription>
-                  Track daily page views and unique visitor sessions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={280}>
-                  <ComposedChart data={viewsChartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="date" className="text-muted-foreground" fontSize={12} />
-                    <YAxis className="text-muted-foreground" fontSize={12} label={{
-                      value: 'Count',
-                      angle: -90,
-                      position: 'insideLeft',
-                      style: {
-                        fill: 'hsl(var(--muted-foreground))'
-                      }
-                    }} />
-                    <Tooltip contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '6px'
-                    }} />
-                    <Legend />
-                    <Bar dataKey="totalViews" fill="#60a5fa" name="Total Views" />
-                    <Line type="monotone" dataKey="uniqueVisitors" stroke="#a855f7" strokeWidth={2.5} dot={{
-                      fill: '#a855f7',
-                      strokeWidth: 2,
-                      r: 4
-                    }} activeDot={{
-                      r: 6
-                    }} name="Unique Visitors" />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
 
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="analytics">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Analytics
+              </TabsTrigger>
               <TabsTrigger value="crm">CRM</TabsTrigger>
               <TabsTrigger value="reports">Reports</TabsTrigger>
               <TabsTrigger value="generate">
                 <FileText className="h-4 w-4 mr-2" />
-                Generate Report
+                Generate
               </TabsTrigger>
               <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-              <TabsTrigger value="admin">Admin Management</TabsTrigger>
+              <TabsTrigger value="admin">Admin</TabsTrigger>
               <TabsTrigger value="password">
                 <Shield className="h-4 w-4 mr-2" />
                 Password
@@ -1027,6 +1216,307 @@ const AdminDashboard = () => {
 
             <TabsContent value="overview" className="space-y-6">
               <AdminManual />
+            </TabsContent>
+
+            <TabsContent value="analytics" className="space-y-6">
+              {/* Traffic Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                    <CardTitle className="text-sm font-medium">Total Page Views</CardTitle>
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-4xl font-bold">{trafficStats.totalViewsAllTime}</div>
+                    <p className="text-xs text-muted-foreground mt-1">All-time page views</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                    <CardTitle className="text-sm font-medium">Unique Visitors</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-4xl font-bold">{trafficStats.uniqueVisitorsAllTime}</div>
+                    <p className="text-xs text-muted-foreground mt-1">All-time unique sessions</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                    <CardTitle className="text-sm font-medium">Total Social Shares</CardTitle>
+                    <Share2 className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-4xl font-bold">{trafficStats.totalSharesAllTime}</div>
+                    <p className="text-xs text-muted-foreground mt-1">Across all platforms</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                    <CardTitle className="text-sm font-medium">Avg Views per Report</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-4xl font-bold">{trafficStats.avgViewsPerReport}</div>
+                    <p className="text-xs text-muted-foreground mt-1">Engagement metric</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Daily Visitor Activity Chart */}
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-semibold">Daily Visitor Activity</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {viewsTimePeriod === 'weekly' ? 'Last 7 Days' : viewsTimePeriod === 'yearly' ? 'Last 12 Months' : 'Last 30 Days'}
+                    </p>
+                  </div>
+                  <ToggleGroup type="single" value={viewsTimePeriod} onValueChange={value => value && setViewsTimePeriod(value as 'weekly' | 'monthly' | 'yearly')} className="bg-muted/50">
+                    <ToggleGroupItem value="weekly" aria-label="Weekly view">Week</ToggleGroupItem>
+                    <ToggleGroupItem value="monthly" aria-label="Monthly view">Month</ToggleGroupItem>
+                    <ToggleGroupItem value="yearly" aria-label="Yearly view">Year</ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Eye className="h-5 w-5" />
+                      Report Views & Unique Visitors
+                    </CardTitle>
+                    <CardDescription>Track daily page views and unique visitor sessions</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={280}>
+                      <ComposedChart data={viewsChartData}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="date" className="text-muted-foreground" fontSize={12} />
+                        <YAxis className="text-muted-foreground" fontSize={12} label={{
+                          value: 'Count',
+                          angle: -90,
+                          position: 'insideLeft',
+                          style: { fill: 'hsl(var(--muted-foreground))' }
+                        }} />
+                        <Tooltip contentStyle={{
+                          backgroundColor: 'hsl(var(--card))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '6px'
+                        }} />
+                        <Legend />
+                        <Bar dataKey="totalViews" fill="#60a5fa" name="Total Views" />
+                        <Line type="monotone" dataKey="uniqueVisitors" stroke="#a855f7" strokeWidth={2.5} 
+                          dot={{ fill: '#a855f7', strokeWidth: 2, r: 4 }} 
+                          activeDot={{ r: 6 }} 
+                          name="Unique Visitors" />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Side by Side: Traffic Sources & Share Distribution */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Globe className="h-5 w-5" />
+                      Traffic Sources
+                    </CardTitle>
+                    <CardDescription>Where your visitors come from</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {trafficSources.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={trafficSources}
+                            dataKey="count"
+                            nameKey="referrer"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={100}
+                            label={(entry) => `${entry.referrer} (${entry.percentage}%)`}
+                          >
+                            {trafficSources.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={['#60a5fa', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'][index % 8]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <p className="text-center text-muted-foreground py-12">No traffic data available</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Share2 className="h-5 w-5" />
+                      Share Platform Distribution
+                    </CardTitle>
+                    <CardDescription>Most popular sharing methods</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {sharePlatforms.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <ComposedChart data={sharePlatforms} layout="vertical">
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis type="number" className="text-muted-foreground" fontSize={12} />
+                          <YAxis dataKey="platform" type="category" className="text-muted-foreground" fontSize={12} width={80} />
+                          <Tooltip contentStyle={{
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '6px'
+                          }} />
+                          <Bar dataKey="count" fill="#10b981" name="Shares" />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <p className="text-center text-muted-foreground py-12">No share data available</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Hourly Traffic Heatmap */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Hourly Traffic Heatmap
+                  </CardTitle>
+                  <CardDescription>Peak traffic times throughout the day</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-12 gap-2">
+                    {hourlyData.map((hour) => {
+                      const maxViews = Math.max(...hourlyData.map(h => h.views));
+                      const intensity = maxViews > 0 ? hour.views / maxViews : 0;
+                      return (
+                        <div
+                          key={hour.hour}
+                          className="aspect-square rounded flex flex-col items-center justify-center text-xs font-medium transition-all hover:scale-110"
+                          style={{
+                            backgroundColor: `rgba(96, 165, 250, ${Math.max(0.1, intensity)})`,
+                            color: intensity > 0.5 ? 'white' : 'hsl(var(--foreground))'
+                          }}
+                          title={`${hour.hour}:00 - ${hour.views} views`}
+                        >
+                          <span>{hour.hour}</span>
+                          <span className="text-[10px]">{hour.views}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Top 10 Most Viewed Reports */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Top 10 Most Viewed Reports
+                  </CardTitle>
+                  <CardDescription>Reports with the highest engagement</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {topReports.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-2 px-4">Domain</th>
+                            <th className="text-right py-2 px-4">Total Views</th>
+                            <th className="text-right py-2 px-4">Unique Visitors</th>
+                            <th className="text-right py-2 px-4">Shares</th>
+                            <th className="text-right py-2 px-4">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {topReports.map((report, index) => (
+                            <tr key={report.report_id} className="border-b hover:bg-muted/50">
+                              <td className="py-2 px-4">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline">{index + 1}</Badge>
+                                  <span className="font-medium">{report.domain}</span>
+                                </div>
+                              </td>
+                              <td className="text-right py-2 px-4">{report.total_views}</td>
+                              <td className="text-right py-2 px-4">{report.unique_visitors}</td>
+                              <td className="text-right py-2 px-4">{report.share_count}</td>
+                              <td className="text-right py-2 px-4">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => window.open(`/report/${report.slug}`, '_blank')}
+                                >
+                                  View
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-center text-muted-foreground py-8">No report data available</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Recent Views Log */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Eye className="h-5 w-5" />
+                    Recent Views Log
+                  </CardTitle>
+                  <CardDescription>Last 50 report views with details</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {recentViews.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-2 px-4">Domain</th>
+                            <th className="text-left py-2 px-4">Time</th>
+                            <th className="text-left py-2 px-4">Referrer</th>
+                            <th className="text-left py-2 px-4">Device</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {recentViews.map((view) => (
+                            <tr key={view.id} className="border-b hover:bg-muted/50 text-sm">
+                              <td className="py-2 px-4 font-medium">{view.domain}</td>
+                              <td className="py-2 px-4 text-muted-foreground">
+                                {new Date(view.viewed_at).toLocaleString()}
+                              </td>
+                              <td className="py-2 px-4 text-muted-foreground">
+                                {view.referrer || 'Direct'}
+                              </td>
+                              <td className="py-2 px-4 text-muted-foreground">
+                                {view.user_agent ? (
+                                  view.user_agent.includes('Mobile') ? 'Mobile' : 'Desktop'
+                                ) : 'Unknown'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-center text-muted-foreground py-8">No recent views available</p>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="generate" className="space-y-6">
