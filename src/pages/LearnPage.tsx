@@ -764,10 +764,10 @@ const LearnPage = () => {
             </div>
 
             <div className="prose prose-lg max-w-none space-y-6">
-              <h3 className="text-2xl font-semibold mt-8 mb-4">Typical Pricing Models</h3>
+              <h3 className="text-2xl font-semibold mt-8 mb-4">How Most Competitors Charge</h3>
 
               <p>
-                Visitor identification solutions typically use one of these pricing structures:
+                Most visitor identification platforms in the market use one of these pricing structures:
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
@@ -788,10 +788,19 @@ const LearnPage = () => {
                 </Card>
               </div>
 
-              <h3 className="text-2xl font-semibold mt-8 mb-4">ROI Calculation Framework</h3>
+              <div className="my-8 p-6 bg-primary/10 rounded-lg border-l-4 border-primary">
+                <p className="text-lg font-semibold mb-2">
+                  NurturelyX takes a different approach with transparent, affordable pricing:
+                </p>
+                <p className="text-muted-foreground">
+                  Just $100/month platform fee + $1 per identified lead. No hidden fees, no annual contracts, no surprises.
+                </p>
+              </div>
+
+              <h3 className="text-2xl font-semibold mt-8 mb-4">NurturelyX ROI Example</h3>
 
               <Card className="p-6 bg-primary/5 border-primary/20">
-                <h4 className="font-semibold mb-4 text-foreground">Example ROI Scenario</h4>
+                <h4 className="font-semibold mb-4 text-foreground">Real Numbers with NurturelyX</h4>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between pb-2 border-b border-border">
                     <span className="text-muted-foreground">Monthly platform fee:</span>
@@ -835,7 +844,7 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">Payback Period</h3>
 
               <p>
-                For most B2B businesses with average transaction values above $1,000, the typical payback period is:
+                For most businesses with average transaction values above $1,000, the typical payback period is:
               </p>
 
               <Card className="p-6 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
@@ -898,11 +907,13 @@ const LearnPage = () => {
               </div>
 
               <div className="my-8 text-center">
-                <Link to="/">
-                  <Button size="lg" className="text-base">
-                    Calculate Your Potential ROI <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
+                <Button 
+                  size="lg" 
+                  className="text-base"
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                >
+                  Calculate Your Potential ROI <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
               </div>
             </div>
           </section>
