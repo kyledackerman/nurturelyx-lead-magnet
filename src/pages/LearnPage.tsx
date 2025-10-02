@@ -13,7 +13,9 @@ import {
   ArrowRight,
   BarChart3,
   Brain,
-  Workflow
+  Workflow,
+  DollarSign,
+  UserCircle
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -674,62 +676,48 @@ const LearnPage = () => {
                 </p>
               </Card>
 
-              <h3 className="text-2xl font-semibold mt-8 mb-4">What Data Do You Actually Get?</h3>
+              <h3 className="text-2xl font-semibold mt-8 mb-4">What You Actually Get (Not Guesses, Real Data)</h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="p-5">
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     <Users className="h-5 w-5 text-primary" />
                     Contact Information
                   </h4>
                   <ul className="text-sm space-y-1 text-muted-foreground">
-                    <li>• Full name</li>
-                    <li>• Email address</li>
-                    <li>• Phone number</li>
-                    <li>• Job title</li>
-                    <li>• LinkedIn profile</li>
+                    <li>• Full names</li>
+                    <li>• Email addresses</li>
+                    <li>• Phone numbers</li>
+                    <li>• Street addresses</li>
+                    <li>• Job titles & companies</li>
                   </ul>
                 </Card>
 
                 <Card className="p-5">
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <Target className="h-5 w-5 text-primary" />
-                    Firmographic Data
+                    <DollarSign className="h-5 w-5 text-primary" />
+                    Financial Profile
                   </h4>
                   <ul className="text-sm space-y-1 text-muted-foreground">
-                    <li>• Company name</li>
-                    <li>• Industry/vertical</li>
-                    <li>• Company size</li>
-                    <li>• Revenue range</li>
-                    <li>• Location/HQ</li>
+                    <li>• Net worth estimates</li>
+                    <li>• Annual income ranges</li>
+                    <li>• Mortgage values</li>
+                    <li>• Credit rating indicators</li>
+                    <li>• Property ownership</li>
                   </ul>
                 </Card>
 
                 <Card className="p-5">
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <LineChart className="h-5 w-5 text-primary" />
-                    Behavioral Insights
+                    <UserCircle className="h-5 w-5 text-primary" />
+                    Demographics & More
                   </h4>
                   <ul className="text-sm space-y-1 text-muted-foreground">
-                    <li>• Pages visited</li>
-                    <li>• Time on site</li>
-                    <li>• Return visit frequency</li>
-                    <li>• Content consumed</li>
-                    <li>• Download activity</li>
-                  </ul>
-                </Card>
-
-                <Card className="p-5">
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <Brain className="h-5 w-5 text-primary" />
-                    Intent Signals
-                  </h4>
-                  <ul className="text-sm space-y-1 text-muted-foreground">
-                    <li>• Buying stage</li>
-                    <li>• Interest level score</li>
-                    <li>• Engagement metrics</li>
-                    <li>• Conversion likelihood</li>
-                    <li>• Urgency indicators</li>
+                    <li>• Age & family status</li>
+                    <li>• Education level</li>
+                    <li>• Lifestyle indicators</li>
+                    <li>• Purchase behavior</li>
+                    <li>• 10+ additional attributes</li>
                   </ul>
                 </Card>
               </div>
