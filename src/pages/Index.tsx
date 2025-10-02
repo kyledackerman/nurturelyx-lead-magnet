@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadReport from "@/components/LeadReport";
@@ -17,12 +18,28 @@ import CallToActionSection from "@/components/CallToActionSection";
 
 const Index = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [isCalculating, setIsCalculating] = useState(false);
   const [calculationProgress, setCalculationProgress] = useState(0);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [formDataCache, setFormDataCache] = useState<FormData | null>(null);
   const [showSavePrompt, setShowSavePrompt] = useState(false);
+
+  // Pre-fill form based on industry query parameter
+  useEffect(() => {
+    const industry = searchParams.get('industry');
+    if (industry === 'hvac' && !formDataCache) {
+      setFormDataCache({
+        domain: "",
+        monthlyVisitors: 0,
+        organicTrafficManual: 0,
+        isUnsureOrganic: true,
+        isUnsurePaid: true,
+        avgTransactionValue: 250, // Default HVAC service call value
+      });
+    }
+  }, [searchParams, formDataCache]);
 
   const handleCalculate = async (formData: FormData) => {
     const domain = formData.domain || "example.com";
