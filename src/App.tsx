@@ -12,6 +12,7 @@ import PublicReportPage from "./pages/PublicReportPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AuthPage from "./pages/AuthPage";
 import UserDashboard from "./pages/UserDashboard";
+import LearnPage from "./pages/LearnPage";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
           <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/learn" element={<LearnPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/dashboard" element={<UserDashboard />} />

@@ -54,6 +54,11 @@ const Header = () => {
         </Link>
         
         <div className="flex items-center gap-4">
+          <Link to="/learn">
+            <Button variant="ghost" size="sm" className="text-foreground">
+              Learn More
+            </Button>
+          </Link>
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
