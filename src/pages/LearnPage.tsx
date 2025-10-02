@@ -372,12 +372,12 @@ const LearnPage = () => {
               <Card className="p-6 border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/20">
                 <div className="flex gap-3 mb-3">
                   <Shield className="h-6 w-6 text-green-600 dark:text-green-400 flex-shrink-0" />
-                  <h4 className="font-semibold text-lg text-foreground">Compliant Visitor Identification</h4>
+                  <h4 className="font-semibold text-lg text-gray-900 dark:text-foreground">Compliant Visitor Identification</h4>
                 </div>
-                <p className="text-foreground mb-3">
+                  <p className="text-gray-900 dark:text-foreground mb-3">
                   Modern visitor identification solutions are designed to comply with major privacy regulations:
                 </p>
-                <ul className="space-y-2 text-foreground">
+                  <ul className="space-y-2 text-gray-900 dark:text-foreground">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                     <span><strong>GDPR compliant:</strong> Uses legitimate interest legal basis for B2B identification</span>
