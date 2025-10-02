@@ -504,7 +504,7 @@ const HvacLeadsPage = () => {
 
                   <div className="bg-primary/10 p-6 rounded-lg text-center mt-6">
                     <p className="text-lg font-semibold text-foreground mb-4">
-                      That's an extra $27,000 per year from leads you're currently losing
+                      That's an extra $9,000 per year from leads you're currently losing
                     </p>
                     <Link to="/?industry=hvac">
                       <Button size="lg">
