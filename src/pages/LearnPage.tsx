@@ -177,7 +177,7 @@ const LearnPage = () => {
               </p>
 
               <Card className="p-6 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900">
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2 text-gray-900 dark:text-foreground">
                   <Users className="h-5 w-5" />
                   The Hard Truth About Website Conversion
                 </h3>
@@ -290,7 +290,7 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">How It Works</h3>
 
               <Card className="p-6 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
-                <h4 className="font-semibold mb-4 flex items-center gap-2">
+                <h4 className="font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-foreground">
                   <Workflow className="h-5 w-5" />
                   The Identification Process
                 </h4>
@@ -372,7 +372,7 @@ const LearnPage = () => {
               <Card className="p-6 border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/20">
                 <div className="flex gap-3 mb-3">
                   <Shield className="h-6 w-6 text-green-600 dark:text-green-400 flex-shrink-0" />
-                  <h4 className="font-semibold text-lg">Compliant Visitor Identification</h4>
+                  <h4 className="font-semibold text-lg text-gray-900 dark:text-foreground">Compliant Visitor Identification</h4>
                 </div>
                 <p className="text-gray-900 dark:text-foreground mb-3">
                   Modern visitor identification solutions are designed to comply with major privacy regulations:
@@ -629,7 +629,7 @@ const LearnPage = () => {
               </div>
 
               <Card className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 mt-8">
-                <h4 className="text-lg font-semibold mb-3">The Multi-Channel Advantage</h4>
+                <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-foreground">The Multi-Channel Advantage</h4>
                 <p className="text-gray-900 dark:text-foreground">
                   The most successful companies don't pick just one use case—they layer multiple strategies together. By combining 
                   sales outreach, email nurture, paid retargeting, and ABM campaigns, you create a comprehensive system that 
@@ -658,7 +658,7 @@ const LearnPage = () => {
                 <div className="flex gap-3 mb-4">
                   <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
                   <div>
-                    <h4 className="font-semibold text-lg mb-2">One Simple Script</h4>
+                    <h4 className="font-semibold text-lg mb-2 text-gray-900 dark:text-foreground">One Simple Script</h4>
                     <p className="text-gray-900 dark:text-foreground">
                       Most visitor identification solutions require just a single JavaScript snippet added to your website—similar 
                       to installing Google Analytics. No complex integration, no developer resources required.
@@ -748,7 +748,7 @@ const LearnPage = () => {
               </div>
 
               <Card className="p-6 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
-                <h4 className="font-semibold mb-3">Real-Time Data Flow</h4>
+                <h4 className="font-semibold mb-3 text-gray-900 dark:text-foreground">Real-Time Data Flow</h4>
                 <p className="text-gray-900 dark:text-foreground text-sm">
                   Identified visitor data flows into your CRM within minutes of their visit. Set up automated workflows to 
                   trigger sales alerts, add to nurture sequences, or create retargeting audiences—all without manual intervention.
@@ -926,7 +926,7 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">GDPR Compliance (EU)</h3>
 
               <Card className="p-6 border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20">
-                <h4 className="font-semibold mb-3">Legitimate Interest Legal Basis</h4>
+                <h4 className="font-semibold mb-3 text-gray-900 dark:text-foreground">Legitimate Interest Legal Basis</h4>
                 <p className="text-gray-900 dark:text-foreground mb-4">
                   For B2B visitor identification, most solutions rely on the "legitimate interest" legal basis under GDPR Article 6(1)(f). 
                   This allows processing of business contact data when there's a genuine business interest and the processing doesn't 
@@ -955,7 +955,7 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">CCPA Compliance (California)</h3>
 
               <Card className="p-6 border-purple-200 dark:border-purple-900 bg-purple-50 dark:bg-purple-950/20">
-                <h4 className="font-semibold mb-3">Consumer Privacy Rights</h4>
+                <h4 className="font-semibold mb-3 text-gray-900 dark:text-foreground">Consumer Privacy Rights</h4>
                 <p className="text-gray-900 dark:text-foreground mb-4">
                   The California Consumer Privacy Act requires specific disclosures and consumer rights for California residents:
                 </p>
@@ -1023,7 +1023,7 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">Building Trust with Visitors</h3>
 
               <Card className="p-6 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
-                <h4 className="font-semibold mb-3">Best Practices for Ethical Implementation</h4>
+                <h4 className="font-semibold mb-3 text-gray-900 dark:text-foreground">Best Practices for Ethical Implementation</h4>
                 <div className="space-y-3 text-sm">
                   <p className="text-gray-900 dark:text-foreground">
                     <strong>1. Transparent Privacy Policy:</strong> Clearly explain what data you collect and how it's used
