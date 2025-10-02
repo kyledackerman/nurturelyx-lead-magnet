@@ -493,7 +493,7 @@ const LearnPage = () => {
                   <div className="mt-4 p-4 bg-background rounded-lg border border-primary/30">
                     <div className="text-center">
                       <div className="text-sm text-muted-foreground mb-1">Example Calculation:</div>
-                      <div className="text-xl font-semibold text-gray-900 dark:text-foreground">147 sales × $5,000 = <span className="text-primary">$735,000</span></div>
+                      <div className="text-xl font-semibold text-foreground">147 sales × $5,000 = <span className="text-primary">$735,000</span></div>
                       <div className="text-sm text-muted-foreground mt-2">That's $735K in monthly lost revenue, or <strong>$8.8M annually</strong></div>
                     </div>
                   </div>
@@ -501,7 +501,7 @@ const LearnPage = () => {
               </Card>
 
               <div className="my-8 text-center bg-gradient-to-r from-primary/10 to-primary/5 p-8 rounded-lg border border-primary/20">
-                <h4 className="text-2xl font-bold mb-3 text-gray-900 dark:text-foreground">See Your Exact Numbers</h4>
+                <h4 className="text-2xl font-bold mb-3 text-foreground">See Your Exact Numbers</h4>
                 <p className="text-muted-foreground mb-6">Our calculator will show you the precise revenue opportunity for your business based on your actual traffic and transaction values.</p>
                 <Link to="/">
                   <Button size="lg" className="text-base">
@@ -1101,7 +1101,7 @@ const LearnPage = () => {
                       </div>
                       <div className="flex-1">
                         <h4 className="text-xl font-semibold mb-2">{item.title}</h4>
-                        <p className="text-gray-900 dark:text-foreground mb-3">{item.description}</p>
+                        <p className="text-foreground mb-3">{item.description}</p>
                         {item.cta && (
                           <Link to="/">
                             <Button variant="outline" size="sm">
@@ -1188,7 +1188,7 @@ const LearnPage = () => {
 
           {/* Final CTA Section */}
           <section className="my-16 p-12 bg-gradient-to-br from-primary/10 via-primary/5 to-background rounded-2xl border border-primary/20 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900 dark:text-foreground">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
               Ready to Capture Your Lost Revenue?
             </h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
