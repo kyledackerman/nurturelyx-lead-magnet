@@ -488,16 +488,16 @@ const HvacLeadsPage = () => {
                         <span className="text-xl font-semibold text-foreground">$250</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Conversion Rate (3%):</span>
-                        <span className="text-xl font-semibold text-foreground">9 jobs</span>
+                        <span className="text-muted-foreground">Conversion Rate (1%):</span>
+                        <span className="text-xl font-semibold text-foreground">3 jobs</span>
                       </div>
                       <div className="flex items-center justify-between pt-4 border-t">
                         <span className="text-lg font-semibold text-foreground">Monthly Recovered Revenue:</span>
-                        <span className="text-3xl font-bold text-primary">$2,250</span>
+                        <span className="text-3xl font-bold text-primary">$750</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-semibold text-foreground">Annual Recovered Revenue:</span>
-                        <span className="text-3xl font-bold text-primary">$27,000</span>
+                        <span className="text-3xl font-bold text-primary">$9,000</span>
                       </div>
                     </div>
                   </div>
