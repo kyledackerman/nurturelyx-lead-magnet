@@ -177,11 +177,11 @@ const LearnPage = () => {
               </p>
 
               <Card className="p-6 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900">
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2 text-gray-900 dark:text-foreground">
+                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2 text-foreground">
                   <Users className="h-5 w-5" />
                   The Hard Truth About Website Conversion
                 </h3>
-                <ul className="space-y-2 text-gray-900 dark:text-foreground">
+                <ul className="space-y-2 text-foreground">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
                     <span><strong>98% of website visitors never fill out a form</strong> or provide contact information</span>
@@ -235,7 +235,7 @@ const LearnPage = () => {
               </p>
 
               <Card className="p-6 bg-primary/5 border-primary/20">
-                <div className="space-y-3 text-gray-900 dark:text-foreground">
+                <div className="space-y-3 text-foreground">
                   <div className="flex justify-between items-center pb-2 border-b border-border">
                     <span>Monthly visitors:</span>
                     <span className="font-semibold">10,000</span>
@@ -290,11 +290,11 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">How It Works</h3>
 
               <Card className="p-6 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
-                <h4 className="font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-foreground">
+                <h4 className="font-semibold mb-4 flex items-center gap-2 text-foreground">
                   <Workflow className="h-5 w-5" />
                   The Identification Process
                 </h4>
-                <ol className="space-y-4 text-gray-900 dark:text-foreground">
+                <ol className="space-y-4 text-foreground">
                   <li className="flex gap-3">
                     <span className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-semibold">1</span>
                     <div>
@@ -372,12 +372,12 @@ const LearnPage = () => {
               <Card className="p-6 border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/20">
                 <div className="flex gap-3 mb-3">
                   <Shield className="h-6 w-6 text-green-600 dark:text-green-400 flex-shrink-0" />
-                  <h4 className="font-semibold text-lg text-gray-900 dark:text-foreground">Compliant Visitor Identification</h4>
+                  <h4 className="font-semibold text-lg text-foreground">Compliant Visitor Identification</h4>
                 </div>
-                <p className="text-gray-900 dark:text-foreground mb-3">
+                <p className="text-foreground mb-3">
                   Modern visitor identification solutions are designed to comply with major privacy regulations:
                 </p>
-                <ul className="space-y-2 text-gray-900 dark:text-foreground">
+                <ul className="space-y-2 text-foreground">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                     <span><strong>GDPR compliant:</strong> Uses legitimate interest legal basis for B2B identification</span>
@@ -629,8 +629,8 @@ const LearnPage = () => {
               </div>
 
               <Card className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 mt-8">
-                <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-foreground">The Multi-Channel Advantage</h4>
-                <p className="text-gray-900 dark:text-foreground">
+                <h4 className="text-lg font-semibold mb-3 text-foreground">The Multi-Channel Advantage</h4>
+                <p className="text-foreground">
                   The most successful companies don't pick just one use case—they layer multiple strategies together. By combining 
                   sales outreach, email nurture, paid retargeting, and ABM campaigns, you create a comprehensive system that 
                   captures value from every stage of the buyer journey.
@@ -658,8 +658,8 @@ const LearnPage = () => {
                 <div className="flex gap-3 mb-4">
                   <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
                   <div>
-                    <h4 className="font-semibold text-lg mb-2 text-gray-900 dark:text-foreground">One Simple Script</h4>
-                    <p className="text-gray-900 dark:text-foreground">
+                    <h4 className="font-semibold text-lg mb-2 text-foreground">One Simple Script</h4>
+                    <p className="text-foreground">
                       Most visitor identification solutions require just a single JavaScript snippet added to your website—similar 
                       to installing Google Analytics. No complex integration, no developer resources required.
                     </p>
@@ -748,8 +748,8 @@ const LearnPage = () => {
               </div>
 
               <Card className="p-6 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
-                <h4 className="font-semibold mb-3 text-gray-900 dark:text-foreground">Real-Time Data Flow</h4>
-                <p className="text-gray-900 dark:text-foreground text-sm">
+                <h4 className="font-semibold mb-3 text-foreground">Real-Time Data Flow</h4>
+                <p className="text-foreground text-sm">
                   Identified visitor data flows into your CRM within minutes of their visit. Set up automated workflows to 
                   trigger sales alerts, add to nurture sequences, or create retargeting audiences—all without manual intervention.
                 </p>
@@ -797,7 +797,7 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">ROI Calculation Framework</h3>
 
               <Card className="p-6 bg-primary/5 border-primary/20">
-                <h4 className="font-semibold mb-4 text-gray-900 dark:text-foreground">Example ROI Scenario</h4>
+                <h4 className="font-semibold mb-4 text-foreground">Example ROI Scenario</h4>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between pb-2 border-b border-border">
                     <span className="text-muted-foreground">Monthly software cost:</span>
@@ -839,7 +839,7 @@ const LearnPage = () => {
               <Card className="p-6 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
                 <div className="text-center">
                   <div className="text-5xl font-bold text-green-600 dark:text-green-400 mb-2">1-2 Days</div>
-                  <p className="text-gray-900 dark:text-foreground">
+                  <p className="text-foreground">
                     That's right—most companies recover their monthly investment within the first 48 hours of implementation.
                   </p>
                 </div>
@@ -926,8 +926,8 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">GDPR Compliance (EU)</h3>
 
               <Card className="p-6 border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20">
-                <h4 className="font-semibold mb-3 text-gray-900 dark:text-foreground">Legitimate Interest Legal Basis</h4>
-                <p className="text-gray-900 dark:text-foreground mb-4">
+                <h4 className="font-semibold mb-3 text-foreground">Legitimate Interest Legal Basis</h4>
+                <p className="text-foreground mb-4">
                   For B2B visitor identification, most solutions rely on the "legitimate interest" legal basis under GDPR Article 6(1)(f). 
                   This allows processing of business contact data when there's a genuine business interest and the processing doesn't 
                   override individual rights.
@@ -955,8 +955,8 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">CCPA Compliance (California)</h3>
 
               <Card className="p-6 border-purple-200 dark:border-purple-900 bg-purple-50 dark:bg-purple-950/20">
-                <h4 className="font-semibold mb-3 text-gray-900 dark:text-foreground">Consumer Privacy Rights</h4>
-                <p className="text-gray-900 dark:text-foreground mb-4">
+                <h4 className="font-semibold mb-3 text-foreground">Consumer Privacy Rights</h4>
+                <p className="text-foreground mb-4">
                   The California Consumer Privacy Act requires specific disclosures and consumer rights for California residents:
                 </p>
                 <div className="space-y-2 text-sm">
@@ -1023,21 +1023,21 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">Building Trust with Visitors</h3>
 
               <Card className="p-6 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
-                <h4 className="font-semibold mb-3 text-gray-900 dark:text-foreground">Best Practices for Ethical Implementation</h4>
+                <h4 className="font-semibold mb-3 text-foreground">Best Practices for Ethical Implementation</h4>
                 <div className="space-y-3 text-sm">
-                  <p className="text-gray-900 dark:text-foreground">
+                  <p className="text-foreground">
                     <strong>1. Transparent Privacy Policy:</strong> Clearly explain what data you collect and how it's used
                   </p>
-                  <p className="text-gray-900 dark:text-foreground">
+                  <p className="text-foreground">
                     <strong>2. Easy Opt-Out:</strong> Provide simple mechanisms for visitors to opt out of identification
                   </p>
-                  <p className="text-gray-900 dark:text-foreground">
+                  <p className="text-foreground">
                     <strong>3. Relevant Outreach Only:</strong> Don't spam identified visitors—only reach out with genuinely valuable offers
                   </p>
-                  <p className="text-gray-900 dark:text-foreground">
+                  <p className="text-foreground">
                     <strong>4. Secure Data Storage:</strong> Use encryption and follow security best practices
                   </p>
-                  <p className="text-gray-900 dark:text-foreground">
+                  <p className="text-foreground">
                     <strong>5. Respect Preferences:</strong> Honor unsubscribe requests immediately
                   </p>
                 </div>
