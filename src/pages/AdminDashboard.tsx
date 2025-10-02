@@ -369,15 +369,16 @@ const AdminDashboard = () => {
 
       // Count reports for each period, separating admin vs non-admin and revenue loss
       allReports?.forEach(report => {
-        // Convert UTC timestamp to local timezone
+        // Parse UTC timestamp - Date methods automatically return local timezone values
         const reportDate = new Date(report.created_at);
-        const localDate = new Date(reportDate.getTime() - reportDate.getTimezoneOffset() * 60000);
         
         let key: string;
         if (period === 'yearly') {
-          key = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}`;
+          // Use local month/year
+          key = `${reportDate.getFullYear()}-${String(reportDate.getMonth() + 1).padStart(2, '0')}`;
         } else {
-          key = localDate.toISOString().split('T')[0];
+          // Use local date in YYYY-MM-DD format
+          key = `${reportDate.getFullYear()}-${String(reportDate.getMonth() + 1).padStart(2, '0')}-${String(reportDate.getDate()).padStart(2, '0')}`;
         }
         if (dateMap.has(key)) {
           const current = dateMap.get(key)!;
