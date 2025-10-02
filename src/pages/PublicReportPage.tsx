@@ -57,7 +57,7 @@ const PublicReportPage = () => {
 
   // Generate SEO-optimized metadata
   const generateMetadata = (data: ReportData) => {
-    const title = `Lead Opportunity Report for ${data.domain} - Revenue Analysis | NurturelyX`;
+    const title = `${data.domain} Lead Loss Report | NurturelyX`;
     const description = `${data.domain} is potentially losing $${formatCurrency(data.monthlyRevenueLost)}/month ($${formatCurrency(data.yearlyRevenueLost)}/year) from ${data.missedLeads.toLocaleString()} missed leads. See the complete analysis.`;
     const url = `${window.location.origin}/report/${slug}`;
     const imageUrl = `${window.location.origin}/og-image.png`;
@@ -71,7 +71,7 @@ const PublicReportPage = () => {
     return {
       "@context": "https://schema.org",
       "@type": "Report",
-      "headline": `Lead Opportunity Report for ${data.domain}`,
+      "headline": `${data.domain} Lead Loss Report`,
       "description": metadata.description,
       "url": metadata.url,
       "datePublished": new Date().toISOString(),
@@ -129,7 +129,7 @@ const PublicReportPage = () => {
             <>
               <article className="mb-8 max-w-3xl mx-auto text-center">
                 <h1 className="text-3xl font-bold text-foreground mb-4">
-                  Lead Opportunity Report for{" "}
+                  Lead Loss Report for{" "}
                   <span className="text-primary text-4xl">{reportData.domain}</span>
                 </h1>
                 <p className="text-lg text-muted-foreground mb-2">
