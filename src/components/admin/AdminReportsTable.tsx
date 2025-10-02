@@ -89,17 +89,6 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
     return 'text-green-600 font-medium';
   };
 
-  const getRowBackground = (report: ReportData) => {
-    const revenue = report.report_data?.monthlyRevenueLost || 0;
-    const leads = report.report_data?.missedLeads || 0;
-    const isYourReport = report.user_id === adminUserId;
-    
-    if (isYourReport) return "bg-primary/10 border-primary/30 hover:bg-primary/15";
-    if (revenue >= 4200 || leads >= 500) return "border-l-4 border-amber-500/60 hover:bg-muted/50";
-    if (revenue >= 2100 || leads >= 200) return "bg-orange-50 border-orange-200 hover:bg-orange-100";
-    return "hover:bg-muted/50";
-  };
-
   const isHighPriority = (report: ReportData) => {
     const revenue = report.report_data?.monthlyRevenueLost || 0;
     const leads = report.report_data?.missedLeads || 0;
@@ -249,7 +238,7 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
             return (
               <TableRow 
                 key={report.id}
-                className={getRowBackground(report)}
+                className="hover:bg-muted/50"
               >
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
