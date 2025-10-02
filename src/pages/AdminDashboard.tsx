@@ -345,6 +345,12 @@ const AdminDashboard = () => {
             day: 'numeric'
           });
       }
+      
+      // Normalize to local midnight for daily/weekly/monthly periods
+      if (incrementType === 'day') {
+        startDate.setHours(0, 0, 0, 0);
+      }
+      
       const dateMap = new Map<string, {
         admin: number;
         nonAdmin: number;
@@ -359,7 +365,10 @@ const AdminDashboard = () => {
         } else {
           date.setMonth(date.getMonth() + i);
         }
-        const dateStr = period === 'yearly' ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` : date.toISOString().split('T')[0];
+        // Use local date components instead of UTC
+        const dateStr = period === 'yearly' 
+          ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` 
+          : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         dateMap.set(dateStr, {
           admin: 0,
           nonAdmin: 0,
@@ -410,7 +419,10 @@ const AdminDashboard = () => {
           const date = new Date(parseInt(year), parseInt(month) - 1, 1);
           displayDate = dateFormat(date);
         } else {
-          displayDate = dateFormat(new Date(dateKey));
+          // Parse dateKey as local date components (not UTC)
+          const [y, m, d] = dateKey.split('-').map(Number);
+          const localDate = new Date(y, m - 1, d);
+          displayDate = dateFormat(localDate);
         }
         return {
           date: displayDate,
