@@ -15,9 +15,9 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, BarChart, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users, FileText, Share2, Clock, LayoutDashboard, Trophy, Key } from "lucide-react";
+import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users, FileText, Share2, Clock, LayoutDashboard, Trophy, Key } from "lucide-react";
 import { toast } from "sonner";
-import { ComposedChart, Area, Line, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { ComposedChart, Area, Line, Bar, BarChart, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
 import AdminManual from "@/components/admin/AdminManual";
 import { FormData, ReportData } from "@/types/report";
@@ -80,6 +80,12 @@ interface TrafficStats {
   uniqueVisitorsAllTime: number;
   totalSharesAllTime: number;
   avgViewsPerReport: number;
+  totalViewsToday: number;
+  totalViewsYesterday: number;
+  uniqueVisitorsToday: number;
+  uniqueVisitorsYesterday: number;
+  totalSharesToday: number;
+  totalSharesYesterday: number;
 }
 
 interface TrafficSource {
@@ -157,6 +163,12 @@ const AdminDashboard = () => {
     uniqueVisitorsAllTime: 0,
     totalSharesAllTime: 0,
     avgViewsPerReport: 0,
+    totalViewsToday: 0,
+    totalViewsYesterday: 0,
+    uniqueVisitorsToday: 0,
+    uniqueVisitorsYesterday: 0,
+    totalSharesToday: 0,
+    totalSharesYesterday: 0,
   });
   const [trafficSources, setTrafficSources] = useState<TrafficSource[]>([]);
   const [sharePlatforms, setSharePlatforms] = useState<SharePlatform[]>([]);
@@ -538,11 +550,47 @@ const AdminDashboard = () => {
       const uniqueReportsViewed = new Set(allViews?.map(v => v.report_id) || []).size;
       const avgViewsPerReport = uniqueReportsViewed > 0 ? totalViewsAllTime / uniqueReportsViewed : 0;
 
+      // Get today's data
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const { data: todayViews } = await supabase
+        .from('report_views')
+        .select('id, session_id')
+        .gte('viewed_at', today.toISOString());
+      
+      const { data: todayShares } = await supabase
+        .from('report_shares')
+        .select('id')
+        .gte('shared_at', today.toISOString());
+      
+      // Get yesterday's data
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      const { data: yesterdayViews } = await supabase
+        .from('report_views')
+        .select('id, session_id')
+        .gte('viewed_at', yesterday.toISOString())
+        .lt('viewed_at', today.toISOString());
+      
+      const { data: yesterdayShares } = await supabase
+        .from('report_shares')
+        .select('id')
+        .gte('shared_at', yesterday.toISOString())
+        .lt('shared_at', today.toISOString());
+
       setTrafficStats({
         totalViewsAllTime,
         uniqueVisitorsAllTime,
         totalSharesAllTime,
         avgViewsPerReport: Math.round(avgViewsPerReport * 10) / 10,
+        totalViewsToday: todayViews?.length || 0,
+        totalViewsYesterday: yesterdayViews?.length || 0,
+        uniqueVisitorsToday: new Set(todayViews?.map(v => v.session_id) || []).size,
+        uniqueVisitorsYesterday: new Set(yesterdayViews?.map(v => v.session_id) || []).size,
+        totalSharesToday: todayShares?.length || 0,
+        totalSharesYesterday: yesterdayShares?.length || 0,
       });
     } catch (error) {
       console.error('Error fetching traffic stats:', error);
@@ -1229,11 +1277,11 @@ const AdminDashboard = () => {
             </TabsContent>
 
             <TabsContent value="crm" className="space-y-6">
-              <CRMProspectsTable />
+              <CRMProspectsTable reports={reports} loading={loading} />
             </TabsContent>
 
             <TabsContent value="generate" className="space-y-6">
-              {!reportGenerated ? (
+              {!generatedReport ? (
                 <div className="space-y-6">
                   <Card>
                     <CardHeader>
@@ -1243,18 +1291,19 @@ const AdminDashboard = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <AdminLeadCalculatorForm
-                        onSubmit={handleGenerateReport}
-                        loading={generatingReport}
-                        initialData={reportData}
-                        onEdit={reportGenerated ? handleEditReport : undefined}
-                      />
+                    <AdminLeadCalculatorForm
+                      onCalculate={handleGenerateReport}
+                      isCalculating={isGeneratingReport}
+                      initialData={reportFormData}
+                      apiError={reportApiError}
+                      onReset={generatedReport ? handleResetReport : undefined}
+                    />
                     </CardContent>
                   </Card>
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {generatedReportData && (
+                  {generatedReport && (
                     <>
                       <div className="flex justify-between items-center">
                         <h2 className="text-2xl font-bold">Generated Report Preview</h2>
@@ -1267,7 +1316,11 @@ const AdminDashboard = () => {
                           </Button>
                         </div>
                       </div>
-                      <LeadReport data={generatedReportData} />
+                    <LeadReport 
+                      data={generatedReport} 
+                      onReset={handleResetReport}
+                      onEditData={handleEditReport}
+                    />
                     </>
                   )}
                 </div>
@@ -1275,7 +1328,7 @@ const AdminDashboard = () => {
             </TabsContent>
 
             <TabsContent value="leaderboard" className="space-y-6">
-              <LeaderboardTab />
+              <LeaderboardTab timeFilter={leaderboardTimeFilter} />
             </TabsContent>
 
             <TabsContent value="admin" className="space-y-6">
@@ -1360,31 +1413,31 @@ const AdminDashboard = () => {
                         <CardTitle>Daily Visitor Activity</CardTitle>
                         <div className="flex gap-2">
                           <Button
-                            variant={viewsChartPeriod === 'week' ? 'default' : 'outline'}
+                            variant={viewsTimePeriod === 'weekly' ? 'default' : 'outline'}
                             size="sm"
                             onClick={() => {
-                              setViewsChartPeriod('week');
-                              fetchViewsChartData('week');
+                              setViewsTimePeriod('weekly');
+                              fetchViewsChartData('weekly');
                             }}
                           >
                             Week
                           </Button>
                           <Button
-                            variant={viewsChartPeriod === 'month' ? 'default' : 'outline'}
+                            variant={viewsTimePeriod === 'monthly' ? 'default' : 'outline'}
                             size="sm"
                             onClick={() => {
-                              setViewsChartPeriod('month');
-                              fetchViewsChartData('month');
+                              setViewsTimePeriod('monthly');
+                              fetchViewsChartData('monthly');
                             }}
                           >
                             Month
                           </Button>
                           <Button
-                            variant={viewsChartPeriod === 'year' ? 'default' : 'outline'}
+                            variant={viewsTimePeriod === 'yearly' ? 'default' : 'outline'}
                             size="sm"
                             onClick={() => {
-                              setViewsChartPeriod('year');
-                              fetchViewsChartData('year');
+                              setViewsTimePeriod('yearly');
+                              fetchViewsChartData('yearly');
                             }}
                           >
                             Year
@@ -1450,7 +1503,7 @@ const AdminDashboard = () => {
                             <XAxis dataKey="platform" />
                             <YAxis />
                             <Tooltip />
-                            <Bar dataKey="count" fill="#60a5fa" />
+                            <Bar dataKey="count" fill="hsl(var(--primary))" />
                           </BarChart>
                         </ResponsiveContainer>
                       </CardContent>
