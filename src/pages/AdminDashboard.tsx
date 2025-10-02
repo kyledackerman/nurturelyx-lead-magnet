@@ -55,6 +55,10 @@ interface AdminStats {
   highValueProspects: number;
   highValueProspectsToday: number;
   highValueProspectsYesterday: number;
+  totalViewsToday: number;
+  totalViewsYesterday: number;
+  uniqueVisitorsToday: number;
+  uniqueVisitorsYesterday: number;
 }
 interface ChartDataPoint {
   date: string;
@@ -62,6 +66,12 @@ interface ChartDataPoint {
   nonAdminReports: number;
   revenueLineReports: number;
   total: number;
+}
+
+interface ViewsChartDataPoint {
+  date: string;
+  uniqueVisitors: number;
+  totalViews: number;
 }
 const AdminDashboard = () => {
   const {
@@ -85,11 +95,17 @@ const AdminDashboard = () => {
     nonAdminReportsYesterday: 0,
     highValueProspects: 0,
     highValueProspectsToday: 0,
-    highValueProspectsYesterday: 0
+    highValueProspectsYesterday: 0,
+    totalViewsToday: 0,
+    totalViewsYesterday: 0,
+    uniqueVisitorsToday: 0,
+    uniqueVisitorsYesterday: 0,
   });
   const [crmOpen, setCrmOpen] = useState(true);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+  const [viewsChartData, setViewsChartData] = useState<ViewsChartDataPoint[]>([]);
   const [timePeriod, setTimePeriod] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
+  const [viewsTimePeriod, setViewsTimePeriod] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
   const [leaderboardTimeFilter, setLeaderboardTimeFilter] = useState<'daily' | 'weekly' | 'monthly' | 'all-time'>('monthly');
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
@@ -103,6 +119,7 @@ const AdminDashboard = () => {
     fetchReports();
     fetchStats();
     fetchChartData(timePeriod);
+    fetchViewsChartData(viewsTimePeriod);
 
     // Set up real-time subscription for new reports
     const channel = supabase
@@ -119,6 +136,7 @@ const AdminDashboard = () => {
           fetchReports();
           fetchStats();
           fetchChartData(timePeriod);
+          fetchViewsChartData(viewsTimePeriod);
           setLastUpdated(new Date());
         }
       )
@@ -129,6 +147,7 @@ const AdminDashboard = () => {
       fetchReports();
       fetchStats();
       fetchChartData(timePeriod);
+      fetchViewsChartData(viewsTimePeriod);
       setLastUpdated(new Date());
     }, 60000);
 
@@ -141,6 +160,10 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchChartData(timePeriod);
   }, [timePeriod]);
+
+  useEffect(() => {
+    fetchViewsChartData(viewsTimePeriod);
+  }, [viewsTimePeriod]);
   useEffect(() => {
     const filtered = reports.filter(report => report.domain.toLowerCase().includes(searchTerm.toLowerCase()));
     setFilteredReports(filtered);
@@ -263,6 +286,28 @@ const AdminDashboard = () => {
       const highValueProspects = allReports?.filter(isHighValue).length || 0;
       const highValueProspectsToday = todayReports.filter(isHighValue).length;
       const highValueProspectsYesterday = yesterdayReports.filter(isHighValue).length;
+      // Get report views data
+      const { data: allViews, error: viewsError } = await supabase
+        .from('report_views')
+        .select('viewed_at, session_id');
+
+      if (viewsError) throw viewsError;
+
+      const todayViews = allViews?.filter(v => {
+        const viewDate = new Date(v.viewed_at);
+        return viewDate >= today;
+      }) || [];
+
+      const yesterdayViews = allViews?.filter(v => {
+        const viewDate = new Date(v.viewed_at);
+        return viewDate >= yesterday && viewDate < today;
+      }) || [];
+
+      const totalViewsToday = todayViews.length;
+      const totalViewsYesterday = yesterdayViews.length;
+      const uniqueVisitorsToday = new Set(todayViews.map(v => v.session_id)).size;
+      const uniqueVisitorsYesterday = new Set(yesterdayViews.map(v => v.session_id)).size;
+
       setStats({
         totalReports: allReports?.length || 0,
         uniqueDomains,
@@ -277,12 +322,127 @@ const AdminDashboard = () => {
         nonAdminReportsYesterday,
         highValueProspects,
         highValueProspectsToday,
-        highValueProspectsYesterday
+        highValueProspectsYesterday,
+        totalViewsToday,
+        totalViewsYesterday,
+        uniqueVisitorsToday,
+        uniqueVisitorsYesterday,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
   };
+
+  const fetchViewsChartData = async (period: 'weekly' | 'monthly' | 'yearly') => {
+    try {
+      const { data: allViews, error: viewsError } = await supabase
+        .from('report_views')
+        .select('viewed_at, session_id')
+        .order('viewed_at', { ascending: true });
+
+      if (viewsError) throw viewsError;
+
+      const now = new Date();
+      let startDate: Date;
+      let dateFormat: (date: Date) => string;
+      let periods: number;
+      let incrementType: 'day' | 'month';
+
+      switch (period) {
+        case 'weekly':
+          startDate = new Date(now);
+          startDate.setDate(startDate.getDate() - 7);
+          periods = 8;
+          incrementType = 'day';
+          dateFormat = date => date.toLocaleDateString('en-US', {
+            weekday: 'short',
+            day: 'numeric'
+          });
+          break;
+        case 'yearly':
+          startDate = new Date(now);
+          startDate.setMonth(startDate.getMonth() - 12);
+          periods = 13;
+          incrementType = 'month';
+          dateFormat = date => date.toLocaleDateString('en-US', {
+            month: 'short',
+            year: '2-digit'
+          });
+          break;
+        default:
+          // monthly
+          startDate = new Date(now);
+          startDate.setDate(startDate.getDate() - 30);
+          periods = 31;
+          incrementType = 'day';
+          dateFormat = date => date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+          });
+      }
+
+      if (incrementType === 'day') {
+        startDate.setHours(0, 0, 0, 0);
+      }
+
+      const dateMap = new Map<string, { uniqueSessions: Set<string>; totalViews: number }>();
+
+      // Initialize all periods
+      for (let i = 0; i < periods; i++) {
+        const date = new Date(startDate);
+        if (incrementType === 'day') {
+          date.setDate(date.getDate() + i);
+        } else {
+          date.setMonth(date.getMonth() + i);
+        }
+        const dateStr = period === 'yearly' 
+          ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` 
+          : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        dateMap.set(dateStr, { uniqueSessions: new Set(), totalViews: 0 });
+      }
+
+      // Count views and unique sessions for each period
+      allViews?.forEach(view => {
+        const viewDate = new Date(view.viewed_at);
+        let key: string;
+        if (period === 'yearly') {
+          key = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}`;
+        } else {
+          key = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}-${String(viewDate.getDate()).padStart(2, '0')}`;
+        }
+        if (dateMap.has(key)) {
+          const current = dateMap.get(key)!;
+          current.uniqueSessions.add(view.session_id);
+          current.totalViews += 1;
+          dateMap.set(key, current);
+        }
+      });
+
+      // Convert to chart format
+      const chartData: ViewsChartDataPoint[] = Array.from(dateMap.entries()).map(([dateKey, data]) => {
+        let displayDate: string;
+        if (period === 'yearly') {
+          const [year, month] = dateKey.split('-');
+          const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+          displayDate = dateFormat(date);
+        } else {
+          const [y, m, d] = dateKey.split('-').map(Number);
+          const localDate = new Date(y, m - 1, d);
+          displayDate = dateFormat(localDate);
+        }
+        return {
+          date: displayDate,
+          uniqueVisitors: data.uniqueSessions.size,
+          totalViews: data.totalViews
+        };
+      });
+
+      setViewsChartData(chartData);
+    } catch (error) {
+      console.error('Error fetching views chart data:', error);
+    }
+  };
+
   const fetchChartData = async (period: 'weekly' | 'monthly' | 'yearly') => {
     try {
       // First, get all reports with report_data
@@ -621,6 +781,38 @@ const AdminDashboard = () => {
                 <p className="text-xs text-orange-600 mt-1">Significant revenue loss (&gt; $5,000/month)</p>
               </CardContent>
             </Card>
+
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                <CardTitle className="text-sm font-medium text-black">Page Views Today</CardTitle>
+                <Eye className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-bold text-blue-700">{stats.totalViewsToday}</div>
+                <div className="flex gap-3 mt-2 text-xs">
+                  <span className={stats.totalViewsToday >= stats.totalViewsYesterday ? "text-green-600" : "text-red-600"}>
+                    {stats.totalViewsToday >= stats.totalViewsYesterday ? "↑" : "↓"} {Math.abs(stats.totalViewsToday - stats.totalViewsYesterday)} from yesterday
+                  </span>
+                  <span className="text-muted-foreground">Yesterday: {stats.totalViewsYesterday}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-purple-200 bg-purple-50">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                <CardTitle className="text-sm font-medium text-black">Unique Visitors Today</CardTitle>
+                <Users className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-bold text-purple-700">{stats.uniqueVisitorsToday}</div>
+                <div className="flex gap-3 mt-2 text-xs">
+                  <span className={stats.uniqueVisitorsToday >= stats.uniqueVisitorsYesterday ? "text-green-600" : "text-red-600"}>
+                    {stats.uniqueVisitorsToday >= stats.uniqueVisitorsYesterday ? "↑" : "↓"} {Math.abs(stats.uniqueVisitorsToday - stats.uniqueVisitorsYesterday)} from yesterday
+                  </span>
+                  <span className="text-muted-foreground">Yesterday: {stats.uniqueVisitorsYesterday}</span>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Analytics Section with Shared Time Period Toggle */}
@@ -749,6 +941,71 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             </div>
+          </div>
+
+          {/* Daily Visitor Activity Chart */}
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold">Daily Visitor Activity</h3>
+                <p className="text-sm text-muted-foreground">
+                  {viewsTimePeriod === 'weekly' ? 'Last 7 Days' : viewsTimePeriod === 'yearly' ? 'Last 12 Months' : 'Last 30 Days'}
+                </p>
+              </div>
+              <ToggleGroup type="single" value={viewsTimePeriod} onValueChange={value => value && setViewsTimePeriod(value as 'weekly' | 'monthly' | 'yearly')} className="bg-muted/50">
+                <ToggleGroupItem value="weekly" aria-label="Weekly view">
+                  Week
+                </ToggleGroupItem>
+                <ToggleGroupItem value="monthly" aria-label="Monthly view">
+                  Month
+                </ToggleGroupItem>
+                <ToggleGroupItem value="yearly" aria-label="Yearly view">
+                  Year
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="h-5 w-5" />
+                  Report Views & Unique Visitors
+                </CardTitle>
+                <CardDescription>
+                  Track daily page views and unique visitor sessions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={280}>
+                  <ComposedChart data={viewsChartData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="date" className="text-muted-foreground" fontSize={12} />
+                    <YAxis className="text-muted-foreground" fontSize={12} label={{
+                      value: 'Count',
+                      angle: -90,
+                      position: 'insideLeft',
+                      style: {
+                        fill: 'hsl(var(--muted-foreground))'
+                      }
+                    }} />
+                    <Tooltip contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px'
+                    }} />
+                    <Legend />
+                    <Bar dataKey="totalViews" fill="#60a5fa" name="Total Views" />
+                    <Line type="monotone" dataKey="uniqueVisitors" stroke="#a855f7" strokeWidth={2.5} dot={{
+                      fill: '#a855f7',
+                      strokeWidth: 2,
+                      r: 4
+                    }} activeDot={{
+                      r: 6
+                    }} name="Unique Visitors" />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           </div>
 
           <Tabs defaultValue="overview" className="w-full">
