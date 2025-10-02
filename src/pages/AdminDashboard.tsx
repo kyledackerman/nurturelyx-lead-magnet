@@ -91,6 +91,7 @@ const AdminDashboard = () => {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [timePeriod, setTimePeriod] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
   const [leaderboardTimeFilter, setLeaderboardTimeFilter] = useState<'daily' | 'weekly' | 'monthly' | 'all-time'>('monthly');
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   // Report generation state
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
@@ -102,7 +103,41 @@ const AdminDashboard = () => {
     fetchReports();
     fetchStats();
     fetchChartData(timePeriod);
+
+    // Set up real-time subscription for new reports
+    const channel = supabase
+      .channel('reports-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'reports'
+        },
+        () => {
+          console.log('New report detected, refreshing data...');
+          fetchReports();
+          fetchStats();
+          fetchChartData(timePeriod);
+          setLastUpdated(new Date());
+        }
+      )
+      .subscribe();
+
+    // Set up periodic refresh every 60 seconds
+    const refreshInterval = setInterval(() => {
+      fetchReports();
+      fetchStats();
+      fetchChartData(timePeriod);
+      setLastUpdated(new Date());
+    }, 60000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(refreshInterval);
+    };
   }, []);
+
   useEffect(() => {
     fetchChartData(timePeriod);
   }, [timePeriod]);
@@ -334,12 +369,15 @@ const AdminDashboard = () => {
 
       // Count reports for each period, separating admin vs non-admin and revenue loss
       allReports?.forEach(report => {
+        // Convert UTC timestamp to local timezone
         const reportDate = new Date(report.created_at);
+        const localDate = new Date(reportDate.getTime() - reportDate.getTimezoneOffset() * 60000);
+        
         let key: string;
         if (period === 'yearly') {
-          key = `${reportDate.getFullYear()}-${String(reportDate.getMonth() + 1).padStart(2, '0')}`;
+          key = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}`;
         } else {
-          key = report.created_at.split('T')[0];
+          key = localDate.toISOString().split('T')[0];
         }
         if (dateMap.has(key)) {
           const current = dateMap.get(key)!;
@@ -382,6 +420,7 @@ const AdminDashboard = () => {
         };
       });
       setChartData(chartData);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching chart data:', error);
     }
@@ -578,6 +617,10 @@ const AdminDashboard = () => {
                 <h3 className="text-lg font-semibold">Analytics Overview</h3>
                 <p className="text-sm text-muted-foreground">
                   {timePeriod === 'weekly' ? 'Last 7 Days' : timePeriod === 'yearly' ? 'Last 12 Months' : 'Last 30 Days'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  Live • Updated {Math.floor((new Date().getTime() - lastUpdated.getTime()) / 1000)}s ago
                 </p>
               </div>
               <ToggleGroup type="single" value={timePeriod} onValueChange={value => value && setTimePeriod(value as 'weekly' | 'monthly' | 'yearly')} className="bg-muted/50">
