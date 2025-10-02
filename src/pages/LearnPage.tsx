@@ -501,7 +501,7 @@ const LearnPage = () => {
               </Card>
 
               <div className="my-8 text-center bg-gradient-to-r from-primary/10 to-primary/5 p-8 rounded-lg border border-primary/20">
-                <h4 className="text-2xl font-bold mb-3">See Your Exact Numbers</h4>
+                <h4 className="text-2xl font-bold mb-3 text-gray-900 dark:text-foreground">See Your Exact Numbers</h4>
                 <p className="text-muted-foreground mb-6">Our calculator will show you the precise revenue opportunity for your business based on your actual traffic and transaction values.</p>
                 <Link to="/">
                   <Button size="lg" className="text-base">
@@ -797,7 +797,7 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">ROI Calculation Framework</h3>
 
               <Card className="p-6 bg-primary/5 border-primary/20">
-                <h4 className="font-semibold mb-4">Example ROI Scenario</h4>
+                <h4 className="font-semibold mb-4 text-gray-900 dark:text-foreground">Example ROI Scenario</h4>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between pb-2 border-b border-border">
                     <span className="text-muted-foreground">Monthly software cost:</span>
@@ -1188,7 +1188,7 @@ const LearnPage = () => {
 
           {/* Final CTA Section */}
           <section className="my-16 p-12 bg-gradient-to-br from-primary/10 via-primary/5 to-background rounded-2xl border border-primary/20 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900 dark:text-foreground">
               Ready to Capture Your Lost Revenue?
             </h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
