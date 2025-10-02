@@ -100,8 +100,11 @@ const LearnPage = () => {
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                 The Complete Guide to Website Visitor Identification & Anonymous Traffic Conversion
               </h1>
-              <p className="text-xl md:text-2xl text-muted-foreground mb-8">
+              <p className="text-xl md:text-2xl text-muted-foreground mb-4">
                 Why 98% of your website traffic leaves without a trace—and how modern businesses are capturing these lost opportunities
+              </p>
+              <p className="text-lg text-muted-foreground/80 mb-8">
+                For B2B, B2C, SaaS, Ecommerce, and Service Businesses
               </p>
               <Link to="/">
                 <Button size="lg" className="text-lg px-8 py-6">
@@ -194,11 +197,11 @@ const LearnPage = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                    <span><strong>67% of B2B buyers</strong> research your company multiple times before engaging</span>
+                    <span><strong>67% of buyers</strong> research your company multiple times before engaging</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                    <span><strong>Traditional forms convert at 2-3%</strong> in B2B industries</span>
+                    <span><strong>Traditional forms convert at 2-3%</strong> across industries</span>
                   </li>
                 </ul>
               </Card>
@@ -292,7 +295,7 @@ const LearnPage = () => {
                     <span className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-semibold">3</span>
                     <div>
                       <strong>Identity matching begins</strong>
-                      <p className="text-sm text-muted-foreground mt-1">Signals are cross-referenced with proprietary databases containing millions of business and consumer profiles</p>
+                      <p className="text-sm text-muted-foreground mt-1">Signals are cross-referenced with proprietary databases containing millions of business and consumer profiles (both B2B and B2C visitors can be identified)</p>
                     </div>
                   </li>
                   <li className="flex gap-3">
@@ -359,7 +362,7 @@ const LearnPage = () => {
                   <ul className="space-y-2 text-foreground">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span><strong>GDPR compliant:</strong> Uses legitimate interest legal basis for B2B identification</span>
+                    <span><strong>GDPR compliant:</strong> Uses legitimate interest legal basis for visitor identification</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
@@ -367,7 +370,7 @@ const LearnPage = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span><strong>No PII storage:</strong> Only business contact information is revealed</span>
+                    <span><strong>Privacy-focused:</strong> Contact information is collected in compliance with privacy standards</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
@@ -422,7 +425,7 @@ const LearnPage = () => {
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Assuming a typical B2B form conversion rate of 2%, that means 98% of your visitors remain anonymous. 
+                    Assuming a typical form conversion rate of 2%, that means 98% of your visitors remain anonymous. 
                     For 10,000 monthly visitors, that's 9,800 potential leads walking away.
                   </p>
                 </div>
@@ -519,14 +522,23 @@ const LearnPage = () => {
                     <strong>The Strategy:</strong> Export high-intent visitor lists directly to your CRM and trigger personalized 
                     outreach sequences based on the pages they visited.
                   </p>
-                  <Card className="p-4 bg-muted">
-                    <p className="text-sm font-medium mb-2">Real Example:</p>
-                    <p className="text-sm text-muted-foreground">
-                      A B2B SaaS company identified 437 anonymous visitors who viewed their pricing page 3+ times. Their sales 
-                      team reached out within 24 hours with personalized demos. Result: <strong>18% conversion rate</strong> 
-                      (vs. 2% from cold leads).
-                    </p>
-                  </Card>
+                  <div className="space-y-3">
+                    <Card className="p-4 bg-muted">
+                      <p className="text-sm font-medium mb-2">B2B Example:</p>
+                      <p className="text-sm text-muted-foreground">
+                        A SaaS company identified 437 visitors who viewed their pricing page 3+ times. Their sales 
+                        team reached out within 24 hours with personalized demos. Result: <strong>18% conversion rate</strong> 
+                        (vs. 2% from cold leads).
+                      </p>
+                    </Card>
+                    <Card className="p-4 bg-muted">
+                      <p className="text-sm font-medium mb-2">Ecommerce Example:</p>
+                      <p className="text-sm text-muted-foreground">
+                        An online furniture store identified visitors browsing high-ticket items ($2K+). Personalized emails with 
+                        limited-time offers converted at <strong>9.2%</strong> vs. 1.3% for generic campaigns.
+                      </p>
+                    </Card>
+                  </div>
                 </Card>
 
                 {/* Use Case 2 */}
@@ -539,20 +551,57 @@ const LearnPage = () => {
                     <strong>The Strategy:</strong> Build automated email sequences triggered by specific visitor behaviors, 
                     sending relevant content based on the exact products or pages they viewed.
                   </p>
-                  <Card className="p-4 bg-muted">
-                    <p className="text-sm font-medium mb-2">Real Example:</p>
-                    <p className="text-sm text-muted-foreground">
-                      An ecommerce brand captured emails of visitors who abandoned high-value product pages. Their 3-email 
-                      nurture sequence recovered <strong>$127K in monthly revenue</strong> from visitors who never filled out a form.
-                    </p>
-                  </Card>
+                  <div className="space-y-3">
+                    <Card className="p-4 bg-muted">
+                      <p className="text-sm font-medium mb-2">Ecommerce Example:</p>
+                      <p className="text-sm text-muted-foreground">
+                        A fashion retailer captured emails of visitors who abandoned product pages. Their 3-email 
+                        nurture sequence recovered <strong>$127K in monthly revenue</strong> from visitors who never filled out a form.
+                      </p>
+                    </Card>
+                    <Card className="p-4 bg-muted">
+                      <p className="text-sm font-medium mb-2">Services Example:</p>
+                      <p className="text-sm text-muted-foreground">
+                        A home services company sent follow-up emails to visitors who viewed their service pages but didn't request quotes. 
+                        Achieved <strong>$84K in additional monthly bookings</strong>.
+                      </p>
+                    </Card>
+                  </div>
                 </Card>
 
                 {/* Use Case 3 */}
                 <Card className="p-6 border-l-4 border-l-green-500">
                   <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
                     <Users className="h-6 w-6 text-green-500" />
-                    3. Lookalike Audience Building
+                    3. High-Value Customer Acquisition
+                  </h3>
+                  <p className="text-foreground mb-3">
+                    <strong>The Strategy:</strong> Identify and prioritize visitors showing high purchase intent or fitting your ideal 
+                    customer profile, then create targeted campaigns to convert them.
+                  </p>
+                  <div className="space-y-3">
+                    <Card className="p-4 bg-muted">
+                      <p className="text-sm font-medium mb-2">B2B Example:</p>
+                      <p className="text-sm text-muted-foreground">
+                        An enterprise software company identified 63 Fortune 500 companies visiting their site anonymously. 
+                        Their sales team launched targeted campaigns and closed <strong>$2.1M in deals</strong> within 90 days.
+                      </p>
+                    </Card>
+                    <Card className="p-4 bg-muted">
+                      <p className="text-sm font-medium mb-2">Luxury Retail Example:</p>
+                      <p className="text-sm text-muted-foreground">
+                        A high-end watch retailer identified affluent visitors (income $250K+) and sent VIP invitations to private shopping events. 
+                        Converted <strong>23 customers averaging $12K</strong> each.
+                      </p>
+                    </Card>
+                  </div>
+                </Card>
+
+                {/* Use Case 4 */}
+                <Card className="p-6 border-l-4 border-l-purple-500">
+                  <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                    <LineChart className="h-6 w-6 text-purple-500" />
+                    4. Lookalike Audience Building
                   </h3>
                   <p className="text-foreground mb-3">
                     <strong>The Strategy:</strong> Use identified visitor data to create highly qualified lookalike audiences 
@@ -561,27 +610,8 @@ const LearnPage = () => {
                   <Card className="p-4 bg-muted">
                     <p className="text-sm font-medium mb-2">Real Example:</p>
                     <p className="text-sm text-muted-foreground">
-                      A consulting firm built Facebook lookalikes from 2,400 identified high-intent visitors. Their new campaigns 
-                      achieved <strong>3.2x better ROAS</strong> and 47% lower cost-per-lead compared to generic targeting.
-                    </p>
-                  </Card>
-                </Card>
-
-                {/* Use Case 4 */}
-                <Card className="p-6 border-l-4 border-l-purple-500">
-                  <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                    <LineChart className="h-6 w-6 text-purple-500" />
-                    4. Account-Based Marketing (ABM)
-                  </h3>
-                  <p className="text-foreground mb-3">
-                    <strong>The Strategy:</strong> Identify companies (not just individuals) visiting your site and trigger 
-                    multi-channel ABM campaigns targeting key decision-makers at those organizations.
-                  </p>
-                  <Card className="p-4 bg-muted">
-                    <p className="text-sm font-medium mb-2">Real Example:</p>
-                    <p className="text-sm text-muted-foreground">
-                      An enterprise software company identified 63 Fortune 500 companies visiting their site anonymously. 
-                      Their ABM team launched targeted campaigns and closed <strong>$2.1M in deals</strong> within 90 days.
+                      A fitness equipment brand built Facebook lookalikes from 3,200 identified high-intent visitors. Their new campaigns 
+                      achieved <strong>3.2x better ROAS</strong> and 47% lower cost-per-acquisition compared to generic targeting.
                     </p>
                   </Card>
                 </Card>
@@ -594,15 +624,24 @@ const LearnPage = () => {
                   </h3>
                   <p className="text-foreground mb-3">
                     <strong>The Strategy:</strong> Score identified visitors based on behavioral signals (pages viewed, time on site, 
-                    return visits) and firmographic data (company size, industry, revenue) to prioritize sales efforts.
+                    return visits) and demographic/firmographic data to prioritize outreach efforts.
                   </p>
-                  <Card className="p-4 bg-muted">
-                    <p className="text-sm font-medium mb-2">Real Example:</p>
-                    <p className="text-sm text-muted-foreground">
-                      A marketing agency built a lead scoring model using visitor identification data. By focusing on the top 20% 
-                      of scored leads, their close rate improved from <strong>12% to 34%</strong>.
-                    </p>
-                  </Card>
+                  <div className="space-y-3">
+                    <Card className="p-4 bg-muted">
+                      <p className="text-sm font-medium mb-2">B2B Example:</p>
+                      <p className="text-sm text-muted-foreground">
+                        A marketing agency built a lead scoring model using visitor identification data. By focusing on the top 20% 
+                        of scored leads, their close rate improved from <strong>12% to 34%</strong>.
+                      </p>
+                    </Card>
+                    <Card className="p-4 bg-muted">
+                      <p className="text-sm font-medium mb-2">B2C Example:</p>
+                      <p className="text-sm text-muted-foreground">
+                        An online course platform scored visitors by engagement level and purchasing power. Prioritizing the top segment 
+                        increased conversion rates by <strong>2.8x</strong>.
+                      </p>
+                    </Card>
+                  </div>
                 </Card>
               </div>
 
@@ -704,7 +743,7 @@ const LearnPage = () => {
               </p>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 my-6">
-                {['Salesforce', 'HubSpot', 'Marketo', 'Pardot', 'Mailchimp', 'ActiveCampaign', 'Slack', 'Zapier'].map(tool => (
+                {['Salesforce', 'HubSpot', 'Shopify', 'WooCommerce', 'Mailchimp', 'ActiveCampaign', 'Klaviyo', 'Stripe', 'Slack', 'Zapier'].map(tool => (
                   <Card key={tool} className="p-3 text-center text-sm font-medium">
                     {tool}
                   </Card>
@@ -807,7 +846,7 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">Payback Period</h3>
 
               <p>
-                For most businesses with average transaction values above $1,000, the typical payback period is:
+                For most businesses with average transaction values above $1,000 (B2B contracts, ecommerce orders, service packages), the typical payback period is:
               </p>
 
               <Card className="p-6 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
@@ -904,8 +943,8 @@ const LearnPage = () => {
               <Card className="p-6 border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20">
                 <h4 className="font-semibold mb-3 text-foreground">Legitimate Interest Legal Basis</h4>
                 <p className="text-foreground mb-4">
-                  For B2B visitor identification, most solutions rely on the "legitimate interest" legal basis under GDPR Article 6(1)(f). 
-                  This allows processing of business contact data when there's a genuine business interest and the processing doesn't 
+                  For visitor identification, most solutions rely on the "legitimate interest" legal basis under GDPR Article 6(1)(f). 
+                  This allows processing of contact data when there's a genuine business interest and the processing doesn't 
                   override individual rights.
                 </p>
                 <div className="space-y-2 text-sm">
@@ -974,8 +1013,8 @@ const LearnPage = () => {
                   <tbody>
                     <tr>
                       <td className="border border-border p-3 font-medium">Data Revealed</td>
-                      <td className="border border-border p-3">Company name, location</td>
-                      <td className="border border-border p-3">Full contact details</td>
+                      <td className="border border-border p-3">Company name, location OR visitor segment</td>
+                      <td className="border border-border p-3">Full contact details (email, phone, address)</td>
                     </tr>
                     <tr>
                       <td className="border border-border p-3 font-medium">Privacy Impact</td>
@@ -989,8 +1028,8 @@ const LearnPage = () => {
                     </tr>
                     <tr>
                       <td className="border border-border p-3 font-medium">Use Cases</td>
-                      <td className="border border-border p-3">Analytics, ABM targeting</td>
-                      <td className="border border-border p-3">Direct outreach, personalization</td>
+                      <td className="border border-border p-3">Analytics, ABM targeting OR audience segmentation</td>
+                      <td className="border border-border p-3">Direct outreach, email marketing, personalization</td>
                     </tr>
                   </tbody>
                 </table>
