@@ -317,7 +317,7 @@ const AdminDashboard = () => {
         case 'weekly':
           startDate = new Date(now);
           startDate.setDate(startDate.getDate() - 7);
-          periods = 7;
+          periods = 8;
           incrementType = 'day';
           dateFormat = date => date.toLocaleDateString('en-US', {
             weekday: 'short',
@@ -327,7 +327,7 @@ const AdminDashboard = () => {
         case 'yearly':
           startDate = new Date(now);
           startDate.setMonth(startDate.getMonth() - 12);
-          periods = 12;
+          periods = 13;
           incrementType = 'month';
           dateFormat = date => date.toLocaleDateString('en-US', {
             month: 'short',
@@ -338,7 +338,7 @@ const AdminDashboard = () => {
           // monthly
           startDate = new Date(now);
           startDate.setDate(startDate.getDate() - 30);
-          periods = 30;
+          periods = 31;
           incrementType = 'day';
           dateFormat = date => date.toLocaleDateString('en-US', {
             month: 'short',
