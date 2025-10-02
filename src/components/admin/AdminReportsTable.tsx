@@ -71,7 +71,7 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
 
   // Color coding functions for key metrics
   const getMissedLeadsColor = (leads?: number) => {
-    if (!leads) return 'text-gray-500';
+    if (!leads) return 'text-muted-foreground';
     if (leads >= 1000) return 'text-amber-600 font-bold';
     if (leads >= 500) return 'text-orange-600 font-semibold';
     if (leads >= 100) return 'text-orange-600 font-medium';
@@ -80,7 +80,7 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
   };
 
   const getRevenueColor = (revenue?: number) => {
-    if (!revenue) return 'text-gray-500';
+    if (!revenue) return 'text-muted-foreground';
     if (revenue >= 8500) return 'text-amber-600 font-bold';
     if (revenue >= 4200) return 'text-amber-600 font-bold';
     if (revenue >= 2100) return 'text-orange-600 font-semibold';
@@ -293,7 +293,7 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <span className={`text-sm font-medium ${isYourReport ? 'text-primary' : report.user_id ? 'text-gray-900 dark:text-foreground' : 'text-gray-500'}`}>
+                    <span className="text-sm font-medium text-foreground">
                       {isYourReport ? 'You' : report.user_id ? report.user_id.slice(0, 8) + '...' : 'Anonymous'}
                     </span>
                     {report.user_id && (
