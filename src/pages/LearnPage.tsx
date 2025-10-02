@@ -812,8 +812,8 @@ const LearnPage = () => {
                     <span className="font-semibold">$1.03</span>
                   </div>
                   <div className="flex justify-between pb-2 border-b border-border">
-                    <span className="text-muted-foreground">Close rate (conservative 10%):</span>
-                    <span className="font-semibold">294 sales</span>
+                    <span className="text-muted-foreground">Close rate (1%):</span>
+                    <span className="font-semibold">29 sales</span>
                   </div>
                   <div className="flex justify-between pb-2 border-b border-border">
                     <span className="text-muted-foreground">Average transaction value:</span>
@@ -821,11 +821,11 @@ const LearnPage = () => {
                   </div>
                   <div className="flex justify-between pt-2">
                     <span className="font-semibold text-base">Monthly revenue generated:</span>
-                    <span className="text-2xl font-bold text-primary">$1.47M</span>
+                    <span className="text-2xl font-bold text-primary">$145K</span>
                   </div>
                   <div className="flex justify-between pt-2 mt-3 border-t-2 border-primary">
                     <span className="font-bold text-base">ROI:</span>
-                    <span className="text-2xl font-bold text-green-600 dark:text-green-400">48,255%</span>
+                    <span className="text-2xl font-bold text-green-600 dark:text-green-400">4,666%</span>
                   </div>
                 </div>
               </Card>
