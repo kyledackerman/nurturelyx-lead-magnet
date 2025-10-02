@@ -741,18 +741,18 @@ const AdminDashboard = () => {
           <Tabs defaultValue="overview" className="w-full">
             <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+              <TabsTrigger value="crm">CRM</TabsTrigger>
+              <TabsTrigger value="reports">Reports</TabsTrigger>
               <TabsTrigger value="generate">
                 <FileText className="h-4 w-4 mr-2" />
                 Generate Report
               </TabsTrigger>
-              <TabsTrigger value="crm">CRM</TabsTrigger>
+              <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+              <TabsTrigger value="admin">Admin Management</TabsTrigger>
               <TabsTrigger value="password">
                 <Shield className="h-4 w-4 mr-2" />
                 Password
               </TabsTrigger>
-              <TabsTrigger value="admin">Admin Management</TabsTrigger>
-              <TabsTrigger value="reports">Reports</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
