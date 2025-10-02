@@ -262,12 +262,12 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
                   </div>
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className="text-gray-900 dark:text-foreground font-medium">
+                  <span className="text-foreground font-medium">
                     {formatNumber(report.report_data?.organicTraffic)}
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className="text-gray-900 dark:text-foreground font-medium">
+                  <span className="text-foreground font-medium">
                     {formatNumber(report.report_data?.paidTraffic)}
                   </span>
                 </TableCell>
