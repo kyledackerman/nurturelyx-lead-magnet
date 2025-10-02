@@ -3,13 +3,10 @@ import { Button } from "@/components/ui/button";
 
 const CallToActionSection = () => {
   const scrollToForm = () => {
-    const formSection = document.querySelector('[data-form-section="true"]');
-    if (formSection) {
-      formSection.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
+    window.scrollTo({ 
+      top: 0, 
+      behavior: 'smooth' 
+    });
   };
 
   return (

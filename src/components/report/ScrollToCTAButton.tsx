@@ -3,13 +3,10 @@ import { Button } from "@/components/ui/button";
 
 const ScrollToCTAButton = () => {
   const scrollToCTA = () => {
-    const ctaSection = document.querySelector('[data-cta-section="true"]');
-    if (ctaSection) {
-      ctaSection.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
+    window.scrollTo({ 
+      top: 0, 
+      behavior: 'smooth' 
+    });
   };
 
   return (
