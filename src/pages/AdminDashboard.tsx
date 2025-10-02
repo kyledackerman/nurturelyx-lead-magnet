@@ -647,6 +647,7 @@ const AdminDashboard = () => {
         .map(([platform, count]) => ({ platform, count }))
         .sort((a, b) => b.count - a.count);
 
+      console.log('Share platforms data:', platforms);
       setSharePlatforms(platforms);
     } catch (error) {
       console.error('Error fetching share distribution:', error);
@@ -1497,15 +1498,35 @@ const AdminDashboard = () => {
                         <CardDescription>Most popular sharing methods</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <BarChart data={sharePlatforms}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="platform" />
-                            <YAxis />
-                            <Tooltip />
-                            <Bar dataKey="count" fill="hsl(var(--primary))" />
-                          </BarChart>
-                        </ResponsiveContainer>
+                        {sharePlatforms.length === 0 ? (
+                          <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                            <p>No share data available yet. Shares will appear here once reports are shared.</p>
+                          </div>
+                        ) : (
+                          <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={sharePlatforms}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                              <XAxis 
+                                dataKey="platform" 
+                                tick={{ fill: 'hsl(var(--foreground))' }}
+                                stroke="hsl(var(--border))"
+                              />
+                              <YAxis 
+                                tick={{ fill: 'hsl(var(--foreground))' }}
+                                stroke="hsl(var(--border))"
+                              />
+                              <Tooltip 
+                                contentStyle={{
+                                  backgroundColor: 'hsl(var(--card))',
+                                  border: '1px solid hsl(var(--border))',
+                                  borderRadius: '6px',
+                                  color: 'hsl(var(--foreground))'
+                                }}
+                              />
+                              <Bar dataKey="count" fill="#60a5fa" name="Shares" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        )}
                       </CardContent>
                     </Card>
                   </div>
