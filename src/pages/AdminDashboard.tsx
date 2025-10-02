@@ -1454,7 +1454,7 @@ const AdminDashboard = () => {
                           <YAxis yAxisId="right" orientation="right" />
                           <Tooltip />
                           <Legend />
-                          <Bar yAxisId="left" dataKey="views" fill="#60a5fa" name="Total Views" />
+                          <Bar yAxisId="left" dataKey="totalViews" fill="#60a5fa" name="Total Views" />
                           <Line yAxisId="right" type="monotone" dataKey="uniqueVisitors" stroke="#f97316" name="Unique Visitors" strokeWidth={2} />
                         </ComposedChart>
                       </ResponsiveContainer>
