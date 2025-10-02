@@ -792,16 +792,24 @@ const LearnPage = () => {
                 <h4 className="font-semibold mb-4 text-foreground">Example ROI Scenario</h4>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between pb-2 border-b border-border">
-                    <span className="text-muted-foreground">Monthly software cost:</span>
-                    <span className="font-semibold">$2,000</span>
+                    <span className="text-muted-foreground">Monthly platform fee:</span>
+                    <span className="font-semibold">$100</span>
                   </div>
                   <div className="flex justify-between pb-2 border-b border-border">
                     <span className="text-muted-foreground">Visitors identified per month:</span>
                     <span className="font-semibold">2,940 leads</span>
                   </div>
                   <div className="flex justify-between pb-2 border-b border-border">
+                    <span className="text-muted-foreground">Credit cost (2,940 × $1):</span>
+                    <span className="font-semibold">$2,940</span>
+                  </div>
+                  <div className="flex justify-between pb-2 border-b border-border">
+                    <span className="text-muted-foreground">Total monthly cost:</span>
+                    <span className="font-semibold">$3,040</span>
+                  </div>
+                  <div className="flex justify-between pb-2 border-b border-border">
                     <span className="text-muted-foreground">Cost per identified lead:</span>
-                    <span className="font-semibold">$0.68</span>
+                    <span className="font-semibold">$1.03</span>
                   </div>
                   <div className="flex justify-between pb-2 border-b border-border">
                     <span className="text-muted-foreground">Close rate (conservative 10%):</span>
@@ -817,7 +825,7 @@ const LearnPage = () => {
                   </div>
                   <div className="flex justify-between pt-2 mt-3 border-t-2 border-primary">
                     <span className="font-bold text-base">ROI:</span>
-                    <span className="text-2xl font-bold text-green-600 dark:text-green-400">73,500%</span>
+                    <span className="text-2xl font-bold text-green-600 dark:text-green-400">48,255%</span>
                   </div>
                 </div>
               </Card>
