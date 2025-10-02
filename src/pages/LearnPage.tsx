@@ -177,11 +177,11 @@ const LearnPage = () => {
               </p>
 
               <Card className="p-6 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900">
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2 text-gray-900 dark:text-foreground">
+                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2 text-foreground">
                   <Users className="h-5 w-5" />
                   The Hard Truth About Website Conversion
                 </h3>
-                <ul className="space-y-2 text-gray-900 dark:text-foreground">
+                <ul className="space-y-2 text-foreground">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
                     <span><strong>98% of website visitors never fill out a form</strong> or provide contact information</span>
@@ -235,7 +235,7 @@ const LearnPage = () => {
               </p>
 
               <Card className="p-6 bg-primary/5 border-primary/20">
-                <div className="space-y-3 text-gray-900 dark:text-foreground">
+                <div className="space-y-3 text-foreground">
                   <div className="flex justify-between items-center pb-2 border-b border-border">
                     <span>Monthly visitors:</span>
                     <span className="font-semibold">10,000</span>
@@ -290,11 +290,11 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">How It Works</h3>
 
               <Card className="p-6 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
-                <h4 className="font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-foreground">
+                <h4 className="font-semibold mb-4 flex items-center gap-2 text-foreground">
                   <Workflow className="h-5 w-5" />
                   The Identification Process
                 </h4>
-                <ol className="space-y-4 text-gray-900 dark:text-foreground">
+                <ol className="space-y-4 text-foreground">
                   <li className="flex gap-3">
                     <span className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-semibold">1</span>
                     <div>
@@ -341,27 +341,27 @@ const LearnPage = () => {
                     <tr>
                       <td className="border border-border p-3 font-medium">Capture Rate</td>
                       <td className="border border-border p-3">2-3% of visitors</td>
-                      <td className="border border-border p-3 bg-green-50 dark:bg-green-950/20 text-gray-900 dark:text-foreground">15-40% of visitors</td>
+                      <td className="border border-border p-3 bg-green-50 dark:bg-green-950/20 text-foreground">15-40% of visitors</td>
                     </tr>
                     <tr>
                       <td className="border border-border p-3 font-medium">User Friction</td>
                       <td className="border border-border p-3">High (requires form fill)</td>
-                      <td className="border border-border p-3 bg-green-50 dark:bg-green-950/20 text-gray-900 dark:text-foreground">None (automatic)</td>
+                      <td className="border border-border p-3 bg-green-50 dark:bg-green-950/20 text-foreground">None (automatic)</td>
                     </tr>
                     <tr>
                       <td className="border border-border p-3 font-medium">Data Quality</td>
                       <td className="border border-border p-3">Variable (self-reported)</td>
-                      <td className="border border-border p-3 bg-green-50 dark:bg-green-950/20 text-gray-900 dark:text-foreground">High (verified databases)</td>
+                      <td className="border border-border p-3 bg-green-50 dark:bg-green-950/20 text-foreground">High (verified databases)</td>
                     </tr>
                     <tr>
                       <td className="border border-border p-3 font-medium">Implementation</td>
                       <td className="border border-border p-3">Requires design & testing</td>
-                      <td className="border border-border p-3 bg-green-50 dark:bg-green-950/20 text-gray-900 dark:text-foreground">Single script install</td>
+                      <td className="border border-border p-3 bg-green-50 dark:bg-green-950/20 text-foreground">Single script install</td>
                     </tr>
                     <tr>
                       <td className="border border-border p-3 font-medium">Behavioral Data</td>
                       <td className="border border-border p-3">Limited to post-conversion</td>
-                      <td className="border border-border p-3 bg-green-50 dark:bg-green-950/20 text-gray-900 dark:text-foreground">Full visitor journey</td>
+                      <td className="border border-border p-3 bg-green-50 dark:bg-green-950/20 text-foreground">Full visitor journey</td>
                     </tr>
                   </tbody>
                 </table>
@@ -372,12 +372,12 @@ const LearnPage = () => {
               <Card className="p-6 border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/20">
                 <div className="flex gap-3 mb-3">
                   <Shield className="h-6 w-6 text-green-600 dark:text-green-400 flex-shrink-0" />
-                  <h4 className="font-semibold text-lg text-gray-900 dark:text-foreground">Compliant Visitor Identification</h4>
+                  <h4 className="font-semibold text-lg text-foreground">Compliant Visitor Identification</h4>
                 </div>
-                  <p className="text-gray-900 dark:text-foreground mb-3">
+                  <p className="text-foreground mb-3">
                   Modern visitor identification solutions are designed to comply with major privacy regulations:
                 </p>
-                  <ul className="space-y-2 text-gray-900 dark:text-foreground">
+                  <ul className="space-y-2 text-foreground">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                     <span><strong>GDPR compliant:</strong> Uses legitimate interest legal basis for B2B identification</span>
@@ -789,7 +789,7 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">ROI Calculation Framework</h3>
 
               <Card className="p-6 bg-primary/5 border-primary/20">
-                <h4 className="font-semibold mb-4 text-gray-900 dark:text-foreground">Example ROI Scenario</h4>
+                <h4 className="font-semibold mb-4 text-foreground">Example ROI Scenario</h4>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between pb-2 border-b border-border">
                     <span className="text-muted-foreground">Monthly software cost:</span>
@@ -918,8 +918,8 @@ const LearnPage = () => {
               <h3 className="text-2xl font-semibold mt-8 mb-4">GDPR Compliance (EU)</h3>
 
               <Card className="p-6 border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20">
-                <h4 className="font-semibold mb-3 text-gray-900 dark:text-foreground">Legitimate Interest Legal Basis</h4>
-                <p className="text-gray-900 dark:text-foreground mb-4">
+                <h4 className="font-semibold mb-3 text-foreground">Legitimate Interest Legal Basis</h4>
+                <p className="text-foreground mb-4">
                   For B2B visitor identification, most solutions rely on the "legitimate interest" legal basis under GDPR Article 6(1)(f). 
                   This allows processing of business contact data when there's a genuine business interest and the processing doesn't 
                   override individual rights.
