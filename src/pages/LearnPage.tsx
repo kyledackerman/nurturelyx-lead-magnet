@@ -203,31 +203,6 @@ const LearnPage = () => {
                 </ul>
               </Card>
 
-              <h3 className="text-2xl font-semibold mt-8 mb-4">Why Traditional Lead Capture Fails</h3>
-              
-              <p>
-                Most businesses rely on forms, CTAs, and gated content to capture leads. While these tactics work for a small 
-                percentage of highly motivated visitors, they completely miss the majority of your traffic:
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
-                <Card className="p-5">
-                  <h4 className="font-semibold mb-2 text-red-600 dark:text-red-400">❌ Early-Stage Researchers</h4>
-                  <p className="text-sm text-muted-foreground">Not ready to provide contact info yet, but actively comparing solutions</p>
-                </Card>
-                <Card className="p-5">
-                  <h4 className="font-semibold mb-2 text-red-600 dark:text-red-400">❌ Form-Fatigued Visitors</h4>
-                  <p className="text-sm text-muted-foreground">Already receiving too many emails and avoiding more subscriptions</p>
-                </Card>
-                <Card className="p-5">
-                  <h4 className="font-semibold mb-2 text-red-600 dark:text-red-400">❌ Mobile Browsers</h4>
-                  <p className="text-sm text-muted-foreground">Less likely to fill out forms on mobile devices</p>
-                </Card>
-                <Card className="p-5">
-                  <h4 className="font-semibold mb-2 text-red-600 dark:text-red-400">❌ High-Intent Silent Buyers</h4>
-                  <p className="text-sm text-muted-foreground">Visit multiple times, research thoroughly, then buy from a competitor</p>
-                </Card>
-              </div>
 
               <h3 className="text-2xl font-semibold mt-8 mb-4">The Real Dollar Cost</h3>
               
