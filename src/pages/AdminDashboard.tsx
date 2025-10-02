@@ -13,8 +13,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users, FileText, Share2, Clock } from "lucide-react";
+import { Search, BarChart3, BarChart, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users, FileText, Share2, Clock, LayoutDashboard, Trophy, Key } from "lucide-react";
 import { toast } from "sonner";
 import { ComposedChart, Area, Line, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
@@ -982,7 +983,9 @@ const AdminDashboard = () => {
       duration: 5000
     });
   };
-  return <AdminAuthGuard>
+  
+  return (
+    <AdminAuthGuard>
       <Header />
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto space-y-6">
@@ -1194,23 +1197,30 @@ const AdminDashboard = () => {
 
 
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-8">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="analytics">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Analytics
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="overview">
+                <LayoutDashboard className="h-4 w-4 mr-2" />
+                Overview
               </TabsTrigger>
-              <TabsTrigger value="crm">CRM</TabsTrigger>
-              <TabsTrigger value="reports">Reports</TabsTrigger>
+              <TabsTrigger value="crm">
+                <Users className="h-4 w-4 mr-2" />
+                CRM
+              </TabsTrigger>
               <TabsTrigger value="generate">
                 <FileText className="h-4 w-4 mr-2" />
                 Generate
               </TabsTrigger>
-              <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-              <TabsTrigger value="admin">Admin</TabsTrigger>
-              <TabsTrigger value="password">
+              <TabsTrigger value="leaderboard">
+                <Trophy className="h-4 w-4 mr-2" />
+                Leaderboard
+              </TabsTrigger>
+              <TabsTrigger value="admin">
                 <Shield className="h-4 w-4 mr-2" />
-                Password
+                Admin
+              </TabsTrigger>
+              <TabsTrigger value="reports">
+                <FileText className="h-4 w-4 mr-2" />
+                Reports
               </TabsTrigger>
             </TabsList>
 
@@ -1218,376 +1228,345 @@ const AdminDashboard = () => {
               <AdminManual />
             </TabsContent>
 
-            <TabsContent value="analytics" className="space-y-6">
-              {/* Traffic Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                    <CardTitle className="text-sm font-medium">Total Page Views</CardTitle>
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-4xl font-bold">{trafficStats.totalViewsAllTime}</div>
-                    <p className="text-xs text-muted-foreground mt-1">All-time page views</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                    <CardTitle className="text-sm font-medium">Unique Visitors</CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-4xl font-bold">{trafficStats.uniqueVisitorsAllTime}</div>
-                    <p className="text-xs text-muted-foreground mt-1">All-time unique sessions</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                    <CardTitle className="text-sm font-medium">Total Social Shares</CardTitle>
-                    <Share2 className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-4xl font-bold">{trafficStats.totalSharesAllTime}</div>
-                    <p className="text-xs text-muted-foreground mt-1">Across all platforms</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                    <CardTitle className="text-sm font-medium">Avg Views per Report</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-4xl font-bold">{trafficStats.avgViewsPerReport}</div>
-                    <p className="text-xs text-muted-foreground mt-1">Engagement metric</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Daily Visitor Activity Chart */}
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-lg font-semibold">Daily Visitor Activity</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {viewsTimePeriod === 'weekly' ? 'Last 7 Days' : viewsTimePeriod === 'yearly' ? 'Last 12 Months' : 'Last 30 Days'}
-                    </p>
-                  </div>
-                  <ToggleGroup type="single" value={viewsTimePeriod} onValueChange={value => value && setViewsTimePeriod(value as 'weekly' | 'monthly' | 'yearly')} className="bg-muted/50">
-                    <ToggleGroupItem value="weekly" aria-label="Weekly view">Week</ToggleGroupItem>
-                    <ToggleGroupItem value="monthly" aria-label="Monthly view">Month</ToggleGroupItem>
-                    <ToggleGroupItem value="yearly" aria-label="Yearly view">Year</ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Eye className="h-5 w-5" />
-                      Report Views & Unique Visitors
-                    </CardTitle>
-                    <CardDescription>Track daily page views and unique visitor sessions</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={280}>
-                      <ComposedChart data={viewsChartData}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis dataKey="date" className="text-muted-foreground" fontSize={12} />
-                        <YAxis className="text-muted-foreground" fontSize={12} label={{
-                          value: 'Count',
-                          angle: -90,
-                          position: 'insideLeft',
-                          style: { fill: 'hsl(var(--muted-foreground))' }
-                        }} />
-                        <Tooltip contentStyle={{
-                          backgroundColor: 'hsl(var(--card))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '6px'
-                        }} />
-                        <Legend />
-                        <Bar dataKey="totalViews" fill="#60a5fa" name="Total Views" />
-                        <Line type="monotone" dataKey="uniqueVisitors" stroke="#a855f7" strokeWidth={2.5} 
-                          dot={{ fill: '#a855f7', strokeWidth: 2, r: 4 }} 
-                          activeDot={{ r: 6 }} 
-                          name="Unique Visitors" />
-                      </ComposedChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Side by Side: Traffic Sources & Share Distribution */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Globe className="h-5 w-5" />
-                      Traffic Sources
-                    </CardTitle>
-                    <CardDescription>Where your visitors come from</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {trafficSources.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                          <Pie
-                            data={trafficSources}
-                            dataKey="count"
-                            nameKey="referrer"
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={100}
-                            label={(entry) => `${entry.referrer} (${entry.percentage}%)`}
-                          >
-                            {trafficSources.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={['#60a5fa', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'][index % 8]} />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <p className="text-center text-muted-foreground py-12">No traffic data available</p>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Share2 className="h-5 w-5" />
-                      Share Platform Distribution
-                    </CardTitle>
-                    <CardDescription>Most popular sharing methods</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {sharePlatforms.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={300}>
-                        <ComposedChart data={sharePlatforms} layout="vertical">
-                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                          <XAxis type="number" className="text-muted-foreground" fontSize={12} />
-                          <YAxis dataKey="platform" type="category" className="text-muted-foreground" fontSize={12} width={80} />
-                          <Tooltip contentStyle={{
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '6px'
-                          }} />
-                          <Bar dataKey="count" fill="#10b981" name="Shares" />
-                        </ComposedChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <p className="text-center text-muted-foreground py-12">No share data available</p>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Hourly Traffic Heatmap */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Hourly Traffic Heatmap
-                  </CardTitle>
-                  <CardDescription>Peak traffic times throughout the day</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-12 gap-2">
-                    {hourlyData.map((hour) => {
-                      const maxViews = Math.max(...hourlyData.map(h => h.views));
-                      const intensity = maxViews > 0 ? hour.views / maxViews : 0;
-                      return (
-                        <div
-                          key={hour.hour}
-                          className="aspect-square rounded flex flex-col items-center justify-center text-xs font-medium transition-all hover:scale-110"
-                          style={{
-                            backgroundColor: `rgba(96, 165, 250, ${Math.max(0.1, intensity)})`,
-                            color: intensity > 0.5 ? 'white' : 'hsl(var(--foreground))'
-                          }}
-                          title={`${hour.hour}:00 - ${hour.views} views`}
-                        >
-                          <span>{hour.hour}</span>
-                          <span className="text-[10px]">{hour.views}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Top 10 Most Viewed Reports */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Top 10 Most Viewed Reports
-                  </CardTitle>
-                  <CardDescription>Reports with the highest engagement</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {topReports.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left py-2 px-4">Domain</th>
-                            <th className="text-right py-2 px-4">Total Views</th>
-                            <th className="text-right py-2 px-4">Unique Visitors</th>
-                            <th className="text-right py-2 px-4">Shares</th>
-                            <th className="text-right py-2 px-4">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {topReports.map((report, index) => (
-                            <tr key={report.report_id} className="border-b hover:bg-muted/50">
-                              <td className="py-2 px-4">
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline">{index + 1}</Badge>
-                                  <span className="font-medium">{report.domain}</span>
-                                </div>
-                              </td>
-                              <td className="text-right py-2 px-4">{report.total_views}</td>
-                              <td className="text-right py-2 px-4">{report.unique_visitors}</td>
-                              <td className="text-right py-2 px-4">{report.share_count}</td>
-                              <td className="text-right py-2 px-4">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => window.open(`/report/${report.slug}`, '_blank')}
-                                >
-                                  View
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-8">No report data available</p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Recent Views Log */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Eye className="h-5 w-5" />
-                    Recent Views Log
-                  </CardTitle>
-                  <CardDescription>Last 50 report views with details</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {recentViews.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left py-2 px-4">Domain</th>
-                            <th className="text-left py-2 px-4">Time</th>
-                            <th className="text-left py-2 px-4">Referrer</th>
-                            <th className="text-left py-2 px-4">Device</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {recentViews.map((view) => (
-                            <tr key={view.id} className="border-b hover:bg-muted/50 text-sm">
-                              <td className="py-2 px-4 font-medium">{view.domain}</td>
-                              <td className="py-2 px-4 text-muted-foreground">
-                                {new Date(view.viewed_at).toLocaleString()}
-                              </td>
-                              <td className="py-2 px-4 text-muted-foreground">
-                                {view.referrer || 'Direct'}
-                              </td>
-                              <td className="py-2 px-4 text-muted-foreground">
-                                {view.user_agent ? (
-                                  view.user_agent.includes('Mobile') ? 'Mobile' : 'Desktop'
-                                ) : 'Unknown'}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-8">No recent views available</p>
-                  )}
-                </CardContent>
-              </Card>
+            <TabsContent value="crm" className="space-y-6">
+              <CRMProspectsTable />
             </TabsContent>
 
             <TabsContent value="generate" className="space-y-6">
-              {isGeneratingReport ? <LoadingState calculationProgress={reportProgress} onReset={handleResetReport} /> : !generatedReport ? <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Generate Lead Report
-                    </CardTitle>
-                    <CardDescription>
-                      Run internal reports for prospecting and analysis. Reports are saved to the database with normal tracking.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <AdminLeadCalculatorForm onCalculate={handleGenerateReport} onReset={handleResetReport} isCalculating={isGeneratingReport} initialData={reportFormData} apiError={reportApiError} />
-                  </CardContent>
-                </Card> : <div>
-                  <LeadReport data={generatedReport} onReset={handleResetReport} onEditData={handleEditReport} />
-                </div>}
+              {!reportGenerated ? (
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Generate Lead Report</CardTitle>
+                      <CardDescription>
+                        Enter domain information to generate a comprehensive lead analysis report
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <AdminLeadCalculatorForm
+                        onSubmit={handleGenerateReport}
+                        loading={generatingReport}
+                        initialData={reportData}
+                        onEdit={reportGenerated ? handleEditReport : undefined}
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {generatedReportData && (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold">Generated Report Preview</h2>
+                        <div className="flex gap-2">
+                          <Button onClick={handleEditReport} variant="outline">
+                            Edit Report
+                          </Button>
+                          <Button onClick={handleResetReport}>
+                            Generate New Report
+                          </Button>
+                        </div>
+                      </div>
+                      <LeadReport data={generatedReportData} />
+                    </>
+                  )}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="leaderboard" className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Performance Rankings</h3>
-                <ToggleGroup type="single" value={leaderboardTimeFilter} onValueChange={value => value && setLeaderboardTimeFilter(value as 'daily' | 'weekly' | 'monthly' | 'all-time')} className="border rounded-lg">
-                  <ToggleGroupItem value="daily" className="text-xs">Daily</ToggleGroupItem>
-                  <ToggleGroupItem value="weekly" className="text-xs">Weekly</ToggleGroupItem>
-                  <ToggleGroupItem value="monthly" className="text-xs">Monthly</ToggleGroupItem>
-                  <ToggleGroupItem value="all-time" className="text-xs">All Time</ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-              <LeaderboardTab timeFilter={leaderboardTimeFilter} />
-            </TabsContent>
-
-            <TabsContent value="crm" className="space-y-6">
-              {/* CRM Section */}
-              <Card>
-                <Collapsible open={crmOpen} onOpenChange={setCrmOpen}>
-                  <CollapsibleTrigger asChild>
-                    <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-5 w-5 text-orange-600" />
-                          <CardTitle>CRM - High-Value Prospects</CardTitle>
-                          <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                            {stats.highValueProspects} prospects
-                          </Badge>
-                        </div>
-                        {crmOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                      </div>
-                      <CardDescription>
-                        Domains with monthly revenue loss - prime targets for outreach and conversion
-                      </CardDescription>
-                    </CardHeader>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <CardContent>
-                      <CRMProspectsTable reports={filteredReports} loading={loading} />
-                    </CardContent>
-                  </CollapsibleContent>
-                </Collapsible>
-              </Card>
+              <LeaderboardTab />
             </TabsContent>
 
             <TabsContent value="admin" className="space-y-6">
-              <AdminManagement />
+              <Tabs defaultValue="management" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 mb-6">
+                  <TabsTrigger value="management">
+                    <Shield className="h-4 w-4 mr-2" />
+                    Management
+                  </TabsTrigger>
+                  <TabsTrigger value="analytics">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Analytics
+                  </TabsTrigger>
+                  <TabsTrigger value="password">
+                    <Key className="h-4 w-4 mr-2" />
+                    Password
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="management">
+                  <AdminManagement />
+                </TabsContent>
+
+                <TabsContent value="analytics" className="space-y-6">
+                  {/* Traffic Stats Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                        <CardTitle className="text-sm font-medium">Total Page Views</CardTitle>
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-4xl font-bold">{trafficStats.totalViewsAllTime.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {trafficStats.totalViewsToday} today, {trafficStats.totalViewsYesterday} yesterday
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                        <CardTitle className="text-sm font-medium">Unique Visitors</CardTitle>
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-4xl font-bold">{trafficStats.uniqueVisitorsAllTime.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {trafficStats.uniqueVisitorsToday} today, {trafficStats.uniqueVisitorsYesterday} yesterday
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                        <CardTitle className="text-sm font-medium">Total Social Shares</CardTitle>
+                        <Share2 className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-4xl font-bold">{trafficStats.totalSharesAllTime.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {trafficStats.totalSharesToday} today, {trafficStats.totalSharesYesterday} yesterday
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                        <CardTitle className="text-sm font-medium">Avg Views per Report</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-4xl font-bold">{trafficStats.avgViewsPerReport.toFixed(1)}</div>
+                        <p className="text-xs text-muted-foreground mt-1">Engagement metric</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Daily Visitor Activity Chart */}
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle>Daily Visitor Activity</CardTitle>
+                        <div className="flex gap-2">
+                          <Button
+                            variant={viewsChartPeriod === 'week' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => {
+                              setViewsChartPeriod('week');
+                              fetchViewsChartData('week');
+                            }}
+                          >
+                            Week
+                          </Button>
+                          <Button
+                            variant={viewsChartPeriod === 'month' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => {
+                              setViewsChartPeriod('month');
+                              fetchViewsChartData('month');
+                            }}
+                          >
+                            Month
+                          </Button>
+                          <Button
+                            variant={viewsChartPeriod === 'year' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => {
+                              setViewsChartPeriod('year');
+                              fetchViewsChartData('year');
+                            }}
+                          >
+                            Year
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <ComposedChart data={viewsChartData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" />
+                          <YAxis yAxisId="left" />
+                          <YAxis yAxisId="right" orientation="right" />
+                          <Tooltip />
+                          <Legend />
+                          <Bar yAxisId="left" dataKey="views" fill="#60a5fa" name="Total Views" />
+                          <Line yAxisId="right" type="monotone" dataKey="uniqueVisitors" stroke="#f97316" name="Unique Visitors" strokeWidth={2} />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  {/* Traffic Sources and Share Distribution */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Traffic Sources</CardTitle>
+                        <CardDescription>Where visitors are coming from</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <PieChart>
+                            <Pie
+                              data={trafficSources}
+                              dataKey="count"
+                              nameKey="referrer"
+                              cx="50%"
+                              cy="50%"
+                              fill="#60a5fa"
+                              label={(entry) => `${entry.referrer}: ${entry.percentage}%`}
+                            >
+                              {trafficSources.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={['#60a5fa', '#f97316', '#10b981', '#8b5cf6', '#f59e0b'][index % 5]} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Share Platform Distribution</CardTitle>
+                        <CardDescription>Most popular sharing methods</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={sharePlatforms}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="platform" />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="count" fill="#60a5fa" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Hourly Traffic Heatmap */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Hourly Traffic Heatmap</CardTitle>
+                      <CardDescription>Peak traffic times throughout the day</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-12 gap-2">
+                        {hourlyData.map((hour) => {
+                          const maxViews = Math.max(...hourlyData.map(h => h.views));
+                          const intensity = maxViews > 0 ? hour.views / maxViews : 0;
+                          return (
+                            <div
+                              key={hour.hour}
+                              className="aspect-square rounded flex flex-col items-center justify-center text-xs font-medium"
+                              style={{
+                                backgroundColor: `rgba(96, 165, 250, ${intensity})`,
+                                color: intensity > 0.5 ? 'white' : 'black'
+                              }}
+                              title={`${hour.hour}:00 - ${hour.views} views`}
+                            >
+                              <div>{hour.hour}</div>
+                              <div className="text-[10px]">{hour.views}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Top Reports and Recent Views */}
+                  <div className="grid grid-cols-1 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Top 10 Most Viewed Reports</CardTitle>
+                        <CardDescription>Reports with highest engagement</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Domain</TableHead>
+                              <TableHead className="text-right">Total Views</TableHead>
+                              <TableHead className="text-right">Unique Visitors</TableHead>
+                              <TableHead className="text-right">Shares</TableHead>
+                              <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {topReports.map((report) => (
+                              <TableRow key={report.report_id}>
+                                <TableCell className="font-medium">{report.domain}</TableCell>
+                                <TableCell className="text-right">{report.total_views}</TableCell>
+                                <TableCell className="text-right">{report.unique_visitors}</TableCell>
+                                <TableCell className="text-right">{report.share_count}</TableCell>
+                                <TableCell className="text-right">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    asChild
+                                  >
+                                    <a href={`/report/${report.slug}`} target="_blank" rel="noopener noreferrer">
+                                      View
+                                    </a>
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Recent Views Log</CardTitle>
+                        <CardDescription>Last 50 report views</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Domain</TableHead>
+                              <TableHead>Viewed At</TableHead>
+                              <TableHead>Referrer</TableHead>
+                              <TableHead>Session ID</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {recentViews.map((view) => (
+                              <TableRow key={view.id}>
+                                <TableCell className="font-medium">{view.domain}</TableCell>
+                                <TableCell>{new Date(view.viewed_at).toLocaleString()}</TableCell>
+                                <TableCell>{view.referrer || 'Direct'}</TableCell>
+                                <TableCell className="font-mono text-xs">{view.session_id.slice(0, 8)}...</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="password">
+                  <PasswordManagement />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
 
-            <TabsContent value="password" className="space-y-6">
-              <PasswordManagement />
-            </TabsContent>
 
             <TabsContent value="reports" className="space-y-6">
               {/* Search */}
@@ -1611,6 +1590,7 @@ const AdminDashboard = () => {
           </Tabs>
         </div>
       </div>
-    </AdminAuthGuard>;
+    </AdminAuthGuard>
+  );
 };
 export default AdminDashboard;
