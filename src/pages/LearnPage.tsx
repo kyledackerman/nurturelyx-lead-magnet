@@ -455,13 +455,12 @@ const LearnPage = () => {
                 <div className="space-y-4">
                   <div>
                     <div className="font-mono text-sm bg-background p-3 rounded border border-border">
-                      Recoverable Leads = Anonymous Visitors × Identification Rate × Qualification Rate
+                      Recoverable Leads = Anonymous Visitors × Identification Rate
                     </div>
                   </div>
                   <div className="text-sm space-y-2 text-muted-foreground">
-                    <p><strong>Identification Rate (25-40%):</strong> Percentage of visitors that can be successfully identified</p>
-                    <p><strong>Qualification Rate (40-60%):</strong> Percentage of identified visitors that match your ICP</p>
-                    <p><strong>Example:</strong> 9,800 × 30% × 50% = 1,470 missed leads per month</p>
+                    <p><strong>Identification Rate (25-40%):</strong> Percentage of visitors that can be successfully identified with company information</p>
+                    <p><strong>Example:</strong> 9,800 anonymous visitors × 30% identification rate = 2,940 recoverable leads per month</p>
                   </div>
                 </div>
               </Card>
@@ -472,11 +471,11 @@ const LearnPage = () => {
                 <div className="space-y-4">
                   <div>
                     <div className="font-mono text-sm bg-background p-3 rounded border border-border">
-                      Lost Sales = Recoverable Leads × Close Rate
+                      Lost Sales = Recoverable Leads × Conversion Rate
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Using a conservative B2B close rate of 10-15%, those 1,470 missed leads represent 147-220 lost sales per month.
+                    Using a standard 1% conversion rate (1 sale per 100 leads), those 2,940 missed leads represent approximately 29 lost sales per month.
                   </p>
                 </div>
               </Card>
@@ -493,8 +492,8 @@ const LearnPage = () => {
                   <div className="mt-4 p-4 bg-background rounded-lg border border-primary/30">
                     <div className="text-center">
                       <div className="text-sm text-muted-foreground mb-1">Example Calculation:</div>
-                      <div className="text-xl font-semibold text-foreground">147 sales × $5,000 = <span className="text-primary">$735,000</span></div>
-                      <div className="text-sm text-muted-foreground mt-2">That's $735K in monthly lost revenue, or <strong>$8.8M annually</strong></div>
+                      <div className="text-xl font-semibold text-foreground">29 sales × $5,000 = <span className="text-primary">$145,000</span></div>
+                      <div className="text-sm text-muted-foreground mt-2">That's $145K in monthly lost revenue, or <strong>$1.74M annually</strong></div>
                     </div>
                   </div>
                 </div>
