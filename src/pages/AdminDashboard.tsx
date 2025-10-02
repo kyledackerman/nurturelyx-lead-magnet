@@ -99,6 +99,11 @@ interface SharePlatform {
   count: number;
 }
 
+interface MostVisitedPage {
+  domain: string;
+  viewCount: number;
+}
+
 interface HourlyData {
   hour: number;
   views: number;
@@ -170,7 +175,7 @@ const AdminDashboard = () => {
     totalSharesToday: 0,
     totalSharesYesterday: 0,
   });
-  const [trafficSources, setTrafficSources] = useState<TrafficSource[]>([]);
+  const [mostVisitedPages, setMostVisitedPages] = useState<MostVisitedPage[]>([]);
   const [sharePlatforms, setSharePlatforms] = useState<SharePlatform[]>([]);
   const [hourlyData, setHourlyData] = useState<HourlyData[]>([]);
   const [topReports, setTopReports] = useState<TopReport[]>([]);
@@ -188,7 +193,7 @@ const AdminDashboard = () => {
     fetchChartData(timePeriod);
     fetchViewsChartData(viewsTimePeriod);
     fetchTrafficStats();
-    fetchTrafficSources();
+      fetchMostVisitedPages();
     fetchShareDistribution();
     fetchHourlyHeatmap();
     fetchTopReports();
@@ -211,7 +216,7 @@ const AdminDashboard = () => {
           fetchChartData(timePeriod);
           fetchViewsChartData(viewsTimePeriod);
           fetchTrafficStats();
-          fetchTrafficSources();
+          fetchMostVisitedPages();
           fetchShareDistribution();
           fetchHourlyHeatmap();
           fetchTopReports();
@@ -228,7 +233,7 @@ const AdminDashboard = () => {
       fetchChartData(timePeriod);
       fetchViewsChartData(viewsTimePeriod);
       fetchTrafficStats();
-      fetchTrafficSources();
+      fetchMostVisitedPages();
       fetchShareDistribution();
       fetchHourlyHeatmap();
       fetchTopReports();
@@ -597,34 +602,40 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchTrafficSources = async () => {
+  const fetchMostVisitedPages = async () => {
     try {
-      const { data: allViews, error } = await supabase
+      const { data: reportViews, error } = await supabase
         .from('report_views')
-        .select('referrer');
+        .select('report_id');
       
       if (error) throw error;
 
-      const referrerCounts = new Map<string, number>();
-      const total = allViews?.length || 0;
+      const { data: reports, error: reportsError } = await supabase
+        .from('reports')
+        .select('id, domain');
+      
+      if (reportsError) throw reportsError;
 
-      allViews?.forEach(view => {
-        const referrer = view.referrer || 'Direct';
-        referrerCounts.set(referrer, (referrerCounts.get(referrer) || 0) + 1);
+      // Count views per domain
+      const domainCounts = new Map<string, number>();
+      
+      reportViews?.forEach(view => {
+        const report = reports?.find(r => r.id === view.report_id);
+        if (report) {
+          const domain = report.domain;
+          domainCounts.set(domain, (domainCounts.get(domain) || 0) + 1);
+        }
       });
 
-      const sources: TrafficSource[] = Array.from(referrerCounts.entries())
-        .map(([referrer, count]) => ({
-          referrer,
-          count,
-          percentage: Math.round((count / total) * 100)
-        }))
-        .sort((a, b) => b.count - a.count)
+      const pages: MostVisitedPage[] = Array.from(domainCounts.entries())
+        .map(([domain, viewCount]) => ({ domain, viewCount }))
+        .sort((a, b) => b.viewCount - a.viewCount)
         .slice(0, 10);
 
-      setTrafficSources(sources);
+      console.log('Most visited pages data:', pages);
+      setMostVisitedPages(pages);
     } catch (error) {
-      console.error('Error fetching traffic sources:', error);
+      console.error('Error fetching most visited pages:', error);
     }
   };
 
@@ -1466,29 +1477,42 @@ const AdminDashboard = () => {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <Card>
                       <CardHeader>
-                        <CardTitle>Traffic Sources</CardTitle>
-                        <CardDescription>Where visitors are coming from</CardDescription>
+                        <CardTitle>Most Visited Pages</CardTitle>
+                        <CardDescription>Top 10 domains by view count</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <PieChart>
-                            <Pie
-                              data={trafficSources}
-                              dataKey="count"
-                              nameKey="referrer"
-                              cx="50%"
-                              cy="50%"
-                              fill="#60a5fa"
-                              label={(entry) => `${entry.referrer}: ${entry.percentage}%`}
-                            >
-                              {trafficSources.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={['#60a5fa', '#f97316', '#10b981', '#8b5cf6', '#f59e0b'][index % 5]} />
-                              ))}
-                            </Pie>
-                            <Tooltip />
-                            <Legend />
-                          </PieChart>
-                        </ResponsiveContainer>
+                        {mostVisitedPages.length === 0 ? (
+                          <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                            <p>No page view data available yet.</p>
+                          </div>
+                        ) : (
+                          <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={mostVisitedPages} layout="vertical">
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                              <XAxis 
+                                type="number"
+                                tick={{ fill: 'hsl(var(--foreground))' }}
+                                stroke="hsl(var(--border))"
+                              />
+                              <YAxis 
+                                type="category"
+                                dataKey="domain"
+                                width={150}
+                                tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+                                stroke="hsl(var(--border))"
+                              />
+                              <Tooltip 
+                                contentStyle={{
+                                  backgroundColor: 'hsl(var(--card))',
+                                  border: '1px solid hsl(var(--border))',
+                                  borderRadius: '6px',
+                                  color: 'hsl(var(--foreground))'
+                                }}
+                              />
+                              <Bar dataKey="viewCount" fill="#10b981" name="Views" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        )}
                       </CardContent>
                     </Card>
 
