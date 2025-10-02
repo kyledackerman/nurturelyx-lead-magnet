@@ -746,13 +746,6 @@ const LearnPage = () => {
                 ))}
               </div>
 
-              <Card className="p-6 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
-                <h4 className="font-semibold mb-3 text-foreground">Real-Time Data Flow</h4>
-                <p className="text-foreground text-sm">
-                  Identified visitor data flows into your CRM within minutes of their visit. Set up automated workflows to 
-                  trigger sales alerts, add to nurture sequences, or create retargeting audiences—all without manual intervention.
-                </p>
-              </Card>
             </div>
           </section>
 
