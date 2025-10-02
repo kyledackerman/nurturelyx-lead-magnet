@@ -825,7 +825,7 @@ const LearnPage = () => {
                   </div>
                   <div className="flex justify-between pt-2 mt-3 border-t-2 border-primary">
                     <span className="font-bold text-base">ROI:</span>
-                    <span className="text-2xl font-bold text-green-600 dark:text-green-400">4,666%</span>
+                    <span className="text-2xl font-bold text-green-600 dark:text-green-400">4,667%</span>
                   </div>
                 </div>
               </Card>
