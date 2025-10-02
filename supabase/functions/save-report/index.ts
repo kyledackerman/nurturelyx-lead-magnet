@@ -128,6 +128,56 @@ serve(async (req) => {
       );
     }
 
+    // Auto-assign prospect to admin who generated the report
+    if (userId) {
+      try {
+        // Check if user is an admin
+        const { data: isAdmin, error: adminCheckError } = await supabase.rpc('is_admin', { user_uuid: userId });
+        
+        if (adminCheckError) {
+          console.error('Error checking admin status:', adminCheckError);
+        } else if (isAdmin) {
+          // Check if report has revenue potential
+          const monthlyRevenue = reportData.monthlyRevenueLost || 0;
+          const yearlyRevenue = reportData.yearlyRevenueLost || 0;
+          
+          if (monthlyRevenue > 0 || yearlyRevenue > 0) {
+            // Calculate priority based on monthly revenue
+            let priority = 'cold';
+            if (monthlyRevenue >= 10000) {
+              priority = 'hot';
+            } else if (monthlyRevenue >= 5000) {
+              priority = 'warm';
+            }
+            
+            // Create prospect activity with auto-assignment
+            const { error: activityError } = await supabase
+              .from('prospect_activities')
+              .insert({
+                report_id: data.id,
+                activity_type: 'assignment',
+                assigned_to: userId,
+                assigned_by: userId,
+                assigned_at: new Date().toISOString(),
+                status: 'new',
+                priority: priority,
+                notes: `Auto-assigned: Report generated with $${monthlyRevenue.toLocaleString()}/month revenue opportunity`
+              });
+            
+            if (activityError) {
+              console.error('Error creating prospect activity:', activityError);
+              // Non-blocking: continue even if assignment fails
+            } else {
+              console.log(`Auto-assigned prospect for ${reportData.domain} to admin ${userId} with ${priority} priority`);
+            }
+          }
+        }
+      } catch (assignmentError) {
+        console.error('Error in auto-assignment:', assignmentError);
+        // Non-blocking: continue even if assignment fails
+      }
+    }
+
     const publicUrl = `${req.headers.get('origin') || 'https://apjlauuidcbvuplfcshg.supabase.co'}/report/${data.slug}`;
 
     return new Response(
