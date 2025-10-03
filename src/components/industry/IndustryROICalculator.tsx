@@ -69,7 +69,7 @@ export const IndustryROICalculator = ({
               ${(additionalRevenue * 12).toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              At {avgConversionRate}% conversion rate
+              At 1% conversion rate (industry example)
             </div>
           </div>
         </div>
@@ -78,7 +78,7 @@ export const IndustryROICalculator = ({
           <div className="text-sm text-muted-foreground">
             <strong>Industry Averages:</strong>
             <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>{industryName} conversion rate: {avgConversionRate}%</li>
+              <li>Standard conversion rate: 1% (example)</li>
               <li>Average transaction value: ${avgTransactionValue.toLocaleString()}</li>
               <li>Visitor identification rate: 35%</li>
             </ul>

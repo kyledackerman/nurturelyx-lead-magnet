@@ -25,7 +25,7 @@ export const industryData: Record<string, IndustryData> = {
       'Peak season traffic = wasted ad spend without follow-up',
       'Emergency service calls slip through the cracks'
     ],
-    avgConversionRate: 3.2,
+    avgConversionRate: 1,
     avgTransactionValue: 8500,
     benefits: [
       'Identify companies needing HVAC maintenance before they leave your site',
@@ -67,7 +67,7 @@ export const industryData: Record<string, IndustryData> = {
       'Expensive legal marketing with unknown ROI',
       'Competitors follow up faster with warm leads'
     ],
-    avgConversionRate: 2.8,
+    avgConversionRate: 1,
     avgTransactionValue: 25000,
     benefits: [
       'Identify companies researching legal services',
@@ -109,7 +109,7 @@ export const industryData: Record<string, IndustryData> = {
       'Open house traffic without contact information',
       'Lost deals due to slow follow-up'
     ],
-    avgConversionRate: 4.1,
+    avgConversionRate: 1,
     avgTransactionValue: 15000,
     benefits: [
       'Identify businesses relocating or expanding',
@@ -151,7 +151,7 @@ export const industryData: Record<string, IndustryData> = {
       'Seasonal traffic spikes with poor conversion',
       'Lost revenue from comparison shoppers'
     ],
-    avgConversionRate: 3.5,
+    avgConversionRate: 1,
     avgTransactionValue: 6500,
     benefits: [
       'Identify property management companies needing contractors',
@@ -193,7 +193,7 @@ export const industryData: Record<string, IndustryData> = {
       'Service department traffic without appointments',
       'Expensive automotive ads with unknown visitor identity'
     ],
-    avgConversionRate: 3.8,
+    avgConversionRate: 1,
     avgTransactionValue: 45000,
     benefits: [
       'Identify fleet managers researching bulk purchases',
@@ -235,7 +235,7 @@ export const industryData: Record<string, IndustryData> = {
       'Healthcare facility purchasing decisions without contact',
       'Lost opportunities in medical supply and service sales'
     ],
-    avgConversionRate: 2.5,
+    avgConversionRate: 1,
     avgTransactionValue: 75000,
     benefits: [
       'Identify hospitals and clinics researching medical equipment',
