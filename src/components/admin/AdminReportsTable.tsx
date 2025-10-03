@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Eye, Copy, ChevronUp, ChevronDown, AlertTriangle, TrendingUp } from "lucide-react";
+import { ExternalLink, Eye, Copy, ChevronUp, ChevronDown, AlertTriangle, TrendingUp, Download } from "lucide-react";
 import { toast } from "sonner";
 import { EditTransactionValueDialog } from "@/components/dialog/EditTransactionValueDialog";
 
@@ -69,6 +69,23 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
   const formatNumber = (value?: number) => {
     if (!value) return 'N/A';
     return new Intl.NumberFormat('en-US').format(value);
+  };
+
+  const exportReportUrls = () => {
+    const baseUrl = 'https://x1.nurturely.io/report';
+    const urls = reports.map(report => `${baseUrl}/${report.slug}`).join('\n');
+    
+    const blob = new Blob([urls], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `report-urls-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    toast.success(`Exported ${reports.length} report URLs`);
   };
 
   // Color coding functions for key metrics
@@ -217,7 +234,14 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button onClick={exportReportUrls} variant="outline" size="sm">
+          <Download className="h-4 w-4 mr-2" />
+          Export URLs
+        </Button>
+      </div>
+      <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -348,6 +372,7 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
           })}
         </TableBody>
       </Table>
+    </div>
     </div>
   );
 };
