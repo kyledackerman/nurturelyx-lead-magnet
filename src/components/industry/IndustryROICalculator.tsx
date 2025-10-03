@@ -63,13 +63,13 @@ export const IndustryROICalculator = ({
           <div className="p-4 bg-background rounded-lg border">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
               <DollarSign className="h-4 w-4" />
-              Additional <strong>Annual</strong> Revenue
+              Additional <strong>Monthly</strong> Revenue
             </div>
             <div className="text-3xl font-bold text-primary">
-              ${(additionalRevenue * 12).toLocaleString()}
+              ${additionalRevenue.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              At {avgConversionRate}% lead-to-sale conversion rate
+              <strong>${(additionalRevenue * 12).toLocaleString()}</strong> annually
             </div>
           </div>
         </div>
