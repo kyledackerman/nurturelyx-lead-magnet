@@ -54,6 +54,33 @@ const Header = () => {
         </Link>
         
         <div className="flex items-center gap-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-foreground">
+                Industries
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem asChild>
+                <Link to="/industries/hvac">HVAC</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/industries/legal">Legal Services</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/industries/real-estate">Real Estate</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/industries/home-services">Home Services</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/industries/automotive">Automotive</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/industries/healthcare">Healthcare</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Link to="/learn">
             <Button variant="ghost" size="sm" className="text-foreground">
               Learn More
