@@ -19,11 +19,13 @@ export const IndustryROICalculator = ({
   avgTransactionValue 
 }: IndustryROICalculatorProps) => {
   const [monthlyVisitors, setMonthlyVisitors] = useState<string>("1000");
+  const [transactionValue, setTransactionValue] = useState<string>(avgTransactionValue.toString());
   
   const visitors = parseInt(monthlyVisitors) || 0;
+  const avgTxValue = parseInt(transactionValue) || avgTransactionValue;
   const identifiedVisitors = Math.round(visitors * 0.35); // 35% identification rate (these are leads)
   const newSales = Math.round(identifiedVisitors * (avgConversionRate / 100));
-  const additionalRevenue = newSales * avgTransactionValue;
+  const additionalRevenue = newSales * avgTxValue;
 
   return (
     <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
@@ -44,6 +46,26 @@ export const IndustryROICalculator = ({
             placeholder="1000"
             className="text-lg"
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="transaction-value">Average Transaction Value</Label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <DollarSign className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <Input
+              id="transaction-value"
+              type="number"
+              value={transactionValue}
+              onChange={(e) => setTransactionValue(e.target.value)}
+              placeholder={avgTransactionValue.toString()}
+              className="text-lg pl-10"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Industry average is ${avgTransactionValue.toLocaleString()}. Adjust based on your business.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -79,7 +101,7 @@ export const IndustryROICalculator = ({
             <strong>Industry Averages:</strong>
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>Lead-to-sale conversion rate: {avgConversionRate}%</li>
-              <li>Average transaction value: ${avgTransactionValue.toLocaleString()}</li>
+              <li>Average transaction value: ${avgTransactionValue.toLocaleString()} (industry default)</li>
               <li>Visitor identification rate: 35%</li>
             </ul>
           </div>
