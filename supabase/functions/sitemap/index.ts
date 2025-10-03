@@ -35,11 +35,7 @@ serve(async (req) => {
     const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
-    <loc>${baseUrl}/sitemap-static.xml</loc>
-    <lastmod>${now}</lastmod>
-  </sitemap>
-  <sitemap>
-    <loc>https://x1.nurturely.io/sitemap-reports.xml</loc>
+    <loc>https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/sitemap-reports</loc>
     <lastmod>${now}</lastmod>
   </sitemap>
 </sitemapindex>`;
