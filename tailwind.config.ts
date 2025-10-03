@@ -72,6 +72,77 @@ export default {
 					'purple-dark': '#6E59A5'
 				}
 			},
+			typography: {
+				DEFAULT: {
+					css: {
+						'--tw-prose-body': 'hsl(0 0% 90%)',
+						'--tw-prose-headings': '#fff',
+						'--tw-prose-lead': 'hsl(0 0% 85%)',
+						'--tw-prose-links': '#81e6d9',
+						'--tw-prose-bold': '#fff',
+						'--tw-prose-counters': '#81e6d9',
+						'--tw-prose-bullets': 'hsl(0 0% 70%)',
+						'--tw-prose-hr': 'hsl(0 0% 30%)',
+						'--tw-prose-quotes': 'hsl(0 0% 85%)',
+						'--tw-prose-quote-borders': '#81e6d9',
+						'--tw-prose-captions': 'hsl(0 0% 70%)',
+						'--tw-prose-code': '#fff',
+						'--tw-prose-pre-code': '#fff',
+						'--tw-prose-pre-bg': 'hsl(0 0% 15%)',
+						'--tw-prose-th-borders': 'hsl(0 0% 40%)',
+						'--tw-prose-td-borders': 'hsl(0 0% 30%)',
+						color: 'hsl(0 0% 90%)',
+						maxWidth: 'none',
+						h1: {
+							color: '#81e6d9',
+							fontWeight: '700',
+						},
+						h2: {
+							color: '#fff',
+							fontWeight: '600',
+						},
+						h3: {
+							color: '#fff',
+							fontWeight: '600',
+						},
+						h4: {
+							color: '#a7f0e9',
+							fontWeight: '600',
+						},
+						a: {
+							color: '#81e6d9',
+							textDecoration: 'none',
+							'&:hover': {
+								color: '#a7f0e9',
+							},
+						},
+						strong: {
+							color: '#fff',
+						},
+						code: {
+							color: '#81e6d9',
+							backgroundColor: 'hsl(0 0% 15%)',
+							padding: '0.25rem 0.5rem',
+							borderRadius: '0.25rem',
+							fontWeight: '500',
+						},
+						'code::before': {
+							content: '""',
+						},
+						'code::after': {
+							content: '""',
+						},
+						pre: {
+							backgroundColor: 'hsl(0 0% 15%)',
+							color: '#fff',
+						},
+						blockquote: {
+							borderLeftColor: '#81e6d9',
+							color: 'hsl(0 0% 85%)',
+						},
+					},
+				},
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
