@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Zap, Crown, ArrowRight } from "lucide-react";
+import { CheckCircle2, Zap, Crown, Mail } from "lucide-react";
 
 const PricingComparison = () => {
   return (
@@ -54,7 +54,6 @@ const PricingComparison = () => {
               rel="noopener noreferrer"
             >
               Get Started Now
-              <ArrowRight className="w-4 h-4 ml-2" />
             </a>
           </Button>
           
@@ -105,13 +104,9 @@ const PricingComparison = () => {
             size="lg" 
             className="w-full border-2 border-accent text-accent hover:bg-accent/10"
           >
-            <a 
-              href="https://calendly.com/nurturely" 
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
-              Schedule a Demo
-              <ArrowRight className="w-4 h-4 ml-2" />
+            <a href="mailto:hi@nurturely.io?subject=NurturelyX%20question">
+              Send us an email
+              <Mail className="w-4 h-4 ml-2" />
             </a>
           </Button>
           

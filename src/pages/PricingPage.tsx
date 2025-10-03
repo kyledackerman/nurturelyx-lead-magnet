@@ -159,7 +159,7 @@ const PricingPage = () => {
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">
                     Yes! For businesses identifying 1,000+ leads per month, we offer custom enterprise pricing 
-                    with volume discounts, dedicated support, and white-glove onboarding. Schedule a demo to discuss.
+                    with volume discounts, dedicated support, and white-glove onboarding. Email us to discuss.
                   </AccordionContent>
                 </AccordionItem>
 
