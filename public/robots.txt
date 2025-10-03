@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/sitemap
+Sitemap: https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/sitemap-reports
