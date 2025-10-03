@@ -7,7 +7,9 @@ import {
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
+  Cell,
 } from "recharts";
+import TrafficStatsCards from "./TrafficStatsCards";
 
 interface DomainOverviewTabProps {
   domain: string;
@@ -24,24 +26,43 @@ const DomainOverviewTab = ({
   organicKeywords,
   paidTraffic,
 }: DomainOverviewTabProps) => {
-  // Prepare chart data
+  const totalTraffic = organicTraffic + paidTraffic;
+  
+  // Prepare enhanced chart data with 3 bars
   const trafficData = [
     {
-      name: "Organic Traffic",
+      name: "Organic",
       value: organicTraffic,
-      fill: "#81e6d9", // teal color
+      fill: "#10b981", // green
+      label: `${organicTraffic.toLocaleString()}`,
     },
     {
-      name: "Paid Traffic",
+      name: "Paid",
       value: paidTraffic,
-      fill: "#9b87f5", // purple-light color
+      fill: "#9b87f5", // purple
+      label: `${paidTraffic.toLocaleString()}`,
+    },
+    {
+      name: "Total",
+      value: totalTraffic,
+      fill: "#81e6d9", // teal - emphasized
+      label: `${totalTraffic.toLocaleString()}`,
     },
   ];
 
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+    <div>
+      {/* Traffic Stats Cards - Hero Section */}
+      <TrafficStatsCards
+        totalTraffic={totalTraffic}
+        organicTraffic={organicTraffic}
+        paidTraffic={paidTraffic}
+      />
+
+      {/* Domain Details Section */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div>
             <h3 className="text-lg font-medium mb-4">Domain Statistics</h3>
             <dl className="space-y-4">
@@ -77,7 +98,7 @@ const DomainOverviewTab = ({
           </div>
 
           <div>
-            <h3 className="text-lg font-medium mb-4 text-white">
+            <h3 className="text-lg font-medium mb-4 text-foreground">
               Traffic Breakdown
             </h3>
             <div className="h-80">
@@ -86,36 +107,46 @@ const DomainOverviewTab = ({
                   data={trafficData}
                   margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis
                     dataKey="name"
-                    tick={{ fill: "#ffffff", fontSize: 12 }}
-                    tickLine={{ stroke: "#333" }}
-                    axisLine={{ stroke: "#333" }}
+                    tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
+                    tickLine={{ stroke: "hsl(var(--border))" }}
+                    axisLine={{ stroke: "hsl(var(--border))" }}
                   />
                   <YAxis
-                    tick={{ fill: "#ffffff", fontSize: 12 }}
-                    tickLine={{ stroke: "#333" }}
-                    axisLine={{ stroke: "#333" }}
+                    tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
+                    tickLine={{ stroke: "hsl(var(--border))" }}
+                    axisLine={{ stroke: "hsl(var(--border))" }}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#222",
-                      borderColor: "#444",
-                      color: "#ffffff",
+                      backgroundColor: "hsl(var(--card))",
+                      borderColor: "hsl(var(--border))",
+                      color: "hsl(var(--foreground))",
                     }}
-                    labelStyle={{ color: "#ffffff", fontWeight: "bold" }}
+                    labelStyle={{ color: "hsl(var(--foreground))", fontWeight: "bold" }}
+                    formatter={(value: number) => [value.toLocaleString(), "Visitors"]}
                   />
-                  <Bar dataKey="value" />
+                  <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                    {trafficData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.fill}
+                        fillOpacity={entry.name === "Total" ? 1 : 0.85}
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <p className="text-sm text-white mt-4">
-              Your traffic sources show{" "}
+            <p className="text-sm text-muted-foreground mt-4">
+              Total monthly traffic: <span className="font-bold text-primary">{totalTraffic.toLocaleString()}</span> visitors.
+              {" "}Your traffic sources show{" "}
               {organicTraffic > paidTraffic
                 ? "more organic than paid traffic"
                 : "more paid than organic traffic"}
-              . This could indicate{" "}
+              {" "}({Math.round((organicTraffic / totalTraffic) * 100)}% organic). This could indicate{" "}
               {organicTraffic > paidTraffic
                 ? "strong SEO performance"
                 : "a reliance on paid acquisition"}
@@ -123,8 +154,9 @@ const DomainOverviewTab = ({
             </p>
           </div>
         </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
