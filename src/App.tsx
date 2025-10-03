@@ -24,6 +24,8 @@ import HealthcareIndustryPage from "./pages/industries/HealthcareIndustryPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
+import IndustryReportsPage from "./pages/IndustryReportsPage";
+import TopCompaniesPage from "./pages/TopCompaniesPage";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +55,8 @@ const App = () => (
             <Route path="/industries/healthcare" element={<HealthcareIndustryPage />} />
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/blog/:slug" element={<BlogPostPage />} />
+            <Route path="/reports/:industry" element={<IndustryReportsPage />} />
+            <Route path="/top-companies-losing-revenue" element={<TopCompaniesPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

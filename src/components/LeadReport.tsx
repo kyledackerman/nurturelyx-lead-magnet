@@ -29,6 +29,8 @@ import TrustSignals from "./report/TrustSignals";
 import ExitIntentPopup from "./report/ExitIntentPopup";
 import CaseStudyCard from "./report/CaseStudyCard";
 import { RelatedReports } from "./report/RelatedReports";
+import { Breadcrumb } from "./report/Breadcrumb";
+import { BreadcrumbSchema } from "./seo/BreadcrumbSchema";
 
 interface LeadReportProps {
   data: ReportData;
@@ -41,6 +43,26 @@ interface LeadReportProps {
 const LeadReport = ({ data, onReset, onEditData, isPublicView = false, onUpdate }: LeadReportProps) => {
   // Generate a consistent reportId if one doesn't exist
   const reportId = data.reportId || `report_${Date.now()}_${data.domain.replace(/\./g, '_')}`;
+  
+  const industryName = data.industry ? data.industry.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
+  const companyName = data.extracted_company_name || data.domain;
+  
+  const breadcrumbItems = [];
+  if (data.industry && industryName) {
+    breadcrumbItems.push({
+      label: `${industryName} Industry`,
+      href: `/industries/${data.industry}`
+    });
+  }
+  breadcrumbItems.push({
+    label: `${companyName} Report`,
+    href: `/report/${data.slug || ''}`
+  });
+  
+  const breadcrumbSchemaItems = [
+    { name: 'Home', url: '/' },
+    ...breadcrumbItems.map(item => ({ name: item.label, url: item.href }))
+  ];
   
   useEffect(() => {
     // Scroll to stats overview immediately after report renders
@@ -57,6 +79,9 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false, onUpdate 
       className="w-full max-w-6xl mx-auto space-y-8"
       id="leadReport"
     >
+      <BreadcrumbSchema items={breadcrumbSchemaItems} />
+      <Breadcrumb items={breadcrumbItems} />
+      
       <div className="flex items-center gap-2 flex-wrap">
         <ReportHeader onReset={onReset} onEditData={onEditData} />
         

@@ -15,6 +15,7 @@ import LoadingState from "@/components/calculator/LoadingState";
 import HeroWithForm from "@/components/calculator/HeroWithForm";
 import IdentityResolutionExplainer from "@/components/calculator/IdentityResolutionExplainer";
 import CallToActionSection from "@/components/CallToActionSection";
+import { OrganizationSchema } from "@/components/seo/OrganizationSchema";
 
 const Index = () => {
   const { user } = useAuth();
@@ -202,6 +203,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <OrganizationSchema />
       <Header />
 
       <main className="flex-1 bg-background ">

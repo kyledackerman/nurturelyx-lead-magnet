@@ -19,6 +19,7 @@ export interface ReportData extends FormData, ApiData {
   slug?: string; // Add slug for public sharing URLs
   industry?: string; // Industry categorization
   totalMissedLeads?: number; // For compatibility with report grid
+  extracted_company_name?: string; // Extracted company name
 }
 
 export interface NewApiDataT {

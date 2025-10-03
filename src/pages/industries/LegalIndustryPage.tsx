@@ -5,6 +5,7 @@ import { IndustryFAQ } from "@/components/industry/IndustryFAQ";
 import CallToActionSection from "@/components/CallToActionSection";
 import { getIndustryData } from "@/data/industryData";
 import { AlertCircle } from "lucide-react";
+import { FAQSchema } from "@/components/seo/FAQSchema";
 
 export default function LegalIndustryPage() {
   const industry = getIndustryData('legal');
@@ -94,6 +95,7 @@ export default function LegalIndustryPage() {
       </section>
 
       <IndustryFAQ faqs={industry.faqs} />
+      <FAQSchema questions={industry.faqs} />
 
       <CallToActionSection />
     </div>

@@ -4,6 +4,7 @@ import { IndustryROICalculator } from "@/components/industry/IndustryROICalculat
 import { IndustryFAQ } from "@/components/industry/IndustryFAQ";
 import CallToActionSection from "@/components/CallToActionSection";
 import { getIndustryData } from "@/data/industryData";
+import { FAQSchema } from "@/components/seo/FAQSchema";
 import { AlertCircle } from "lucide-react";
 
 export default function HVACIndustryPage() {
@@ -94,6 +95,7 @@ export default function HVACIndustryPage() {
       </section>
 
       <IndustryFAQ faqs={industry.faqs} />
+      <FAQSchema questions={industry.faqs} />
 
       <CallToActionSection />
     </div>

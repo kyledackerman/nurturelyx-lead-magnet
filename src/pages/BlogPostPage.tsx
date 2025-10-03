@@ -2,7 +2,8 @@ import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { getBlogPost } from "@/data/blogPosts";
+import { getBlogPost, BlogPost } from "@/data/blogPosts";
+import { ArticleSchema } from "@/components/seo/ArticleSchema";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -34,6 +35,14 @@ export default function BlogPostPage() {
         <title>{post.title} | NurturelyX Blog</title>
         <meta name="description" content={post.metaDescription} />
       </Helmet>
+      
+      <ArticleSchema
+        title={post.title}
+        description={post.metaDescription}
+        publishedAt={post.publishedAt}
+        author={post.author}
+        url={`https://x1.nurturely.io/blog/${post.slug}`}
+      />
 
       <Header />
       <main className="min-h-screen py-16">
