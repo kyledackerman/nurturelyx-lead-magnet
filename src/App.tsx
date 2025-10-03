@@ -21,6 +21,9 @@ import RealEstateIndustryPage from "./pages/industries/RealEstateIndustryPage";
 import HomeServicesIndustryPage from "./pages/industries/HomeServicesIndustryPage";
 import AutomotiveIndustryPage from "./pages/industries/AutomotiveIndustryPage";
 import HealthcareIndustryPage from "./pages/industries/HealthcareIndustryPage";
+import HowItWorksPage from "./pages/HowItWorksPage";
+import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
 
 const queryClient = new QueryClient();
 
@@ -41,12 +44,15 @@ const App = () => (
             <Route path="/dashboard" element={<UserDashboard />} />
             <Route path="/report/:slug" element={<PublicReportPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/industries/hvac" element={<HVACIndustryPage />} />
             <Route path="/industries/legal" element={<LegalIndustryPage />} />
             <Route path="/industries/real-estate" element={<RealEstateIndustryPage />} />
             <Route path="/industries/home-services" element={<HomeServicesIndustryPage />} />
             <Route path="/industries/automotive" element={<AutomotiveIndustryPage />} />
             <Route path="/industries/healthcare" element={<HealthcareIndustryPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

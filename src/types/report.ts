@@ -17,6 +17,8 @@ export interface ReportData extends FormData, ApiData {
   monthlyRevenueData: MonthlyRevenueData[];
   reportId?: string; // Add reportId for public sharing
   slug?: string; // Add slug for public sharing URLs
+  industry?: string; // Industry categorization
+  totalMissedLeads?: number; // For compatibility with report grid
 }
 
 export interface NewApiDataT {

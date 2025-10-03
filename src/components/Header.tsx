@@ -81,6 +81,11 @@ const Header = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Link to="/how-it-works">
+            <Button variant="ghost" size="sm" className="text-foreground">
+              How It Works
+            </Button>
+          </Link>
           <Link to="/learn">
             <Button variant="ghost" size="sm" className="text-foreground">
               Learn More

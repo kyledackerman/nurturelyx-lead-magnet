@@ -28,6 +28,7 @@ import FloatingCTABar from "./report/FloatingCTABar";
 import TrustSignals from "./report/TrustSignals";
 import ExitIntentPopup from "./report/ExitIntentPopup";
 import CaseStudyCard from "./report/CaseStudyCard";
+import { RelatedReports } from "./report/RelatedReports";
 
 interface LeadReportProps {
   data: ReportData;
@@ -138,6 +139,13 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false, onUpdate 
           </CardContent>
         </Card>
       )}
+
+      <RelatedReports
+        currentReportId={reportId}
+        industry={data.industry || null}
+        trafficVolume={data.organicTraffic}
+        revenueLost={data.yearlyRevenueLost}
+      />
 
       <FloatingCTABar />
       <ExitIntentPopup yearlyRevenueLost={data.yearlyRevenueLost} />
