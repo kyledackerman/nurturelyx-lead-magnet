@@ -9,7 +9,6 @@ import {
   Tooltip,
   Cell,
 } from "recharts";
-import TrafficStatsCards from "./TrafficStatsCards";
 
 interface DomainOverviewTabProps {
   domain: string;
@@ -28,69 +27,56 @@ const DomainOverviewTab = ({
 }: DomainOverviewTabProps) => {
   const totalTraffic = organicTraffic + paidTraffic;
   
-  // Prepare enhanced chart data with 3 bars
   const trafficData = [
     {
       name: "Organic",
       value: organicTraffic,
       fill: "#10b981", // green
-      label: `${organicTraffic.toLocaleString()}`,
     },
     {
       name: "Paid",
       value: paidTraffic,
       fill: "#9b87f5", // purple
-      label: `${paidTraffic.toLocaleString()}`,
-    },
-    {
-      name: "Total",
-      value: totalTraffic,
-      fill: "#81e6d9", // teal - emphasized
-      label: `${totalTraffic.toLocaleString()}`,
     },
   ];
 
   return (
     <div>
-      {/* Traffic Stats Cards - Hero Section */}
-      <TrafficStatsCards
-        totalTraffic={totalTraffic}
-        organicTraffic={organicTraffic}
-        paidTraffic={paidTraffic}
-      />
-
-      {/* Domain Details Section */}
       <Card>
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div>
             <h3 className="text-lg font-medium mb-4">Domain Statistics</h3>
             <dl className="space-y-4">
-              <div className="flex flex-row justify-between py-2 border-b border-gray-800">
-                <dt className="font-medium text-white">Domain</dt>
-                <dd className="text-right text-white">{domain}</dd>
+              <div className="flex flex-row justify-between py-3 border-b-2 border-primary/30 bg-primary/5">
+                <dt className="font-bold text-primary text-base">Total Monthly Traffic</dt>
+                <dd className="text-right font-bold text-primary text-lg">{totalTraffic.toLocaleString()}</dd>
               </div>
-              <div className="flex flex-row justify-between py-2 border-b border-gray-800">
-                <dt className="font-medium text-white">Domain Authority</dt>
-                <dd className="text-right text-white">{domainPower}/100</dd>
+              <div className="flex flex-row justify-between py-2 border-b border-border">
+                <dt className="font-medium text-foreground">Domain</dt>
+                <dd className="text-right text-foreground">{domain}</dd>
               </div>
-              <div className="flex flex-row justify-between py-2 border-b border-gray-800">
-                <dt className="font-medium text-white">Organic Keywords</dt>
-                <dd className="text-right text-white">
+              <div className="flex flex-row justify-between py-2 border-b border-border">
+                <dt className="font-medium text-foreground">Domain Authority</dt>
+                <dd className="text-right text-foreground">{domainPower}/100</dd>
+              </div>
+              <div className="flex flex-row justify-between py-2 border-b border-border">
+                <dt className="font-medium text-foreground">Organic Keywords</dt>
+                <dd className="text-right text-foreground">
                   {organicKeywords.toLocaleString()}
                 </dd>
               </div>
-              <div className="flex flex-row justify-between py-2 border-b border-gray-800">
-                <dt className="font-medium text-white">
+              <div className="flex flex-row justify-between py-2 border-b border-border">
+                <dt className="font-medium text-foreground">
                   Monthly Organic Traffic
                 </dt>
-                <dd className="text-right text-white">
+                <dd className="text-right text-foreground">
                   {organicTraffic.toLocaleString()}
                 </dd>
               </div>
-              <div className="flex flex-row justify-between py-2 border-b border-gray-800">
-                <dt className="font-medium text-white">Monthly Paid Traffic</dt>
-                <dd className="text-right text-white">
+              <div className="flex flex-row justify-between py-2 border-b border-border">
+                <dt className="font-medium text-foreground">Monthly Paid Traffic</dt>
+                <dd className="text-right text-foreground">
                   {paidTraffic.toLocaleString()}
                 </dd>
               </div>
@@ -133,7 +119,6 @@ const DomainOverviewTab = ({
                       <Cell 
                         key={`cell-${index}`} 
                         fill={entry.fill}
-                        fillOpacity={entry.name === "Total" ? 1 : 0.85}
                       />
                     ))}
                   </Bar>
@@ -141,12 +126,11 @@ const DomainOverviewTab = ({
               </ResponsiveContainer>
             </div>
             <p className="text-sm text-muted-foreground mt-4">
-              Total monthly traffic: <span className="font-bold text-primary">{totalTraffic.toLocaleString()}</span> visitors.
-              {" "}Your traffic sources show{" "}
+              Your traffic sources show{" "}
               {organicTraffic > paidTraffic
                 ? "more organic than paid traffic"
                 : "more paid than organic traffic"}
-              {" "}({Math.round((organicTraffic / totalTraffic) * 100)}% organic). This could indicate{" "}
+              {" "}({Math.round((organicTraffic / totalTraffic) * 100)}% organic, {Math.round((paidTraffic / totalTraffic) * 100)}% paid). This indicates{" "}
               {organicTraffic > paidTraffic
                 ? "strong SEO performance"
                 : "a reliance on paid acquisition"}
