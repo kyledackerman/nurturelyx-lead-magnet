@@ -14,6 +14,7 @@ import AuthPage from "./pages/AuthPage";
 import UserDashboard from "./pages/UserDashboard";
 import LearnPage from "./pages/LearnPage";
 import HvacLeadsPage from "./pages/HvacLeadsPage";
+import PricingPage from "./pages/PricingPage";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/learn" element={<LearnPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
             <Route path="/generate-leads-hvac" element={<HvacLeadsPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/auth/callback" element={<AuthCallback />} />

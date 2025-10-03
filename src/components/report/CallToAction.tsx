@@ -169,7 +169,7 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
           </p>
         </div>
 
-        {/* CTA buttons */}
+        {/* CTA buttons - Dual Strategy */}
         <div className="text-center space-y-4">
           <Button 
             asChild
@@ -187,7 +187,21 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
             </a>
           </Button>
           
-          <p className="text-muted-foreground text-lg">
+          <div className="text-muted-foreground text-sm">OR</div>
+          
+          <Button 
+            asChild
+            variant="outline"
+            size="lg"
+            className="w-full max-w-md mx-auto border-2 border-primary text-primary hover:bg-primary/10"
+          >
+            <a href="https://calendly.com/nurturely" target="_blank" rel="noopener noreferrer">
+              <UserRound className="w-5 h-5 mr-2" />
+              Schedule a Demo Call
+            </a>
+          </Button>
+          
+          <p className="text-muted-foreground text-lg pt-4">
             <strong className="text-primary">115+ businesses</strong> using NurturelyX to capture lost revenue
           </p>
           

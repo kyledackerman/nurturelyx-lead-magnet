@@ -24,6 +24,10 @@ import CallToAction from "./report/CallToAction";
 import PrintStyles from "./report/PrintStyles";
 import ShareReportButton from "./report/ShareReportButton";
 import { EditTransactionValueDialog } from "./dialog/EditTransactionValueDialog";
+import FloatingCTABar from "./report/FloatingCTABar";
+import TrustSignals from "./report/TrustSignals";
+import ExitIntentPopup from "./report/ExitIntentPopup";
+import CaseStudyCard from "./report/CaseStudyCard";
 
 interface LeadReportProps {
   data: ReportData;
@@ -99,7 +103,11 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false, onUpdate 
 
       <CompetitorComparison data={data} />
 
-      {!isPublicView && <Testimonials />}
+      <Testimonials />
+
+      <TrustSignals />
+
+      <CaseStudyCard />
 
       <Glossary />
 
@@ -130,6 +138,9 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false, onUpdate 
           </CardContent>
         </Card>
       )}
+
+      <FloatingCTABar />
+      <ExitIntentPopup yearlyRevenueLost={data.yearlyRevenueLost} />
 
       <PrintStyles />
     </div>
