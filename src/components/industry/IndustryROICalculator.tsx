@@ -63,7 +63,7 @@ export const IndustryROICalculator = ({
           <div className="p-4 bg-background rounded-lg border">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
               <DollarSign className="h-4 w-4" />
-              Additional Annual Revenue
+              Additional <strong>Annual</strong> Revenue
             </div>
             <div className="text-3xl font-bold text-primary">
               ${(additionalRevenue * 12).toLocaleString()}
