@@ -56,7 +56,7 @@ export const IndustryROICalculator = ({
               {newSales.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              From {identifiedVisitors.toLocaleString()} identified leads
+              <strong className="text-primary">We identify {identifiedVisitors.toLocaleString()} leads for you</strong> - your team converts them to sales
             </div>
           </div>
 
