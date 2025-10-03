@@ -59,11 +59,6 @@ const Header = () => {
               Learn More
             </Button>
           </Link>
-          <Link to="/pricing">
-            <Button variant="ghost" size="sm" className="text-foreground">
-              Pricing
-            </Button>
-          </Link>
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
