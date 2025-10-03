@@ -6,8 +6,10 @@ import CallToActionSection from "@/components/CallToActionSection";
 import { getIndustryData } from "@/data/industryData";
 import { FAQSchema } from "@/components/seo/FAQSchema";
 import { AlertCircle } from "lucide-react";
+import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 
 export default function HVACIndustryPage() {
+  usePageViewTracking('marketing');
   const industry = getIndustryData('hvac');
 
   if (!industry) {

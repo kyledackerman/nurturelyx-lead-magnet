@@ -6,8 +6,10 @@ import CallToActionSection from "@/components/CallToActionSection";
 import { getIndustryData } from "@/data/industryData";
 import { AlertCircle } from "lucide-react";
 import { FAQSchema } from "@/components/seo/FAQSchema";
+import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 
 export default function HealthcareIndustryPage() {
+  usePageViewTracking('marketing');
   const industry = getIndustryData('healthcare');
 
   if (!industry) {

@@ -120,6 +120,8 @@ serve(async (req) => {
           .from('report_views')
           .insert({
             report_id: report.id,
+            page_path: `/report/${report.slug}`,
+            page_type: 'report',
             ip_address_hash: hashIP(clientIP),
             user_agent: userAgent,
             referrer: referrer,

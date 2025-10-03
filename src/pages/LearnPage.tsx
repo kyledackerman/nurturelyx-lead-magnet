@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { scrollToTopIfHomeLink } from "@/lib/scroll";
+import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import { 
   TrendingDown, 
   Users, 
@@ -22,6 +23,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const LearnPage = () => {
+  usePageViewTracking('marketing');
+  
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     element?.scrollIntoView({ behavior: "smooth" });

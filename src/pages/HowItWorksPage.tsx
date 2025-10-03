@@ -11,8 +11,11 @@ import { DataPointsShowcase } from "@/components/solution/DataPointsShowcase";
 import { IntegrationSteps } from "@/components/solution/IntegrationSteps";
 import { ComplianceBadges } from "@/components/solution/ComplianceBadges";
 import FAQ from "@/components/report/FAQ";
+import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 
 export default function HowItWorksPage() {
+  usePageViewTracking('marketing');
+  
   return (
     <>
       <Helmet>

@@ -9,6 +9,7 @@ import { fetchDomainData, calculateReportMetrics } from "@/services/spyfuService
 import { reportService } from "@/services/reportService";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 
 // Import our new components
 import LoadingState from "@/components/calculator/LoadingState";
@@ -18,6 +19,7 @@ import CallToActionSection from "@/components/CallToActionSection";
 import { OrganizationSchema } from "@/components/seo/OrganizationSchema";
 
 const Index = () => {
+  usePageViewTracking('marketing');
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [isCalculating, setIsCalculating] = useState(false);

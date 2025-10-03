@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import PricingComparison from "@/components/pricing/PricingComparison";
 import ROICalculator from "@/components/pricing/ROICalculator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import {
   Accordion,
   AccordionContent,
@@ -13,6 +14,8 @@ import {
 import { CheckCircle2 } from "lucide-react";
 
 const PricingPage = () => {
+  usePageViewTracking('marketing');
+  
   return (
     <>
       <Helmet>

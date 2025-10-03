@@ -199,8 +199,10 @@ export type Database = {
         Row: {
           id: string
           ip_address_hash: string
+          page_path: string | null
+          page_type: string | null
           referrer: string | null
-          report_id: string
+          report_id: string | null
           session_id: string
           user_agent: string | null
           viewed_at: string
@@ -208,8 +210,10 @@ export type Database = {
         Insert: {
           id?: string
           ip_address_hash: string
+          page_path?: string | null
+          page_type?: string | null
           referrer?: string | null
-          report_id: string
+          report_id?: string | null
           session_id: string
           user_agent?: string | null
           viewed_at?: string
@@ -217,8 +221,10 @@ export type Database = {
         Update: {
           id?: string
           ip_address_hash?: string
+          page_path?: string | null
+          page_type?: string | null
           referrer?: string | null
-          report_id?: string
+          report_id?: string | null
           session_id?: string
           user_agent?: string | null
           viewed_at?: string

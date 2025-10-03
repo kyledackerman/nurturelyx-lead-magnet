@@ -5,8 +5,10 @@ import Footer from "@/components/Footer";
 import { getAllBlogPosts } from "@/data/blogPosts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock } from "lucide-react";
+import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 
 export default function BlogPage() {
+  usePageViewTracking('marketing');
   const posts = getAllBlogPosts();
 
   return (

@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { scrollToTopIfHomeLink } from "@/lib/scroll";
+import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 
 export default function BlogPostPage() {
+  usePageViewTracking('marketing');
   const { slug } = useParams<{ slug: string }>();
   const post = slug ? getBlogPost(slug) : undefined;
 
