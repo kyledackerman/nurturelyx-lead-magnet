@@ -1340,6 +1340,35 @@ const AdminDashboard = () => {
             </TabsContent>
 
             <TabsContent value="leaderboard" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Time Period</CardTitle>
+                      <CardDescription>Select the time range for leaderboard rankings</CardDescription>
+                    </div>
+                    <ToggleGroup 
+                      type="single" 
+                      value={leaderboardTimeFilter} 
+                      onValueChange={(value) => value && setLeaderboardTimeFilter(value as 'daily' | 'weekly' | 'monthly' | 'all-time')}
+                    >
+                      <ToggleGroupItem value="daily" aria-label="Daily">
+                        Daily
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="weekly" aria-label="Weekly">
+                        Weekly
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="monthly" aria-label="Monthly">
+                        Monthly
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="all-time" aria-label="All Time">
+                        All Time
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
+                </CardHeader>
+              </Card>
+              
               <LeaderboardTab timeFilter={leaderboardTimeFilter} />
             </TabsContent>
 
