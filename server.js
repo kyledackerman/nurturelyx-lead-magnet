@@ -213,6 +213,47 @@ app.get("/debug-headers", (req, res) => {
   }
 });
 
+// Sitemap endpoints - proxy to Supabase edge functions
+app.get(["/sitemap", "/sitemap.xml"], async (req, res) => {
+  try {
+    console.log("Sitemap index endpoint called");
+    const response = await fetch('https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/sitemap');
+    
+    if (!response.ok) {
+      console.error(`Sitemap fetch failed: ${response.status}`);
+      return res.status(response.status).send('Error fetching sitemap');
+    }
+    
+    const xml = await response.text();
+    res.setHeader('Content-Type', 'application/xml');
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    res.send(xml);
+  } catch (error) {
+    console.error("Sitemap fetch error:", error);
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
+app.get(["/sitemap-reports", "/sitemap-reports.xml"], async (req, res) => {
+  try {
+    console.log("Sitemap reports endpoint called");
+    const response = await fetch('https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/sitemap-reports');
+    
+    if (!response.ok) {
+      console.error(`Sitemap reports fetch failed: ${response.status}`);
+      return res.status(response.status).send('Error fetching sitemap reports');
+    }
+    
+    const xml = await response.text();
+    res.setHeader('Content-Type', 'application/xml');
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    res.send(xml);
+  } catch (error) {
+    console.error("Sitemap reports fetch error:", error);
+    res.status(500).send('Error generating sitemap reports');
+  }
+});
+
 // ----- END OF API ROUTES SECTION -----
 
 // Log the dist directory contents
