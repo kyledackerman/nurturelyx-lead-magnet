@@ -178,7 +178,7 @@ serve(async (req) => {
       }
     }
 
-    const publicUrl = `${req.headers.get('origin') || 'https://apjlauuidcbvuplfcshg.supabase.co'}/report/${data.slug}`;
+    const publicUrl = `https://x1.nurturely.io/report/${data.slug}`;
 
     return new Response(
       JSON.stringify({ 

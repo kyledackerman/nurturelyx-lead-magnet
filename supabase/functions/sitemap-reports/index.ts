@@ -30,7 +30,7 @@ serve(async (req) => {
       throw error;
     }
 
-    const baseUrl = req.headers.get('origin') || 'https://apjlauuidcbvuplfcshg.supabase.co';
+    const baseUrl = 'https://x1.nurturely.io';
 
     // Generate URLs for each report
     const urlEntries = reports.map(report => {

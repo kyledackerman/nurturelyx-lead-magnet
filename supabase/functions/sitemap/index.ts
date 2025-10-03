@@ -28,7 +28,7 @@ serve(async (req) => {
       console.error('Error fetching report count:', error);
     }
 
-    const baseUrl = req.headers.get('origin') || 'https://apjlauuidcbvuplfcshg.supabase.co';
+    const baseUrl = 'https://x1.nurturely.io';
     const now = new Date().toISOString();
 
     // Generate sitemap index XML
@@ -39,7 +39,7 @@ serve(async (req) => {
     <lastmod>${now}</lastmod>
   </sitemap>
   <sitemap>
-    <loc>https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/sitemap-reports</loc>
+    <loc>https://x1.nurturely.io/sitemap-reports.xml</loc>
     <lastmod>${now}</lastmod>
   </sitemap>
 </sitemapindex>`;
