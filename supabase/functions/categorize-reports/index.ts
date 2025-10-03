@@ -1,14 +1,13 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 import { corsHeaders } from '../_shared/cors.ts';
-
-const INDUSTRY_KEYWORDS = {
-  hvac: ['hvac', 'heating', 'cooling', 'air', 'ac', 'furnace', 'mallard', 'brown', 'climate', 'comfort'],
-  legal: ['law', 'attorney', 'legal', 'lawyer', 'counsel', 'justice', 'firm'],
-  'real-estate': ['realty', 'homes', 'real', 'estate', 'property', 'house', 'realtor', 'realestate'],
-  'home-services': ['flooring', 'plumbing', 'roofing', 'construction', 'spa', 'pool', 'landscape', 'cleaning', 'contractor', 'renovation'],
-  automotive: ['auto', 'car', 'dealer', 'hyundai', 'vehicle', 'automotive', 'motors', 'honda', 'toyota', 'ford'],
-  healthcare: ['medical', 'health', 'dental', 'clinic', 'fitness', 'wellness', 'doctor', 'hospital', 'care'],
-};
+import {
+  detectIndustry,
+  calculateTrafficTier,
+  calculateCompanySize,
+  extractCompanyName,
+  generateSEOTitle,
+  generateSEODescription,
+} from '../_shared/categorization.ts';
 
 interface Report {
   id: string;
@@ -17,64 +16,6 @@ interface Report {
     organicTraffic?: number;
     yearlyRevenueLost?: number;
   };
-}
-
-function detectIndustry(domain: string): string {
-  const lowercaseDomain = domain.toLowerCase();
-  
-  for (const [industry, keywords] of Object.entries(INDUSTRY_KEYWORDS)) {
-    for (const keyword of keywords) {
-      if (lowercaseDomain.includes(keyword)) {
-        return industry;
-      }
-    }
-  }
-  
-  return 'other';
-}
-
-function calculateTrafficTier(organicTraffic: number): string {
-  if (organicTraffic >= 10000) return 'enterprise';
-  if (organicTraffic >= 1001) return 'high';
-  if (organicTraffic >= 101) return 'medium';
-  return 'low';
-}
-
-function calculateCompanySize(organicTraffic: number, yearlyRevenueLost: number): string {
-  if (organicTraffic >= 5000 || yearlyRevenueLost >= 500000) return 'large';
-  if (organicTraffic >= 1000 || yearlyRevenueLost >= 100000) return 'medium';
-  return 'small';
-}
-
-function extractCompanyName(domain: string): string {
-  // Remove common TLDs and clean up
-  const name = domain
-    .replace(/\.(com|net|org|io|co|us)$/gi, '')
-    .replace(/[-_]/g, ' ')
-    .split('.')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-  
-  return name;
-}
-
-function generateSEOTitle(companyName: string, industry: string, yearlyRevenueLost: number): string {
-  const industryLabels: Record<string, string> = {
-    hvac: 'HVAC',
-    legal: 'Law Firm',
-    'real-estate': 'Real Estate',
-    'home-services': 'Home Services',
-    automotive: 'Automotive',
-    healthcare: 'Healthcare',
-    other: 'Business',
-  };
-  
-  const revenueLost = yearlyRevenueLost ? `$${Math.round(yearlyRevenueLost / 1000)}K` : '';
-  return `${companyName} ${industryLabels[industry]} Revenue Loss Report ${revenueLost}`;
-}
-
-function generateSEODescription(companyName: string, industry: string, traffic: number, revenueLost: number): string {
-  return `See how ${companyName} loses an estimated $${Math.round(revenueLost).toLocaleString()} yearly from ${traffic.toLocaleString()} website visitors. Free ${industry} identity resolution report.`;
 }
 
 Deno.serve(async (req) => {

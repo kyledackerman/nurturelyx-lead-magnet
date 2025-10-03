@@ -1,5 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
+import {
+  detectIndustry,
+  calculateTrafficTier,
+  calculateCompanySize,
+  extractCompanyName,
+  generateSEOTitle,
+  generateSEODescription,
+} from '../_shared/categorization.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -107,7 +115,20 @@ serve(async (req) => {
       );
     }
 
-    // Save report to database
+    // Auto-categorize the report
+    const organicTraffic = reportData.organicTraffic || 0;
+    const yearlyRevenueLost = reportData.yearlyRevenueLost || 0;
+    
+    const industry = detectIndustry(reportData.domain);
+    const trafficTier = calculateTrafficTier(organicTraffic);
+    const companySize = calculateCompanySize(organicTraffic, yearlyRevenueLost);
+    const companyName = extractCompanyName(reportData.domain);
+    const seoTitle = generateSEOTitle(companyName, industry, yearlyRevenueLost);
+    const seoDescription = generateSEODescription(companyName, industry, organicTraffic, yearlyRevenueLost);
+
+    console.log(`Auto-categorized: ${reportData.domain} → ${industry} (${companySize}, ${trafficTier})`);
+
+    // Save report to database with categorization
     const { data, error } = await supabase
       .from('reports')
       .insert({
@@ -115,7 +136,13 @@ serve(async (req) => {
         domain: reportData.domain,
         report_data: reportData,
         slug: slugData,
-        is_public: true
+        is_public: true,
+        industry: industry,
+        company_size: companySize,
+        monthly_traffic_tier: trafficTier,
+        seo_title: seoTitle,
+        seo_description: seoDescription,
+        extracted_company_name: companyName,
       })
       .select('id, slug')
       .single();
