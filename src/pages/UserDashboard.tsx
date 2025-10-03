@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate, Link } from 'react-router-dom';
+import { scrollToTopIfHomeLink } from '@/lib/scroll';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -189,7 +190,7 @@ const UserDashboard = () => {
               className="pl-10"
             />
           </div>
-          <Button asChild>
+          <Button asChild onClick={scrollToTopIfHomeLink}>
             <Link to="/">Create New Report</Link>
           </Button>
         </div>
@@ -211,7 +212,7 @@ const UserDashboard = () => {
                   {searchTerm ? 'No reports found matching your search.' : 'No reports yet.'}
                 </p>
                 {!searchTerm && (
-                  <Button asChild>
+                  <Button asChild onClick={scrollToTopIfHomeLink}>
                     <Link to="/">Create Your First Report</Link>
                   </Button>
                 )}

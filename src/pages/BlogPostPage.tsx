@@ -7,6 +7,7 @@ import { ArticleSchema } from "@/components/seo/ArticleSchema";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { scrollToTopIfHomeLink } from "@/lib/scroll";
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -75,7 +76,7 @@ export default function BlogPostPage() {
           </div>
 
           <div className="mt-12 pt-8 border-t">
-            <Button asChild size="lg" className="gradient-bg">
+            <Button asChild size="lg" className="gradient-bg" onClick={scrollToTopIfHomeLink}>
               <Link to="/">Calculate Your Lost Revenue</Link>
             </Button>
           </div>

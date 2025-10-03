@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { scrollToTopIfHomeLink } from "@/lib/scroll";
 import { 
   TrendingDown, 
   Users, 
@@ -106,11 +107,11 @@ const LearnPage = () => {
               <p className="text-lg text-muted-foreground/80 mb-8">
                 For B2B, B2C, SaaS, Ecommerce, and Service Businesses
               </p>
-              <Link to="/">
-                <Button size="lg" className="text-lg px-8 py-6">
+              <Button asChild size="lg" className="text-lg px-8 py-6" onClick={scrollToTopIfHomeLink}>
+                <Link to="/">
                   Calculate Your Hidden Revenue <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
 
             {/* Quick Stats */}
@@ -240,12 +241,14 @@ const LearnPage = () => {
               </Card>
 
               <div className="my-8 text-center">
-                <Button 
+                <Button asChild 
                   size="lg" 
                   className="text-base"
-                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                  onClick={scrollToTopIfHomeLink}
                 >
-                  Calculate YOUR Lost Revenue <ArrowRight className="ml-2 h-5 w-5" />
+                  <Link to="/">
+                    Calculate YOUR Lost Revenue <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
                 </Button>
               </div>
             </div>
@@ -484,11 +487,11 @@ const LearnPage = () => {
               <div className="my-8 text-center bg-gradient-to-r from-primary/10 to-primary/5 p-8 rounded-lg border border-primary/20">
                 <h4 className="text-2xl font-bold mb-3 text-foreground">See Your Exact Numbers</h4>
                 <p className="text-muted-foreground mb-6">Our calculator will show you the precise revenue opportunity for your business based on your actual traffic and transaction values.</p>
-                <Link to="/">
-                  <Button size="lg" className="text-base">
+                <Button asChild size="lg" className="text-base" onClick={scrollToTopIfHomeLink}>
+                  <Link to="/">
                     Run Your Free Report <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             </div>
           </section>
@@ -1118,11 +1121,11 @@ const LearnPage = () => {
                         <h4 className="text-xl font-semibold mb-2">{item.title}</h4>
                         <p className="text-foreground mb-3">{item.description}</p>
                         {item.cta && (
-                          <Link to="/">
-                            <Button variant="outline" size="sm">
+                          <Button asChild variant="outline" size="sm" onClick={scrollToTopIfHomeLink}>
+                            <Link to="/">
                               {item.cta} <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                          </Link>
+                            </Link>
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -1210,11 +1213,11 @@ const LearnPage = () => {
               See exactly how much money you're leaving on the table with anonymous traffic. 
               Get your personalized report in under 2 minutes.
             </p>
-            <Link to="/">
-              <Button size="lg" className="text-lg px-10 py-7">
+            <Button asChild size="lg" className="text-lg px-10 py-7" onClick={scrollToTopIfHomeLink}>
+              <Link to="/">
                 Calculate Your Hidden Revenue Now <ArrowRight className="ml-2 h-6 w-6" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             <p className="text-sm text-muted-foreground mt-4">
               Free report • No credit card required • Takes 60 seconds
             </p>

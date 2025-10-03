@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { scrollToTopIfHomeLink } from "@/lib/scroll";
 
 interface IndustryHeroProps {
   name: string;
@@ -23,7 +24,7 @@ export const IndustryHero = ({ name, headline, subheadline }: IndustryHeroProps)
             {subheadline}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-            <Button asChild size="lg" className="gradient-bg">
+            <Button asChild size="lg" className="gradient-bg" onClick={scrollToTopIfHomeLink}>
               <Link to="/">
                 Calculate Your Lost Revenue
                 <ArrowRight className="ml-2 h-5 w-5" />

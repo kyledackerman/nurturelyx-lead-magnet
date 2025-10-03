@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { HelmetProvider } from "react-helmet-async";
+import { ScrollToTopOnRouteChange } from "@/components/ScrollToTopOnRouteChange";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
@@ -36,7 +37,8 @@ const App = () => (
         <TooltipProvider>
           <Sonner />
           <BrowserRouter>
-          <Routes>
+            <ScrollToTopOnRouteChange />
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/learn" element={<LearnPage />} />
             <Route path="/pricing" element={<PricingPage />} />

@@ -8,6 +8,7 @@ import { ReportTable } from "@/components/programmatic/ReportTable";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { getIndustryData } from "@/data/industryData";
+import { scrollToTopIfHomeLink } from "@/lib/scroll";
 
 export default function IndustryReportsPage() {
   const { industry } = useParams<{ industry: string }>();
@@ -59,7 +60,7 @@ export default function IndustryReportsPage() {
           ) : !reports || reports.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">No reports available yet for this industry.</p>
-              <Button asChild>
+              <Button asChild onClick={scrollToTopIfHomeLink}>
                 <Link to="/">Generate Your Report</Link>
               </Button>
             </div>
@@ -80,7 +81,7 @@ export default function IndustryReportsPage() {
                 <p className="text-muted-foreground mb-6">
                   Calculate your lost revenue and discover how many leads you're missing
                 </p>
-                <Button asChild size="lg" className="gradient-bg">
+                <Button asChild size="lg" className="gradient-bg" onClick={scrollToTopIfHomeLink}>
                   <Link to="/">
                     Get Your Free Report
                     <ArrowRight className="ml-2 h-5 w-5" />
