@@ -1043,6 +1043,24 @@ const AdminDashboard = () => {
       duration: 5000
     });
   };
+
+  const handleGeneratedReportUpdate = async () => {
+    if (!generatedReport?.reportId) {
+      console.warn('No reportId available for update');
+      return;
+    }
+
+    try {
+      // Fetch the updated report from the database
+      const result = await reportService.getReport(generatedReport.reportId);
+      setGeneratedReport(result.reportData);
+      toast.success('Report data refreshed successfully');
+    } catch (error) {
+      console.error('Error refreshing report:', error);
+      toast.error('Failed to refresh report data');
+    }
+  };
+  
   
   return (
     <AdminAuthGuard>
@@ -1332,6 +1350,7 @@ const AdminDashboard = () => {
                       data={generatedReport} 
                       onReset={handleResetReport}
                       onEditData={handleEditReport}
+                      onUpdate={handleGeneratedReportUpdate}
                     />
                     </>
                   )}
@@ -1710,7 +1729,7 @@ const AdminDashboard = () => {
                     <Input placeholder="Search domains..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="max-w-sm" />
                   </div>
                   
-                  <AdminReportsTable reports={filteredReports} loading={loading} />
+                  <AdminReportsTable reports={filteredReports} loading={loading} onReportUpdate={fetchReports} />
                 </CardContent>
               </Card>
             </TabsContent>

@@ -13,6 +13,7 @@ import { reportService } from '@/services/reportService';
 import { Eye, Share2, ExternalLink, Search, Calendar, Trash2 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import Header from '@/components/Header';
+import { EditTransactionValueDialog } from '@/components/dialog/EditTransactionValueDialog';
 
 interface UserReport {
   id: string;
@@ -256,6 +257,14 @@ const UserDashboard = () => {
                                 View
                               </Link>
                             </Button>
+                            <EditTransactionValueDialog
+                              reportId={report.id}
+                              currentValue={report.report_data.avgTransactionValue}
+                              domain={report.domain}
+                              onUpdate={fetchUserReports}
+                              size="sm"
+                              showIcon={false}
+                            />
                             <Button
                               variant="outline"
                               size="sm"

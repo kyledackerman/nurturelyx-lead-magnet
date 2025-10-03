@@ -23,15 +23,17 @@ import ScrollToCTAButton from "./report/ScrollToCTAButton";
 import CallToAction from "./report/CallToAction";
 import PrintStyles from "./report/PrintStyles";
 import ShareReportButton from "./report/ShareReportButton";
+import { EditTransactionValueDialog } from "./dialog/EditTransactionValueDialog";
 
 interface LeadReportProps {
   data: ReportData;
   onReset: () => void;
   onEditData?: () => void;
   isPublicView?: boolean;
+  onUpdate?: () => void;
 }
 
-const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadReportProps) => {
+const LeadReport = ({ data, onReset, onEditData, isPublicView = false, onUpdate }: LeadReportProps) => {
   // Generate a consistent reportId if one doesn't exist
   const reportId = data.reportId || `report_${Date.now()}_${data.domain.replace(/\./g, '_')}`;
   
@@ -52,6 +54,15 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false }: LeadRep
     >
       <div className="flex items-center gap-2 flex-wrap">
         <ReportHeader onReset={onReset} onEditData={onEditData} />
+        
+        {!isPublicView && reportId && onUpdate && (
+          <EditTransactionValueDialog
+            reportId={reportId}
+            currentValue={data.avgTransactionValue}
+            domain={data.domain}
+            onUpdate={onUpdate}
+          />
+        )}
         
         {!isPublicView && (
           <ShareReportButton reportData={data} reportId={reportId} slug={data.slug} />

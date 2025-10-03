@@ -183,6 +183,23 @@ const Index = () => {
     });
   };
 
+  const handleReportUpdate = async () => {
+    if (!reportData?.reportId) {
+      console.warn('No reportId available for update');
+      return;
+    }
+
+    try {
+      // Fetch the updated report from the database
+      const result = await reportService.getReport(reportData.reportId);
+      setReportData(result.reportData);
+      toast.success('Report data refreshed successfully');
+    } catch (error) {
+      console.error('Error refreshing report:', error);
+      toast.error('Failed to refresh report data');
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -214,6 +231,7 @@ const Index = () => {
                 data={reportData}
                 onReset={handleReset}
                 onEditData={handleEditData}
+                onUpdate={handleReportUpdate}
               />
               
               {/* Show save prompt for anonymous users */}

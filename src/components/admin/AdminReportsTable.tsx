@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Eye, Copy, ChevronUp, ChevronDown, AlertTriangle, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
+import { EditTransactionValueDialog } from "@/components/dialog/EditTransactionValueDialog";
 
 interface ReportData {
   domain: string;
@@ -32,12 +33,13 @@ interface ReportData {
 interface AdminReportsTableProps {
   reports: ReportData[];
   loading: boolean;
+  onReportUpdate?: () => void;
 }
 
 type SortKey = 'domain' | 'organicTraffic' | 'paidTraffic' | 'missedLeads' | 'monthlyRevenueLost' | 'created_at';
 type SortDirection = 'asc' | 'desc';
 
-export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) => {
+export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminReportsTableProps) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortKey>('monthlyRevenueLost');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -319,6 +321,17 @@ export const AdminReportsTable = ({ reports, loading }: AdminReportsTableProps) 
                       <Eye className="h-4 w-4 mr-1" />
                       View
                     </Button>
+                    {onReportUpdate && (
+                      <EditTransactionValueDialog
+                        reportId={report.id}
+                        currentValue={report.report_data.avgTransactionValue || 0}
+                        domain={report.domain}
+                        onUpdate={onReportUpdate}
+                        variant="ghost"
+                        size="sm"
+                        showIcon={false}
+                      />
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
