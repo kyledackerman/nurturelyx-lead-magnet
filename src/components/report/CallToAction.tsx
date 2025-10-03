@@ -1,7 +1,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, Clock, DollarSign, Zap, CheckCircle2, AlertTriangle } from "lucide-react";
+import { MessageCircle, Clock, DollarSign, Zap, CheckCircle2, AlertTriangle } from "lucide-react";
 
 interface CallToActionProps {
   yearlyRevenueLost: number;
@@ -195,9 +195,9 @@ const CallToAction = ({ yearlyRevenueLost }: CallToActionProps) => {
             size="lg"
             className="w-full max-w-md mx-auto border-2 border-primary text-primary hover:bg-primary/10"
           >
-            <a href="mailto:hi@nurturely.io?subject=NurturelyX%20question">
-              <Mail className="w-5 h-5 mr-2" />
-              Send us an email
+            <a href="https://www.facebook.com/nurturely.plus/" target="_blank" rel="noopener noreferrer">
+              <MessageCircle className="w-5 h-5 mr-2" />
+              Send us a message
             </a>
           </Button>
           

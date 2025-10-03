@@ -63,7 +63,7 @@ const ExitIntentPopup = ({ yearlyRevenueLost }: ExitIntentPopupProps) => {
               <p className="text-foreground font-semibold mb-2">Limited Time Offer:</p>
               <p className="text-sm text-muted-foreground">
                 Start today and get <span className="text-primary font-bold">100 free identity resolutions</span> ($100 value) 
-                with your first month.
+                with your first month. Use coupon code <span className="text-primary font-bold">NURTURELYX1231</span>
               </p>
             </div>
           </DialogDescription>
