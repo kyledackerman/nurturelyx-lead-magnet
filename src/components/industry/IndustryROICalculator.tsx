@@ -21,9 +21,9 @@ export const IndustryROICalculator = ({
   const [monthlyVisitors, setMonthlyVisitors] = useState<string>("1000");
   
   const visitors = parseInt(monthlyVisitors) || 0;
-  const identifiedVisitors = Math.round(visitors * 0.35); // 35% identification rate
-  const newLeads = Math.round(identifiedVisitors * (avgConversionRate / 100));
-  const additionalRevenue = newLeads * avgTransactionValue;
+  const identifiedVisitors = Math.round(visitors * 0.35); // 35% identification rate (these are leads)
+  const newSales = Math.round(identifiedVisitors * (avgConversionRate / 100));
+  const additionalRevenue = newSales * avgTransactionValue;
 
   return (
     <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
@@ -50,13 +50,13 @@ export const IndustryROICalculator = ({
           <div className="p-4 bg-background rounded-lg border">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
               <TrendingUp className="h-4 w-4" />
-              New Leads Per Month
+              New Sales Per Month
             </div>
             <div className="text-3xl font-bold text-primary">
-              {newLeads.toLocaleString()}
+              {newSales.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              From {identifiedVisitors.toLocaleString()} identified visitors
+              From {identifiedVisitors.toLocaleString()} identified leads
             </div>
           </div>
 
@@ -69,7 +69,7 @@ export const IndustryROICalculator = ({
               ${(additionalRevenue * 12).toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              At 1% conversion rate (industry example)
+              At {avgConversionRate}% lead-to-sale conversion rate
             </div>
           </div>
         </div>
@@ -78,7 +78,7 @@ export const IndustryROICalculator = ({
           <div className="text-sm text-muted-foreground">
             <strong>Industry Averages:</strong>
             <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Standard conversion rate: 1% (example)</li>
+              <li>Lead-to-sale conversion rate: {avgConversionRate}%</li>
               <li>Average transaction value: ${avgTransactionValue.toLocaleString()}</li>
               <li>Visitor identification rate: 35%</li>
             </ul>
