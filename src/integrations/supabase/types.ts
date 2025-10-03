@@ -235,32 +235,56 @@ export type Database = {
       }
       reports: {
         Row: {
+          city: string | null
+          company_size: string | null
           created_at: string
           domain: string
+          extracted_company_name: string | null
           id: string
+          industry: string | null
           is_public: boolean
+          monthly_traffic_tier: string | null
           report_data: Json
+          seo_description: string | null
+          seo_title: string | null
           slug: string
+          state: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          city?: string | null
+          company_size?: string | null
           created_at?: string
           domain: string
+          extracted_company_name?: string | null
           id?: string
+          industry?: string | null
           is_public?: boolean
+          monthly_traffic_tier?: string | null
           report_data: Json
+          seo_description?: string | null
+          seo_title?: string | null
           slug: string
+          state?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          city?: string | null
+          company_size?: string | null
           created_at?: string
           domain?: string
+          extracted_company_name?: string | null
           id?: string
+          industry?: string | null
           is_public?: boolean
+          monthly_traffic_tier?: string | null
           report_data?: Json
+          seo_description?: string | null
+          seo_title?: string | null
           slug?: string
+          state?: string | null
           updated_at?: string
           user_id?: string | null
         }
