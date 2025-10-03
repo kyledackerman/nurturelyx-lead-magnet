@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { ComposedChart, Area, Line, Bar, BarChart, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
 import AdminManual from "@/components/admin/AdminManual";
+import { ReportCategorizationTool } from "@/components/admin/ReportCategorizationTool";
 import { FormData, ReportData } from "@/types/report";
 import { fetchDomainData, calculateReportMetrics } from "@/services/spyfuService";
 import { reportService } from "@/services/reportService";
@@ -1408,8 +1409,9 @@ const AdminDashboard = () => {
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="management">
+                <TabsContent value="management" className="space-y-6">
                   <AdminManagement />
+                  <ReportCategorizationTool />
                 </TabsContent>
 
                 <TabsContent value="analytics" className="space-y-6">
