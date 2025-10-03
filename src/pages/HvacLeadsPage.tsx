@@ -488,7 +488,7 @@ const HvacLeadsPage = () => {
                         <span className="text-xl font-semibold text-foreground">$250</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Conversion Rate (1%):</span>
+                        <span className="text-muted-foreground">Conversion Rate (1% example):</span>
                         <span className="text-xl font-semibold text-foreground">3 jobs</span>
                       </div>
                       <div className="flex items-center justify-between pt-4 border-t">

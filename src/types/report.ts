@@ -20,6 +20,7 @@ export interface ReportData extends FormData, ApiData {
   industry?: string; // Industry categorization
   totalMissedLeads?: number; // For compatibility with report grid
   extracted_company_name?: string; // Extracted company name
+  conversionRate?: number; // Lead-to-sale conversion rate (default 1%)
 }
 
 export interface NewApiDataT {

@@ -460,7 +460,7 @@ const LearnPage = () => {
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Using a standard 1% conversion rate (1 sale per 100 leads), those 2,940 missed leads represent approximately 29 lost sales per month.
+                    Using a standard 1% conversion rate as an example (1 sale per 100 leads), those 2,940 missed leads represent approximately 29 lost sales per month.
                   </p>
                 </div>
               </Card>

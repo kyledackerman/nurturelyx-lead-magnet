@@ -75,7 +75,7 @@ const ChangelogCard = ({ reportData }: ChangelogCardProps) => {
           <li className="flex items-start">
             <Check size={16} className="mr-2 mt-0.5 text-green-500" />
             <span className="text-white">
-              <strong>Sales Estimation:</strong> Estimated at 1% conversion of
+              <strong>Sales Estimation:</strong> Based on {reportData.conversionRate ?? 1}% conversion rate from
               identified leads with{" "}
               {formatCurrency(reportData.avgTransactionValue)} average value
             </span>

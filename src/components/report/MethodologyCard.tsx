@@ -5,12 +5,14 @@ interface MethodologyCardProps {
   domain: string;
   monthlyVisitors: number;
   avgTransactionValue: number;
+  conversionRate?: number;
 }
 
 const MethodologyCard = ({
   domain,
   monthlyVisitors,
   avgTransactionValue,
+  conversionRate = 1,
 }: MethodologyCardProps) => {
   return (
     <Card className="bg-secondary methodology-card">
@@ -33,7 +35,7 @@ const MethodologyCard = ({
             <span className="font-medium text-accent">
               Lead-to-Sale Conversion:
             </span>{" "}
-            We estimate a 1% conversion rate from identified leads to closed
+            Based on a {conversionRate}% conversion rate from identified leads to closed
             sales.
           </p>
           <p>
