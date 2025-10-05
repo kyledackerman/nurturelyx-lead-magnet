@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Eye, Search, MoreVertical, ExternalLink, Copy, FileText } from "lucide-react";
+import { Eye, Search, MoreVertical, ExternalLink, Copy, ChevronUp, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,9 @@ interface CRMTableViewProps {
   compact?: boolean;
 }
 
+type SortKey = 'domain' | 'monthlyRevenue' | 'trafficTier' | 'priority' | 'status' | 'nextFollowUp';
+type SortDirection = 'asc' | 'desc';
+
 export default function CRMTableView({ onSelectProspect, compact = false }: CRMTableViewProps) {
   const [prospects, setProspects] = useState<ProspectRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +41,8 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortKey>('nextFollowUp');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   useEffect(() => {
     fetchProspects();
@@ -225,6 +230,68 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
     toast.success("Domain copied to clipboard");
   };
 
+  const handleSort = (key: SortKey) => {
+    if (sortBy === key) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(key);
+      setSortDirection('asc');
+    }
+  };
+
+  const getTrafficTierValue = (tier: string): number => {
+    const values: Record<string, number> = { low: 1, medium: 2, high: 3, enterprise: 4 };
+    return values[tier] || 0;
+  };
+
+  const getPriorityValue = (priority: string): number => {
+    const values: Record<string, number> = { not_viable: 0, cold: 1, warm: 2, hot: 3 };
+    return values[priority] || 0;
+  };
+
+  const getStatusValue = (status: string): number => {
+    const values: Record<string, number> = { 
+      new: 1, contacted: 2, proposal: 3, closed_won: 4, closed_lost: 5, not_viable: 6 
+    };
+    return values[status] || 0;
+  };
+
+  const SortableHeader = ({ 
+    label, 
+    sortKey, 
+    className = "" 
+  }: { 
+    label: string; 
+    sortKey: SortKey; 
+    className?: string;
+  }) => {
+    const isActive = sortBy === sortKey;
+    return (
+      <TableHead 
+        className={cn("cursor-pointer select-none hover:bg-muted/50 transition-colors", className)}
+        onClick={() => handleSort(sortKey)}
+      >
+        <div className="flex items-center gap-1">
+          {label}
+          <div className="flex flex-col">
+            <ChevronUp 
+              className={cn(
+                "h-3 w-3 -mb-1",
+                isActive && sortDirection === 'asc' ? "text-primary" : "text-muted-foreground/30"
+              )} 
+            />
+            <ChevronDown 
+              className={cn(
+                "h-3 w-3 -mt-1",
+                isActive && sortDirection === 'desc' ? "text-primary" : "text-muted-foreground/30"
+              )} 
+            />
+          </div>
+        </div>
+      </TableHead>
+    );
+  };
+
   const filteredProspects = prospects.filter((p) => {
     if (searchTerm && !p.domain.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
@@ -238,7 +305,50 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
     return true;
   });
 
-  const displayedProspects = compact ? filteredProspects.slice(0, 10) : filteredProspects;
+  const sortedProspects = useMemo(() => {
+    const sorted = [...filteredProspects].sort((a, b) => {
+      let aVal: any;
+      let bVal: any;
+
+      switch (sortBy) {
+        case 'domain':
+          aVal = a.domain.toLowerCase();
+          bVal = b.domain.toLowerCase();
+          break;
+        case 'monthlyRevenue':
+          aVal = a.monthlyRevenue;
+          bVal = b.monthlyRevenue;
+          break;
+        case 'trafficTier':
+          aVal = getTrafficTierValue(a.trafficTier);
+          bVal = getTrafficTierValue(b.trafficTier);
+          break;
+        case 'priority':
+          aVal = getPriorityValue(a.priority);
+          bVal = getPriorityValue(b.priority);
+          break;
+        case 'status':
+          aVal = getStatusValue(a.status);
+          bVal = getStatusValue(b.status);
+          break;
+        case 'nextFollowUp':
+          aVal = a.nextFollowUp ? new Date(a.nextFollowUp).getTime() : Infinity;
+          bVal = b.nextFollowUp ? new Date(b.nextFollowUp).getTime() : Infinity;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aVal === bVal) return 0;
+      
+      const comparison = aVal < bVal ? -1 : 1;
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return sorted;
+  }, [filteredProspects, sortBy, sortDirection]);
+
+  const displayedProspects = compact ? sortedProspects.slice(0, 10) : sortedProspects;
 
   if (loading) {
     return <Skeleton className="h-96 w-full" />;
@@ -290,13 +400,13 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-background">
             <TableRow className="h-12">
-              <TableHead>Domain</TableHead>
-              <TableHead className="text-right">Monthly Revenue</TableHead>
-              {!compact && <TableHead>Traffic</TableHead>}
-              <TableHead>Priority</TableHead>
-              <TableHead>Status</TableHead>
+              <SortableHeader label="Domain" sortKey="domain" />
+              <SortableHeader label="Monthly Revenue" sortKey="monthlyRevenue" className="text-right" />
+              {!compact && <SortableHeader label="Traffic" sortKey="trafficTier" />}
+              <SortableHeader label="Priority" sortKey="priority" />
+              <SortableHeader label="Status" sortKey="status" />
               <TableHead>Assigned To</TableHead>
-              <TableHead>Next Follow-Up</TableHead>
+              <SortableHeader label="Next Follow-Up" sortKey="nextFollowUp" />
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
