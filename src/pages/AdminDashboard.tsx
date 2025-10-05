@@ -1572,7 +1572,26 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Card #3: Biggest Revenue Opportunity */}
+              {/* Card #3: Biggest Lead Volume Loss */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
+                  <CardTitle className="text-sm font-medium">Biggest Lead Volume Loss</CardTitle>
+                  <div className="flex items-center gap-1">
+                    <UsersIcon className="h-4 w-4 text-muted-foreground" />
+                    <AlertTriangle className="h-3 w-3 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+                <CardContent className="p-3 pt-0">
+                  <div className="text-2xl font-bold truncate" title={topLeadsDomain.domain}>
+                    {topLeadsDomain.domain ? truncateDomain(topLeadsDomain.domain, 20) : 'N/A'}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {topLeadsDomain.missedLeads.toLocaleString()} monthly missed leads
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Card #4: Biggest Revenue Opportunity */}
               <Card className="border-orange-200 bg-orange-50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
                   <CardTitle className="text-sm font-medium text-black">Biggest Revenue Opportunity</CardTitle>
@@ -1590,25 +1609,6 @@ const AdminDashboard = () => {
                   </p>
                   <p className="text-xs text-orange-600">
                     ${topRevenueDomain.monthlyRevenueLost.toLocaleString()}/month
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Card #4: Biggest Lead Volume Loss */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
-                  <CardTitle className="text-sm font-medium">Biggest Lead Volume Loss</CardTitle>
-                  <div className="flex items-center gap-1">
-                    <UsersIcon className="h-4 w-4 text-muted-foreground" />
-                    <AlertTriangle className="h-3 w-3 text-muted-foreground" />
-                  </div>
-                </CardHeader>
-                <CardContent className="p-3 pt-0">
-                  <div className="text-2xl font-bold truncate" title={topLeadsDomain.domain}>
-                    {topLeadsDomain.domain ? truncateDomain(topLeadsDomain.domain, 20) : 'N/A'}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {topLeadsDomain.missedLeads.toLocaleString()} monthly missed leads
                   </p>
                 </CardContent>
               </Card>
