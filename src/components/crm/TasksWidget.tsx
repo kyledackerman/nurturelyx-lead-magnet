@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, AlertCircle, Plus } from "lucide-react";
+import { Calendar, AlertCircle, Plus, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,6 +48,7 @@ export default function TasksWidget() {
   const [selectedProspectId, setSelectedProspectId] = useState("");
   const [availableProspects, setAvailableProspects] = useState<ProspectOption[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [seedingTasks, setSeedingTasks] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -189,6 +190,69 @@ export default function TasksWidget() {
     }
   };
 
+  const handleQuickSeedTasks = async () => {
+    if (availableProspects.length === 0) {
+      toast({
+        title: "No prospects available",
+        description: "Add some prospects first to create sample tasks",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSeedingTasks(true);
+    try {
+      const now = new Date();
+      const sampleTasks = [
+        {
+          title: "Follow-up call",
+          description: "Initial follow-up after first contact",
+          due_date: new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
+          report_id: availableProspects[0].report_id,
+          prospect_activity_id: availableProspects[0].id,
+          status: "pending",
+        },
+        {
+          title: "Send proposal",
+          description: "Draft and send initial proposal",
+          due_date: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+          report_id: availableProspects[0].report_id,
+          prospect_activity_id: availableProspects[0].id,
+          status: "pending",
+        },
+        {
+          title: "Demo scheduled",
+          description: "Product demo call with stakeholders",
+          due_date: new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString(), // 2 days from now
+          report_id: availableProspects[Math.min(1, availableProspects.length - 1)].report_id,
+          prospect_activity_id: availableProspects[Math.min(1, availableProspects.length - 1)].id,
+          status: "pending",
+        },
+      ];
+
+      const { error } = await supabase
+        .from("prospect_tasks")
+        .insert(sampleTasks);
+
+      if (error) throw error;
+
+      await fetchTasks();
+      toast({
+        title: "Sample tasks created",
+        description: `Added ${sampleTasks.length} tasks to your pipeline`,
+      });
+    } catch (error) {
+      console.error("Error seeding tasks:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create sample tasks",
+        variant: "destructive",
+      });
+    } finally {
+      setSeedingTasks(false);
+    }
+  };
+
   const isOverdue = (date: string): boolean => {
     return new Date(date) < new Date();
   };
@@ -236,7 +300,19 @@ export default function TasksWidget() {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Tasks</CardTitle>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <div className="flex gap-2">
+            {tasks.length === 0 && availableProspects.length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleQuickSeedTasks}
+                disabled={seedingTasks}
+              >
+                <Zap className="h-4 w-4 mr-1" />
+                Quick Seed
+              </Button>
+            )}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" variant="outline">
                 <Plus className="h-4 w-4" />
@@ -310,6 +386,7 @@ export default function TasksWidget() {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -368,9 +445,10 @@ export default function TasksWidget() {
               </div>
             ))}
             {overdueTasks.length === 0 && (
-              <p className="text-center text-sm text-muted-foreground py-4">
-                No overdue tasks
-              </p>
+              <div className="text-center text-sm text-muted-foreground py-8">
+                <p className="font-medium">No overdue tasks</p>
+                <p className="text-xs mt-1">Great job staying on top of your pipeline!</p>
+              </div>
             )}
           </TabsContent>
 
@@ -401,9 +479,10 @@ export default function TasksWidget() {
               </div>
             ))}
             {dueTodayTasks.length === 0 && (
-              <p className="text-center text-sm text-muted-foreground py-4">
-                No tasks due today
-              </p>
+              <div className="text-center text-sm text-muted-foreground py-8">
+                <p className="font-medium">No tasks due today</p>
+                <p className="text-xs mt-1">Use the + button to create new tasks</p>
+              </div>
             )}
           </TabsContent>
 
@@ -431,9 +510,10 @@ export default function TasksWidget() {
               </div>
             ))}
             {dueTomorrowTasks.length === 0 && (
-              <p className="text-center text-sm text-muted-foreground py-4">
-                No tasks due tomorrow
-              </p>
+              <div className="text-center text-sm text-muted-foreground py-8">
+                <p className="font-medium">No tasks due tomorrow</p>
+                <p className="text-xs mt-1">Planning ahead? Create a task for later!</p>
+              </div>
             )}
           </TabsContent>
         </Tabs>

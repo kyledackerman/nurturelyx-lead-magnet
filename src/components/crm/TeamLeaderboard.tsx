@@ -3,6 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { RefreshCw, AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface LeaderboardEntry {
   userId: string;
@@ -18,20 +22,50 @@ interface LeaderboardEntry {
 export default function TeamLeaderboard() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchLeaderboard();
   }, []);
 
   const fetchLeaderboard = async () => {
+    setLoading(true);
+    setError(null);
+    
     try {
       const { data, error } = await supabase.functions.invoke('get-leaderboard');
 
-      if (error) throw error;
+      if (error) {
+        // Check for auth errors specifically
+        if (error.message?.includes('401') || error.message?.includes('403')) {
+          throw new Error("Authentication issue. Please refresh the page or log in again.");
+        }
+        throw error;
+      }
 
-      setLeaderboard(data || []);
-    } catch (error) {
+      // Strict validation - only accept arrays
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid response format from server");
+      }
+
+      setLeaderboard(data);
+      
+      if (data.length > 0) {
+        toast({
+          title: "Leaderboard updated",
+          description: `Loaded ${data.length} team member${data.length > 1 ? 's' : ''}`,
+        });
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to fetch leaderboard";
       console.error("Error fetching leaderboard:", error);
+      setError(errorMessage);
+      toast({
+        title: "Error loading leaderboard",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -53,9 +87,40 @@ export default function TeamLeaderboard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Team Leaderboard</CardTitle>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Team Leaderboard</CardTitle>
+            {!loading && !error && leaderboard.length > 0 && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {leaderboard.length} team member{leaderboard.length > 1 ? 's' : ''} ranked
+              </p>
+            )}
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={fetchLeaderboard}
+            disabled={loading}
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
+        {error && (
+          <Alert variant="error" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Failed to load leaderboard</AlertTitle>
+            <AlertDescription>
+              {error}
+              {error.includes("Authentication") && (
+                <span className="block mt-2 text-sm">
+                  Try refreshing the page or logging in again.
+                </span>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="overflow-auto max-h-80">
           <Table>
             <TableHeader>
@@ -84,7 +149,7 @@ export default function TeamLeaderboard() {
                         {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
                       </span>
                     )}
-                    {entry.email.split("@")[0]}
+                    {entry.email ? entry.email.split("@")[0] : "Unknown"}
                   </TableCell>
                   <TableCell className="text-right">{entry.prospectsAssigned}</TableCell>
                   <TableCell className="text-right font-semibold">{entry.closedWon}</TableCell>
@@ -99,10 +164,13 @@ export default function TeamLeaderboard() {
                   <TableCell className="text-right">{entry.winRate.toFixed(0)}%</TableCell>
                 </TableRow>
               ))}
-              {leaderboard.length === 0 && (
+              {leaderboard.length === 0 && !error && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    No data yet
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <div className="flex flex-col items-center gap-2">
+                      <p>No leaderboard data yet</p>
+                      <p className="text-xs">Activity will appear here once prospects are marked as won</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               )}
