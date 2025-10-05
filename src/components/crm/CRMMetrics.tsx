@@ -91,7 +91,7 @@ export default function CRMMetrics() {
 
   if (loading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
         {[...Array(6)].map((_, i) => (
           <Card key={i}>
             <CardHeader className="pb-2">
@@ -117,7 +117,7 @@ export default function CRMMetrics() {
       title: "Pipeline Value",
       value: metrics?.pipelineValue || 0,
       icon: DollarSign,
-      format: (v: number) => `$${(v / 1000).toFixed(0)}K`,
+      format: (v: number) => `$${Math.round(v / 1000)}K`,
     },
     {
       title: "Conversion Rate",
@@ -150,7 +150,7 @@ export default function CRMMetrics() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
         {metricCards.map((metric) => {
           const Icon = metric.icon;
           const isHighValue = metric.title === "Hot Leads" || metric.title === "Overdue Tasks";
@@ -158,20 +158,19 @@ export default function CRMMetrics() {
             <Card 
               key={metric.title} 
               className={isHighValue && metric.value > 0
-                ? "border-orange-300 bg-orange-100 shadow-sm hover:shadow-md transition-all"
+                ? "border-orange-600 bg-orange-600/5 shadow-sm hover:shadow-md transition-all"
                 : "shadow-sm hover:shadow-md transition-all"
               }
             >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                <CardTitle className={`text-sm font-medium ${isHighValue && metric.value > 0 ? 'text-gray-900' : 'text-muted-foreground'}`}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
                   {metric.title}
                 </CardTitle>
-                <Icon className={`h-4 w-4 ${isHighValue && metric.value > 0 ? 'text-orange-700' : 'text-muted-foreground'}`} />
+                <Icon className={`h-5 w-5 ${isHighValue && metric.value > 0 ? 'text-orange-600' : 'text-muted-foreground'}`} />
               </CardHeader>
               <CardContent>
-                <div className={`text-4xl font-bold ${
-                  isHighValue && metric.value > 0 ? 'text-orange-900' : 
-                  metric.className || ""
+                <div className={`text-3xl font-bold ${
+                  isHighValue && metric.value > 0 ? 'text-orange-600' : ''
                 }`}>
                   {metric.format(metric.value)}
                 </div>

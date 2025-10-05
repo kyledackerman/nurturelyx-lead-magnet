@@ -16,52 +16,49 @@ export default function CRMDashboard() {
     <div className="min-h-screen bg-background">
       <CRMHeader />
       
-      <div className="container mx-auto px-4 py-6 max-w-[1800px]">
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 xl:gap-8">
-          {/* Main Content Area */}
-          <div className="flex-1">
-            <Tabs value={selectedView} onValueChange={(v) => setSelectedView(v as any)} className="w-full">
-              <TabsList className="grid w-full max-w-md grid-cols-3 mb-6">
-                <TabsTrigger value="dashboard" className="flex items-center gap-2">
-                  <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
-                </TabsTrigger>
-                <TabsTrigger value="table" className="flex items-center gap-2">
-                  <Table className="h-4 w-4" />
-                  Table
-                </TabsTrigger>
-                <TabsTrigger value="kanban" className="flex items-center gap-2">
-                  <LayoutGrid className="h-4 w-4" />
-                  Kanban
-                </TabsTrigger>
-              </TabsList>
+      <div className="container mx-auto px-4 py-6 max-w-[2000px]">
+        <Tabs value={selectedView} onValueChange={(v) => setSelectedView(v as any)} className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-3 mb-6">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="table" className="flex items-center gap-2">
+              <Table className="h-4 w-4" />
+              Table
+            </TabsTrigger>
+            <TabsTrigger value="kanban" className="flex items-center gap-2">
+              <LayoutGrid className="h-4 w-4" />
+              Kanban
+            </TabsTrigger>
+          </TabsList>
 
-              <TabsContent value="dashboard" className="space-y-6">
+          <TabsContent value="dashboard" className="space-y-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              <div className="xl:col-span-2 space-y-6">
                 <CRMMetrics />
                 <CRMTableView 
                   onSelectProspect={setSelectedProspectId}
                   compact={true}
                 />
-              </TabsContent>
+              </div>
+              <div>
+                <TasksWidget />
+              </div>
+            </div>
+          </TabsContent>
 
-              <TabsContent value="table">
-                <CRMTableView 
-                  onSelectProspect={setSelectedProspectId}
-                  compact={false}
-                />
-              </TabsContent>
+          <TabsContent value="table">
+            <CRMTableView 
+              onSelectProspect={setSelectedProspectId}
+              compact={false}
+            />
+          </TabsContent>
 
-              <TabsContent value="kanban">
-                <CRMKanbanView onSelectProspect={setSelectedProspectId} />
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* Tasks Widget Sidebar */}
-          <div className="lg:w-96">
-            <TasksWidget />
-          </div>
-        </div>
+          <TabsContent value="kanban">
+            <CRMKanbanView onSelectProspect={setSelectedProspectId} />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Prospect Detail Panel */}

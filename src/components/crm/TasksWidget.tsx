@@ -232,7 +232,7 @@ export default function TasksWidget() {
   }
 
   return (
-    <Card className="sticky top-4">
+    <Card className="sticky top-4 h-fit">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Tasks</CardTitle>
