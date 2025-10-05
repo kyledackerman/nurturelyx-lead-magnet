@@ -157,21 +157,16 @@ export default function CRMMetrics() {
           return (
             <Card 
               key={metric.title} 
-              className={isHighValue && metric.value > 0
-                ? "border-orange-600 bg-orange-600/5 shadow-sm hover:shadow-md transition-all"
-                : "shadow-sm hover:shadow-md transition-all"
-              }
+              className="shadow-sm hover:shadow-md transition-all"
             >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {metric.title}
                 </CardTitle>
-                <Icon className={`h-5 w-5 ${isHighValue && metric.value > 0 ? 'text-orange-600' : 'text-muted-foreground'}`} />
+                <Icon className="h-5 w-5 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className={`text-3xl font-bold ${
-                  isHighValue && metric.value > 0 ? 'text-orange-600' : ''
-                }`}>
+                <div className="text-3xl font-bold">
                   {metric.format(metric.value)}
                 </div>
               </CardContent>

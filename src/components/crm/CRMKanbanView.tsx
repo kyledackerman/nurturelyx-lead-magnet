@@ -183,13 +183,13 @@ export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) 
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
                                 onClick={() => onSelectProspect(prospect.id)}
-                                className={cn(
-                                  "p-3 bg-card border-l-4 rounded-lg cursor-pointer transition-all shadow-sm hover:shadow-md",
-                                  snapshot.isDragging && "shadow-lg",
-                                  getPriorityColor(prospect.priority),
-                                  isOverdue(prospect.nextFollowUp) && "ring-2 ring-orange-600"
-                                )}
-                              >
+                                  className={cn(
+                                    "p-3 bg-card border-l-4 rounded-lg cursor-pointer transition-all shadow-sm hover:shadow-md",
+                                    snapshot.isDragging && "shadow-lg",
+                                    getPriorityColor(prospect.priority),
+                                    isOverdue(prospect.nextFollowUp) && "ring-1 ring-destructive/40"
+                                  )}
+                                >
                                 <div className="space-y-2">
                                   <div className="flex items-start justify-between gap-2">
                                     <p className="font-medium text-sm truncate flex-1">

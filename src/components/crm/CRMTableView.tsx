@@ -102,15 +102,11 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
   };
 
   const getRowClassName = (prospect: ProspectRow): string => {
-    const isHighValue = prospect.monthlyRevenue > 5000;
     if (isOverdue(prospect.nextFollowUp)) {
-      return "bg-orange-50 hover:bg-orange-100 border-l-4 border-l-orange-600";
+      return "hover:bg-muted/40 border-l-2 border-l-destructive";
     }
     if (isDueToday(prospect.nextFollowUp)) {
-      return "bg-accent/5 hover:bg-accent/10 border-l-4 border-l-accent";
-    }
-    if (isHighValue) {
-      return "border-l-4 border-l-orange-600";
+      return "hover:bg-muted/40 border-l-2 border-l-accent";
     }
     return "hover:bg-muted/50";
   };
@@ -124,7 +120,7 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
     };
     
     return (
-      <Badge variant="outline" className={cn(variants[priority], isOverdueRow && "ring-2 ring-orange-600")}>
+      <Badge variant="outline" className={cn(variants[priority])}>
         {priority}
       </Badge>
     );
@@ -141,7 +137,7 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
     };
     
     return (
-      <Badge variant="outline" className={cn(variants[status], isOverdueRow && "ring-2 ring-orange-600")}>
+      <Badge variant="outline" className={cn(variants[status])}>
         {status.replace("_", " ")}
       </Badge>
     );
@@ -230,7 +226,7 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
                   className={cn("h-14 even:bg-muted/30", getRowClassName(prospect))}
                 >
                   <TableCell className="font-medium">{prospect.domain}</TableCell>
-                  <TableCell className={cn("text-right", prospect.monthlyRevenue > 5000 && "font-bold text-orange-900")}>
+                  <TableCell className={cn("text-right", prospect.monthlyRevenue > 5000 && "font-semibold")}>
                     ${(prospect.monthlyRevenue / 1000).toFixed(1)}K
                   </TableCell>
                   {!compact && (
