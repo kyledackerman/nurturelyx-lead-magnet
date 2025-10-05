@@ -30,7 +30,7 @@ export const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
 
     try {
       const { data, error } = await supabase
-        .rpc('is_admin', { user_uuid: user.id });
+        .rpc('is_admin');
 
       if (error) throw error;
       setIsAdmin(data);
