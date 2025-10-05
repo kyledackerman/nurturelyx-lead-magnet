@@ -24,12 +24,12 @@ interface CRMKanbanViewProps {
 }
 
 const STATUS_COLUMNS = [
-  { id: "new", label: "New", color: "bg-brand-purple/20", borderColor: "border-brand-purple" },
-  { id: "contacted", label: "Contacted", color: "bg-accent/20", borderColor: "border-accent" },
-  { id: "proposal", label: "Proposal", color: "bg-blue-100", borderColor: "border-blue-300" },
-  { id: "closed_won", label: "Won", color: "bg-green-100", borderColor: "border-green-300" },
-  { id: "closed_lost", label: "Lost", color: "bg-muted", borderColor: "border-border" },
-  { id: "not_viable", label: "Not Viable", color: "bg-gray-200", borderColor: "border-gray-400" },
+  { id: "new", label: "New", color: "bg-brand-purple/10", borderColor: "border-brand-purple" },
+  { id: "contacted", label: "Contacted", color: "bg-accent/10", borderColor: "border-accent" },
+  { id: "proposal", label: "Proposal", color: "bg-blue-600/10", borderColor: "border-blue-600" },
+  { id: "closed_won", label: "Won", color: "bg-green-600/10", borderColor: "border-green-600" },
+  { id: "closed_lost", label: "Lost", color: "bg-red-600/10", borderColor: "border-red-600" },
+  { id: "not_viable", label: "Not Viable", color: "bg-gray-600/10", borderColor: "border-gray-600" },
 ];
 
 export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) {
@@ -125,10 +125,10 @@ export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) 
 
   const getPriorityColor = (priority: string): string => {
     const colors: Record<string, string> = {
-      hot: "border-orange-600 bg-orange-600/10",
-      warm: "border-accent bg-accent/10",
-      cold: "border-gray-600 bg-gray-600/10",
-      not_viable: "border-gray-700 bg-gray-700/10",
+      hot: "border-orange-500 bg-orange-500/20",
+      warm: "border-accent bg-accent/20",
+      cold: "border-gray-500 bg-gray-500/20",
+      not_viable: "border-gray-600 bg-gray-600/20",
     };
     return colors[priority] || "border-muted bg-muted/30";
   };
@@ -184,15 +184,15 @@ export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) 
                                 {...provided.dragHandleProps}
                                 onClick={() => onSelectProspect(prospect.id)}
                                   className={cn(
-                                    "p-3 bg-card border-l-4 rounded-lg cursor-pointer transition-all shadow-sm hover:shadow-md",
+                                    "p-4 bg-card border-l-4 rounded-lg cursor-pointer transition-all shadow-sm hover:shadow-md",
                                     snapshot.isDragging && "shadow-lg",
                                     getPriorityColor(prospect.priority),
-                                    isOverdue(prospect.nextFollowUp) && "ring-1 ring-destructive/40"
+                                    isOverdue(prospect.nextFollowUp) && "ring-2 ring-orange-500/50"
                                   )}
                                 >
-                                <div className="space-y-2">
+                                <div className="space-y-2.5">
                                   <div className="flex items-start justify-between gap-2">
-                                    <p className="font-medium text-sm truncate flex-1">
+                                    <p className="font-semibold text-base truncate flex-1">
                                       {prospect.domain}
                                     </p>
                                     <Badge
@@ -212,9 +212,10 @@ export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) 
                                     </Badge>
                                   </div>
                                   
-                                   <p className={`text-sm font-semibold ${
-                                     prospect.monthlyRevenue > 5000 ? "text-orange-900" : ""
-                                   }`}>
+                                   <p className={cn(
+                                     "text-sm font-semibold",
+                                     prospect.monthlyRevenue > 5000 ? "text-orange-400" : "text-foreground"
+                                   )}>
                                      ${(prospect.monthlyRevenue / 1000).toFixed(1)}K/mo
                                    </p>
 
@@ -223,7 +224,7 @@ export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) 
                                        className={cn(
                                          "text-xs",
                                          isOverdue(prospect.nextFollowUp)
-                                           ? "text-orange-900 font-bold"
+                                           ? "text-orange-400 font-bold"
                                            : "text-muted-foreground"
                                        )}
                                      >
