@@ -5,10 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, Search } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Eye, Search, MoreVertical, ExternalLink, Copy, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { AssignmentDropdown } from "@/components/admin/AssignmentDropdown";
+import { toast } from "sonner";
+import { auditService } from "@/services/auditService";
 
 interface ProspectRow {
   id: string;
@@ -33,9 +37,30 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProspects();
+    
+    // Real-time subscription
+    const channel = supabase
+      .channel('crm-table-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'prospect_activities'
+        },
+        () => {
+          fetchProspects();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchProspects = async () => {
@@ -143,6 +168,63 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
     );
   };
 
+  const updatePriority = async (prospectId: string, newPriority: string) => {
+    setUpdatingId(prospectId);
+    try {
+      const { error } = await supabase
+        .from("prospect_activities")
+        .update({ priority: newPriority })
+        .eq("id", prospectId);
+
+      if (error) throw error;
+
+      await auditService.logBusinessContext(
+        "prospect_activities",
+        prospectId,
+        `Priority updated to ${newPriority}`
+      );
+
+      toast.success("Priority updated");
+      fetchProspects();
+    } catch (error) {
+      console.error("Error updating priority:", error);
+      toast.error("Failed to update priority");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const updateStatus = async (prospectId: string, newStatus: string) => {
+    setUpdatingId(prospectId);
+    try {
+      const { error } = await supabase
+        .from("prospect_activities")
+        .update({ status: newStatus })
+        .eq("id", prospectId);
+
+      if (error) throw error;
+
+      await auditService.logBusinessContext(
+        "prospect_activities",
+        prospectId,
+        `Status updated to ${newStatus}`
+      );
+
+      toast.success("Status updated");
+      fetchProspects();
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Failed to update status");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const copyDomain = (domain: string) => {
+    navigator.clipboard.writeText(domain);
+    toast.success("Domain copied to clipboard");
+  };
+
   const filteredProspects = prospects.filter((p) => {
     if (searchTerm && !p.domain.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
@@ -213,6 +295,7 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
               {!compact && <TableHead>Traffic</TableHead>}
               <TableHead>Priority</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Assigned To</TableHead>
               <TableHead>Next Follow-Up</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -234,11 +317,53 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
                       <Badge variant="outline">{prospect.trafficTier}</Badge>
                     </TableCell>
                   )}
-                  <TableCell>{getPriorityBadge(prospect.priority, overdueRow)}</TableCell>
-                  <TableCell>{getStatusBadge(prospect.status, overdueRow)}</TableCell>
+                  <TableCell>
+                    <Select
+                      value={prospect.priority}
+                      onValueChange={(value) => updatePriority(prospect.id, value)}
+                      disabled={updatingId === prospect.id}
+                    >
+                      <SelectTrigger className="w-32 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="z-50 bg-popover">
+                        <SelectItem value="hot">🔥 Hot</SelectItem>
+                        <SelectItem value="warm">☀️ Warm</SelectItem>
+                        <SelectItem value="cold">❄️ Cold</SelectItem>
+                        <SelectItem value="not_viable">❌ Not Viable</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={prospect.status}
+                      onValueChange={(value) => updateStatus(prospect.id, value)}
+                      disabled={updatingId === prospect.id}
+                    >
+                      <SelectTrigger className="w-36 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="z-50 bg-popover">
+                        <SelectItem value="new">New</SelectItem>
+                        <SelectItem value="contacted">Contacted</SelectItem>
+                        <SelectItem value="proposal">Proposal</SelectItem>
+                        <SelectItem value="closed_won">Closed Won</SelectItem>
+                        <SelectItem value="closed_lost">Closed Lost</SelectItem>
+                        <SelectItem value="not_viable">Not Viable</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <AssignmentDropdown
+                      currentAssignedTo={prospect.assignedTo}
+                      reportId={prospect.reportId}
+                      onAssignmentChange={() => fetchProspects()}
+                      disabled={updatingId === prospect.id}
+                    />
+                  </TableCell>
                   <TableCell>
                     {prospect.nextFollowUp ? (
-                      <span className={overdueRow ? "font-bold" : ""}>
+                      <span className={overdueRow ? "font-bold text-orange-400" : ""}>
                         {format(new Date(prospect.nextFollowUp), "MMM d, yyyy")}
                       </span>
                     ) : (
@@ -246,20 +371,34 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onSelectProspect(prospect.id)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="z-50 bg-popover">
+                        <DropdownMenuItem onClick={() => onSelectProspect(prospect.id)}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => window.open(`/report/${prospect.reportId}`, '_blank')}>
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View Report
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => copyDomain(prospect.domain)}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy Domain
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               );
             })}
             {displayedProspects.length === 0 && (
               <TableRow>
-                <TableCell colSpan={compact ? 6 : 7} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={compact ? 7 : 8} className="text-center text-muted-foreground py-8">
                   No prospects found
                 </TableCell>
               </TableRow>
