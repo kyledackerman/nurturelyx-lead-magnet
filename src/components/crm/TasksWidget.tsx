@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar, AlertCircle, Plus } from "lucide-react";
 import { format } from "date-fns";
@@ -24,6 +25,12 @@ interface Task {
   domain?: string;
 }
 
+interface ProspectOption {
+  id: string;
+  report_id: string;
+  domain: string;
+}
+
 const TASK_TEMPLATES = [
   "Follow-up call",
   "Send proposal",
@@ -38,17 +45,20 @@ export default function TasksWidget() {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
+  const [selectedProspectId, setSelectedProspectId] = useState("");
+  const [availableProspects, setAvailableProspects] = useState<ProspectOption[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchTasks();
+    fetchAvailableProspects();
   }, []);
 
   const fetchTasks = async () => {
     try {
       const { data, error } = await supabase
-        .from("prospect_tasks" as any)
+        .from("prospect_tasks")
         .select(`
           *,
           reports!inner(domain)
@@ -71,10 +81,36 @@ export default function TasksWidget() {
     }
   };
 
+  const fetchAvailableProspects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("prospect_activities")
+        .select(`
+          id,
+          report_id,
+          reports!inner(domain)
+        `)
+        .in("status", ["new", "contacted", "proposal"])
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const mapped = data?.map((p: any) => ({
+        id: p.id,
+        report_id: p.report_id,
+        domain: p.reports.domain,
+      })) || [];
+
+      setAvailableProspects(mapped);
+    } catch (error) {
+      console.error("Error fetching prospects:", error);
+    }
+  };
+
   const handleCompleteTask = async (taskId: string) => {
     try {
       const { error } = await supabase
-        .from("prospect_tasks" as any)
+        .from("prospect_tasks")
         .update({ 
           status: "completed",
           completed_at: new Date().toISOString(),
@@ -99,10 +135,20 @@ export default function TasksWidget() {
   };
 
   const handleCreateTask = async () => {
-    if (!newTaskTitle || !newTaskDueDate) {
+    if (!newTaskTitle || !newTaskDueDate || !selectedProspectId) {
       toast({
         title: "Missing information",
-        description: "Please fill in title and due date",
+        description: "Please select a prospect and fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const selectedProspect = availableProspects.find(p => p.id === selectedProspectId);
+    if (!selectedProspect) {
+      toast({
+        title: "Error",
+        description: "Selected prospect not found",
         variant: "destructive",
       });
       return;
@@ -110,20 +156,22 @@ export default function TasksWidget() {
 
     try {
       const { error } = await supabase
-        .from("prospect_tasks" as any)
+        .from("prospect_tasks")
         .insert({
           title: newTaskTitle,
           description: newTaskDescription,
           due_date: newTaskDueDate,
-          report_id: tasks[0]?.report_id, // This should be selected from a dropdown
+          report_id: selectedProspect.report_id,
+          prospect_activity_id: selectedProspectId,
           status: "pending",
-        } as any);
+        });
 
       if (error) throw error;
 
       setNewTaskTitle("");
       setNewTaskDescription("");
       setNewTaskDueDate("");
+      setSelectedProspectId("");
       setDialogOpen(false);
       fetchTasks();
       
@@ -200,6 +248,21 @@ export default function TasksWidget() {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
+                  <Label htmlFor="prospect-select">Select Prospect *</Label>
+                  <Select value={selectedProspectId} onValueChange={setSelectedProspectId}>
+                    <SelectTrigger id="prospect-select">
+                      <SelectValue placeholder="Choose a prospect" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableProspects.map((prospect) => (
+                        <SelectItem key={prospect.id} value={prospect.id}>
+                          {prospect.domain}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label>Quick Templates</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {TASK_TEMPLATES.map((template) => (
@@ -215,7 +278,7 @@ export default function TasksWidget() {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="task-title">Title</Label>
+                  <Label htmlFor="task-title">Title *</Label>
                   <Input
                     id="task-title"
                     value={newTaskTitle}
@@ -233,7 +296,7 @@ export default function TasksWidget() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="task-due-date">Due Date</Label>
+                  <Label htmlFor="task-due-date">Due Date *</Label>
                   <Input
                     id="task-due-date"
                     type="datetime-local"
