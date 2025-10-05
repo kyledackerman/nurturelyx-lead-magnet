@@ -143,7 +143,7 @@ export default function TeamLeaderboard() {
                     ""
                   }
                 >
-                  <TableCell className={`font-medium ${index === 0 ? "text-accent-foreground" : ""}`}>
+                  <TableCell className={`font-medium ${index === 0 ? "text-brand-teal-dark" : ""}`}>
                     {index < 3 && (
                       <span className="mr-2">
                         {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
@@ -151,8 +151,8 @@ export default function TeamLeaderboard() {
                     )}
                     {entry.email ? entry.email.split("@")[0] : "Unknown"}
                   </TableCell>
-                  <TableCell className={`text-right ${index === 0 ? "text-accent-foreground" : ""}`}>{entry.prospectsAssigned}</TableCell>
-                  <TableCell className={`text-right font-semibold ${index === 0 ? "text-accent-foreground" : ""}`}>{entry.closedWon}</TableCell>
+                  <TableCell className={`text-right ${index === 0 ? "text-brand-teal-dark" : ""}`}>{entry.prospectsAssigned}</TableCell>
+                  <TableCell className={`text-right font-semibold ${index === 0 ? "text-brand-teal-dark" : ""}`}>{entry.closedWon}</TableCell>
                   <TableCell className={`text-right font-bold ${
                     index === 0 ? "text-brand-teal-dark" :
                     index === 1 ? "text-accent" :
@@ -161,7 +161,7 @@ export default function TeamLeaderboard() {
                   }`}>
                     ${(entry.revenueClosed / 1000).toFixed(1)}K
                   </TableCell>
-                  <TableCell className={`text-right ${index === 0 ? "text-accent-foreground" : ""}`}>{entry.winRate.toFixed(0)}%</TableCell>
+                  <TableCell className={`text-right ${index === 0 ? "text-brand-teal-dark" : ""}`}>{entry.winRate.toFixed(0)}%</TableCell>
                 </TableRow>
               ))}
               {leaderboard.length === 0 && !error && (
