@@ -91,11 +91,12 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
             <Badge 
               variant="outline" 
               className={`text-sm ${
-                prospect.status === "new" ? "bg-brand-purple/20 text-brand-purple-dark border-brand-purple" :
-                prospect.status === "contacted" ? "bg-accent/20 text-accent-foreground border-accent" :
-                prospect.status === "proposal" ? "bg-blue-100 text-blue-800 border-blue-300" :
-                prospect.status === "closed_won" ? "bg-green-100 text-green-900 border-green-400" :
-                "bg-gray-600 text-white border-gray-700"
+                prospect.status === "new" ? "bg-brand-purple text-white border-brand-purple" :
+                prospect.status === "contacted" ? "bg-accent text-black border-accent" :
+                prospect.status === "proposal" ? "bg-blue-600 text-white border-blue-400" :
+                prospect.status === "closed_won" ? "bg-green-600 text-white border-green-400" :
+                prospect.status === "closed_lost" ? "bg-red-600 text-white border-red-400" :
+                "bg-gray-700 text-gray-300 border-gray-500"
               }`}
             >
               Status: {prospect.status.replace("_", " ")}
@@ -103,9 +104,10 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
             <Badge 
               variant="outline" 
               className={`text-sm ${
-                prospect.priority === "hot" ? "bg-orange-100 text-orange-900 border-orange-400" :
-                prospect.priority === "warm" ? "bg-accent/10 text-accent-foreground border-accent" :
-                "bg-gray-200 text-gray-800 border-gray-400"
+                prospect.priority === "hot" ? "bg-orange-600 text-white border-orange-400" :
+                prospect.priority === "warm" ? "bg-accent text-black border-accent" :
+                prospect.priority === "cold" ? "bg-gray-600 text-white border-gray-400" :
+                "bg-gray-700 text-gray-300 border-gray-500"
               }`}
             >
               Priority: {prospect.priority}

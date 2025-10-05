@@ -125,10 +125,10 @@ export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) 
 
   const getPriorityColor = (priority: string): string => {
     const colors: Record<string, string> = {
-      hot: "border-orange-500 bg-orange-100",
-      warm: "border-accent bg-accent/5",
-      cold: "border-gray-400 bg-gray-100",
-      not_viable: "border-gray-600 bg-gray-300",
+      hot: "border-orange-600 bg-orange-600/10",
+      warm: "border-accent bg-accent/10",
+      cold: "border-gray-600 bg-gray-600/10",
+      not_viable: "border-gray-700 bg-gray-700/10",
     };
     return colors[priority] || "border-muted bg-muted/30";
   };
@@ -200,10 +200,12 @@ export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) 
                                       className={cn(
                                         "text-xs",
                                         prospect.priority === "hot" 
-                                          ? "bg-orange-100 text-orange-900 border-orange-400"
+                                          ? "bg-orange-600 text-white border-orange-400"
                                           : prospect.priority === "warm"
-                                          ? "bg-accent/10 text-accent-foreground border-accent"
-                                          : "bg-gray-200 text-gray-800 border-gray-400"
+                                          ? "bg-accent text-black border-accent"
+                                          : prospect.priority === "cold"
+                                          ? "bg-gray-600 text-white border-gray-400"
+                                          : "bg-gray-700 text-gray-300 border-gray-500"
                                       )}
                                     >
                                       {prospect.priority}

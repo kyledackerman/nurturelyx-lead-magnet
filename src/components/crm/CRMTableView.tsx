@@ -117,10 +117,10 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
 
   const getPriorityBadge = (priority: string, isOverdueRow: boolean) => {
     const variants: Record<string, string> = {
-      hot: "bg-orange-100 text-orange-900 border-orange-400",
-      warm: "bg-accent/10 text-accent-foreground border-accent",
-      cold: "bg-gray-200 text-gray-800 border-gray-400",
-      not_viable: "bg-gray-600 text-white line-through",
+      hot: "bg-orange-600 text-white border-orange-400",
+      warm: "bg-accent text-black border-accent",
+      cold: "bg-gray-600 text-white border-gray-400",
+      not_viable: "bg-gray-700 text-gray-300 line-through border-gray-500",
     };
     
     return (
@@ -132,12 +132,12 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
 
   const getStatusBadge = (status: string, isOverdueRow: boolean) => {
     const variants: Record<string, string> = {
-      new: "bg-brand-purple/20 text-brand-purple-dark border-brand-purple",
-      contacted: "bg-accent/20 text-accent-foreground border-accent",
-      proposal: "bg-blue-100 text-blue-800 border-blue-300",
-      closed_won: "bg-green-100 text-green-900 border-green-400",
-      closed_lost: "bg-red-100 text-red-800 border-red-300",
-      not_viable: "bg-gray-600 text-white border-gray-700 line-through",
+      new: "bg-brand-purple text-white border-brand-purple",
+      contacted: "bg-accent text-black border-accent",
+      proposal: "bg-blue-600 text-white border-blue-400",
+      closed_won: "bg-green-600 text-white border-green-400",
+      closed_lost: "bg-red-600 text-white border-red-400",
+      not_viable: "bg-gray-700 text-gray-300 border-gray-500 line-through",
     };
     
     return (
@@ -230,7 +230,7 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
                   className={cn("h-14 even:bg-muted/30", getRowClassName(prospect))}
                 >
                   <TableCell className="font-medium">{prospect.domain}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className={cn("text-right", prospect.monthlyRevenue > 5000 && "font-bold text-orange-900")}>
                     ${(prospect.monthlyRevenue / 1000).toFixed(1)}K
                   </TableCell>
                   {!compact && (
