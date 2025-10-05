@@ -1,5 +1,8 @@
 project_id = "apjlauuidcbvuplfcshg"
 
+[functions.get-leaderboard]
+verify_jwt = true
+
 [functions.categorize-reports]
 verify_jwt = true
 
