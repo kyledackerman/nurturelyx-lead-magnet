@@ -13,6 +13,7 @@ import { ExternalLink, Eye, Copy, ChevronUp, ChevronDown, AlertTriangle, Trendin
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { EditTransactionValueDialog } from "@/components/dialog/EditTransactionValueDialog";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ReportData {
   domain: string;
@@ -41,13 +42,13 @@ type SortKey = 'domain' | 'organicTraffic' | 'paidTraffic' | 'missedLeads' | 'mo
 type SortDirection = 'asc' | 'desc';
 
 export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminReportsTableProps) => {
+  const { user } = useAuth();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortKey>('monthlyRevenueLost');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortedReports, setSortedReports] = useState<ReportData[]>([]);
   const [crmReportIds, setCrmReportIds] = useState<Set<string>>(new Set());
   const [addingToCRM, setAddingToCRM] = useState<string | null>(null);
-  const adminUserId = "850078c3-247c-4904-9b9a-ebec624d4ef5";
 
   // Enhanced formatting functions
   const formatDate = (dateString: string) => {
@@ -302,7 +303,7 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
         </TableHeader>
         <TableBody>
           {sortedReports.map((report) => {
-            const isYourReport = report.user_id === adminUserId;
+            const isYourReport = report.user_id === user?.id;
             const highPriority = isHighPriority(report);
             
             return (

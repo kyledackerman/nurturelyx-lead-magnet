@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
 
     // Check if user is super admin
     const { data: isSuperAdmin } = await supabaseClient
-      .rpc('is_super_admin', { user_uuid: user.id })
+      .rpc('is_super_admin')
     
     if (!isSuperAdmin) {
       return new Response(
