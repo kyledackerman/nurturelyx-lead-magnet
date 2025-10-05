@@ -209,20 +209,37 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
       }
 
       console.log('Attempting to add report to CRM:', reportId);
+      console.log('Using access token:', session.access_token.substring(0, 20) + '...');
       
       const { data, error } = await supabase.functions.invoke('add-to-crm', {
-        body: { reportId }
+        body: { reportId },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
       console.log('Response from add-to-crm:', { data, error });
 
       if (error) {
         console.error('Error details:', error);
+        
+        // Handle specific error cases
+        if (error.message?.includes('401') || error.status === 401) {
+          toast.error("Session expired. Please refresh and try again.");
+          return;
+        }
+        
+        if (error.message?.includes('403') || error.status === 403) {
+          toast.error("Admin access required to add reports to CRM.");
+          return;
+        }
+        
         if (data?.alreadyExists) {
           toast.info("This report is already in the CRM system.");
-        } else {
-          throw error;
+          return;
         }
+        
+        throw error;
       } else {
         toast.success("Report successfully added to CRM system.");
         setCrmReportIds(prev => new Set(prev).add(reportId));
