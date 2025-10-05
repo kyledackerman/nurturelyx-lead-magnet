@@ -153,16 +153,26 @@ export default function CRMMetrics() {
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
         {metricCards.map((metric) => {
           const Icon = metric.icon;
+          const isHighValue = metric.title === "Hot Leads" || metric.title === "Overdue Tasks";
           return (
-            <Card key={metric.title} className="shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Icon className="h-4 w-4" />
+            <Card 
+              key={metric.title} 
+              className={isHighValue && metric.value > 0
+                ? "border-orange-200 bg-orange-50 shadow-sm hover:shadow-md transition-all"
+                : "shadow-sm hover:shadow-md transition-all"
+              }
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                <CardTitle className={`text-sm font-medium ${isHighValue && metric.value > 0 ? 'text-black' : 'text-muted-foreground'}`}>
                   {metric.title}
                 </CardTitle>
+                <Icon className={`h-4 w-4 ${isHighValue && metric.value > 0 ? 'text-orange-600' : 'text-muted-foreground'}`} />
               </CardHeader>
               <CardContent>
-                <div className={`text-2xl font-bold ${metric.className || ""}`}>
+                <div className={`text-4xl font-bold ${
+                  isHighValue && metric.value > 0 ? 'text-orange-700' : 
+                  metric.className || ""
+                }`}>
                   {metric.format(metric.value)}
                 </div>
               </CardContent>

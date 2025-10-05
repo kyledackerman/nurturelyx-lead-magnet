@@ -88,26 +88,50 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
         <div className="space-y-6 mt-6">
           {/* Status & Priority */}
           <div className="flex gap-2">
-            <Badge variant="outline" className="text-sm">
+            <Badge 
+              variant="outline" 
+              className={`text-sm ${
+                prospect.status === "new" ? "bg-brand-purple/20 text-brand-purple-dark border-brand-purple" :
+                prospect.status === "contacted" ? "bg-accent/20 text-accent-foreground border-accent" :
+                prospect.status === "proposal" ? "bg-blue-100 text-blue-800 border-blue-300" :
+                prospect.status === "closed_won" ? "bg-green-100 text-green-800 border-green-300" :
+                "bg-muted text-muted-foreground"
+              }`}
+            >
               Status: {prospect.status.replace("_", " ")}
             </Badge>
-            <Badge variant="outline" className="text-sm">
+            <Badge 
+              variant="outline" 
+              className={`text-sm ${
+                prospect.priority === "hot" ? "bg-orange-100 text-orange-800 border-orange-300" :
+                prospect.priority === "warm" ? "bg-accent/10 text-accent-foreground border-accent" :
+                "bg-muted text-muted-foreground"
+              }`}
+            >
               Priority: {prospect.priority}
             </Badge>
           </div>
 
           {/* Key Metrics */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 border rounded-lg">
+            <div className={`p-4 rounded-lg border shadow-sm ${
+              (reportData?.monthlyRevenueLost || 0) > 5000 
+                ? "border-orange-200 bg-orange-50" 
+                : "border"
+            }`}>
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <DollarSign className="h-4 w-4" />
+                <DollarSign className={`h-4 w-4 ${
+                  (reportData?.monthlyRevenueLost || 0) > 5000 ? "text-orange-600" : ""
+                }`} />
                 Monthly Revenue Lost
               </div>
-              <p className="text-2xl font-bold">
+              <p className={`text-2xl font-bold ${
+                (reportData?.monthlyRevenueLost || 0) > 5000 ? "text-orange-700" : ""
+              }`}>
                 ${(reportData?.monthlyRevenueLost / 1000 || 0).toFixed(1)}K
               </p>
             </div>
-            <div className="p-4 border rounded-lg">
+            <div className="p-4 border rounded-lg shadow-sm">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <TrendingUp className="h-4 w-4" />
                 Yearly Revenue Lost
@@ -116,7 +140,7 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
                 ${(reportData?.yearlyRevenueLost / 1000 || 0).toFixed(1)}K
               </p>
             </div>
-            <div className="p-4 border rounded-lg">
+            <div className="p-4 border rounded-lg shadow-sm">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <Users className="h-4 w-4" />
                 Missed Leads/Month
@@ -125,7 +149,7 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
                 {reportData?.missedLeads || 0}
               </p>
             </div>
-            <div className="p-4 border rounded-lg">
+            <div className="p-4 border rounded-lg shadow-sm">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <TrendingUp className="h-4 w-4" />
                 Organic Traffic

@@ -138,14 +138,32 @@ export default function TeamLeaderboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {leaderboard.map((entry) => (
-                <TableRow key={entry.userId}>
+              {leaderboard.map((entry, index) => (
+                <TableRow 
+                  key={entry.userId}
+                  className={
+                    index === 0 ? "border-l-4 border-l-orange-600 bg-orange-50" :
+                    index === 1 ? "border-l-4 border-l-accent bg-accent/5" :
+                    index === 2 ? "border-l-4 border-l-brand-purple bg-brand-purple/5" :
+                    ""
+                  }
+                >
                   <TableCell className="font-medium">
+                    {index < 3 && (
+                      <span className="mr-2">
+                        {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
+                      </span>
+                    )}
                     {entry.email.split("@")[0]}
                   </TableCell>
                   <TableCell className="text-right">{entry.prospectsAssigned}</TableCell>
-                  <TableCell className="text-right">{entry.closedWon}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right font-semibold">{entry.closedWon}</TableCell>
+                  <TableCell className={`text-right font-bold ${
+                    index === 0 ? "text-orange-700" :
+                    index === 1 ? "text-accent-foreground" :
+                    index === 2 ? "text-brand-purple-dark" :
+                    ""
+                  }`}>
                     ${(entry.revenueClosed / 1000).toFixed(1)}K
                   </TableCell>
                   <TableCell className="text-right">{entry.winRate.toFixed(0)}%</TableCell>

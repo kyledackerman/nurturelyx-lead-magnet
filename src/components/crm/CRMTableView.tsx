@@ -102,25 +102,29 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
   };
 
   const getRowClassName = (prospect: ProspectRow): string => {
+    const isHighValue = prospect.monthlyRevenue > 5000;
     if (isOverdue(prospect.nextFollowUp)) {
-      return "bg-red-600 hover:bg-red-700 text-white font-semibold";
+      return "bg-orange-50 hover:bg-orange-100 border-l-4 border-l-orange-600";
     }
     if (isDueToday(prospect.nextFollowUp)) {
-      return "bg-yellow-100 hover:bg-yellow-200 text-gray-900";
+      return "bg-accent/5 hover:bg-accent/10 border-l-4 border-l-accent";
+    }
+    if (isHighValue) {
+      return "border-l-4 border-l-orange-600";
     }
     return "hover:bg-muted/50";
   };
 
   const getPriorityBadge = (priority: string, isOverdueRow: boolean) => {
     const variants: Record<string, string> = {
-      hot: "bg-red-500 text-white",
-      warm: "bg-orange-400 text-white",
-      cold: "bg-blue-400 text-white",
+      hot: "bg-orange-100 text-orange-800 border-orange-300",
+      warm: "bg-accent/10 text-accent-foreground border-accent",
+      cold: "bg-muted text-muted-foreground border-border",
       not_viable: "bg-gray-400 text-white line-through",
     };
     
     return (
-      <Badge className={cn(variants[priority], isOverdueRow && "ring-2 ring-white")}>
+      <Badge variant="outline" className={cn(variants[priority], isOverdueRow && "ring-2 ring-orange-600")}>
         {priority}
       </Badge>
     );
@@ -128,16 +132,16 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
 
   const getStatusBadge = (status: string, isOverdueRow: boolean) => {
     const variants: Record<string, string> = {
-      new: "bg-blue-500 text-white",
-      contacted: "bg-purple-500 text-white",
-      proposal: "bg-yellow-500 text-white",
-      closed_won: "bg-green-500 text-white",
-      closed_lost: "bg-red-500 text-white",
-      not_viable: "bg-gray-500 text-white",
+      new: "bg-brand-purple/20 text-brand-purple-dark border-brand-purple",
+      contacted: "bg-accent/20 text-accent-foreground border-accent",
+      proposal: "bg-blue-100 text-blue-800 border-blue-300",
+      closed_won: "bg-green-100 text-green-800 border-green-300",
+      closed_lost: "bg-muted text-muted-foreground border-border",
+      not_viable: "bg-gray-300 text-gray-700 border-gray-400 line-through",
     };
     
     return (
-      <Badge className={cn(variants[status], isOverdueRow && "ring-2 ring-white")}>
+      <Badge variant="outline" className={cn(variants[status], isOverdueRow && "ring-2 ring-orange-600")}>
         {status.replace("_", " ")}
       </Badge>
     );

@@ -345,7 +345,7 @@ export default function TasksWidget() {
             {overdueTasks.map((task) => (
               <div
                 key={task.id}
-                className="p-4 border rounded-lg bg-red-50 border-red-200"
+                className="p-4 border-l-4 border-l-orange-600 rounded-lg bg-orange-50 border border-orange-200"
               >
                 <div className="flex items-start gap-2">
                   <Checkbox
@@ -353,13 +353,13 @@ export default function TasksWidget() {
                     className="mt-1"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{task.title}</p>
+                    <p className="font-medium text-sm text-black truncate">{task.title}</p>
                     {task.domain && (
                       <p className="text-xs text-muted-foreground truncate">
                         {task.domain}
                       </p>
                     )}
-                    <div className="flex items-center gap-1 mt-1 text-xs text-red-600">
+                    <div className="flex items-center gap-1 mt-1 text-xs text-orange-700 font-medium">
                       <AlertCircle className="h-3 w-3" />
                       {format(new Date(task.due_date), "MMM d, h:mm a")}
                     </div>
@@ -378,7 +378,7 @@ export default function TasksWidget() {
             {dueTodayTasks.map((task) => (
               <div
                 key={task.id}
-                className="p-4 border rounded-lg bg-yellow-50 border-yellow-200"
+                className="p-4 border-l-4 border-l-accent rounded-lg bg-accent/5 border border-accent/30"
               >
                 <div className="flex items-start gap-2">
                   <Checkbox
@@ -392,7 +392,7 @@ export default function TasksWidget() {
                         {task.domain}
                       </p>
                     )}
-                    <div className="flex items-center gap-1 mt-1 text-xs text-yellow-700">
+                    <div className="flex items-center gap-1 mt-1 text-xs font-medium">
                       <Calendar className="h-3 w-3" />
                       {format(new Date(task.due_date), "h:mm a")}
                     </div>

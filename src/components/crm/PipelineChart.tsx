@@ -4,12 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 const STATUS_COLORS = {
-  new: "#3b82f6",
-  contacted: "#8b5cf6",
-  proposal: "#f59e0b",
+  new: "#8B5CF6",
+  contacted: "#81e6d9",
+  proposal: "#3b82f6",
   closed_won: "#10b981",
-  closed_lost: "#ef4444",
-  not_viable: "#6b7280",
+  closed_lost: "#6b7280",
+  not_viable: "#9ca3af",
 };
 
 const STATUS_LABELS = {

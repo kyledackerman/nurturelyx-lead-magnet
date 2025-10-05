@@ -6,7 +6,7 @@ export default function CRMHeader() {
   const navigate = useNavigate();
 
   return (
-    <div className="border-b bg-card">
+    <div className="border-b bg-background">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -20,7 +20,7 @@ export default function CRMHeader() {
               Back to Admin
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">CRM Dashboard</h1>
+              <h1 className="text-2xl font-bold">CRM Dashboard</h1>
               <p className="text-sm text-muted-foreground">
                 Manage your sales pipeline and convert prospects
               </p>

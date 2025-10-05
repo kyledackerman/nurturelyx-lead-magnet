@@ -24,12 +24,12 @@ interface CRMKanbanViewProps {
 }
 
 const STATUS_COLUMNS = [
-  { id: "new", label: "New", color: "bg-blue-500" },
-  { id: "contacted", label: "Contacted", color: "bg-purple-500" },
-  { id: "proposal", label: "Proposal", color: "bg-yellow-500" },
-  { id: "closed_won", label: "Won", color: "bg-green-500" },
-  { id: "closed_lost", label: "Lost", color: "bg-red-500" },
-  { id: "not_viable", label: "Not Viable", color: "bg-gray-500" },
+  { id: "new", label: "New", color: "bg-brand-purple/20", borderColor: "border-brand-purple" },
+  { id: "contacted", label: "Contacted", color: "bg-accent/20", borderColor: "border-accent" },
+  { id: "proposal", label: "Proposal", color: "bg-blue-100", borderColor: "border-blue-300" },
+  { id: "closed_won", label: "Won", color: "bg-green-100", borderColor: "border-green-300" },
+  { id: "closed_lost", label: "Lost", color: "bg-muted", borderColor: "border-border" },
+  { id: "not_viable", label: "Not Viable", color: "bg-gray-200", borderColor: "border-gray-400" },
 ];
 
 export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) {
@@ -125,12 +125,12 @@ export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) 
 
   const getPriorityColor = (priority: string): string => {
     const colors: Record<string, string> = {
-      hot: "bg-red-500",
-      warm: "bg-orange-400",
-      cold: "bg-blue-400",
-      not_viable: "bg-gray-400",
+      hot: "border-orange-500 bg-orange-50",
+      warm: "border-accent bg-accent/5",
+      cold: "border-muted bg-muted/30",
+      not_viable: "border-gray-400 bg-gray-200",
     };
-    return colors[priority] || "bg-gray-400";
+    return colors[priority] || "border-muted bg-muted/30";
   };
 
   if (loading) {
@@ -147,10 +147,9 @@ export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) 
           return (
             <div key={column.id} className="flex-shrink-0 w-80">
               <Card>
-                <CardHeader className="pb-3">
+                <CardHeader className={`pb-3 border-l-4 ${column.borderColor} ${column.color}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className={cn("w-3 h-3 rounded-full", column.color)} />
                       <CardTitle className="text-sm font-medium">
                         {column.label}
                       </CardTitle>
@@ -185,9 +184,10 @@ export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) 
                                 {...provided.dragHandleProps}
                                 onClick={() => onSelectProspect(prospect.id)}
                                 className={cn(
-                                  "p-3 bg-card border rounded-lg cursor-pointer transition-shadow hover:shadow-md",
+                                  "p-3 bg-card border-l-4 rounded-lg cursor-pointer transition-all shadow-sm hover:shadow-md",
                                   snapshot.isDragging && "shadow-lg",
-                                  isOverdue(prospect.nextFollowUp) && "border-red-500 border-2"
+                                  getPriorityColor(prospect.priority),
+                                  isOverdue(prospect.nextFollowUp) && "ring-2 ring-orange-600"
                                 )}
                               >
                                 <div className="space-y-2">
@@ -196,17 +196,23 @@ export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) 
                                       {prospect.domain}
                                     </p>
                                     <Badge
+                                      variant="outline"
                                       className={cn(
                                         "text-xs",
-                                        getPriorityColor(prospect.priority),
-                                        "text-white"
+                                        prospect.priority === "hot" 
+                                          ? "bg-orange-100 text-orange-800 border-orange-300"
+                                          : prospect.priority === "warm"
+                                          ? "bg-accent/10 text-accent-foreground border-accent"
+                                          : "bg-muted text-muted-foreground"
                                       )}
                                     >
                                       {prospect.priority}
                                     </Badge>
                                   </div>
                                   
-                                  <p className="text-sm font-semibold">
+                                  <p className={`text-sm font-semibold ${
+                                    prospect.monthlyRevenue > 5000 ? "text-orange-700" : ""
+                                  }`}>
                                     ${(prospect.monthlyRevenue / 1000).toFixed(1)}K/mo
                                   </p>
 
@@ -215,7 +221,7 @@ export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) 
                                       className={cn(
                                         "text-xs",
                                         isOverdue(prospect.nextFollowUp)
-                                          ? "text-red-600 font-bold"
+                                          ? "text-orange-700 font-bold"
                                           : "text-muted-foreground"
                                       )}
                                     >
