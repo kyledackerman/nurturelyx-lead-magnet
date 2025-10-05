@@ -1630,20 +1630,20 @@ const AdminDashboard = () => {
               </Card>
 
               {/* Card #6: Hot Streak */}
-              <Card className={hotStreak.isActive ? 'border-orange-300 bg-gradient-to-br from-orange-50 to-red-50' : ''}>
+              <Card className={hotStreak.isActive ? 'border-2 border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.5)] animate-pulse' : ''}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
                   <CardTitle className="text-sm font-medium">Hot Streak</CardTitle>
-                  <Flame className={`h-4 w-4 ${hotStreak.isActive ? 'text-red-600 animate-pulse drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]' : 'text-muted-foreground'}`} />
+                  <Flame className={`${hotStreak.isActive ? 'h-5 w-5 text-orange-500 animate-pulse drop-shadow-[0_0_12px_rgba(249,115,22,0.8)]' : 'h-4 w-4 text-muted-foreground'}`} />
                 </CardHeader>
                 <CardContent className="p-3 pt-0">
-                  <div className={`text-4xl font-bold ${hotStreak.isActive ? 'text-red-600' : ''}`}>
+                  <div className={`text-4xl font-bold ${hotStreak.isActive ? 'text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]' : ''}`}>
                     {hotStreak.currentStreak} {hotStreak.isActive && '🔥'}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {hotStreak.currentStreak === 1 ? 'day' : 'days'} • Best: {hotStreak.longestStreak} days
                   </p>
                   {hotStreak.isActive && (
-                    <p className="text-xs text-red-600 font-bold animate-pulse mt-0.5">
+                    <p className="text-xs text-orange-500 font-bold animate-pulse mt-0.5">
                       🚀 Streak Active!
                     </p>
                   )}
