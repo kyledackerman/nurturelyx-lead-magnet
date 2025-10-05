@@ -23,16 +23,26 @@ serve(async (req) => {
       }
     );
 
-    // Get the authenticated user
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    // Extract JWT from Authorization header and get the authenticated user
+    const authHeader = req.headers.get('Authorization') || '';
+    const jwt = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+    if (!jwt) {
+      console.error('Missing or invalid Authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: Missing token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { data: userResult, error: userError } = await supabase.auth.getUser(jwt);
+    const user = userResult?.user;
 
     console.log('Authentication check:', { 
       hasUser: !!user, 
       userId: user?.id,
-      userError: userError?.message 
+      userError: userError?.message,
+      tokenPrefix: jwt.substring(0, 12) + '...'
     });
 
     if (userError || !user) {
@@ -44,7 +54,7 @@ serve(async (req) => {
     }
 
     // Check if user is an admin
-    const { data: isAdmin, error: adminCheckError } = await supabase.rpc('is_admin');
+    const { data: isAdmin, error: adminCheckError } = await supabase.rpc('is_admin', { user_uuid: user.id });
 
     console.log('Admin check result:', { isAdmin, adminCheckError: adminCheckError?.message });
 
