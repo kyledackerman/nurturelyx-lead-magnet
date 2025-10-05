@@ -117,7 +117,12 @@ export default function CRMMetrics() {
       title: "Pipeline Value",
       value: metrics?.pipelineValue || 0,
       icon: DollarSign,
-      format: (v: number) => `$${Math.round(v / 1000)}K`,
+      format: (v: number) => {
+        if (v >= 1000000000) return `$${(v / 1000000000).toFixed(1)}B`;
+        if (v >= 1000000) return `$${(v / 1000000).toFixed(1)}M`;
+        if (v >= 1000) return `$${(v / 1000).toFixed(1)}K`;
+        return `$${Math.round(v)}`;
+      },
     },
     {
       title: "Conversion Rate",
