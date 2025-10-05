@@ -14,7 +14,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon } from "lucide-react";
+import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon, Award, Crown, AlertTriangle, Briefcase, Flame, Filter, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { ComposedChart, Area, Line, Bar, BarChart, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
@@ -188,6 +188,16 @@ const AdminDashboard = () => {
   const [generatedReport, setGeneratedReport] = useState<ReportData | null>(null);
   const [reportFormData, setReportFormData] = useState<FormData | null>(null);
   const [reportApiError, setReportApiError] = useState<string | null>(null);
+
+  // Business Insights State
+  const [peakDay, setPeakDay] = useState({ date: '', count: 0, percentageOfTotal: 0 });
+  const [qualityScore, setQualityScore] = useState({ highImpactCount: 0, totalCount: 0, percentage: 0 });
+  const [topRevenueDomain, setTopRevenueDomain] = useState({ domain: '', yearlyRevenueLost: 0, monthlyRevenueLost: 0 });
+  const [topLeadsDomain, setTopLeadsDomain] = useState({ domain: '', missedLeads: 0 });
+  const [avgDealSize, setAvgDealSize] = useState({ avgDealSize: 0, medianDealSize: 0 });
+  const [hotStreak, setHotStreak] = useState({ currentStreak: 0, longestStreak: 0, isActive: false });
+  const [conversionHealth, setConversionHealth] = useState({ conversionRate: 0, reportsInCRM: 0, totalReports: 0 });
+  const [marketOpportunity, setMarketOpportunity] = useState({ totalOpportunity: 0, activeProspects: 0, avgPerProspect: 0 });
   useEffect(() => {
     fetchReports();
     fetchStats();
@@ -200,6 +210,14 @@ const AdminDashboard = () => {
     fetchHourlyHeatmap();
     fetchTopReports();
     fetchRecentViews();
+    fetchPeakPerformanceDay();
+    fetchQualityScore();
+    fetchTopRevenueDomain();
+    fetchTopLeadsDomain();
+    fetchAverageDealSize();
+    fetchHotStreak();
+    fetchConversionRate();
+    fetchTotalMarketOpportunity();
 
     // Set up real-time subscription for new reports
     const channel = supabase
@@ -223,6 +241,14 @@ const AdminDashboard = () => {
           fetchHourlyHeatmap();
           fetchTopReports();
           fetchRecentViews();
+          fetchPeakPerformanceDay();
+          fetchQualityScore();
+          fetchTopRevenueDomain();
+          fetchTopLeadsDomain();
+          fetchAverageDealSize();
+          fetchHotStreak();
+          fetchConversionRate();
+          fetchTotalMarketOpportunity();
           setLastUpdated(new Date());
         }
       )
@@ -240,6 +266,14 @@ const AdminDashboard = () => {
       fetchHourlyHeatmap();
       fetchTopReports();
       fetchRecentViews();
+      fetchPeakPerformanceDay();
+      fetchQualityScore();
+      fetchTopRevenueDomain();
+      fetchTopLeadsDomain();
+      fetchAverageDealSize();
+      fetchHotStreak();
+      fetchConversionRate();
+      fetchTotalMarketOpportunity();
       setLastUpdated(new Date());
     }, 60000);
 
@@ -801,6 +835,320 @@ const AdminDashboard = () => {
     }
   };
 
+  // Helper functions for formatting
+  const formatLargeNumber = (num: number): string => {
+    if (num >= 1000000) return `$${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `$${(num / 1000).toFixed(0)}K`;
+    return `$${num.toLocaleString()}`;
+  };
+
+  const formatDate = (dateStr: string): string => {
+    return new Date(dateStr).toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
+
+  const truncateDomain = (domain: string, maxLength: number = 25): string => {
+    return domain.length > maxLength ? domain.substring(0, maxLength) + '...' : domain;
+  };
+
+  // Business Insights Fetch Functions
+  const fetchPeakPerformanceDay = async () => {
+    try {
+      const { data: allReports, error } = await supabase
+        .from('reports')
+        .select('created_at');
+      
+      if (error) throw error;
+
+      const dateCounts = new Map<string, number>();
+      allReports?.forEach(report => {
+        const date = new Date(report.created_at).toISOString().split('T')[0];
+        dateCounts.set(date, (dateCounts.get(date) || 0) + 1);
+      });
+
+      let maxCount = 0;
+      let peakDate = '';
+      dateCounts.forEach((count, date) => {
+        if (count > maxCount) {
+          maxCount = count;
+          peakDate = date;
+        }
+      });
+
+      const totalReports = allReports?.length || 1;
+      const percentageOfTotal = (maxCount / totalReports) * 100;
+
+      setPeakDay({
+        date: peakDate,
+        count: maxCount,
+        percentageOfTotal: Math.round(percentageOfTotal)
+      });
+    } catch (error) {
+      console.error('Error fetching peak performance day:', error);
+    }
+  };
+
+  const fetchQualityScore = async () => {
+    try {
+      const { data: allReports, error } = await supabase
+        .from('reports')
+        .select('report_data');
+      
+      if (error) throw error;
+
+      let highImpactCount = 0;
+      const totalCount = allReports?.length || 0;
+
+      allReports?.forEach(report => {
+        const reportData = report.report_data as any;
+        const yearlyRevenueLost = reportData?.yearlyRevenueLost || 0;
+        const missedLeads = reportData?.missedLeads || 0;
+        
+        if (yearlyRevenueLost > 500000 || missedLeads > 1000) {
+          highImpactCount++;
+        }
+      });
+
+      const percentage = totalCount > 0 ? (highImpactCount / totalCount) * 100 : 0;
+
+      setQualityScore({
+        highImpactCount,
+        totalCount,
+        percentage: Math.round(percentage)
+      });
+    } catch (error) {
+      console.error('Error fetching quality score:', error);
+    }
+  };
+
+  const fetchTopRevenueDomain = async () => {
+    try {
+      const { data: reports, error } = await supabase
+        .from('reports')
+        .select('domain, report_data')
+        .order('id', { ascending: false })
+        .limit(1000);
+      
+      if (error) throw error;
+
+      let topDomain = { domain: '', yearlyRevenueLost: 0, monthlyRevenueLost: 0 };
+
+      reports?.forEach(report => {
+        const reportData = report.report_data as any;
+        const yearlyRevenueLost = reportData?.yearlyRevenueLost || 0;
+        const monthlyRevenueLost = reportData?.monthlyRevenueLost || 0;
+        
+        if (yearlyRevenueLost > topDomain.yearlyRevenueLost) {
+          topDomain = {
+            domain: report.domain,
+            yearlyRevenueLost,
+            monthlyRevenueLost
+          };
+        }
+      });
+
+      setTopRevenueDomain(topDomain);
+    } catch (error) {
+      console.error('Error fetching top revenue domain:', error);
+    }
+  };
+
+  const fetchTopLeadsDomain = async () => {
+    try {
+      const { data: reports, error } = await supabase
+        .from('reports')
+        .select('domain, report_data')
+        .order('id', { ascending: false })
+        .limit(1000);
+      
+      if (error) throw error;
+
+      let topDomain = { domain: '', missedLeads: 0 };
+
+      reports?.forEach(report => {
+        const reportData = report.report_data as any;
+        const missedLeads = reportData?.missedLeads || 0;
+        
+        if (missedLeads > topDomain.missedLeads) {
+          topDomain = {
+            domain: report.domain,
+            missedLeads
+          };
+        }
+      });
+
+      setTopLeadsDomain(topDomain);
+    } catch (error) {
+      console.error('Error fetching top leads domain:', error);
+    }
+  };
+
+  const fetchAverageDealSize = async () => {
+    try {
+      const { data: reports, error } = await supabase
+        .from('reports')
+        .select('report_data');
+      
+      if (error) throw error;
+
+      const revenues: number[] = [];
+      reports?.forEach(report => {
+        const reportData = report.report_data as any;
+        const yearlyRevenueLost = reportData?.yearlyRevenueLost || 0;
+        if (yearlyRevenueLost > 0) {
+          revenues.push(yearlyRevenueLost);
+        }
+      });
+
+      const avgDealSize = revenues.length > 0 
+        ? revenues.reduce((sum, val) => sum + val, 0) / revenues.length 
+        : 0;
+
+      const sortedRevenues = [...revenues].sort((a, b) => a - b);
+      const medianDealSize = sortedRevenues.length > 0
+        ? sortedRevenues[Math.floor(sortedRevenues.length / 2)]
+        : 0;
+
+      setAvgDealSize({
+        avgDealSize: Math.round(avgDealSize),
+        medianDealSize: Math.round(medianDealSize)
+      });
+    } catch (error) {
+      console.error('Error fetching average deal size:', error);
+    }
+  };
+
+  const fetchHotStreak = async () => {
+    try {
+      const { data: allReports, error } = await supabase
+        .from('reports')
+        .select('created_at')
+        .order('created_at', { ascending: true });
+      
+      if (error) throw error;
+
+      const dates = new Set<string>();
+      allReports?.forEach(report => {
+        const date = new Date(report.created_at).toISOString().split('T')[0];
+        dates.add(date);
+      });
+
+      const sortedDates = Array.from(dates).sort();
+      
+      let currentStreak = 0;
+      let longestStreak = 0;
+      let tempStreak = 0;
+      let prevDate: Date | null = null;
+
+      sortedDates.forEach(dateStr => {
+        const date = new Date(dateStr);
+        
+        if (prevDate) {
+          const dayDiff = Math.floor((date.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+          if (dayDiff === 1) {
+            tempStreak++;
+          } else {
+            if (tempStreak > longestStreak) {
+              longestStreak = tempStreak;
+            }
+            tempStreak = 1;
+          }
+        } else {
+          tempStreak = 1;
+        }
+        
+        prevDate = date;
+      });
+
+      if (tempStreak > longestStreak) {
+        longestStreak = tempStreak;
+      }
+
+      // Check if streak is still active (last report was today or yesterday)
+      const today = new Date().toISOString().split('T')[0];
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      const lastDate = sortedDates[sortedDates.length - 1];
+      const isActive = lastDate === today || lastDate === yesterday;
+      
+      if (isActive) {
+        currentStreak = tempStreak;
+      } else {
+        currentStreak = 0;
+      }
+
+      setHotStreak({
+        currentStreak,
+        longestStreak,
+        isActive
+      });
+    } catch (error) {
+      console.error('Error fetching hot streak:', error);
+    }
+  };
+
+  const fetchConversionRate = async () => {
+    try {
+      const { data: allReports, error: reportsError } = await supabase
+        .from('reports')
+        .select('id', { count: 'exact' });
+      
+      if (reportsError) throw reportsError;
+
+      const { data: crmReports, error: crmError } = await supabase
+        .from('prospect_activities')
+        .select('report_id', { count: 'exact' });
+      
+      if (crmError) throw crmError;
+
+      const totalReports = allReports?.length || 0;
+      const reportsInCRM = new Set(crmReports?.map(p => p.report_id) || []).size;
+      const conversionRate = totalReports > 0 ? (reportsInCRM / totalReports) * 100 : 0;
+
+      setConversionHealth({
+        conversionRate: Math.round(conversionRate),
+        reportsInCRM,
+        totalReports
+      });
+    } catch (error) {
+      console.error('Error fetching conversion rate:', error);
+    }
+  };
+
+  const fetchTotalMarketOpportunity = async () => {
+    try {
+      const { data: allReports, error } = await supabase
+        .from('reports')
+        .select('report_data');
+      
+      if (error) throw error;
+
+      let totalOpportunity = 0;
+      let activeProspects = 0;
+
+      allReports?.forEach(report => {
+        const reportData = report.report_data as any;
+        const yearlyRevenueLost = reportData?.yearlyRevenueLost || 0;
+        if (yearlyRevenueLost > 0) {
+          totalOpportunity += yearlyRevenueLost;
+          activeProspects++;
+        }
+      });
+
+      const avgPerProspect = activeProspects > 0 ? totalOpportunity / activeProspects : 0;
+
+      setMarketOpportunity({
+        totalOpportunity: Math.round(totalOpportunity),
+        activeProspects,
+        avgPerProspect: Math.round(avgPerProspect)
+      });
+    } catch (error) {
+      console.error('Error fetching total market opportunity:', error);
+    }
+  };
+
   const fetchChartData = async (period: 'weekly' | 'monthly' | 'yearly') => {
     try {
       // First, get all reports with report_data
@@ -1093,10 +1441,27 @@ const AdminDashboard = () => {
               </p>
             </div>
             <Button onClick={() => {
-            fetchReports();
-            fetchStats();
-            fetchChartData(timePeriod);
-          }} disabled={loading}>
+              fetchReports();
+              fetchStats();
+              fetchChartData(timePeriod);
+              fetchViewsChartData(viewsTimePeriod);
+              fetchTrafficStats();
+              fetchMostVisitedPages();
+              fetchShareDistribution();
+              fetchHourlyHeatmap();
+              fetchTopReports();
+              fetchRecentViews();
+              fetchPeakPerformanceDay();
+              fetchQualityScore();
+              fetchTopRevenueDomain();
+              fetchTopLeadsDomain();
+              fetchAverageDealSize();
+              fetchHotStreak();
+              fetchConversionRate();
+              fetchTotalMarketOpportunity();
+              setLastUpdated(new Date());
+              toast.success('Data refreshed!');
+            }} disabled={loading}>
               Refresh Data
             </Button>
           </div>
@@ -1160,6 +1525,168 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
+          </div>
+
+          {/* Business Insights Section - 8 New Cards */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Business Insights</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              
+              {/* Card #1: Peak Performance Day */}
+              <Card className="border-blue-200 bg-blue-50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                  <CardTitle className="text-sm font-medium text-black">Peak Performance Day</CardTitle>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                    <Trophy className="h-3 w-3 text-blue-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-700">
+                    {peakDay.date ? formatDate(peakDay.date) : 'N/A'}
+                  </div>
+                  <p className="text-xs text-blue-600 mt-1">
+                    {peakDay.count} reports ({peakDay.percentageOfTotal}% of all time)
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Card #2: Quality Score */}
+              <Card className={`border-2 ${qualityScore.percentage > 30 ? 'border-green-200 bg-green-50' : qualityScore.percentage > 20 ? 'border-yellow-200 bg-yellow-50' : 'border-orange-200 bg-orange-50'}`}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                  <CardTitle className="text-sm font-medium text-black">Quality Score</CardTitle>
+                  <Award className={`h-4 w-4 ${qualityScore.percentage > 30 ? 'text-green-600' : qualityScore.percentage > 20 ? 'text-yellow-600' : 'text-orange-600'}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-4xl font-bold ${qualityScore.percentage > 30 ? 'text-green-700' : qualityScore.percentage > 20 ? 'text-yellow-700' : 'text-orange-700'}`}>
+                    {qualityScore.percentage}%
+                  </div>
+                  <p className={`text-xs mt-1 ${qualityScore.percentage > 30 ? 'text-green-600' : qualityScore.percentage > 20 ? 'text-yellow-600' : 'text-orange-600'}`}>
+                    {qualityScore.highImpactCount} of {qualityScore.totalCount} are high-impact
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    &gt;$500K yearly or &gt;1K leads/mo
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Card #3: Biggest Revenue Opportunity */}
+              <Card className="border-purple-300 bg-gradient-to-br from-purple-50 to-pink-50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                  <CardTitle className="text-sm font-medium text-black">Biggest Revenue Opportunity</CardTitle>
+                  <div className="flex items-center gap-1">
+                    <Crown className="h-4 w-4 text-purple-600" />
+                    <DollarSign className="h-3 w-3 text-purple-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-lg font-bold text-purple-700 truncate" title={topRevenueDomain.domain}>
+                    {topRevenueDomain.domain ? truncateDomain(topRevenueDomain.domain, 20) : 'N/A'}
+                  </div>
+                  <p className="text-xs text-purple-600 mt-1 font-semibold">
+                    {formatLargeNumber(topRevenueDomain.yearlyRevenueLost)}/year lost
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    ${topRevenueDomain.monthlyRevenueLost.toLocaleString()}/month
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Card #4: Biggest Lead Volume Loss */}
+              <Card className="border-red-200 bg-red-50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                  <CardTitle className="text-sm font-medium text-black">Biggest Lead Volume Loss</CardTitle>
+                  <div className="flex items-center gap-1">
+                    <UsersIcon className="h-4 w-4 text-red-600" />
+                    <AlertTriangle className="h-3 w-3 text-red-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-lg font-bold text-red-700 truncate" title={topLeadsDomain.domain}>
+                    {topLeadsDomain.domain ? truncateDomain(topLeadsDomain.domain, 20) : 'N/A'}
+                  </div>
+                  <p className="text-xs text-red-600 mt-1 font-semibold">
+                    {topLeadsDomain.missedLeads.toLocaleString()} monthly missed leads
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Card #5: Average Deal Size */}
+              <Card className="border-teal-200 bg-teal-50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                  <CardTitle className="text-sm font-medium text-black">Average Deal Size</CardTitle>
+                  <Briefcase className="h-4 w-4 text-teal-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-teal-700">
+                    {formatLargeNumber(avgDealSize.avgDealSize)}/year
+                  </div>
+                  <p className="text-xs text-teal-600 mt-1">
+                    Median: {formatLargeNumber(avgDealSize.medianDealSize)}
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Card #6: Hot Streak */}
+              <Card className={`${hotStreak.isActive ? 'border-orange-300 bg-gradient-to-br from-orange-50 to-red-50 animate-pulse' : 'border-gray-200 bg-gray-50'}`}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                  <CardTitle className="text-sm font-medium text-black">Hot Streak</CardTitle>
+                  <Flame className={`h-4 w-4 ${hotStreak.isActive ? 'text-orange-600' : 'text-gray-400'}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-4xl font-bold ${hotStreak.isActive ? 'text-orange-700' : 'text-gray-600'}`}>
+                    {hotStreak.currentStreak} {hotStreak.isActive && '🔥'}
+                  </div>
+                  <p className={`text-xs mt-1 ${hotStreak.isActive ? 'text-orange-600' : 'text-muted-foreground'}`}>
+                    {hotStreak.currentStreak === 1 ? 'day' : 'days'} • Best: {hotStreak.longestStreak} days
+                  </p>
+                  {hotStreak.isActive && (
+                    <p className="text-xs text-orange-700 font-semibold mt-0.5">
+                      🚀 Streak Active!
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Card #7: Conversion Funnel Health */}
+              <Card className={`border-2 ${conversionHealth.conversionRate > 50 ? 'border-green-200 bg-green-50' : conversionHealth.conversionRate > 25 ? 'border-yellow-200 bg-yellow-50' : 'border-red-200 bg-red-50'}`}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                  <CardTitle className="text-sm font-medium text-black">Conversion Funnel</CardTitle>
+                  <Filter className={`h-4 w-4 ${conversionHealth.conversionRate > 50 ? 'text-green-600' : conversionHealth.conversionRate > 25 ? 'text-yellow-600' : 'text-red-600'}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-4xl font-bold ${conversionHealth.conversionRate > 50 ? 'text-green-700' : conversionHealth.conversionRate > 25 ? 'text-yellow-700' : 'text-red-700'}`}>
+                    {conversionHealth.conversionRate}%
+                  </div>
+                  <p className={`text-xs mt-1 ${conversionHealth.conversionRate > 50 ? 'text-green-600' : conversionHealth.conversionRate > 25 ? 'text-yellow-600' : 'text-red-600'}`}>
+                    {conversionHealth.reportsInCRM} of {conversionHealth.totalReports} in CRM
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Card #8: Total Market Opportunity */}
+              <Card className="border-purple-300 bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                  <CardTitle className="text-sm font-medium text-black">Total Market Opportunity</CardTitle>
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className="h-4 w-4 text-purple-600" />
+                    <Globe className="h-3 w-3 text-purple-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-purple-700">
+                    {formatLargeNumber(marketOpportunity.totalOpportunity)}
+                  </div>
+                  <p className="text-xs text-purple-600 mt-1 font-semibold">
+                    Avg: {formatLargeNumber(marketOpportunity.avgPerProspect)}/prospect
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {marketOpportunity.activeProspects} active prospects
+                  </p>
+                </CardContent>
+              </Card>
+
+            </div>
           </div>
 
           {/* Analytics Section with Shared Time Period Toggle */}
