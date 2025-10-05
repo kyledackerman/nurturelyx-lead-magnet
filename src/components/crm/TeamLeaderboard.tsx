@@ -137,7 +137,7 @@ export default function TeamLeaderboard() {
                 <TableRow 
                   key={entry.userId}
                   className={
-                    index === 0 ? "border-l-4 border-l-orange-600 bg-orange-50" :
+                    index === 0 ? "border-l-4 border-l-brand-teal bg-brand-teal/10" :
                     index === 1 ? "border-l-4 border-l-accent bg-accent/5" :
                     index === 2 ? "border-l-4 border-l-brand-purple bg-brand-purple/5" :
                     ""
@@ -154,7 +154,7 @@ export default function TeamLeaderboard() {
                   <TableCell className={`text-right ${index === 0 ? "text-accent-foreground" : ""}`}>{entry.prospectsAssigned}</TableCell>
                   <TableCell className={`text-right font-semibold ${index === 0 ? "text-accent-foreground" : ""}`}>{entry.closedWon}</TableCell>
                   <TableCell className={`text-right font-bold ${
-                    index === 0 ? "text-orange-700" :
+                    index === 0 ? "text-brand-teal-dark" :
                     index === 1 ? "text-accent" :
                     index === 2 ? "text-brand-purple-dark" :
                     ""
