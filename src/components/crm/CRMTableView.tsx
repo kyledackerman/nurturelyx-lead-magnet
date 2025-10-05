@@ -29,12 +29,13 @@ interface ProspectRow {
 interface CRMTableViewProps {
   onSelectProspect: (id: string) => void;
   compact?: boolean;
+  view?: 'active' | 'closed';
 }
 
 type SortKey = 'domain' | 'monthlyRevenue' | 'trafficTier' | 'priority' | 'status' | 'nextFollowUp';
 type SortDirection = 'asc' | 'desc';
 
-export default function CRMTableView({ onSelectProspect, compact = false }: CRMTableViewProps) {
+export default function CRMTableView({ onSelectProspect, compact = false, view = 'active' }: CRMTableViewProps) {
   const [prospects, setProspects] = useState<ProspectRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -70,7 +71,7 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
 
   const fetchProspects = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("prospect_activities")
         .select(`
           id,
@@ -83,8 +84,17 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
             domain,
             report_data
           )
-        `)
-        .order("next_follow_up", { ascending: true, nullsFirst: false });
+        `);
+
+      // Filter based on view
+      if (view === 'closed') {
+        query = query.in('status', ['closed_won', 'closed_lost']);
+      } else {
+        // Default to active pipeline
+        query = query.in('status', ['new', 'contacted', 'proposal']);
+      }
+
+      const { data, error } = await query.order("next_follow_up", { ascending: true, nullsFirst: false });
 
       if (error) throw error;
 
@@ -373,12 +383,18 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="new">New</SelectItem>
-              <SelectItem value="contacted">Contacted</SelectItem>
-              <SelectItem value="proposal">Proposal</SelectItem>
-              <SelectItem value="closed_won">Closed Won</SelectItem>
-              <SelectItem value="closed_lost">Closed Lost</SelectItem>
-              <SelectItem value="not_viable">Not Viable</SelectItem>
+              {view === 'closed' ? (
+                <>
+                  <SelectItem value="closed_won">Closed Won</SelectItem>
+                  <SelectItem value="closed_lost">Closed Lost</SelectItem>
+                </>
+              ) : (
+                <>
+                  <SelectItem value="new">New</SelectItem>
+                  <SelectItem value="contacted">Contacted</SelectItem>
+                  <SelectItem value="proposal">Proposal</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -454,9 +470,13 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="z-50 bg-popover">
-                        <SelectItem value="new">New</SelectItem>
-                        <SelectItem value="contacted">Contacted</SelectItem>
-                        <SelectItem value="proposal">Proposal</SelectItem>
+                        {view === 'active' && (
+                          <>
+                            <SelectItem value="new">New</SelectItem>
+                            <SelectItem value="contacted">Contacted</SelectItem>
+                            <SelectItem value="proposal">Proposal</SelectItem>
+                          </>
+                        )}
                         <SelectItem value="closed_won">Closed Won</SelectItem>
                         <SelectItem value="closed_lost">Closed Lost</SelectItem>
                         <SelectItem value="not_viable">Not Viable</SelectItem>
