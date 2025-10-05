@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.update-report-transaction-value]
 verify_jwt = true
+
+[functions.add-to-crm]
+verify_jwt = true

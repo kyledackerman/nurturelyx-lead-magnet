@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Eye, Copy, ChevronUp, ChevronDown, AlertTriangle, TrendingUp, Download } from "lucide-react";
+import { ExternalLink, Eye, Copy, ChevronUp, ChevronDown, AlertTriangle, TrendingUp, Download, UserPlus, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { EditTransactionValueDialog } from "@/components/dialog/EditTransactionValueDialog";
 
@@ -44,6 +45,8 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
   const [sortBy, setSortBy] = useState<SortKey>('monthlyRevenueLost');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [sortedReports, setSortedReports] = useState<ReportData[]>([]);
+  const [crmReportIds, setCrmReportIds] = useState<Set<string>>(new Set());
+  const [addingToCRM, setAddingToCRM] = useState<string | null>(null);
   const adminUserId = "850078c3-247c-4904-9b9a-ebec624d4ef5";
 
   // Enhanced formatting functions
@@ -169,6 +172,47 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
   useEffect(() => {
     setSortedReports(getSortedReports());
   }, [reports, sortBy, sortDirection]);
+
+  // Fetch which reports are already in CRM
+  useEffect(() => {
+    const fetchCRMReports = async () => {
+      const { data } = await supabase
+        .from('prospect_activities')
+        .select('report_id');
+      
+      if (data) {
+        setCrmReportIds(new Set(data.map(item => item.report_id)));
+      }
+    };
+
+    fetchCRMReports();
+  }, [reports]);
+
+  const handleAddToCRM = async (reportId: string) => {
+    setAddingToCRM(reportId);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('add-to-crm', {
+        body: { reportId }
+      });
+
+      if (error) {
+        if (data?.alreadyExists) {
+          toast.info("This report is already in the CRM system.");
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success("Report successfully added to CRM system.");
+        setCrmReportIds(prev => new Set(prev).add(reportId));
+      }
+    } catch (error) {
+      console.error('Error adding to CRM:', error);
+      toast.error("Failed to add report to CRM. Please try again.");
+    } finally {
+      setAddingToCRM(null);
+    }
+  };
 
   const SortableHeader = ({ 
     label, 
@@ -364,6 +408,20 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       {copiedId === report.id + '-url' ? 'Copied!' : 'Copy URL'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddToCRM(report.id)}
+                      disabled={crmReportIds.has(report.id) || addingToCRM === report.id}
+                      className="h-8"
+                    >
+                      {addingToCRM === report.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                      ) : (
+                        <UserPlus className="h-4 w-4 mr-1" />
+                      )}
+                      {crmReportIds.has(report.id) ? 'In CRM' : 'Add to CRM'}
                     </Button>
                   </div>
                 </TableCell>
