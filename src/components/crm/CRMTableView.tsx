@@ -17,6 +17,7 @@ import { auditService } from "@/services/auditService";
 interface ProspectRow {
   id: string;
   domain: string;
+  slug: string;
   monthlyRevenue: number;
   trafficTier: string;
   priority: string;
@@ -82,6 +83,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
           assigned_to,
           reports!inner(
             domain,
+            slug,
             report_data
           )
         `);
@@ -102,6 +104,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         id: p.id,
         reportId: p.report_id,
         domain: p.reports.domain,
+        slug: p.reports.slug,
         monthlyRevenue: p.reports.report_data?.monthlyRevenueLost || 0,
         trafficTier: getTrafficTier(p.reports.report_data?.organicTraffic || 0),
         priority: p.priority,
@@ -512,7 +515,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => window.open(`/report/${prospect.reportId}`, '_blank')}>
+                        <DropdownMenuItem onClick={() => window.open(`/report/${prospect.slug}`, '_blank')}>
                           <ExternalLink className="h-4 w-4 mr-2" />
                           View Report
                         </DropdownMenuItem>
