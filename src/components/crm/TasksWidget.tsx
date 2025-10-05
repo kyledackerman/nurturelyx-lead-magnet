@@ -8,12 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, AlertCircle, Plus, Zap } from "lucide-react";
+import { Calendar, AlertCircle, Plus, Zap, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 interface Task {
   id: string;
@@ -44,7 +47,8 @@ export default function TasksWidget() {
   const [loading, setLoading] = useState(true);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
-  const [newTaskDueDate, setNewTaskDueDate] = useState("");
+  const [newTaskDueDate, setNewTaskDueDate] = useState<Date>();
+  const [newTaskTime, setNewTaskTime] = useState("09:00");
   const [selectedProspectId, setSelectedProspectId] = useState("");
   const [availableProspects, setAvailableProspects] = useState<ProspectOption[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -156,12 +160,17 @@ export default function TasksWidget() {
     }
 
     try {
+      // Combine date and time
+      const [hours, minutes] = newTaskTime.split(':');
+      const dueDateTime = new Date(newTaskDueDate);
+      dueDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
       const { error } = await supabase
         .from("prospect_tasks")
         .insert({
           title: newTaskTitle,
           description: newTaskDescription,
-          due_date: newTaskDueDate,
+          due_date: dueDateTime.toISOString(),
           report_id: selectedProspect.report_id,
           prospect_activity_id: selectedProspectId,
           status: "pending",
@@ -171,7 +180,8 @@ export default function TasksWidget() {
 
       setNewTaskTitle("");
       setNewTaskDescription("");
-      setNewTaskDueDate("");
+      setNewTaskDueDate(undefined);
+      setNewTaskTime("09:00");
       setSelectedProspectId("");
       setDialogOpen(false);
       fetchTasks();
@@ -372,12 +382,38 @@ export default function TasksWidget() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="task-due-date">Due Date *</Label>
+                  <Label>Due Date *</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !newTaskDueDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {newTaskDueDate ? format(newTaskDueDate, "PPP") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={newTaskDueDate}
+                        onSelect={setNewTaskDueDate}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div>
+                  <Label htmlFor="task-time">Time *</Label>
                   <Input
-                    id="task-due-date"
-                    type="datetime-local"
-                    value={newTaskDueDate}
-                    onChange={(e) => setNewTaskDueDate(e.target.value)}
+                    id="task-time"
+                    type="time"
+                    value={newTaskTime}
+                    onChange={(e) => setNewTaskTime(e.target.value)}
                   />
                 </div>
                 <Button onClick={handleCreateTask} className="w-full">

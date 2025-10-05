@@ -142,11 +142,50 @@ serve(async (req) => {
 
     console.log(`Manually added ${report.domain} to CRM by admin ${user.id} (${priority} priority)`);
 
+    // Auto-create "Send proposal" task if there's revenue loss
+    let taskCreated = false;
+    if (monthlyRevenue > 0) {
+      try {
+        // Calculate due date based on priority
+        const now = new Date();
+        let hoursUntilDue = 72; // default: cold prospects
+        if (priority === 'hot') {
+          hoursUntilDue = 24;
+        } else if (priority === 'warm') {
+          hoursUntilDue = 48;
+        }
+        
+        const dueDate = new Date(now.getTime() + hoursUntilDue * 60 * 60 * 1000);
+        
+        const { error: taskError } = await supabase
+          .from('prospect_tasks')
+          .insert({
+            title: 'Send proposal',
+            description: `High-value prospect with $${monthlyRevenue.toLocaleString()}/month revenue opportunity. ${priority === 'hot' ? 'URGENT - ' : ''}Priority proposal needed.`,
+            due_date: dueDate.toISOString(),
+            report_id: reportId,
+            prospect_activity_id: activity.id,
+            status: 'pending',
+            assigned_to: user.id,
+          });
+
+        if (taskError) {
+          console.error('Error creating auto-task:', taskError);
+        } else {
+          taskCreated = true;
+          console.log(`Auto-created "Send proposal" task for ${report.domain} (due in ${hoursUntilDue}h)`);
+        }
+      } catch (taskError) {
+        console.error('Failed to create auto-task:', taskError);
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         activity,
-        message: 'Successfully added to CRM'
+        taskCreated,
+        message: taskCreated ? 'Successfully added to CRM with auto-generated task' : 'Successfully added to CRM'
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
