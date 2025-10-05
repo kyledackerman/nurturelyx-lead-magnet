@@ -7,6 +7,7 @@ import {
   extractCompanyName,
   generateSEOTitle,
   generateSEODescription,
+  cleanDomain,
 } from '../_shared/categorization.ts';
 
 const corsHeaders = {
@@ -101,10 +102,13 @@ serve(async (req) => {
       );
     }
 
+    // Clean domain to prevent duplicates (strip http/https, www, paths)
+    const sanitizedDomain = cleanDomain(reportData.domain);
+
     // Generate unique slug
     const { data: slugData, error: slugError } = await supabase.rpc(
       'generate_report_slug', 
-      { domain_name: reportData.domain }
+      { domain_name: sanitizedDomain }
     );
 
     if (slugError) {
@@ -115,26 +119,26 @@ serve(async (req) => {
       );
     }
 
-    // Auto-categorize the report
+    // Auto-categorize the report using sanitized domain
     const organicTraffic = reportData.organicTraffic || 0;
     const yearlyRevenueLost = reportData.yearlyRevenueLost || 0;
     
-    const industry = detectIndustry(reportData.domain);
+    const industry = detectIndustry(sanitizedDomain);
     const trafficTier = calculateTrafficTier(organicTraffic);
     const companySize = calculateCompanySize(organicTraffic, yearlyRevenueLost);
-    const companyName = extractCompanyName(reportData.domain);
+    const companyName = extractCompanyName(sanitizedDomain);
     const seoTitle = generateSEOTitle(companyName, industry, yearlyRevenueLost);
     const seoDescription = generateSEODescription(companyName, industry, organicTraffic, yearlyRevenueLost);
 
-    console.log(`Auto-categorized: ${reportData.domain} → ${industry} (${companySize}, ${trafficTier})`);
+    console.log(`Auto-categorized: ${sanitizedDomain} → ${industry} (${companySize}, ${trafficTier})`);
 
-    // Save report to database with categorization
+    // Save report to database with categorization using sanitized domain
     const { data, error } = await supabase
       .from('reports')
       .insert({
         user_id: userId,
-        domain: reportData.domain,
-        report_data: reportData,
+        domain: sanitizedDomain,
+        report_data: { ...reportData, domain: sanitizedDomain },
         slug: slugData,
         is_public: true,
         industry: industry,

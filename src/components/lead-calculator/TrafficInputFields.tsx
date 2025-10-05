@@ -3,6 +3,7 @@ import { FormData } from "@/types/report";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Info } from "lucide-react";
+import { cleanDomain } from "@/services/api/spyfuConfig";
 
 interface TrafficInputFieldsProps {
   formData: FormData;
@@ -23,7 +24,10 @@ export const TrafficInputFields = ({ formData, handleChange, errors, showTraffic
           type="text"
           placeholder="e.g., example.com"
           value={formData.domain}
-          onChange={(e) => handleChange("domain", e.target.value)}
+          onChange={(e) => {
+            const cleanedValue = cleanDomain(e.target.value);
+            handleChange("domain", cleanedValue);
+          }}
           className={`${errors.domain ? "border-red-300" : ""}`}
         />
         {errors.domain && (

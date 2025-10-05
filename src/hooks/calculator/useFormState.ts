@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { FormData } from "@/types/report";
+import { cleanDomain } from "@/services/api/spyfuConfig";
 
 // Default empty form state
 export const DEFAULT_FORM_STATE: FormData = {
@@ -30,9 +31,14 @@ export function useFormState(initialData?: FormData | null, apiError?: string | 
   }, [apiError]);
 
   const handleChange = (field: keyof FormData, value: string | number | boolean) => {
+    // Clean domain to strip http(s), www, paths
+    const finalValue = field === "domain" && typeof value === "string" 
+      ? cleanDomain(value) 
+      : value;
+    
     setFormData((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: finalValue,
     }));
   };
 

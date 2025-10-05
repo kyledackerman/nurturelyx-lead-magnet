@@ -36,11 +36,19 @@ export function calculateCompanySize(organicTraffic: number, yearlyRevenueLost: 
   return 'small';
 }
 
-export function extractCompanyName(domain: string): string {
-  const cleanDomain = domain
+// Clean domain: strip http(s), www, paths, query params, and convert to lowercase
+export function cleanDomain(domain: string): string {
+  return domain
     .replace(/^(https?:\/\/)?(www\.)?/, '')
+    .replace(/\/.*$/, '') // Remove paths and query params
+    .trim()
+    .toLowerCase();
+}
+
+export function extractCompanyName(domain: string): string {
+  const cleaned = cleanDomain(domain)
     .replace(/\.(com|net|org|io|co|us|ca|uk).*$/, '');
-  return cleanDomain.charAt(0).toUpperCase() + cleanDomain.slice(1);
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 }
 
 export function generateSEOTitle(companyName: string, industry: string, yearlyRevenueLost: number): string {
