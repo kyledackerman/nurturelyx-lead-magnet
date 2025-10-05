@@ -29,7 +29,14 @@ serve(async (req) => {
       error: userError,
     } = await supabase.auth.getUser();
 
+    console.log('Authentication check:', { 
+      hasUser: !!user, 
+      userId: user?.id,
+      userError: userError?.message 
+    });
+
     if (userError || !user) {
+      console.error('User authentication failed:', userError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -39,7 +46,10 @@ serve(async (req) => {
     // Check if user is an admin
     const { data: isAdmin, error: adminCheckError } = await supabase.rpc('is_admin');
 
+    console.log('Admin check result:', { isAdmin, adminCheckError: adminCheckError?.message });
+
     if (adminCheckError || !isAdmin) {
+      console.error('Admin check failed:', adminCheckError);
       return new Response(
         JSON.stringify({ error: 'Forbidden: Admin access required' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -47,6 +57,7 @@ serve(async (req) => {
     }
 
     const { reportId } = await req.json();
+    console.log('Processing report ID:', reportId);
 
     if (!reportId) {
       return new Response(

@@ -193,11 +193,31 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
     setAddingToCRM(reportId);
     
     try {
+      // Validate user is authenticated
+      if (!user) {
+        toast.error("You must be logged in to add reports to CRM.");
+        return;
+      }
+
+      // Get current session to ensure it's valid
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        console.error('Session error:', sessionError);
+        toast.error("Your session has expired. Please log in again.");
+        return;
+      }
+
+      console.log('Attempting to add report to CRM:', reportId);
+      
       const { data, error } = await supabase.functions.invoke('add-to-crm', {
         body: { reportId }
       });
 
+      console.log('Response from add-to-crm:', { data, error });
+
       if (error) {
+        console.error('Error details:', error);
         if (data?.alreadyExists) {
           toast.info("This report is already in the CRM system.");
         } else {
@@ -209,7 +229,7 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
       }
     } catch (error) {
       console.error('Error adding to CRM:', error);
-      toast.error("Failed to add report to CRM. Please try again.");
+      toast.error("Failed to add report to CRM. Please check your session and try again.");
     } finally {
       setAddingToCRM(null);
     }
