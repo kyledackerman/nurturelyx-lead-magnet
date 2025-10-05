@@ -5,10 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
-import { ExternalLink, DollarSign, TrendingUp, Users, Calendar as CalendarIcon, Save } from "lucide-react";
+import { ExternalLink, DollarSign, TrendingUp, Users, Calendar as CalendarIcon, Save, Plus, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AuditTrailViewer } from "@/components/admin/AuditTrailViewer";
 import { AssignmentDropdown } from "@/components/admin/AssignmentDropdown";
@@ -27,14 +29,19 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [newNote, setNewNote] = useState("");
-  const [nextFollowUp, setNextFollowUp] = useState<Date | undefined>();
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
+  const [taskDueDate, setTaskDueDate] = useState<Date | undefined>();
+  const [taskDueTime, setTaskDueTime] = useState("09:00");
+  const [pendingTasks, setPendingTasks] = useState<any[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchProspectDetails();
+    fetchPendingTasks();
     
-    // Real-time subscription
-    const channel = supabase
+    // Real-time subscriptions
+    const prospectChannel = supabase
       .channel(`prospect-${prospectId}`)
       .on(
         'postgres_changes',
@@ -50,8 +57,25 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
       )
       .subscribe();
 
+    const tasksChannel = supabase
+      .channel(`tasks-${prospectId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'prospect_tasks',
+          filter: `prospect_activity_id=eq.${prospectId}`
+        },
+        () => {
+          fetchPendingTasks();
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(prospectChannel);
+      supabase.removeChannel(tasksChannel);
     };
   }, [prospectId]);
 
@@ -76,11 +100,26 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
 
       if (error) throw error;
       setProspect(data);
-      setNextFollowUp(data.next_follow_up ? new Date(data.next_follow_up) : undefined);
     } catch (error) {
       console.error("Error fetching prospect details:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPendingTasks = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("prospect_tasks")
+        .select("*")
+        .eq("prospect_activity_id", prospectId)
+        .eq("status", "pending")
+        .order("due_date", { ascending: true });
+
+      if (error) throw error;
+      setPendingTasks(data || []);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
     }
   };
 
@@ -136,27 +175,87 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
     }
   };
 
-  const updateFollowUpDate = async () => {
+  const createTask = async () => {
+    if (!taskTitle.trim() || !taskDueDate) {
+      toast.error("Please provide a task title and due date");
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      // Combine date and time
+      const [hours, minutes] = taskDueTime.split(':');
+      const dueDateTime = new Date(taskDueDate);
+      dueDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+      const { data: user } = await supabase.auth.getUser();
+
+      const { error } = await supabase
+        .from("prospect_tasks")
+        .insert({
+          title: taskTitle,
+          description: taskDescription || null,
+          due_date: dueDateTime.toISOString(),
+          report_id: prospect.report_id,
+          prospect_activity_id: prospectId,
+          status: "pending",
+          assigned_to: prospect.assigned_to,
+          created_by: user.user?.id,
+        });
+
+      if (error) throw error;
+
+      // Update next_follow_up for backwards compatibility
+      await supabase
+        .from("prospect_activities")
+        .update({ next_follow_up: dueDateTime.toISOString() })
+        .eq("id", prospectId);
+
+      await auditService.logBusinessContext(
+        "prospect_activities",
+        prospectId,
+        `Created task: ${taskTitle} (due ${format(dueDateTime, "MMM d, yyyy HH:mm")})`
+      );
+
+      toast.success("Task created");
+      setTaskTitle("");
+      setTaskDescription("");
+      setTaskDueDate(undefined);
+      setTaskDueTime("09:00");
+      fetchPendingTasks();
+      fetchProspectDetails();
+    } catch (error) {
+      console.error("Error creating task:", error);
+      toast.error("Failed to create task");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const completeTask = async (taskId: string) => {
     setUpdating(true);
     try {
       const { error } = await supabase
-        .from("prospect_activities")
-        .update({ next_follow_up: nextFollowUp?.toISOString() })
-        .eq("id", prospectId);
+        .from("prospect_tasks")
+        .update({ 
+          status: "completed",
+          completed_at: new Date().toISOString()
+        })
+        .eq("id", taskId);
 
       if (error) throw error;
 
       await auditService.logBusinessContext(
         "prospect_activities",
         prospectId,
-        `Follow-up date updated to ${nextFollowUp ? format(nextFollowUp, "MMM d, yyyy") : "none"}`
+        "Completed task"
       );
 
-      toast.success("Follow-up date updated");
-      fetchProspectDetails();
+      toast.success("Task completed");
+      fetchPendingTasks();
     } catch (error) {
-      console.error("Error updating follow-up date:", error);
-      toast.error("Failed to update follow-up date");
+      console.error("Error completing task:", error);
+      toast.error("Failed to complete task");
     } finally {
       setUpdating(false);
     }
@@ -286,38 +385,100 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Next Follow-Up</label>
-              <div className="flex gap-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !nextFollowUp && "text-muted-foreground"
-                      )}
+              <label className="text-sm font-medium mb-3 block">Create Task</label>
+              
+              {/* Existing Pending Tasks */}
+              {pendingTasks.length > 0 && (
+                <div className="mb-4 space-y-2">
+                  <p className="text-xs text-muted-foreground mb-2">Pending Tasks:</p>
+                  {pendingTasks.map((task) => (
+                    <div key={task.id} className="flex items-start gap-2 p-2 border rounded-md bg-muted/20">
+                      <Checkbox
+                        checked={false}
+                        onCheckedChange={() => completeTask(task.id)}
+                        disabled={updating}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{task.title}</p>
+                        {task.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5">{task.description}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Due: {format(new Date(task.due_date), "MMM d, yyyy HH:mm")}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Task Creation Form */}
+              <div className="space-y-3">
+                <div>
+                  <Input
+                    placeholder="Task title (required)"
+                    value={taskTitle}
+                    onChange={(e) => setTaskTitle(e.target.value)}
+                    disabled={updating}
+                  />
+                </div>
+                
+                <div>
+                  <Textarea
+                    placeholder="Task description (optional)"
+                    value={taskDescription}
+                    onChange={(e) => setTaskDescription(e.target.value)}
+                    disabled={updating}
+                    rows={2}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !taskDueDate && "text-muted-foreground"
+                          )}
+                          disabled={updating}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {taskDueDate ? format(taskDueDate, "MMM d") : "Date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 z-50 bg-popover" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={taskDueDate}
+                          onSelect={setTaskDueDate}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div>
+                    <Input
+                      type="time"
+                      value={taskDueTime}
+                      onChange={(e) => setTaskDueTime(e.target.value)}
                       disabled={updating}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {nextFollowUp ? format(nextFollowUp, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 z-50 bg-popover" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={nextFollowUp}
-                      onSelect={setNextFollowUp}
-                      initialFocus
-                      className="pointer-events-auto"
                     />
-                  </PopoverContent>
-                </Popover>
+                  </div>
+                </div>
+
                 <Button 
-                  onClick={updateFollowUpDate} 
-                  disabled={updating}
-                  size="icon"
+                  onClick={createTask} 
+                  disabled={updating || !taskTitle.trim() || !taskDueDate}
+                  className="w-full"
                 >
-                  <Save className="h-4 w-4" />
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Task
                 </Button>
               </div>
             </div>
