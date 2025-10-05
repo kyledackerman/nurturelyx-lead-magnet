@@ -159,7 +159,7 @@ serve(async (req) => {
       );
     }
 
-    // Auto-assign prospect to admin who generated the report
+    // Auto-assign prospect to CRM if report shows lead potential
     if (userId) {
       try {
         // Check if user is an admin
@@ -168,38 +168,48 @@ serve(async (req) => {
         if (adminCheckError) {
           console.error('Error checking admin status:', adminCheckError);
         } else if (isAdmin) {
-          // Check if report has revenue potential
-          const monthlyRevenue = reportData.monthlyRevenueLost || 0;
-          const yearlyRevenue = reportData.yearlyRevenueLost || 0;
+          // Check if report shows lead generation potential
+          const missedLeads = Number(reportData.missedLeads) || 0;
           
-          if (monthlyRevenue > 0 || yearlyRevenue > 0) {
-            // Calculate priority based on monthly revenue
-            let priority = 'cold';
-            if (monthlyRevenue >= 10000) {
-              priority = 'hot';
-            } else if (monthlyRevenue >= 5000) {
-              priority = 'warm';
-            }
-            
-            // Create prospect activity with auto-assignment
-            const { error: activityError } = await supabase
+          if (missedLeads > 0) {
+            // Check for existing prospect activity to prevent duplicates
+            const { data: existingActivity } = await supabase
               .from('prospect_activities')
-              .insert({
-                report_id: data.id,
-                activity_type: 'assignment',
-                assigned_to: userId,
-                assigned_by: userId,
-                assigned_at: new Date().toISOString(),
-                status: 'new',
-                priority: priority,
-                notes: `Auto-assigned: Report generated with $${monthlyRevenue.toLocaleString()}/month revenue opportunity`
-              });
+              .select('id')
+              .eq('report_id', data.id)
+              .maybeSingle();
             
-            if (activityError) {
-              console.error('Error creating prospect activity:', activityError);
-              // Non-blocking: continue even if assignment fails
-            } else {
-              console.log(`Auto-assigned prospect for ${reportData.domain} to admin ${userId} with ${priority} priority`);
+            if (!existingActivity) {
+              // Calculate priority based on lead volume
+              let priority = 'cold';
+              if (missedLeads >= 1000) {
+                priority = 'hot';
+              } else if (missedLeads >= 500) {
+                priority = 'warm';
+              }
+              
+              const monthlyRevenue = reportData.monthlyRevenueLost || 0;
+              
+              // Create prospect activity with auto-assignment
+              const { error: activityError } = await supabase
+                .from('prospect_activities')
+                .insert({
+                  report_id: data.id,
+                  activity_type: 'assignment',
+                  assigned_to: userId,
+                  assigned_by: userId,
+                  assigned_at: new Date().toISOString(),
+                  status: 'new',
+                  priority: priority,
+                  notes: `Auto-assigned: ~${missedLeads.toLocaleString()} potential leads/month detected${monthlyRevenue > 0 ? ` ($${monthlyRevenue.toLocaleString()}/month opportunity)` : ''}`
+                });
+              
+              if (activityError) {
+                console.error('Error creating prospect activity:', activityError);
+                // Non-blocking: continue even if assignment fails
+              } else {
+                console.log(`Auto-assigned prospect for ${sanitizedDomain}: ${missedLeads} leads/month (${priority} priority)`);
+              }
             }
           }
         }
