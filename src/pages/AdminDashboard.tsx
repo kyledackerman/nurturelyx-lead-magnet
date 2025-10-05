@@ -4,6 +4,7 @@ import { AdminReportsTable } from "@/components/admin/AdminReportsTable";
 import { AdminManagement } from "@/components/admin/AdminManagement";
 import { PasswordManagement } from "@/components/admin/PasswordManagement";
 import LeaderboardTab from "@/components/admin/LeaderboardTab";
+import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -289,6 +290,21 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+  const fetchHotLeadsCount = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('prospect_activities')
+        .select('id', { count: 'exact' })
+        .eq('priority', 'hot')
+        .in('status', ['new', 'contacted', 'proposal']);
+
+      if (error) throw error;
+      setHotLeadsCount(data?.length || 0);
+    } catch (error) {
+      console.error("Error fetching hot leads:", error);
+    }
+  };
+
   const fetchStats = async () => {
     try {
       // Get all reports with user_id
@@ -1118,7 +1134,7 @@ const AdminDashboard = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                 <CardTitle className="text-sm font-medium">Non-Admin Reports</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <UsersIcon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-4xl font-bold">{stats.nonAdminReports}</div>
@@ -1178,7 +1194,7 @@ const AdminDashboard = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
+                    <UsersIcon className="h-5 w-5" />
                     Report Sources & User Adoption
                   </CardTitle>
                   <CardDescription>
@@ -1282,7 +1298,7 @@ const AdminDashboard = () => {
                 Overview
               </TabsTrigger>
               <TabsTrigger value="crm">
-                <Users className="h-4 w-4 mr-2" />
+                <UsersIcon className="h-4 w-4 mr-2" />
                 CRM
               </TabsTrigger>
               <TabsTrigger value="generate">
@@ -1308,7 +1324,33 @@ const AdminDashboard = () => {
             </TabsContent>
 
             <TabsContent value="crm" className="space-y-6">
-              <CRMProspectsTable reports={reports} loading={loading} />
+              <Card>
+                <CardHeader>
+                  <CardTitle>CRM Dashboard</CardTitle>
+                  <CardDescription>
+                    Manage prospects, track pipeline, and close deals
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h3 className="font-semibold">Full CRM Experience</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Access the complete CRM with Kanban boards, task management, and sales metrics
+                      </p>
+                      {hotLeadsCount > 0 && (
+                        <Badge variant="destructive" className="mt-2">
+                          {hotLeadsCount} hot leads need follow-up
+                        </Badge>
+                      )}
+                    </div>
+                    <Button onClick={() => navigate('/admin/crm')}>
+                      Open CRM
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="generate" className="space-y-6">
@@ -1433,7 +1475,7 @@ const AdminDashboard = () => {
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                         <CardTitle className="text-sm font-medium">Unique Visitors</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <UsersIcon className="h-4 w-4 text-muted-foreground" />
                       </CardHeader>
                       <CardContent>
                         <div className="text-4xl font-bold">{trafficStats.uniqueVisitorsAllTime.toLocaleString()}</div>
