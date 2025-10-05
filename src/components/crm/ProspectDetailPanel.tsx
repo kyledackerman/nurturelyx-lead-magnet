@@ -94,8 +94,8 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
                 prospect.status === "new" ? "bg-brand-purple/20 text-brand-purple-dark border-brand-purple" :
                 prospect.status === "contacted" ? "bg-accent/20 text-accent-foreground border-accent" :
                 prospect.status === "proposal" ? "bg-blue-100 text-blue-800 border-blue-300" :
-                prospect.status === "closed_won" ? "bg-green-100 text-green-800 border-green-300" :
-                "bg-muted text-muted-foreground"
+                prospect.status === "closed_won" ? "bg-green-100 text-green-900 border-green-400" :
+                "bg-gray-600 text-white border-gray-700"
               }`}
             >
               Status: {prospect.status.replace("_", " ")}
@@ -103,9 +103,9 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
             <Badge 
               variant="outline" 
               className={`text-sm ${
-                prospect.priority === "hot" ? "bg-orange-100 text-orange-800 border-orange-300" :
+                prospect.priority === "hot" ? "bg-orange-100 text-orange-900 border-orange-400" :
                 prospect.priority === "warm" ? "bg-accent/10 text-accent-foreground border-accent" :
-                "bg-muted text-muted-foreground"
+                "bg-gray-200 text-gray-800 border-gray-400"
               }`}
             >
               Priority: {prospect.priority}
@@ -116,17 +116,19 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
           <div className="grid grid-cols-2 gap-4">
             <div className={`p-4 rounded-lg border shadow-sm ${
               (reportData?.monthlyRevenueLost || 0) > 5000 
-                ? "border-orange-200 bg-orange-50" 
+                ? "border-orange-300 bg-orange-100" 
                 : "border"
             }`}>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <div className={`flex items-center gap-2 text-sm mb-1 ${
+                (reportData?.monthlyRevenueLost || 0) > 5000 ? "text-gray-700" : "text-muted-foreground"
+              }`}>
                 <DollarSign className={`h-4 w-4 ${
-                  (reportData?.monthlyRevenueLost || 0) > 5000 ? "text-orange-600" : ""
+                  (reportData?.monthlyRevenueLost || 0) > 5000 ? "text-orange-700" : ""
                 }`} />
                 Monthly Revenue Lost
               </div>
               <p className={`text-2xl font-bold ${
-                (reportData?.monthlyRevenueLost || 0) > 5000 ? "text-orange-700" : ""
+                (reportData?.monthlyRevenueLost || 0) > 5000 ? "text-orange-900" : ""
               }`}>
                 ${(reportData?.monthlyRevenueLost / 1000 || 0).toFixed(1)}K
               </p>

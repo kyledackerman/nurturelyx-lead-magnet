@@ -125,10 +125,10 @@ export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) 
 
   const getPriorityColor = (priority: string): string => {
     const colors: Record<string, string> = {
-      hot: "border-orange-500 bg-orange-50",
+      hot: "border-orange-500 bg-orange-100",
       warm: "border-accent bg-accent/5",
-      cold: "border-muted bg-muted/30",
-      not_viable: "border-gray-400 bg-gray-200",
+      cold: "border-gray-400 bg-gray-100",
+      not_viable: "border-gray-600 bg-gray-300",
     };
     return colors[priority] || "border-muted bg-muted/30";
   };
@@ -200,35 +200,35 @@ export default function CRMKanbanView({ onSelectProspect }: CRMKanbanViewProps) 
                                       className={cn(
                                         "text-xs",
                                         prospect.priority === "hot" 
-                                          ? "bg-orange-100 text-orange-800 border-orange-300"
+                                          ? "bg-orange-100 text-orange-900 border-orange-400"
                                           : prospect.priority === "warm"
                                           ? "bg-accent/10 text-accent-foreground border-accent"
-                                          : "bg-muted text-muted-foreground"
+                                          : "bg-gray-200 text-gray-800 border-gray-400"
                                       )}
                                     >
                                       {prospect.priority}
                                     </Badge>
                                   </div>
                                   
-                                  <p className={`text-sm font-semibold ${
-                                    prospect.monthlyRevenue > 5000 ? "text-orange-700" : ""
-                                  }`}>
-                                    ${(prospect.monthlyRevenue / 1000).toFixed(1)}K/mo
-                                  </p>
+                                   <p className={`text-sm font-semibold ${
+                                     prospect.monthlyRevenue > 5000 ? "text-orange-900" : ""
+                                   }`}>
+                                     ${(prospect.monthlyRevenue / 1000).toFixed(1)}K/mo
+                                   </p>
 
-                                  {prospect.nextFollowUp && (
-                                    <div
-                                      className={cn(
-                                        "text-xs",
-                                        isOverdue(prospect.nextFollowUp)
-                                          ? "text-orange-700 font-bold"
-                                          : "text-muted-foreground"
-                                      )}
-                                    >
-                                      {isOverdue(prospect.nextFollowUp) && "⚠️ OVERDUE: "}
-                                      {format(new Date(prospect.nextFollowUp), "MMM d")}
-                                    </div>
-                                  )}
+                                   {prospect.nextFollowUp && (
+                                     <div
+                                       className={cn(
+                                         "text-xs",
+                                         isOverdue(prospect.nextFollowUp)
+                                           ? "text-orange-900 font-bold"
+                                           : "text-muted-foreground"
+                                       )}
+                                     >
+                                       {isOverdue(prospect.nextFollowUp) && "⚠️ OVERDUE: "}
+                                       {format(new Date(prospect.nextFollowUp), "MMM d")}
+                                     </div>
+                                   )}
 
                                   {prospect.assignedTo && (
                                     <div className="flex items-center gap-2">

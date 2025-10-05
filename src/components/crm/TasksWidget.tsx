@@ -345,7 +345,7 @@ export default function TasksWidget() {
             {overdueTasks.map((task) => (
               <div
                 key={task.id}
-                className="p-4 border-l-4 border-l-orange-600 rounded-lg bg-orange-50 border border-orange-200"
+                className="p-4 border-l-4 border-l-orange-600 rounded-lg bg-orange-100 border border-orange-300"
               >
                 <div className="flex items-start gap-2">
                   <Checkbox
@@ -353,13 +353,13 @@ export default function TasksWidget() {
                     className="mt-1"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-black truncate">{task.title}</p>
+                    <p className="font-medium text-sm text-gray-900 truncate">{task.title}</p>
                     {task.domain && (
-                      <p className="text-xs text-muted-foreground truncate">
+                      <p className="text-xs text-gray-700 truncate">
                         {task.domain}
                       </p>
                     )}
-                    <div className="flex items-center gap-1 mt-1 text-xs text-orange-700 font-medium">
+                    <div className="flex items-center gap-1 mt-1 text-xs text-orange-900 font-bold">
                       <AlertCircle className="h-3 w-3" />
                       {format(new Date(task.due_date), "MMM d, h:mm a")}
                     </div>
