@@ -1533,35 +1533,35 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               
               {/* Card #1: Peak Performance Day */}
-              <Card className="border-blue-200 bg-blue-50">
+              <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                  <CardTitle className="text-sm font-medium text-black">Peak Performance Day</CardTitle>
+                  <CardTitle className="text-sm font-medium">Peak Performance Day</CardTitle>
                   <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4 text-blue-600" />
-                    <Trophy className="h-3 w-3 text-blue-600" />
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <Trophy className="h-3 w-3 text-muted-foreground" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-blue-700">
+                  <div className="text-4xl font-bold">
                     {peakDay.date ? formatDate(peakDay.date) : 'N/A'}
                   </div>
-                  <p className="text-xs text-blue-600 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {peakDay.count} reports ({peakDay.percentageOfTotal}% of all time)
                   </p>
                 </CardContent>
               </Card>
 
               {/* Card #2: Quality Score */}
-              <Card className={`border-2 ${qualityScore.percentage > 30 ? 'border-green-200 bg-green-50' : qualityScore.percentage > 20 ? 'border-yellow-200 bg-yellow-50' : 'border-orange-200 bg-orange-50'}`}>
+              <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                  <CardTitle className="text-sm font-medium text-black">Quality Score</CardTitle>
-                  <Award className={`h-4 w-4 ${qualityScore.percentage > 30 ? 'text-green-600' : qualityScore.percentage > 20 ? 'text-yellow-600' : 'text-orange-600'}`} />
+                  <CardTitle className="text-sm font-medium">Quality Score</CardTitle>
+                  <Award className={`h-4 w-4 ${qualityScore.percentage > 30 ? 'text-green-500' : qualityScore.percentage > 20 ? 'text-yellow-500' : 'text-orange-500'}`} />
                 </CardHeader>
                 <CardContent>
-                  <div className={`text-4xl font-bold ${qualityScore.percentage > 30 ? 'text-green-700' : qualityScore.percentage > 20 ? 'text-yellow-700' : 'text-orange-700'}`}>
+                  <div className={`text-4xl font-bold ${qualityScore.percentage > 30 ? 'text-green-500' : qualityScore.percentage > 20 ? 'text-yellow-500' : 'text-orange-500'}`}>
                     {qualityScore.percentage}%
                   </div>
-                  <p className={`text-xs mt-1 ${qualityScore.percentage > 30 ? 'text-green-600' : qualityScore.percentage > 20 ? 'text-yellow-600' : 'text-orange-600'}`}>
+                  <p className="text-xs text-muted-foreground mt-1">
                     {qualityScore.highImpactCount} of {qualityScore.totalCount} are high-impact
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
@@ -1571,77 +1571,77 @@ const AdminDashboard = () => {
               </Card>
 
               {/* Card #3: Biggest Revenue Opportunity */}
-              <Card className="border-purple-300 bg-gradient-to-br from-purple-50 to-pink-50">
+              <Card className="border-orange-200 bg-orange-50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                   <CardTitle className="text-sm font-medium text-black">Biggest Revenue Opportunity</CardTitle>
                   <div className="flex items-center gap-1">
-                    <Crown className="h-4 w-4 text-purple-600" />
-                    <DollarSign className="h-3 w-3 text-purple-600" />
+                    <Crown className="h-4 w-4 text-orange-600" />
+                    <DollarSign className="h-3 w-3 text-orange-600" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-lg font-bold text-purple-700 truncate" title={topRevenueDomain.domain}>
+                  <div className="text-2xl font-bold text-orange-700 truncate" title={topRevenueDomain.domain}>
                     {topRevenueDomain.domain ? truncateDomain(topRevenueDomain.domain, 20) : 'N/A'}
                   </div>
-                  <p className="text-xs text-purple-600 mt-1 font-semibold">
+                  <p className="text-xs text-orange-600 mt-1 font-semibold">
                     {formatLargeNumber(topRevenueDomain.yearlyRevenueLost)}/year lost
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-orange-600">
                     ${topRevenueDomain.monthlyRevenueLost.toLocaleString()}/month
                   </p>
                 </CardContent>
               </Card>
 
               {/* Card #4: Biggest Lead Volume Loss */}
-              <Card className="border-red-200 bg-red-50">
+              <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                  <CardTitle className="text-sm font-medium text-black">Biggest Lead Volume Loss</CardTitle>
+                  <CardTitle className="text-sm font-medium">Biggest Lead Volume Loss</CardTitle>
                   <div className="flex items-center gap-1">
-                    <UsersIcon className="h-4 w-4 text-red-600" />
-                    <AlertTriangle className="h-3 w-3 text-red-600" />
+                    <UsersIcon className="h-4 w-4 text-muted-foreground" />
+                    <AlertTriangle className="h-3 w-3 text-muted-foreground" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-lg font-bold text-red-700 truncate" title={topLeadsDomain.domain}>
+                  <div className="text-2xl font-bold truncate" title={topLeadsDomain.domain}>
                     {topLeadsDomain.domain ? truncateDomain(topLeadsDomain.domain, 20) : 'N/A'}
                   </div>
-                  <p className="text-xs text-red-600 mt-1 font-semibold">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {topLeadsDomain.missedLeads.toLocaleString()} monthly missed leads
                   </p>
                 </CardContent>
               </Card>
 
               {/* Card #5: Average Deal Size */}
-              <Card className="border-teal-200 bg-teal-50">
+              <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                  <CardTitle className="text-sm font-medium text-black">Average Deal Size</CardTitle>
-                  <Briefcase className="h-4 w-4 text-teal-600" />
+                  <CardTitle className="text-sm font-medium">Average Deal Size</CardTitle>
+                  <Briefcase className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-teal-700">
-                    {formatLargeNumber(avgDealSize.avgDealSize)}/year
+                  <div className="text-4xl font-bold">
+                    {formatLargeNumber(avgDealSize.avgDealSize)}
                   </div>
-                  <p className="text-xs text-teal-600 mt-1">
-                    Median: {formatLargeNumber(avgDealSize.medianDealSize)}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Median: {formatLargeNumber(avgDealSize.medianDealSize)}/year
                   </p>
                 </CardContent>
               </Card>
 
               {/* Card #6: Hot Streak */}
-              <Card className={`${hotStreak.isActive ? 'border-orange-300 bg-gradient-to-br from-orange-50 to-red-50 animate-pulse' : 'border-gray-200 bg-gray-50'}`}>
+              <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                  <CardTitle className="text-sm font-medium text-black">Hot Streak</CardTitle>
-                  <Flame className={`h-4 w-4 ${hotStreak.isActive ? 'text-orange-600' : 'text-gray-400'}`} />
+                  <CardTitle className="text-sm font-medium">Hot Streak</CardTitle>
+                  <Flame className={`h-4 w-4 ${hotStreak.isActive ? 'text-orange-500 animate-pulse' : 'text-muted-foreground'}`} />
                 </CardHeader>
                 <CardContent>
-                  <div className={`text-4xl font-bold ${hotStreak.isActive ? 'text-orange-700' : 'text-gray-600'}`}>
+                  <div className={`text-4xl font-bold ${hotStreak.isActive ? 'text-orange-500' : ''}`}>
                     {hotStreak.currentStreak} {hotStreak.isActive && '🔥'}
                   </div>
-                  <p className={`text-xs mt-1 ${hotStreak.isActive ? 'text-orange-600' : 'text-muted-foreground'}`}>
+                  <p className="text-xs text-muted-foreground mt-1">
                     {hotStreak.currentStreak === 1 ? 'day' : 'days'} • Best: {hotStreak.longestStreak} days
                   </p>
                   {hotStreak.isActive && (
-                    <p className="text-xs text-orange-700 font-semibold mt-0.5">
+                    <p className="text-xs text-orange-500 font-semibold mt-0.5">
                       🚀 Streak Active!
                     </p>
                   )}
@@ -1649,38 +1649,38 @@ const AdminDashboard = () => {
               </Card>
 
               {/* Card #7: Conversion Funnel Health */}
-              <Card className={`border-2 ${conversionHealth.conversionRate > 50 ? 'border-green-200 bg-green-50' : conversionHealth.conversionRate > 25 ? 'border-yellow-200 bg-yellow-50' : 'border-red-200 bg-red-50'}`}>
+              <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                  <CardTitle className="text-sm font-medium text-black">Conversion Funnel</CardTitle>
-                  <Filter className={`h-4 w-4 ${conversionHealth.conversionRate > 50 ? 'text-green-600' : conversionHealth.conversionRate > 25 ? 'text-yellow-600' : 'text-red-600'}`} />
+                  <CardTitle className="text-sm font-medium">Conversion Funnel</CardTitle>
+                  <Filter className={`h-4 w-4 ${conversionHealth.conversionRate > 50 ? 'text-green-500' : conversionHealth.conversionRate > 25 ? 'text-yellow-500' : 'text-red-500'}`} />
                 </CardHeader>
                 <CardContent>
-                  <div className={`text-4xl font-bold ${conversionHealth.conversionRate > 50 ? 'text-green-700' : conversionHealth.conversionRate > 25 ? 'text-yellow-700' : 'text-red-700'}`}>
+                  <div className={`text-4xl font-bold ${conversionHealth.conversionRate > 50 ? 'text-green-500' : conversionHealth.conversionRate > 25 ? 'text-yellow-500' : 'text-red-500'}`}>
                     {conversionHealth.conversionRate}%
                   </div>
-                  <p className={`text-xs mt-1 ${conversionHealth.conversionRate > 50 ? 'text-green-600' : conversionHealth.conversionRate > 25 ? 'text-yellow-600' : 'text-red-600'}`}>
+                  <p className="text-xs text-muted-foreground mt-1">
                     {conversionHealth.reportsInCRM} of {conversionHealth.totalReports} in CRM
                   </p>
                 </CardContent>
               </Card>
 
               {/* Card #8: Total Market Opportunity */}
-              <Card className="border-purple-300 bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50">
+              <Card className="border-orange-200 bg-orange-50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
                   <CardTitle className="text-sm font-medium text-black">Total Market Opportunity</CardTitle>
                   <div className="flex items-center gap-1">
-                    <TrendingUp className="h-4 w-4 text-purple-600" />
-                    <Globe className="h-3 w-3 text-purple-600" />
+                    <TrendingUp className="h-4 w-4 text-orange-600" />
+                    <Globe className="h-3 w-3 text-orange-600" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-purple-700">
+                  <div className="text-4xl font-bold text-orange-700">
                     {formatLargeNumber(marketOpportunity.totalOpportunity)}
                   </div>
-                  <p className="text-xs text-purple-600 mt-1 font-semibold">
+                  <p className="text-xs text-orange-600 mt-1">
                     Avg: {formatLargeNumber(marketOpportunity.avgPerProspect)}/prospect
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-orange-600">
                     {marketOpportunity.activeProspects} active prospects
                   </p>
                 </CardContent>
