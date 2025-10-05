@@ -163,7 +163,7 @@ serve(async (req) => {
     if (userId) {
       try {
         // Check if user is an admin
-        const { data: isAdmin, error: adminCheckError } = await supabase.rpc('is_admin', { user_uuid: userId });
+        const { data: isAdmin, error: adminCheckError } = await supabase.rpc('is_admin');
         
         if (adminCheckError) {
           console.error('Error checking admin status:', adminCheckError);
