@@ -341,11 +341,11 @@ export default function TasksWidget() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overdue" className="space-y-2 mt-4 max-h-96 overflow-y-auto">
+          <TabsContent value="overdue" className="space-y-2 mt-4 max-h-[500px] overflow-y-auto">
             {overdueTasks.map((task) => (
               <div
                 key={task.id}
-                className="p-3 border rounded-lg bg-red-50 border-red-200"
+                className="p-4 border rounded-lg bg-red-50 border-red-200"
               >
                 <div className="flex items-start gap-2">
                   <Checkbox
@@ -374,11 +374,11 @@ export default function TasksWidget() {
             )}
           </TabsContent>
 
-          <TabsContent value="today" className="space-y-2 mt-4 max-h-96 overflow-y-auto">
+          <TabsContent value="today" className="space-y-2 mt-4 max-h-[500px] overflow-y-auto">
             {dueTodayTasks.map((task) => (
               <div
                 key={task.id}
-                className="p-3 border rounded-lg bg-yellow-50 border-yellow-200"
+                className="p-4 border rounded-lg bg-yellow-50 border-yellow-200"
               >
                 <div className="flex items-start gap-2">
                   <Checkbox
@@ -407,9 +407,9 @@ export default function TasksWidget() {
             )}
           </TabsContent>
 
-          <TabsContent value="tomorrow" className="space-y-2 mt-4 max-h-96 overflow-y-auto">
+          <TabsContent value="tomorrow" className="space-y-2 mt-4 max-h-[500px] overflow-y-auto">
             {dueTomorrowTasks.map((task) => (
-              <div key={task.id} className="p-3 border rounded-lg">
+              <div key={task.id} className="p-4 border rounded-lg">
                 <div className="flex items-start gap-2">
                   <Checkbox
                     onCheckedChange={() => handleCompleteTask(task.id)}

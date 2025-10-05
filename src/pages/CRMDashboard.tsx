@@ -16,8 +16,8 @@ export default function CRMDashboard() {
     <div className="min-h-screen bg-background">
       <CRMHeader />
       
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
+      <div className="container mx-auto px-4 py-6 max-w-[1800px]">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 xl:gap-8">
           {/* Main Content Area */}
           <div className="flex-1">
             <Tabs value={selectedView} onValueChange={(v) => setSelectedView(v as any)} className="w-full">
@@ -58,7 +58,7 @@ export default function CRMDashboard() {
           </div>
 
           {/* Tasks Widget Sidebar */}
-          <div className="lg:w-80">
+          <div className="lg:w-96">
             <TasksWidget />
           </div>
         </div>

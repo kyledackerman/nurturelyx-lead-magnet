@@ -206,8 +206,8 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
 
       <div className="border rounded-lg overflow-auto">
         <Table>
-          <TableHeader>
-            <TableRow>
+          <TableHeader className="sticky top-0 z-10 bg-background">
+            <TableRow className="h-12">
               <TableHead>Domain</TableHead>
               <TableHead className="text-right">Monthly Revenue</TableHead>
               {!compact && <TableHead>Traffic</TableHead>}
@@ -223,7 +223,7 @@ export default function CRMTableView({ onSelectProspect, compact = false }: CRMT
               return (
                 <TableRow 
                   key={prospect.id} 
-                  className={getRowClassName(prospect)}
+                  className={cn("h-14 even:bg-muted/30", getRowClassName(prospect))}
                 >
                   <TableCell className="font-medium">{prospect.domain}</TableCell>
                   <TableCell className="text-right">

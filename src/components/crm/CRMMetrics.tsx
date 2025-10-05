@@ -91,7 +91,7 @@ export default function CRMMetrics() {
 
   if (loading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
         {[...Array(6)].map((_, i) => (
           <Card key={i}>
             <CardHeader className="pb-2">
@@ -150,12 +150,12 @@ export default function CRMMetrics() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
         {metricCards.map((metric) => {
           const Icon = metric.icon;
           return (
-            <Card key={metric.title}>
-              <CardHeader className="pb-2">
+            <Card key={metric.title} className="shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <Icon className="h-4 w-4" />
                   {metric.title}
