@@ -1,0 +1,33 @@
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+export default function CRMHeader() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="border-b bg-card">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/admin")}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Admin
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">CRM Dashboard</h1>
+              <p className="text-sm text-muted-foreground">
+                Manage your sales pipeline and convert prospects
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

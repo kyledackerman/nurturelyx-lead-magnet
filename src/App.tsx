@@ -11,7 +11,9 @@ import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
 import PublicReportPage from "./pages/PublicReportPage";
 import AdminDashboard from "./pages/AdminDashboard";
+import CRMDashboard from "./pages/CRMDashboard";
 import AuthPage from "./pages/AuthPage";
+import { AdminAuthGuard } from "./components/admin/AdminAuthGuard";
 import UserDashboard from "./pages/UserDashboard";
 import LearnPage from "./pages/LearnPage";
 import HvacLeadsPage from "./pages/HvacLeadsPage";
@@ -47,7 +49,16 @@ const App = () => (
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/dashboard" element={<UserDashboard />} />
             <Route path="/report/:slug" element={<PublicReportPage />} />
-            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin" element={
+              <AdminAuthGuard>
+                <AdminDashboard />
+              </AdminAuthGuard>
+            } />
+            <Route path="/admin/crm" element={
+              <AdminAuthGuard>
+                <CRMDashboard />
+              </AdminAuthGuard>
+            } />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/industries/hvac" element={<HVACIndustryPage />} />
             <Route path="/industries/legal" element={<LegalIndustryPage />} />

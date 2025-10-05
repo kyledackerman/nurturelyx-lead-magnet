@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
+import { useNavigate } from "react-router-dom";
 import { AdminReportsTable } from "@/components/admin/AdminReportsTable";
-import { CRMProspectsTable } from "@/components/admin/CRMProspectsTable";
 import { AdminManagement } from "@/components/admin/AdminManagement";
 import { PasswordManagement } from "@/components/admin/PasswordManagement";
 import LeaderboardTab from "@/components/admin/LeaderboardTab";
@@ -10,12 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, Globe, Calendar, TrendingUp, ChevronDown, ChevronUp, Target, Eye, Shield, Users, FileText, Share2, Clock, LayoutDashboard, Trophy, Key } from "lucide-react";
+import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ComposedChart, Area, Line, Bar, BarChart, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
@@ -128,6 +126,7 @@ interface RecentView {
   session_id: string;
 }
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const {
     user
   } = useAuth();
@@ -135,6 +134,7 @@ const AdminDashboard = () => {
   const [filteredReports, setFilteredReports] = useState<ReportSummary[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [hotLeadsCount, setHotLeadsCount] = useState(0);
   const [stats, setStats] = useState<AdminStats>({
     totalReports: 0,
     uniqueDomains: 0,
@@ -155,7 +155,6 @@ const AdminDashboard = () => {
     uniqueVisitorsToday: 0,
     uniqueVisitorsYesterday: 0,
   });
-  const [crmOpen, setCrmOpen] = useState(true);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [viewsChartData, setViewsChartData] = useState<ViewsChartDataPoint[]>([]);
   const [timePeriod, setTimePeriod] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
@@ -191,10 +190,11 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchReports();
     fetchStats();
+    fetchHotLeadsCount();
     fetchChartData(timePeriod);
     fetchViewsChartData(viewsTimePeriod);
     fetchTrafficStats();
-      fetchMostVisitedPages();
+    fetchMostVisitedPages();
     fetchShareDistribution();
     fetchHourlyHeatmap();
     fetchTopReports();
