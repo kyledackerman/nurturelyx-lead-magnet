@@ -1,6 +1,6 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Download, X } from "lucide-react";
+import { Download, X, Loader2 } from "lucide-react";
 
 interface ExportToolbarProps {
   selectedCount: number;
@@ -12,6 +12,7 @@ interface ExportToolbarProps {
   onExport: () => void;
   onClear: () => void;
   filterSummary?: string;
+  exporting?: boolean;
 }
 
 export default function ExportToolbar({
@@ -24,6 +25,7 @@ export default function ExportToolbar({
   onExport,
   onClear,
   filterSummary,
+  exporting = false,
 }: ExportToolbarProps) {
   return (
     <div className="bg-card border rounded-lg p-4 mb-4 sticky top-0 z-10 shadow-sm">
@@ -33,6 +35,7 @@ export default function ExportToolbar({
             id="select-all"
             checked={allSelected}
             onCheckedChange={onSelectAll}
+            disabled={exporting}
           />
           <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
             Select All
@@ -48,6 +51,7 @@ export default function ExportToolbar({
             id="auto-mark"
             checked={autoMarkContacted}
             onCheckedChange={onAutoMarkChange}
+            disabled={exporting}
           />
           <label htmlFor="auto-mark" className="text-sm cursor-pointer">
             Mark as Contacted after export
@@ -57,12 +61,21 @@ export default function ExportToolbar({
         <div className="flex gap-2 ml-auto">
           <Button
             onClick={onExport}
-            disabled={selectedCount === 0}
+            disabled={selectedCount === 0 || exporting}
             size="sm"
             className="gap-2"
           >
-            <Download className="h-4 w-4" />
-            Export CSV
+            {exporting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Exporting...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                Export CSV
+              </>
+            )}
           </Button>
 
           {selectedCount > 0 && (
@@ -71,6 +84,7 @@ export default function ExportToolbar({
               variant="outline"
               size="sm"
               className="gap-2"
+              disabled={exporting}
             >
               <X className="h-4 w-4" />
               Clear

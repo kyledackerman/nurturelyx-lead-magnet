@@ -17,6 +17,7 @@ interface ExportConfirmationDialogProps {
   prospectCount: number;
   domains: string[];
   autoUpdateEnabled: boolean;
+  filterSummary?: string;
 }
 
 export default function ExportConfirmationDialog({
@@ -26,6 +27,7 @@ export default function ExportConfirmationDialog({
   prospectCount,
   domains,
   autoUpdateEnabled,
+  filterSummary,
 }: ExportConfirmationDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -38,6 +40,27 @@ export default function ExportConfirmationDialog({
         </DialogHeader>
 
         <div className="space-y-4">
+          {prospectCount > 100 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-2">
+              <AlertTriangle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-blue-900">Large Export</p>
+                <p className="text-blue-700 mt-1">
+                  This is a large export and may take a moment to complete.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {filterSummary && (
+            <div>
+              <p className="text-sm font-medium mb-2">Applied Filters:</p>
+              <p className="text-sm text-muted-foreground bg-muted p-2 rounded-md">
+                {filterSummary}
+              </p>
+            </div>
+          )}
+
           <div>
             <p className="text-sm font-medium mb-2">Domains:</p>
             <ScrollArea className="h-32 border rounded-md p-2">

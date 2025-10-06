@@ -450,7 +450,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         search: searchTerm,
       };
 
-      const { data, error } = await supabase.functions.invoke('export-prospects', {
+      const response = await supabase.functions.invoke('export-prospects', {
         body: {
           prospectIds: Array.from(selectedProspectIds),
           autoUpdateStatus: autoMarkContacted,
@@ -458,10 +458,19 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         },
       });
 
-      if (error) throw error;
+      if (response.error) throw response.error;
+
+      // Check if response is an error JSON or CSV
+      const contentType = response.data?.type || typeof response.data;
+      
+      if (typeof response.data === 'string' && response.data.startsWith('{')) {
+        // It's an error JSON
+        const errorData = JSON.parse(response.data);
+        throw new Error(errorData.error || 'Export failed');
+      }
 
       // Create blob and download
-      const blob = new Blob([data], { type: 'text/csv' });
+      const blob = new Blob([response.data], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -472,7 +481,10 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
 
-      toast.success(`Exported ${selectedProspectIds.size} prospects`);
+      const successMessage = autoMarkContacted 
+        ? `Exported ${selectedProspectIds.size} prospects and marked as Contacted`
+        : `Exported ${selectedProspectIds.size} prospects`;
+      toast.success(successMessage);
       
       // Clear selection and refresh
       setSelectedProspectIds(new Set());
@@ -482,9 +494,10 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       if (autoMarkContacted) {
         await fetchProspects();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Export error:", error);
-      toast.error("Failed to export prospects");
+      const errorMessage = error?.message || "Failed to export prospects";
+      toast.error(errorMessage);
     } finally {
       setExporting(false);
     }
@@ -525,6 +538,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
             onExport={handleExport}
             onClear={() => setSelectedProspectIds(new Set())}
             filterSummary={getFilterSummary()}
+            exporting={exporting}
           />
 
           <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
@@ -644,7 +658,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                   className={cn(
                     "h-14 even:bg-muted/30",
                     getRowClassName(prospect),
-                    isSelected && "bg-primary/10"
+                    isSelected && "bg-primary/20 border-l-4 border-primary"
                   )}
                 >
                   {!compact && (
@@ -771,6 +785,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         prospectCount={selectedProspectIds.size}
         domains={displayedProspects.filter(p => selectedProspectIds.has(p.id)).map(p => p.domain)}
         autoUpdateEnabled={autoMarkContacted}
+        filterSummary={getFilterSummary()}
       />
     </div>
   );
