@@ -101,6 +101,10 @@ export default function PipelineChart() {
                 borderRadius: '6px',
                 color: 'hsl(var(--popover-foreground))'
               }}
+              labelStyle={{
+                color: 'hsl(var(--popover-foreground))',
+                fontWeight: 600
+              }}
               formatter={(value: number, name: string) => {
                 if (name === "count") return value;
                 return `$${(value / 1000).toFixed(1)}K`;
