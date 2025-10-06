@@ -559,6 +559,30 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
             </>
           )}
 
+          {/* Lost Reason */}
+          {prospect.status === 'closed_lost' && prospect.lost_reason && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="font-semibold mb-2 text-red-600">Lost Reason</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="font-medium text-red-900">{prospect.lost_reason}</p>
+                    {prospect.lost_notes && (
+                      <p className="text-red-700 mt-2 text-xs">{prospect.lost_notes}</p>
+                    )}
+                    {prospect.closed_at && (
+                      <p className="text-red-600 mt-2 text-xs">
+                        Closed: {format(new Date(prospect.closed_at), "MMM d, yyyy")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+
           {/* Activity Notes */}
           <Separator />
           <div className="space-y-3">

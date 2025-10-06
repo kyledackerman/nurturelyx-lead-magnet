@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import ExportToolbar from "./ExportToolbar";
 import ExportConfirmationDialog from "./ExportConfirmationDialog";
+import { LostReasonDialog } from "./LostReasonDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { auditService } from "@/services/auditService";
 
@@ -29,6 +30,8 @@ interface ProspectRow {
   assignedTo: string | null;
   nextFollowUp: string | null;
   reportId: string;
+  lostReason: string | null;
+  lostNotes: string | null;
 }
 
 interface CRMTableViewProps {
@@ -58,6 +61,8 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [adminUsers, setAdminUsers] = useState<Array<{ id: string; email: string }>>([]);
+  const [showLostReasonDialog, setShowLostReasonDialog] = useState(false);
+  const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{ prospectId: string; status: string; domain: string } | null>(null);
 
   useEffect(() => {
     fetchProspects();
@@ -106,6 +111,8 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
           priority,
           next_follow_up,
           assigned_to,
+          lost_reason,
+          lost_notes,
           reports!inner(
             domain,
             slug,
@@ -136,6 +143,8 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         status: p.status,
         assignedTo: p.assigned_to,
         nextFollowUp: p.next_follow_up,
+        lostReason: p.lost_reason,
+        lostNotes: p.lost_notes,
       })) || [];
 
       setProspects(mapped);
@@ -237,12 +246,27 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     }
   };
 
-  const updateStatus = async (prospectId: string, newStatus: string) => {
+  const updateStatus = async (prospectId: string, newStatus: string, domain?: string) => {
+    // If marking as closed_lost, show the dialog first
+    if (newStatus === 'closed_lost') {
+      const prospectDomain = domain || prospects.find(p => p.id === prospectId)?.domain || '';
+      setPendingStatusUpdate({ prospectId, status: newStatus, domain: prospectDomain });
+      setShowLostReasonDialog(true);
+      return;
+    }
+
     setUpdatingId(prospectId);
     try {
+      const updateData: any = { status: newStatus };
+      
+      // Set closed_at when closing a deal
+      if (newStatus === 'closed_won' || newStatus === 'closed_lost') {
+        updateData.closed_at = new Date().toISOString();
+      }
+
       const { error } = await supabase
         .from("prospect_activities")
-        .update({ status: newStatus })
+        .update(updateData)
         .eq("id", prospectId);
 
       if (error) throw error;
@@ -260,6 +284,42 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       toast.error("Failed to update status");
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleLostReasonConfirm = async (reason: string, notes: string) => {
+    if (!pendingStatusUpdate) return;
+
+    setUpdatingId(pendingStatusUpdate.prospectId);
+    setShowLostReasonDialog(false);
+
+    try {
+      const { error } = await supabase
+        .from("prospect_activities")
+        .update({ 
+          status: pendingStatusUpdate.status,
+          lost_reason: reason,
+          lost_notes: notes,
+          closed_at: new Date().toISOString()
+        })
+        .eq("id", pendingStatusUpdate.prospectId);
+
+      if (error) throw error;
+
+      await auditService.logBusinessContext(
+        "prospect_activities",
+        pendingStatusUpdate.prospectId,
+        `Status updated to ${pendingStatusUpdate.status} - Lost Reason: ${reason}`
+      );
+
+      toast.success("Marked as closed lost");
+      fetchProspects();
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Failed to update status");
+    } finally {
+      setUpdatingId(null);
+      setPendingStatusUpdate(null);
     }
   };
 
@@ -787,6 +847,13 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         domains={displayedProspects.filter(p => selectedProspectIds.has(p.id)).map(p => p.domain)}
         autoUpdateEnabled={autoMarkContacted}
         filterSummary={getFilterSummary()}
+      />
+
+      <LostReasonDialog
+        open={showLostReasonDialog}
+        onOpenChange={setShowLostReasonDialog}
+        onConfirm={handleLostReasonConfirm}
+        domain={pendingStatusUpdate?.domain || ''}
       />
     </div>
   );

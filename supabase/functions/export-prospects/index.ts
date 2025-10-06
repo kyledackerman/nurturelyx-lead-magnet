@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     // Fetch prospect data with report information
     const { data: prospects, error: fetchError } = await supabase
       .from('prospect_activities')
-      .select('id, report_id, assigned_to, reports!inner(domain, slug, report_data)')
+      .select('id, report_id, assigned_to, lost_reason, lost_notes, reports!inner(domain, slug, report_data)')
       .in('id', prospectIds);
 
     if (fetchError) {
@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
 
     // Build CSV
     const csvRows: string[] = [];
-    csvRows.push('Domain,Monthly Traffic,Estimated Leads,Missed Sales,Monthly Revenue Loss,Report URL,Assigned To');
+    csvRows.push('Domain,Monthly Traffic,Estimated Leads,Missed Sales,Monthly Revenue Loss,Report URL,Assigned To,Lost Reason,Lost Notes');
 
     const domains: string[] = [];
 
@@ -100,6 +100,8 @@ Deno.serve(async (req) => {
         reportData.monthlyRevenueLost || '0',
         reportUrl,
         assignedAdmin,
+        prospect.lost_reason || 'N/A',
+        prospect.lost_notes || 'N/A',
       ];
 
       // Escape CSV values

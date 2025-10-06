@@ -110,10 +110,13 @@ export type Database = {
           assigned_at: string | null
           assigned_by: string | null
           assigned_to: string | null
+          closed_at: string | null
           contact_method: string | null
           created_at: string
           created_by: string | null
           id: string
+          lost_notes: string | null
+          lost_reason: string | null
           next_follow_up: string | null
           notes: string | null
           priority: string
@@ -126,10 +129,13 @@ export type Database = {
           assigned_at?: string | null
           assigned_by?: string | null
           assigned_to?: string | null
+          closed_at?: string | null
           contact_method?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
+          lost_notes?: string | null
+          lost_reason?: string | null
           next_follow_up?: string | null
           notes?: string | null
           priority?: string
@@ -142,10 +148,13 @@ export type Database = {
           assigned_at?: string | null
           assigned_by?: string | null
           assigned_to?: string | null
+          closed_at?: string | null
           contact_method?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
+          lost_notes?: string | null
+          lost_reason?: string | null
           next_follow_up?: string | null
           notes?: string | null
           priority?: string
