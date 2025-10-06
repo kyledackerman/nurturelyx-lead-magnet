@@ -944,19 +944,36 @@ const LearnPage = () => {
                 handle user privacy while staying fully compliant with major regulations.
               </p>
 
+              <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-r-lg mb-8">
+                <h4 className="font-semibold text-lg mb-3 text-foreground">✅ Our Commitment to Privacy and Compliance</h4>
+                <p className="text-foreground mb-3">
+                  NurturelyX is fully compliant with GDPR, CCPA, and all major data privacy regulations. We do not use cookies, pixel tracking, or behavioral profiling of visitors.
+                </p>
+                <p className="text-foreground mb-3">
+                  Our system works exclusively with <strong>first-party website data</strong> (data that your own website legitimately collects) and publicly available business information to identify which companies are visiting your site — nothing more.
+                </p>
+                <p className="text-foreground">
+                  We never sell, share, or store consumer data for advertising or remarketing purposes. All data processing follows legitimate interest principles under Article 6(1)(f) of the GDPR, and all resolved identities come from lawful, consent-based, and opt-in sources in the business context.
+                </p>
+              </div>
+
               <h3 className="text-2xl font-semibold mt-8 mb-4">GDPR Compliance (EU)</h3>
 
               <Card className="p-6 border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20">
-                <h4 className="font-semibold mb-3 text-foreground">Legitimate Interest Legal Basis</h4>
+                <h4 className="font-semibold mb-3 text-foreground">Legitimate Interest Legal Basis - Article 6(1)(f)</h4>
                 <p className="text-foreground mb-4">
-                  For visitor identification, most solutions rely on the "legitimate interest" legal basis under GDPR Article 6(1)(f). 
-                  This allows processing of contact data when there's a genuine business interest and the processing doesn't 
+                  For visitor identification, NurturelyX relies on the "legitimate interest" legal basis under GDPR Article 6(1)(f). 
+                  This allows processing of business contact data when there's a genuine business interest and the processing doesn't 
                   override individual rights.
                 </p>
                 <div className="space-y-2 text-sm">
                   <div className="flex gap-2">
                     <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <span><strong>Legitimate Interest Assessment (LIA):</strong> Documented justification for processing</span>
+                    <span><strong>First-party data only:</strong> We process only data your website legitimately collects</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <span><strong>Consent-based sources:</strong> All identities from lawful, opt-in sources (company domains, professional contacts)</span>
                   </div>
                   <div className="flex gap-2">
                     <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -970,6 +987,10 @@ const LearnPage = () => {
                     <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                     <span><strong>Transparency:</strong> Privacy policies clearly explain data usage</span>
                   </div>
+                  <div className="flex gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <span><strong>Data Processing Agreement (DPA):</strong> Every customer receives comprehensive documentation</span>
+                  </div>
                 </div>
               </Card>
 
@@ -978,16 +999,20 @@ const LearnPage = () => {
               <Card className="p-6 border-purple-200 dark:border-purple-900 bg-purple-50 dark:bg-purple-950/20">
                 <h4 className="font-semibold mb-3 text-foreground">Consumer Privacy Rights</h4>
                 <p className="text-foreground mb-4">
-                  The California Consumer Privacy Act requires specific disclosures and consumer rights for California residents:
+                  The California Consumer Privacy Act requires specific disclosures and consumer rights. <strong>NurturelyX never sells consumer data</strong> and maintains full transparency:
                 </p>
                 <div className="space-y-2 text-sm">
                   <div className="flex gap-2">
                     <CheckCircle2 className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                    <span><strong>Notice at Collection:</strong> Inform visitors about data collection practices</span>
+                    <span><strong>No Data Selling:</strong> We never sell, share, or store consumer data for advertising purposes</span>
                   </div>
                   <div className="flex gap-2">
                     <CheckCircle2 className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                    <span><strong>Right to Know:</strong> Provide access to collected personal information</span>
+                    <span><strong>Notice at Collection:</strong> Clear disclosure of data collection practices</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                    <span><strong>Right to Know:</strong> Provide access to collected business information</span>
                   </div>
                   <div className="flex gap-2">
                     <CheckCircle2 className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
@@ -995,9 +1020,50 @@ const LearnPage = () => {
                   </div>
                   <div className="flex gap-2">
                     <CheckCircle2 className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                    <span><strong>Do Not Sell:</strong> Respect "Do Not Sell My Info" requests</span>
+                    <span><strong>B2B Focus:</strong> Designed exclusively for business-to-business lead generation</span>
                   </div>
                 </div>
+              </Card>
+
+              <h3 className="text-2xl font-semibold mt-8 mb-4">Your Data Processing Agreement (DPA)</h3>
+
+              <Card className="p-6 bg-muted/50">
+                <p className="text-foreground mb-4">
+                  Every customer of NurturelyX receives a comprehensive Data Processing Agreement that details:
+                </p>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <div>
+                      <strong>Data Matching & Storage</strong>
+                      <p className="text-sm text-muted-foreground">How we match and securely store visitor data</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <div>
+                      <strong>Retention Periods</strong>
+                      <p className="text-sm text-muted-foreground">Clear timelines for data storage</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <div>
+                      <strong>Access & Erasure Rights</strong>
+                      <p className="text-sm text-muted-foreground">How visitors can request their data</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <div>
+                      <strong>DPO Contact Details</strong>
+                      <p className="text-sm text-muted-foreground">Direct line to our compliance team</p>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-center mt-6 p-4 bg-background rounded-lg border">
+                  For EU/UK visitors: Contact our Data Protection Officer at <a href="mailto:privacy@nurturely.io" className="text-primary hover:underline font-semibold">privacy@nurturely.io</a> to request access, correction, or deletion of any personal data associated with you.
+                </p>
               </Card>
 
               <h3 className="text-2xl font-semibold mt-8 mb-4">IP Tracking vs. Identity Resolution</h3>

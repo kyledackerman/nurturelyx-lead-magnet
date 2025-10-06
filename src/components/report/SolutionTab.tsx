@@ -96,7 +96,7 @@ const SolutionTab = ({
                   size={16}
                 />
                 <span className="text-white">
-                  GDPR and CCPA compliant with built-in privacy controls
+                  GDPR & CCPA compliant - no cookies or consumer tracking
                 </span>
               </li>
               <li className="flex items-start">

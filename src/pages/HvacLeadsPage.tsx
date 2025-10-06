@@ -117,7 +117,7 @@ const HvacLeadsPage = () => {
     },
     {
       question: "Is this legal for HVAC companies?",
-      answer: "Yes, when done correctly. Identity resolution providers operate under strict privacy compliance (GDPR, CCPA, TCPA). You're identifying people who voluntarily visited your public website—no different than if they had filled out a contact form. However, always follow telemarketing laws when calling leads."
+      answer: "Yes, absolutely. Identity resolution operates under strict privacy compliance (GDPR, CCPA, TCPA). NurturelyX processes only first-party website data and publicly available business information under legitimate interest principles (Article 6(1)(f) of GDPR). We never use cookies, behavioral profiling, or sell consumer data. You're identifying businesses who voluntarily visited your website—ethically and transparently. Always follow telemarketing laws (TCPA, Do Not Call) when reaching out to leads."
     },
     {
       question: "What's the typical ROI for HVAC companies?",

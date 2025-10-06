@@ -41,7 +41,7 @@ const glossaryItems = [
   {
     term: "GDPR/CCPA Compliance",
     definition:
-      "Adherence to privacy regulations including the General Data Protection Regulation (EU) and California Consumer Privacy Act (US).",
+      "Adherence to privacy regulations including the General Data Protection Regulation (EU) under Article 6(1)(f) legitimate interest and California Consumer Privacy Act (US). NurturelyX processes only first-party data and publicly available business information, with comprehensive Data Processing Agreements (DPA) provided to all customers.",
   },
 ];
 
