@@ -36,14 +36,6 @@ const getFaqItems = (data: ReportData): Array<{ question: string; answer: string
         
         <p>We never sell, share, or store consumer data for advertising or remarketing purposes. All data processing follows legitimate interest principles under Article 6(1)(f) of the GDPR, and all resolved identities come from lawful, consent-based, and opt-in sources in the business context (e.g., company email domains or professional contact data).</p>
         
-        <p className="font-medium">Every customer of NurturelyX receives a Data Processing Agreement (DPA) detailing:</p>
-        <ul className="list-disc pl-6 space-y-2">
-          <li>how data is matched and stored,</li>
-          <li>retention periods,</li>
-          <li>rights of access and erasure, and</li>
-          <li>contact details for our Data Protection Officer.</li>
-        </ul>
-        
         <p className="mt-4 pt-4 border-t border-white/20 text-sm">If you're an EU or UK visitor, you may request access, correction, or deletion of any personal data associated with you at any time by contacting our DPO at <span className="font-medium text-accent">privacy@nurturely.io</span>.</p>
       </div>
     )
