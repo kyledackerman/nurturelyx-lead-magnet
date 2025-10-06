@@ -88,9 +88,10 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     try {
       const { data, error } = await supabase.functions.invoke('get-admins');
       if (error) throw error;
-      setAdminUsers(data || []);
+      setAdminUsers(data?.admins || []);
     } catch (error) {
       console.error("Error fetching admin users:", error);
+      setAdminUsers([]);
     }
   };
 
