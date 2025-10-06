@@ -95,6 +95,12 @@ export default function PipelineChart() {
             <XAxis dataKey="status" tick={{ fill: 'hsl(var(--foreground))' }} />
             <YAxis tick={{ fill: 'hsl(var(--foreground))' }} />
             <Tooltip 
+              contentStyle={{
+                backgroundColor: 'hsl(var(--popover))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '6px',
+                color: 'hsl(var(--popover-foreground))'
+              }}
               formatter={(value: number, name: string) => {
                 if (name === "count") return value;
                 return `$${(value / 1000).toFixed(1)}K`;
