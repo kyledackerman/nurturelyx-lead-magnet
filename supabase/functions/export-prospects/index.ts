@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     // Fetch prospect data with report information
     const { data: prospects, error: fetchError } = await supabase
       .from('prospect_activities')
-      .select('id, report_id, reports!inner(domain, slug, report_data)')
+      .select('id, report_id, assigned_to, reports!inner(domain, slug, report_data)')
       .in('id', prospectIds);
 
     if (fetchError) {
@@ -64,9 +64,21 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Fetch admin details for assignment mapping
+    const { data: adminsData } = await supabase.functions.invoke('get-admins', {
+      headers: { Authorization: authHeader }
+    });
+    
+    const adminMap = new Map();
+    if (adminsData?.admins) {
+      adminsData.admins.forEach((admin: any) => {
+        adminMap.set(admin.user_id, admin.email || admin.display_name || 'Unknown Admin');
+      });
+    }
+
     // Build CSV
     const csvRows: string[] = [];
-    csvRows.push('Domain,Monthly Traffic,Estimated Leads,Missed Sales,Monthly Revenue Loss,Report URL');
+    csvRows.push('Domain,Monthly Traffic,Estimated Leads,Missed Sales,Monthly Revenue Loss,Report URL,Assigned To');
 
     const domains: string[] = [];
 
@@ -76,6 +88,10 @@ Deno.serve(async (req) => {
       const reportUrl = `https://x1.nurturely.io/report/${prospect.reports.slug}`;
       domains.push(domain);
 
+      const assignedAdmin = prospect.assigned_to 
+        ? (adminMap.get(prospect.assigned_to) || 'Unknown Admin')
+        : 'Unassigned';
+
       const row = [
         domain,
         reportData.organicTraffic || '0',
@@ -83,6 +99,7 @@ Deno.serve(async (req) => {
         reportData.estimatedSalesLost || '0',
         reportData.monthlyRevenueLost || '0',
         reportUrl,
+        assignedAdmin,
       ];
 
       // Escape CSV values
