@@ -947,13 +947,13 @@ const LearnPage = () => {
               <div className="bg-primary/10 border-l-4 border-primary p-6 rounded-r-lg mb-8">
                 <h4 className="font-semibold text-lg mb-3 text-foreground">✅ Our Commitment to Privacy and Compliance</h4>
                 <p className="text-foreground mb-3">
-                  NurturelyX is fully compliant with GDPR, CCPA, and all major data privacy regulations. We do not use cookies, pixel tracking, or behavioral profiling of visitors.
+                  NurturelyX is fully compliant with GDPR, CCPA, and all major data privacy regulations.
                 </p>
                 <p className="text-foreground mb-3">
-                  Our system works exclusively with <strong>first-party website data</strong> (data that your own website legitimately collects) and publicly available business information to identify which companies are visiting your site — nothing more.
+                  Our technology unlocks <strong>your first-party data</strong> - information your website already collects that is lawfully yours under Article 6(1)(f) legitimate interest principles. We simply reveal the identities behind your own website visitors by matching your data with verified business contact databases.
                 </p>
                 <p className="text-foreground">
-                  We never sell, share, or store consumer data for advertising or remarketing purposes. All data processing follows legitimate interest principles under Article 6(1)(f) of the GDPR, and all resolved identities come from lawful, consent-based, and opt-in sources in the business context.
+                  We never sell, share, or use your data for advertising or remarketing purposes. This is your data - we just help you unlock it.
                 </p>
               </div>
 

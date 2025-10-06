@@ -18,7 +18,7 @@ export const ComplianceBadges = () => {
             <Shield className="h-16 w-16 text-primary mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">GDPR Compliant</h3>
             <p className="text-sm text-muted-foreground">
-              Full compliance with European data protection regulations under Article 6(1)(f) legitimate interest. We only collect business data, never consumer information.
+              Full compliance with European data protection regulations under Article 6(1)(f) legitimate interest. We unlock your first-party data that is lawfully yours.
             </p>
           </div>
 
@@ -26,7 +26,7 @@ export const ComplianceBadges = () => {
             <Lock className="h-16 w-16 text-primary mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">CCPA Compliant</h3>
             <p className="text-sm text-muted-foreground">
-              Adheres to California Consumer Privacy Act standards. We never sell consumer data. All data collection is transparent and ethical.
+              Adheres to California Consumer Privacy Act standards. We unlock your own data - never sell it. All processing is transparent and ethical.
             </p>
           </div>
 
@@ -44,27 +44,23 @@ export const ComplianceBadges = () => {
           <ul className="space-y-3 max-w-3xl mx-auto">
             <li className="flex items-start gap-3">
               <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-              <p className="text-sm"><strong>No cookies, pixel tracking, or behavioral profiling:</strong> We don't use invasive tracking methods</p>
+              <p className="text-sm"><strong>Your data, unlocked:</strong> We reveal the identities behind your own first-party website data that is lawfully yours</p>
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-              <p className="text-sm"><strong>First-party website data only:</strong> We work exclusively with data your website legitimately collects</p>
+              <p className="text-sm"><strong>First-party data matching:</strong> We match your website data with verified business contact databases to identify visitors</p>
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-              <p className="text-sm"><strong>Business data only:</strong> We identify companies, not individual consumers</p>
+              <p className="text-sm"><strong>Legitimate interest basis:</strong> Operating under Article 6(1)(f) GDPR - you have a lawful right to this data</p>
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-              <p className="text-sm"><strong>Public information:</strong> All data comes from publicly available sources</p>
+              <p className="text-sm"><strong>Verified business sources:</strong> All identities from lawful, consent-based business contact databases</p>
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-              <p className="text-sm"><strong>Consent-based sources:</strong> All identities from lawful, opt-in sources (company domains, professional contacts)</p>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-              <p className="text-sm"><strong>Never sell or share consumer data:</strong> We don't store data for advertising or remarketing purposes</p>
+              <p className="text-sm"><strong>Your data stays yours:</strong> We never sell, share, or use your data for advertising or remarketing</p>
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />

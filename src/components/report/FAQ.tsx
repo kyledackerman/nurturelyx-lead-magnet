@@ -34,7 +34,7 @@ const getFaqItems = (data: ReportData): Array<{ question: string; answer: string
         
         <p>Our system resolves visitor identities by matching first-party website data with verified business contact databases to identify individual visitors and their companies.</p>
         
-        <p>We never sell, share, or store consumer data for advertising or remarketing purposes. All data processing follows legitimate interest principles under Article 6(1)(f) of the GDPR, and all resolved identities come from lawful, consent-based, and opt-in sources in the business context (e.g., company email domains or professional contact data).</p>
+        <p>Our technology unlocks your first-party data - information your website already collects that is lawfully yours under Article 6(1)(f) legitimate interest principles. We simply reveal the identities behind your own website visitors by matching your data with verified business contact databases. We never sell, share, or use your data for advertising or remarketing purposes.</p>
         
         <p className="mt-4 pt-4 border-t border-white/20 text-sm">If you're an EU or UK visitor, you may request access, correction, or deletion of any personal data associated with you at any time by contacting our DPO at <span className="font-medium text-accent">privacy@nurturely.io</span>.</p>
       </div>
