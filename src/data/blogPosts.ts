@@ -165,11 +165,11 @@ See which blog posts, case studies, and resources attract your ideal customer pr
 
 Visitor identification is **fully compliant** with GDPR, CCPA, and other privacy laws when done correctly:
 
-✅ **Only identifies businesses, not individual consumers**  
-✅ **Uses publicly available data sources**  
-✅ **No personal browsing history tracking**  
+✅ **Uses verified databases and public records**  
+✅ **Operates under legitimate interest (GDPR Article 6(1)(f))**  
 ✅ **Transparent opt-out mechanisms**  
-✅ **B2B focused (not for consumer websites)**
+✅ **Data Processing Agreements (DPA) provided**  
+✅ **Encrypted storage and secure handling**
 
 The key is working with reputable vendors who follow privacy regulations and only provide verified business contact information.
 
@@ -689,10 +689,10 @@ Identity resolution **must** comply with privacy regulations:
 
 ### B2B vs. B2C Differences
 
-**B2B identity resolution** (generally compliant):
-- Identifies businesses, not consumers
-- Uses publicly available business contact data
-- Focuses on professional/work activity
+**Identity resolution for business websites** (generally compliant):
+- Identifies website visitors using comprehensive databases
+- Matches visitors to verified contact information and demographic data
+- Operates under legitimate interest for first-party data
 
 **B2C identity resolution** (more restricted):
 - Must follow stricter consent requirements

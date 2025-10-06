@@ -82,7 +82,7 @@ export const industryData: Record<string, IndustryData> = {
       },
       {
         question: 'Is visitor identification compliant with legal ethics rules?',
-        answer: 'Yes. Our system only identifies business visitors using publicly available data - no confidential client information is collected or stored.'
+        answer: 'Yes. Our system identifies website visitors using verified databases and public records - no confidential client information is collected or stored.'
       },
       {
         question: 'What data do I receive about legal prospects?',
@@ -250,7 +250,7 @@ export const industryData: Record<string, IndustryData> = {
       },
       {
         question: 'Is this HIPAA compliant?',
-        answer: 'Yes. We only identify business visitors researching B2B healthcare products/services - no patient data is collected.'
+        answer: 'Yes. We identify website visitors researching B2B healthcare products/services using verified databases - no patient data is collected.'
       },
       {
         question: 'What healthcare prospects can I identify?',

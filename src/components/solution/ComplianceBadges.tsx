@@ -68,7 +68,7 @@ export const ComplianceBadges = () => {
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-              <p className="text-sm"><strong>B2B focused:</strong> Designed for business-to-business lead generation only</p>
+              <p className="text-sm"><strong>Comprehensive matching:</strong> Identifies visitors using verified databases including professional and demographic information</p>
             </li>
           </ul>
         </div>
