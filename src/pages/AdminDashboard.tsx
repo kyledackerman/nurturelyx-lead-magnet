@@ -1631,21 +1631,6 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Card #5: Average Deal Size */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
-                  <CardTitle className="text-sm font-medium">Average Deal Size</CardTitle>
-                  <Briefcase className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent className="p-3 pt-0">
-                  <div className="text-4xl font-bold">
-                    {formatLargeNumber(avgDealSize.avgDealSize)}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Median: {formatLargeNumber(avgDealSize.medianDealSize)}/year
-                  </p>
-                </CardContent>
-              </Card>
 
               {/* Card #6: Hot Streak */}
               <Card className={hotStreak.isActive ? 'border-2 border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.5)] animate-pulse' : ''}>
@@ -1712,6 +1697,32 @@ const AdminDashboard = () => {
                   </p>
                   <p className="text-xs text-orange-600">
                     {marketOpportunity.activeProspects} active prospects
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Card #9: Average Deal Size */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <CardTitle className="text-sm font-medium cursor-help">Average Deal Size</CardTitle>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Average annual revenue opportunity per prospect based on {conversionHealth.totalReports} reports. The median value shows the middle point of all deal sizes.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <Briefcase className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent className="p-3 pt-0">
+                  <div className="text-4xl font-bold">
+                    {formatLargeNumber(avgDealSize.avgDealSize)}
+                    <span className="text-lg font-normal text-muted-foreground ml-1">/year</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Median: {formatLargeNumber(avgDealSize.medianDealSize)}/year
                   </p>
                 </CardContent>
               </Card>
