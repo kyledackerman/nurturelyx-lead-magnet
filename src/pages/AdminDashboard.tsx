@@ -10,13 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon, Award, Crown, AlertTriangle, Briefcase, Flame, Filter, DollarSign } from "lucide-react";
 import { toast } from "sonner";
-import { ComposedChart, Area, Line, Bar, BarChart, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { ComposedChart, Area, Line, Bar, BarChart, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
 import AdminManual from "@/components/admin/AdminManual";
 import { ReportCategorizationTool } from "@/components/admin/ReportCategorizationTool";
@@ -1686,7 +1687,16 @@ const AdminDashboard = () => {
               {/* Card #8: Total Market Opportunity */}
               <Card className="border-orange-200 bg-orange-50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
-                  <CardTitle className="text-sm font-medium text-black">Total Market Opportunity</CardTitle>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <CardTitle className="text-sm font-medium text-black cursor-help">Total Market Opportunity</CardTitle>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Total estimated annual revenue loss across all {marketOpportunity.activeProspects} active prospects in your pipeline. This represents the combined yearly opportunity value.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <div className="flex items-center gap-1">
                     <TrendingUp className="h-4 w-4 text-orange-600" />
                     <Globe className="h-3 w-3 text-orange-600" />
@@ -1695,9 +1705,10 @@ const AdminDashboard = () => {
                 <CardContent className="p-3 pt-0">
                   <div className="text-4xl font-bold text-orange-700">
                     {formatLargeNumber(marketOpportunity.totalOpportunity)}
+                    <span className="text-lg font-normal text-orange-600 ml-1">/year</span>
                   </div>
                   <p className="text-xs text-orange-600 mt-0.5">
-                    Avg: {formatLargeNumber(marketOpportunity.avgPerProspect)}/prospect
+                    Avg: {formatLargeNumber(marketOpportunity.avgPerProspect)}/year per prospect
                   </p>
                   <p className="text-xs text-orange-600">
                     {marketOpportunity.activeProspects} active prospects
@@ -1760,7 +1771,7 @@ const AdminDashboard = () => {
                         fill: 'hsl(var(--muted-foreground))'
                       }
                     }} />
-                      <Tooltip contentStyle={{
+                      <RechartsTooltip contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '6px'
@@ -1809,7 +1820,7 @@ const AdminDashboard = () => {
                         fill: 'hsl(var(--muted-foreground))'
                       }
                     }} />
-                      <Tooltip contentStyle={{
+                      <RechartsTooltip contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '6px'
@@ -2139,7 +2150,7 @@ const AdminDashboard = () => {
                                 tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
                                 stroke="hsl(var(--border))"
                               />
-                              <Tooltip 
+                              <RechartsTooltip 
                                 contentStyle={{
                                   backgroundColor: 'hsl(var(--card))',
                                   border: '1px solid hsl(var(--border))',
@@ -2177,7 +2188,7 @@ const AdminDashboard = () => {
                                 tick={{ fill: 'hsl(var(--foreground))' }}
                                 stroke="hsl(var(--border))"
                               />
-                              <Tooltip 
+                              <RechartsTooltip 
                                 contentStyle={{
                                   backgroundColor: 'hsl(var(--card))',
                                   border: '1px solid hsl(var(--border))',
