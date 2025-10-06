@@ -30,7 +30,7 @@ const getFaqItems = (data: ReportData): Array<{ question: string; answer: string
       <div className="space-y-4">
         <p className="font-semibold text-base mb-3">✅ Our Commitment to Privacy and Compliance</p>
         
-        <p>NurturelyX is fully compliant with GDPR, CCPA, and all major data privacy regulations. We do not use cookies, pixel tracking, or behavioral profiling of visitors.</p>
+        <p>NurturelyX is fully compliant with GDPR, CCPA, and all major data privacy regulations.</p>
         
         <p>Our system resolves visitor identities by matching first-party website data with verified business contact databases to identify individual visitors and their companies.</p>
         
