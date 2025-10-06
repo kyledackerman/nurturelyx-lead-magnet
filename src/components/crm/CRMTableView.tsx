@@ -12,6 +12,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { AssignmentDropdown } from "@/components/admin/AssignmentDropdown";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import ExportToolbar from "./ExportToolbar";
+import ExportConfirmationDialog from "./ExportConfirmationDialog";
+import { useAuth } from "@/hooks/useAuth";
 import { auditService } from "@/services/auditService";
 
 interface ProspectRow {
@@ -37,17 +41,27 @@ type SortKey = 'domain' | 'monthlyRevenue' | 'trafficTier' | 'priority' | 'statu
 type SortDirection = 'asc' | 'desc';
 
 export default function CRMTableView({ onSelectProspect, compact = false, view = 'active' }: CRMTableViewProps) {
+  const { user } = useAuth();
   const [prospects, setProspects] = useState<ProspectRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [revenueFilter, setRevenueFilter] = useState("all");
+  const [trafficFilter, setTrafficFilter] = useState("all");
+  const [assignedFilter, setAssignedFilter] = useState("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortKey>('nextFollowUp');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [selectedProspectIds, setSelectedProspectIds] = useState<Set<string>>(new Set());
+  const [autoMarkContacted, setAutoMarkContacted] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [adminUsers, setAdminUsers] = useState<Array<{ id: string; email: string }>>([]);
 
   useEffect(() => {
     fetchProspects();
+    fetchAdminUsers();
     
     // Real-time subscription
     const channel = supabase
@@ -69,6 +83,16 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       supabase.removeChannel(channel);
     };
   }, []);
+
+  const fetchAdminUsers = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-admins');
+      if (error) throw error;
+      setAdminUsers(data || []);
+    } catch (error) {
+      console.error("Error fetching admin users:", error);
+    }
+  };
 
   const fetchProspects = async () => {
     try {
@@ -315,6 +339,26 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     if (priorityFilter !== "all" && p.priority !== priorityFilter) {
       return false;
     }
+    if (revenueFilter !== "all") {
+      const threshold = parseInt(revenueFilter);
+      if (p.monthlyRevenue < threshold) {
+        return false;
+      }
+    }
+    if (trafficFilter !== "all" && p.trafficTier !== trafficFilter) {
+      return false;
+    }
+    if (assignedFilter !== "all") {
+      if (assignedFilter === "unassigned" && p.assignedTo !== null) {
+        return false;
+      }
+      if (assignedFilter === "me" && p.assignedTo !== user?.id) {
+        return false;
+      }
+      if (assignedFilter !== "unassigned" && assignedFilter !== "me" && p.assignedTo !== assignedFilter) {
+        return false;
+      }
+    }
     return true;
   });
 
@@ -363,6 +407,106 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
 
   const displayedProspects = compact ? sortedProspects.slice(0, 10) : sortedProspects;
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedProspectIds(new Set(displayedProspects.map(p => p.id)));
+    } else {
+      setSelectedProspectIds(new Set());
+    }
+  };
+
+  const handleSelectProspect = (id: string, checked: boolean) => {
+    const newSelection = new Set(selectedProspectIds);
+    if (checked) {
+      newSelection.add(id);
+    } else {
+      newSelection.delete(id);
+    }
+    setSelectedProspectIds(newSelection);
+  };
+
+  const handleExport = () => {
+    if (selectedProspectIds.size === 0) {
+      toast.error("No prospects selected");
+      return;
+    }
+    setShowExportDialog(true);
+  };
+
+  const handleConfirmExport = async () => {
+    setShowExportDialog(false);
+    setExporting(true);
+
+    try {
+      const selectedProspects = displayedProspects.filter(p => selectedProspectIds.has(p.id));
+      const domains = selectedProspects.map(p => p.domain);
+
+      const filters = {
+        status: statusFilter,
+        priority: priorityFilter,
+        revenue: revenueFilter,
+        traffic: trafficFilter,
+        assigned: assignedFilter,
+        search: searchTerm,
+      };
+
+      const { data, error } = await supabase.functions.invoke('export-prospects', {
+        body: {
+          prospectIds: Array.from(selectedProspectIds),
+          autoUpdateStatus: autoMarkContacted,
+          filtersApplied: filters,
+        },
+      });
+
+      if (error) throw error;
+
+      // Create blob and download
+      const blob = new Blob([data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      a.download = `prospects_export_${timestamp}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      toast.success(`Exported ${selectedProspectIds.size} prospects`);
+      
+      // Clear selection and refresh
+      setSelectedProspectIds(new Set());
+      setAutoMarkContacted(false);
+      
+      // Refresh table if status was updated
+      if (autoMarkContacted) {
+        await fetchProspects();
+      }
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export prospects");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const getFilterSummary = () => {
+    const filters = [];
+    if (statusFilter !== "all") filters.push(`Status: ${statusFilter}`);
+    if (priorityFilter !== "all") filters.push(`Priority: ${priorityFilter}`);
+    if (revenueFilter !== "all") filters.push(`Revenue: >$${parseInt(revenueFilter)/1000}K`);
+    if (trafficFilter !== "all") filters.push(`Traffic: ${trafficFilter}`);
+    if (assignedFilter !== "all") {
+      if (assignedFilter === "unassigned") filters.push("Unassigned");
+      else if (assignedFilter === "me") filters.push("Assigned to me");
+      else {
+        const admin = adminUsers.find(a => a.id === assignedFilter);
+        if (admin) filters.push(`Assigned: ${admin.email}`);
+      }
+    }
+    return filters.length > 0 ? filters.join(", ") : undefined;
+  };
+
   if (loading) {
     return <Skeleton className="h-96 w-full" />;
   }
@@ -370,55 +514,116 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   return (
     <div className="space-y-4">
       {!compact && (
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search domains..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        <>
+          <ExportToolbar
+            selectedCount={selectedProspectIds.size}
+            totalCount={displayedProspects.length}
+            allSelected={selectedProspectIds.size === displayedProspects.length && displayedProspects.length > 0}
+            onSelectAll={handleSelectAll}
+            autoMarkContacted={autoMarkContacted}
+            onAutoMarkChange={setAutoMarkContacted}
+            onExport={handleExport}
+            onClear={() => setSelectedProspectIds(new Set())}
+            filterSummary={getFilterSummary()}
+          />
+
+          <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search domains..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                {view === 'closed' ? (
+                  <>
+                    <SelectItem value="closed_won">Closed Won</SelectItem>
+                    <SelectItem value="closed_lost">Closed Lost</SelectItem>
+                  </>
+                ) : (
+                  <>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="contacted">Contacted</SelectItem>
+                    <SelectItem value="proposal">Proposal</SelectItem>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue placeholder="Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Priority</SelectItem>
+                <SelectItem value="hot">Hot</SelectItem>
+                <SelectItem value="warm">Warm</SelectItem>
+                <SelectItem value="cold">Cold</SelectItem>
+                <SelectItem value="not_viable">Not Viable</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={revenueFilter} onValueChange={setRevenueFilter}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue placeholder="Revenue" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Revenue</SelectItem>
+                <SelectItem value="1000">&gt;$1K</SelectItem>
+                <SelectItem value="2500">&gt;$2.5K</SelectItem>
+                <SelectItem value="5000">&gt;$5K</SelectItem>
+                <SelectItem value="10000">&gt;$10K</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={trafficFilter} onValueChange={setTrafficFilter}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue placeholder="Traffic" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Traffic</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="enterprise">Enterprise</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={assignedFilter} onValueChange={setAssignedFilter}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue placeholder="Assigned" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Users</SelectItem>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
+                <SelectItem value="me">Me</SelectItem>
+                {adminUsers.map(admin => (
+                  <SelectItem key={admin.id} value={admin.id}>
+                    {admin.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-40">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              {view === 'closed' ? (
-                <>
-                  <SelectItem value="closed_won">Closed Won</SelectItem>
-                  <SelectItem value="closed_lost">Closed Lost</SelectItem>
-                </>
-              ) : (
-                <>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="contacted">Contacted</SelectItem>
-                  <SelectItem value="proposal">Proposal</SelectItem>
-                </>
-              )}
-            </SelectContent>
-          </Select>
-          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-full sm:w-40">
-              <SelectValue placeholder="Priority" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Priority</SelectItem>
-              <SelectItem value="hot">Hot</SelectItem>
-              <SelectItem value="warm">Warm</SelectItem>
-              <SelectItem value="cold">Cold</SelectItem>
-              <SelectItem value="not_viable">Not Viable</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        </>
       )}
 
       <div className="border rounded-lg overflow-auto">
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-background">
             <TableRow className="h-12">
+              {!compact && (
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={selectedProspectIds.size === displayedProspects.length && displayedProspects.length > 0}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
+              )}
               <SortableHeader label="Domain" sortKey="domain" />
               <SortableHeader label="Monthly Revenue" sortKey="monthlyRevenue" className="text-right" />
               {!compact && <SortableHeader label="Traffic" sortKey="trafficTier" />}
@@ -432,11 +637,24 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
           <TableBody>
             {displayedProspects.map((prospect) => {
               const overdueRow = isOverdue(prospect.nextFollowUp);
+              const isSelected = selectedProspectIds.has(prospect.id);
               return (
                 <TableRow 
                   key={prospect.id} 
-                  className={cn("h-14 even:bg-muted/30", getRowClassName(prospect))}
+                  className={cn(
+                    "h-14 even:bg-muted/30",
+                    getRowClassName(prospect),
+                    isSelected && "bg-primary/10"
+                  )}
                 >
+                  {!compact && (
+                    <TableCell>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={(checked) => handleSelectProspect(prospect.id, !!checked)}
+                      />
+                    </TableCell>
+                  )}
                   <TableCell className="font-medium">{prospect.domain}</TableCell>
                   <TableCell className={cn("text-right", prospect.monthlyRevenue > 5000 && "font-semibold")}>
                     ${(prospect.monthlyRevenue / 1000).toFixed(1)}K
@@ -531,7 +749,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
             })}
             {displayedProspects.length === 0 && (
               <TableRow>
-                <TableCell colSpan={compact ? 7 : 8} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={compact ? 7 : 9} className="text-center text-muted-foreground py-8">
                   No prospects found
                 </TableCell>
               </TableRow>
@@ -545,6 +763,15 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
           Showing 10 of {filteredProspects.length} prospects. Switch to Table view to see all.
         </p>
       )}
+
+      <ExportConfirmationDialog
+        open={showExportDialog}
+        onOpenChange={setShowExportDialog}
+        onConfirm={handleConfirmExport}
+        prospectCount={selectedProspectIds.size}
+        domains={displayedProspects.filter(p => selectedProspectIds.has(p.id)).map(p => p.domain)}
+        autoUpdateEnabled={autoMarkContacted}
+      />
     </div>
   );
 }

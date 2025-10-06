@@ -163,6 +163,42 @@ export type Database = {
           },
         ]
       }
+      prospect_exports: {
+        Row: {
+          auto_updated_to_contacted: boolean
+          created_at: string
+          domains: string[]
+          export_count: number
+          exported_at: string
+          exported_by: string
+          filters_applied: Json | null
+          id: string
+          prospect_ids: string[]
+        }
+        Insert: {
+          auto_updated_to_contacted?: boolean
+          created_at?: string
+          domains: string[]
+          export_count: number
+          exported_at?: string
+          exported_by: string
+          filters_applied?: Json | null
+          id?: string
+          prospect_ids: string[]
+        }
+        Update: {
+          auto_updated_to_contacted?: boolean
+          created_at?: string
+          domains?: string[]
+          export_count?: number
+          exported_at?: string
+          exported_by?: string
+          filters_applied?: Json | null
+          id?: string
+          prospect_ids?: string[]
+        }
+        Relationships: []
+      }
       prospect_tasks: {
         Row: {
           assigned_to: string | null

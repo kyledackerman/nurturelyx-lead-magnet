@@ -38,3 +38,12 @@ verify_jwt = true
 
 [functions.add-to-crm]
 verify_jwt = true
+
+[functions.export-prospects]
+verify_jwt = true
+
+[functions.grant-super-admin]
+verify_jwt = true
+
+[functions.reset-user-password]
+verify_jwt = true
