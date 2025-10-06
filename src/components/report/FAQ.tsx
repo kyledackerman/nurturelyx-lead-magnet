@@ -32,7 +32,7 @@ const getFaqItems = (data: ReportData): Array<{ question: string; answer: string
         
         <p>NurturelyX is fully compliant with GDPR, CCPA, and all major data privacy regulations. We do not use cookies, pixel tracking, or behavioral profiling of visitors.</p>
         
-        <p>Our system works exclusively with first-party website data (data that your own website legitimately collects) and publicly available business information to identify which companies are visiting your site — nothing more.</p>
+        <p>Our system resolves visitor identities by matching first-party website data with verified business contact databases to identify individual visitors and their companies.</p>
         
         <p>We never sell, share, or store consumer data for advertising or remarketing purposes. All data processing follows legitimate interest principles under Article 6(1)(f) of the GDPR, and all resolved identities come from lawful, consent-based, and opt-in sources in the business context (e.g., company email domains or professional contact data).</p>
         
