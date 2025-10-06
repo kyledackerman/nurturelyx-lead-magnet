@@ -192,7 +192,10 @@ const LeaderboardTab = ({ timeFilter = 'monthly' }: LeaderboardTabProps) => {
           <p className="text-muted-foreground">Rankings based on revenue opportunity discovered and lead quality</p>
         </div>
         <Badge variant="outline" className="text-sm">
-          {timeFilter === 'all-time' ? 'All Time' : timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1)}
+          {timeFilter === 'all-time' ? 'All Time' : 
+           timeFilter === 'daily' ? 'Today' :
+           timeFilter === 'weekly' ? 'Last 7 Days' :
+           'Last 30 Days'}
         </Badge>
       </div>
 
