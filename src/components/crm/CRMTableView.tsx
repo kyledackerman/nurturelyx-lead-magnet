@@ -207,6 +207,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     const variants: Record<string, string> = {
       new: "bg-brand-purple text-white border-brand-purple",
       contacted: "bg-accent text-black border-accent",
+      interested: "bg-yellow-500 text-white border-yellow-400",
       proposal: "bg-blue-600 text-white border-blue-400",
       closed_won: "bg-green-600 text-white border-green-400",
       closed_lost: "bg-red-600 text-white border-red-400",
@@ -770,6 +771,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                           <>
                             <SelectItem value="new">New</SelectItem>
                             <SelectItem value="contacted">Contacted</SelectItem>
+                            <SelectItem value="interested">Interested</SelectItem>
                             <SelectItem value="proposal">Proposal</SelectItem>
                           </>
                         )}

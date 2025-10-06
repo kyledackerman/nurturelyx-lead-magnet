@@ -64,7 +64,7 @@ interface CRMProspectsTableProps {
   loading: boolean;
 }
 
-type StatusFilter = 'all' | 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed_won' | 'closed_lost' | 'not_viable';
+type StatusFilter = 'all' | 'new' | 'contacted' | 'interested' | 'proposal' | 'closed_won' | 'closed_lost' | 'not_viable';
 type PriorityFilter = 'all' | 'hot' | 'warm' | 'cold' | 'not_viable';
 type OwnershipFilter = 'all' | 'mine' | 'unassigned' | 'assigned';
 
@@ -397,7 +397,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="new">New</SelectItem>
             <SelectItem value="contacted">Contacted</SelectItem>
-            <SelectItem value="qualified">Qualified</SelectItem>
+            <SelectItem value="interested">Interested</SelectItem>
             <SelectItem value="proposal">Proposal</SelectItem>
             <SelectItem value="closed_won">Closed Won</SelectItem>
             <SelectItem value="closed_lost">Closed Lost</SelectItem>

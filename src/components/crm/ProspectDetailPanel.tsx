@@ -347,6 +347,7 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
                 <SelectContent className="z-50 bg-popover">
                   <SelectItem value="new">New</SelectItem>
                   <SelectItem value="contacted">Contacted</SelectItem>
+                  <SelectItem value="interested">Interested</SelectItem>
                   <SelectItem value="proposal">Proposal</SelectItem>
                   <SelectItem value="closed_won">Closed Won</SelectItem>
                   <SelectItem value="closed_lost">Closed Lost</SelectItem>
