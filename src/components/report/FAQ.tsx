@@ -15,7 +15,7 @@ import { HelpCircle } from "lucide-react";
 import { ReportData } from "@/types/report";
 import { formatCurrency } from "@/lib/utils";
 
-const getFaqItems = (data: ReportData) => [
+const getFaqItems = (data: ReportData): Array<{ question: string; answer: string | React.ReactNode }> => [
   {
     question: "How accurate is your visitor identification?",
     answer: "Our identity resolution technology identifies 15-30% of anonymous website visitors using advanced data matching algorithms. We only provide verified contact information with high confidence scores, ensuring quality leads for your sales team."
@@ -26,7 +26,27 @@ const getFaqItems = (data: ReportData) => [
   },
   {
     question: "Is this GDPR and privacy compliant?",
-    answer: "✅ Our Commitment to Privacy and Compliance\n\nNurturelyX is fully compliant with GDPR, CCPA, and all major data privacy regulations. We do not use cookies, pixel tracking, or behavioral profiling of visitors.\n\nOur system works exclusively with first-party website data (data that your own website legitimately collects) and publicly available business information to identify which companies are visiting your site — nothing more.\n\nWe never sell, share, or store consumer data for advertising or remarketing purposes. All data processing follows legitimate interest principles under Article 6(1)(f) of the GDPR, and all resolved identities come from lawful, consent-based, and opt-in sources in the business context (e.g., company email domains or professional contact data).\n\nEvery customer of NurturelyX receives a Data Processing Agreement (DPA) detailing: how data is matched and stored, retention periods, rights of access and erasure, and contact details for our Data Protection Officer.\n\nIf you're an EU or UK visitor, you may request access, correction, or deletion of any personal data associated with you at any time by contacting our DPO at privacy@nurturely.io."
+    answer: (
+      <div className="space-y-4">
+        <p className="font-semibold text-base mb-3">✅ Our Commitment to Privacy and Compliance</p>
+        
+        <p>NurturelyX is fully compliant with GDPR, CCPA, and all major data privacy regulations. We do not use cookies, pixel tracking, or behavioral profiling of visitors.</p>
+        
+        <p>Our system works exclusively with first-party website data (data that your own website legitimately collects) and publicly available business information to identify which companies are visiting your site — nothing more.</p>
+        
+        <p>We never sell, share, or store consumer data for advertising or remarketing purposes. All data processing follows legitimate interest principles under Article 6(1)(f) of the GDPR, and all resolved identities come from lawful, consent-based, and opt-in sources in the business context (e.g., company email domains or professional contact data).</p>
+        
+        <p className="font-medium">Every customer of NurturelyX receives a Data Processing Agreement (DPA) detailing:</p>
+        <ul className="list-disc pl-6 space-y-2">
+          <li>how data is matched and stored,</li>
+          <li>retention periods,</li>
+          <li>rights of access and erasure, and</li>
+          <li>contact details for our Data Protection Officer.</li>
+        </ul>
+        
+        <p className="mt-4 pt-4 border-t border-white/20 text-sm">If you're an EU or UK visitor, you may request access, correction, or deletion of any personal data associated with you at any time by contacting our DPO at <span className="font-medium text-accent">privacy@nurturely.io</span>.</p>
+      </div>
+    )
   },
   {
     question: "What's the typical ROI for businesses using NurturelyX?",
