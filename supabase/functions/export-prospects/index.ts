@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     // Fetch prospect data with report information
     const { data: prospects, error: fetchError } = await supabase
       .from('prospect_activities')
-      .select('id, report_id, reports!inner(domain, report_data)')
+      .select('id, report_id, reports!inner(domain, slug, report_data)')
       .in('id', prospectIds);
 
     if (fetchError) {
@@ -66,13 +66,14 @@ Deno.serve(async (req) => {
 
     // Build CSV
     const csvRows: string[] = [];
-    csvRows.push('Domain,Monthly Traffic,Estimated Leads,Missed Sales,Monthly Revenue Loss');
+    csvRows.push('Domain,Monthly Traffic,Estimated Leads,Missed Sales,Monthly Revenue Loss,Report URL');
 
     const domains: string[] = [];
 
     for (const prospect of prospects) {
       const reportData = prospect.reports.report_data as any;
       const domain = prospect.reports.domain;
+      const reportUrl = `https://nurturelyx.com/report/${prospect.reports.slug}`;
       domains.push(domain);
 
       const row = [
@@ -81,6 +82,7 @@ Deno.serve(async (req) => {
         reportData.missedLeads || '0',
         reportData.estimatedSalesLost || '0',
         reportData.monthlyRevenueLost || '0',
+        reportUrl,
       ];
 
       // Escape CSV values
