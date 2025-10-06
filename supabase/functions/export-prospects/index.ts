@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     for (const prospect of prospects) {
       const reportData = prospect.reports.report_data as any;
       const domain = prospect.reports.domain;
-      const reportUrl = `https://nurturelyx.com/report/${prospect.reports.slug}`;
+      const reportUrl = `https://x1.nurturely.io/report/${prospect.reports.slug}`;
       domains.push(domain);
 
       const row = [
