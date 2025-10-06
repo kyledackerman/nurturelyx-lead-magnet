@@ -208,14 +208,18 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       new: "bg-brand-purple text-white border-brand-purple",
       contacted: "bg-accent text-black border-accent",
       interested: "bg-yellow-500 text-white border-yellow-400",
+      qualified: "bg-yellow-500 text-white border-yellow-400", // Legacy status, mapped to interested
       proposal: "bg-blue-600 text-white border-blue-400",
       closed_won: "bg-green-600 text-white border-green-400",
       closed_lost: "bg-red-600 text-white border-red-400",
       not_viable: "bg-gray-700 text-gray-300 border-gray-500 line-through",
     };
     
+    // Fallback for unknown statuses
+    const variant = variants[status] || "bg-gray-500 text-white border-gray-400";
+    
     return (
-      <Badge variant="outline" className={cn(variants[status])}>
+      <Badge variant="outline" className={cn(variant)}>
         {status.replace("_", " ")}
       </Badge>
     );
