@@ -6,6 +6,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 const STATUS_COLORS = {
   new: "#8B5CF6",
   contacted: "#81e6d9",
+  interested: "#eab308",
+  qualified: "#eab308", // Legacy status, mapped to interested
   proposal: "#3b82f6",
   closed_won: "#10b981",
   closed_lost: "#6b7280",
@@ -15,6 +17,8 @@ const STATUS_COLORS = {
 const STATUS_LABELS = {
   new: "New",
   contacted: "Contacted",
+  interested: "Interested",
+  qualified: "Qualified", // Legacy status
   proposal: "Proposal",
   closed_won: "Won",
   closed_lost: "Lost",
@@ -87,9 +91,9 @@ export default function PipelineChart() {
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="status" />
-            <YAxis />
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis dataKey="status" tick={{ fill: 'hsl(var(--foreground))' }} />
+            <YAxis tick={{ fill: 'hsl(var(--foreground))' }} />
             <Tooltip 
               formatter={(value: number, name: string) => {
                 if (name === "count") return value;
