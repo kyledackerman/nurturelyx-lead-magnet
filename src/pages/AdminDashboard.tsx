@@ -759,24 +759,34 @@ const AdminDashboard = () => {
       const reportMetrics = new Map<string, { views: number; sessions: Set<string>; shares: number }>();
 
       views?.forEach(view => {
-        if (!reportMetrics.has(view.report_id)) {
-          reportMetrics.set(view.report_id, { views: 0, sessions: new Set(), shares: 0 });
+        // Filter out null/invalid report_ids
+        if (view.report_id && view.report_id !== 'null') {
+          if (!reportMetrics.has(view.report_id)) {
+            reportMetrics.set(view.report_id, { views: 0, sessions: new Set(), shares: 0 });
+          }
+          const metrics = reportMetrics.get(view.report_id)!;
+          metrics.views++;
+          metrics.sessions.add(view.session_id);
         }
-        const metrics = reportMetrics.get(view.report_id)!;
-        metrics.views++;
-        metrics.sessions.add(view.session_id);
       });
 
       shares?.forEach(share => {
-        if (reportMetrics.has(share.report_id)) {
+        if (share.report_id && share.report_id !== 'null' && reportMetrics.has(share.report_id)) {
           reportMetrics.get(share.report_id)!.shares++;
         }
       });
 
+      const validReportIds = Array.from(reportMetrics.keys()).filter(id => id && id !== 'null');
+      
+      if (validReportIds.length === 0) {
+        setTopReports([]);
+        return;
+      }
+
       const { data: reports, error: reportsError } = await supabase
         .from('reports')
         .select('id, domain, slug')
-        .in('id', Array.from(reportMetrics.keys()));
+        .in('id', validReportIds);
       
       if (reportsError) throw reportsError;
 
@@ -810,7 +820,14 @@ const AdminDashboard = () => {
       
       if (error) throw error;
 
-      const reportIds = views?.map(v => v.report_id) || [];
+      // Filter out null/invalid report_ids
+      const reportIds = views?.map(v => v.report_id).filter(id => id && id !== 'null') || [];
+      
+      if (reportIds.length === 0) {
+        setRecentViews([]);
+        return;
+      }
+
       const { data: reports, error: reportsError } = await supabase
         .from('reports')
         .select('id, domain')
