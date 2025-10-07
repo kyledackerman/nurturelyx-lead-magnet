@@ -1,6 +1,44 @@
 import { ReportData, MonthlyRevenueData } from "@/types/report";
 
 /**
+ * Find the month with the highest missed leads
+ */
+export function findPeakLeadLossMonth(monthlyRevenueData: MonthlyRevenueData[]) {
+  if (!monthlyRevenueData || monthlyRevenueData.length === 0) {
+    return null;
+  }
+  
+  const peak = monthlyRevenueData.reduce((max, current) => {
+    return current.missedLeads > max.missedLeads ? current : max;
+  });
+  
+  return {
+    month: peak.month,
+    year: peak.year,
+    value: peak.missedLeads
+  };
+}
+
+/**
+ * Find the month with the highest revenue lost
+ */
+export function findPeakRevenueMonth(monthlyRevenueData: MonthlyRevenueData[]) {
+  if (!monthlyRevenueData || monthlyRevenueData.length === 0) {
+    return null;
+  }
+  
+  const peak = monthlyRevenueData.reduce((max, current) => {
+    return current.revenueLost > max.revenueLost ? current : max;
+  });
+  
+  return {
+    month: peak.month,
+    year: peak.year,
+    value: peak.revenueLost
+  };
+}
+
+/**
  * Recalculates all revenue-related metrics based on a new average transaction value
  */
 export function recalculateReportMetrics(

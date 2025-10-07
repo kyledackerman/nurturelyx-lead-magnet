@@ -7,9 +7,10 @@ interface StatCardProps {
   value: string | number;
   icon: LucideIcon;
   isHighValue?: boolean;
+  subtitle?: string;
 }
 
-const StatCard = ({ label, value, icon: Icon, isHighValue = false }: StatCardProps) => {
+const StatCard = ({ label, value, icon: Icon, isHighValue = false, subtitle }: StatCardProps) => {
   return (
     <Card className={isHighValue 
       ? "stat-card border-l-4 border-l-orange-600 overflow-hidden bg-orange-50 p-6 hover:shadow-lg transition-all duration-300"
@@ -29,6 +30,14 @@ const StatCard = ({ label, value, icon: Icon, isHighValue = false }: StatCardPro
           }>
             {value}
           </h3>
+          {subtitle && (
+            <p className={isHighValue
+              ? "text-sm mt-2 font-medium text-orange-600"
+              : "text-sm mt-2 font-medium text-white/80"
+            }>
+              {subtitle}
+            </p>
+          )}
         </div>
         <div className={isHighValue
           ? "bg-orange-600 p-2 sm:p-3 rounded-full text-white shrink-0"
