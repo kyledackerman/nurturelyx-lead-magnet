@@ -1983,11 +1983,6 @@ const AdminDashboard = () => {
                       <p className="text-sm text-muted-foreground">
                         Access the complete CRM with Kanban boards, task management, and sales metrics
                       </p>
-                      {hotLeadsCount > 0 && (
-                        <Badge variant="destructive" className="mt-2">
-                          {hotLeadsCount} hot leads need follow-up
-                        </Badge>
-                      )}
                     </div>
                     <Button onClick={() => navigate('/admin/crm')}>
                       Open CRM
