@@ -1859,16 +1859,8 @@ const AdminDashboard = () => {
           </div>
 
 
-          <Tabs defaultValue="overview" className="w-full">
+          <Tabs defaultValue="generate" className="w-full">
             <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="overview">
-                <LayoutDashboard className="h-4 w-4 mr-2" />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger value="crm">
-                <UsersIcon className="h-4 w-4 mr-2" />
-                CRM
-              </TabsTrigger>
               <TabsTrigger value="generate">
                 <FileText className="h-4 w-4 mr-2" />
                 Generate
@@ -1876,6 +1868,10 @@ const AdminDashboard = () => {
               <TabsTrigger value="leaderboard">
                 <Trophy className="h-4 w-4 mr-2" />
                 Leaderboard
+              </TabsTrigger>
+              <TabsTrigger value="crm">
+                <UsersIcon className="h-4 w-4 mr-2" />
+                CRM
               </TabsTrigger>
               <TabsTrigger value="admin">
                 <Shield className="h-4 w-4 mr-2" />
@@ -1885,41 +1881,11 @@ const AdminDashboard = () => {
                 <FileText className="h-4 w-4 mr-2" />
                 Reports
               </TabsTrigger>
+              <TabsTrigger value="overview">
+                <LayoutDashboard className="h-4 w-4 mr-2" />
+                Overview
+              </TabsTrigger>
             </TabsList>
-
-            <TabsContent value="overview" className="space-y-6">
-              <AdminManual />
-            </TabsContent>
-
-            <TabsContent value="crm" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>CRM Dashboard</CardTitle>
-                  <CardDescription>
-                    Manage prospects, track pipeline, and close deals
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h3 className="font-semibold">Full CRM Experience</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Access the complete CRM with Kanban boards, task management, and sales metrics
-                      </p>
-                      {hotLeadsCount > 0 && (
-                        <Badge variant="destructive" className="mt-2">
-                          {hotLeadsCount} hot leads need follow-up
-                        </Badge>
-                      )}
-                    </div>
-                    <Button onClick={() => navigate('/admin/crm')}>
-                      Open CRM
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="generate" className="space-y-6">
               {!generatedReport ? (
@@ -2000,6 +1966,36 @@ const AdminDashboard = () => {
               </Card>
               
               <LeaderboardTab timeFilter={leaderboardTimeFilter} />
+            </TabsContent>
+
+            <TabsContent value="crm" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>CRM Dashboard</CardTitle>
+                  <CardDescription>
+                    Manage prospects, track pipeline, and close deals
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h3 className="font-semibold">Full CRM Experience</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Access the complete CRM with Kanban boards, task management, and sales metrics
+                      </p>
+                      {hotLeadsCount > 0 && (
+                        <Badge variant="destructive" className="mt-2">
+                          {hotLeadsCount} hot leads need follow-up
+                        </Badge>
+                      )}
+                    </div>
+                    <Button onClick={() => navigate('/admin/crm')}>
+                      Open CRM
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="admin" className="space-y-6">
@@ -2344,6 +2340,10 @@ const AdminDashboard = () => {
                   <AdminReportsTable reports={filteredReports} loading={loading} onReportUpdate={fetchReports} />
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="overview" className="space-y-6">
+              <AdminManual />
             </TabsContent>
           </Tabs>
         </div>
