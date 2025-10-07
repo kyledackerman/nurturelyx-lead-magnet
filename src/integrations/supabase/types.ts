@@ -114,9 +114,6 @@ export type Database = {
           contact_method: string | null
           created_at: string
           created_by: string | null
-          enrichment_completed_at: string | null
-          enrichment_started_at: string | null
-          enrichment_status: string | null
           id: string
           lost_notes: string | null
           lost_reason: string | null
@@ -125,7 +122,6 @@ export type Database = {
           priority: string
           report_id: string
           status: string
-          total_contacts_found: number | null
           updated_at: string
         }
         Insert: {
@@ -137,9 +133,6 @@ export type Database = {
           contact_method?: string | null
           created_at?: string
           created_by?: string | null
-          enrichment_completed_at?: string | null
-          enrichment_started_at?: string | null
-          enrichment_status?: string | null
           id?: string
           lost_notes?: string | null
           lost_reason?: string | null
@@ -148,7 +141,6 @@ export type Database = {
           priority?: string
           report_id: string
           status?: string
-          total_contacts_found?: number | null
           updated_at?: string
         }
         Update: {
@@ -160,9 +152,6 @@ export type Database = {
           contact_method?: string | null
           created_at?: string
           created_by?: string | null
-          enrichment_completed_at?: string | null
-          enrichment_started_at?: string | null
-          enrichment_status?: string | null
           id?: string
           lost_notes?: string | null
           lost_reason?: string | null
@@ -171,7 +160,6 @@ export type Database = {
           priority?: string
           report_id?: string
           status?: string
-          total_contacts_found?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -180,74 +168,6 @@ export type Database = {
             columns: ["report_id"]
             isOneToOne: false
             referencedRelation: "reports"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      prospect_contacts: {
-        Row: {
-          confidence_score: number
-          contact_type: string
-          created_at: string
-          email: string
-          enriched_at: string
-          enriched_by: string | null
-          facebook_url: string | null
-          first_name: string
-          id: string
-          is_decision_maker: boolean
-          job_title: string | null
-          last_name: string | null
-          linkedin_url: string | null
-          phone: string | null
-          prospect_activity_id: string
-          source: string
-          street_address: string | null
-        }
-        Insert: {
-          confidence_score: number
-          contact_type: string
-          created_at?: string
-          email: string
-          enriched_at?: string
-          enriched_by?: string | null
-          facebook_url?: string | null
-          first_name: string
-          id?: string
-          is_decision_maker?: boolean
-          job_title?: string | null
-          last_name?: string | null
-          linkedin_url?: string | null
-          phone?: string | null
-          prospect_activity_id: string
-          source: string
-          street_address?: string | null
-        }
-        Update: {
-          confidence_score?: number
-          contact_type?: string
-          created_at?: string
-          email?: string
-          enriched_at?: string
-          enriched_by?: string | null
-          facebook_url?: string | null
-          first_name?: string
-          id?: string
-          is_decision_maker?: boolean
-          job_title?: string | null
-          last_name?: string | null
-          linkedin_url?: string | null
-          phone?: string | null
-          prospect_activity_id?: string
-          source?: string
-          street_address?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "prospect_contacts_prospect_activity_id_fkey"
-            columns: ["prospect_activity_id"]
-            isOneToOne: false
-            referencedRelation: "prospect_activities"
             referencedColumns: ["id"]
           },
         ]

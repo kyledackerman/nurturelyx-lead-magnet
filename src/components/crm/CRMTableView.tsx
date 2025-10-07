@@ -16,7 +16,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ExportToolbar from "./ExportToolbar";
 import ExportConfirmationDialog from "./ExportConfirmationDialog";
 import { LostReasonDialog } from "./LostReasonDialog";
-import { EnrichmentProgressDialog } from "./EnrichmentProgressDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { auditService } from "@/services/auditService";
 
@@ -61,8 +60,6 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const [autoMarkContacted, setAutoMarkContacted] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [enriching, setEnriching] = useState(false);
-  const [showEnrichmentDialog, setShowEnrichmentDialog] = useState(false);
   const [adminUsers, setAdminUsers] = useState<Array<{ id: string; email: string }>>([]);
   const [showLostReasonDialog, setShowLostReasonDialog] = useState(false);
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{ prospectId: string; status: string; domain: string } | null>(null);
@@ -502,14 +499,6 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     setShowExportDialog(true);
   };
 
-  const handleEnrich = () => {
-    if (selectedProspectIds.size === 0) {
-      toast.error("No prospects selected");
-      return;
-    }
-    setShowEnrichmentDialog(true);
-  };
-
   const handleConfirmExport = async () => {
     setShowExportDialog(false);
     setExporting(true);
@@ -613,11 +602,9 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
             autoMarkContacted={autoMarkContacted}
             onAutoMarkChange={setAutoMarkContacted}
             onExport={handleExport}
-            onEnrich={handleEnrich}
             onClear={() => setSelectedProspectIds(new Set())}
             filterSummary={getFilterSummary()}
             exporting={exporting}
-            enriching={enriching}
           />
 
           <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
@@ -866,16 +853,6 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         domains={displayedProspects.filter(p => selectedProspectIds.has(p.id)).map(p => p.domain)}
         autoUpdateEnabled={autoMarkContacted}
         filterSummary={getFilterSummary()}
-      />
-
-      <EnrichmentProgressDialog
-        open={showEnrichmentDialog}
-        onClose={() => {
-          setShowEnrichmentDialog(false);
-          setSelectedProspectIds(new Set());
-          fetchProspects();
-        }}
-        prospectIds={Array.from(selectedProspectIds)}
       />
 
       <LostReasonDialog
