@@ -220,7 +220,6 @@ serve(async (req) => {
           } else {
             console.log(`Skipping auto-assignment: no lead potential (${missedLeads} missed leads)`);
           }
-          }
         }
       } catch (assignmentError) {
         console.error('Error in auto-assignment:', assignmentError);
