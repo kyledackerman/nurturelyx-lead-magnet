@@ -163,13 +163,17 @@ serve(async (req) => {
     if (userId) {
       try {
         // Check if user is an admin
-        const { data: isAdmin, error: adminCheckError } = await supabase.rpc('is_admin');
+        const { data: isAdmin, error: adminCheckError } = await supabase.rpc('is_admin', { user_uuid: userId });
+        
+        console.log(`Admin check for user ${userId}: isAdmin=${isAdmin}, error=${adminCheckError?.message || 'none'}`);
         
         if (adminCheckError) {
           console.error('Error checking admin status:', adminCheckError);
         } else if (isAdmin) {
           // Check if report shows lead generation potential
           const missedLeads = Number(reportData.missedLeads) || 0;
+          
+          console.log(`Checking lead potential: ${missedLeads} missed leads for ${sanitizedDomain}`);
           
           if (missedLeads > 0) {
             // Check for existing prospect activity to prevent duplicates
@@ -208,9 +212,14 @@ serve(async (req) => {
                 console.error('Error creating prospect activity:', activityError);
                 // Non-blocking: continue even if assignment fails
               } else {
-                console.log(`Auto-assigned prospect for ${sanitizedDomain}: ${missedLeads} leads/month (${priority} priority)`);
+                console.log(`✅ Auto-assigned prospect for ${sanitizedDomain}: ${missedLeads} leads/month (${priority} priority)`);
               }
+            } else {
+              console.log(`Skipping auto-assignment: prospect activity already exists for report ${data.id}`);
             }
+          } else {
+            console.log(`Skipping auto-assignment: no lead potential (${missedLeads} missed leads)`);
+          }
           }
         }
       } catch (assignmentError) {
