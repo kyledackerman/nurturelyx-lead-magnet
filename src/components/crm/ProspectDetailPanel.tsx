@@ -205,12 +205,6 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
 
       if (error) throw error;
 
-      // Update next_follow_up for backwards compatibility
-      await supabase
-        .from("prospect_activities")
-        .update({ next_follow_up: dueDateTime.toISOString() })
-        .eq("id", prospectId);
-
       await auditService.logBusinessContext(
         "prospect_activities",
         prospectId,

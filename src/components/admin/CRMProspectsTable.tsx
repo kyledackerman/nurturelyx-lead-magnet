@@ -79,7 +79,6 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [notes, setNotes] = useState("");
   const [contactMethod, setContactMethod] = useState("");
-  const [nextFollowUp, setNextFollowUp] = useState<Date | undefined>(undefined);
   const [isUpdating, setIsUpdating] = useState(false);
   const [adminUsers, setAdminUsers] = useState<Record<string, { email: string; display_name?: string; role: string }>>({});
 
@@ -315,8 +314,8 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
       return;
     }
     
-    if (!notes.trim() && !contactMethod && !nextFollowUp) {
-      toast.error('Please add at least one field (notes, contact method, or follow-up date)');
+    if (!notes.trim() && !contactMethod) {
+      toast.error('Please add at least one field (notes or contact method)');
       return;
     }
     
@@ -325,21 +324,18 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
       console.log('Saving activity with data:', {
         notes: notes.trim() || undefined,
         contact_method: contactMethod || undefined,
-        next_follow_up: nextFollowUp ? nextFollowUp.toISOString() : undefined,
         activity_type: 'note',
       });
 
       await updateActivity(selectedReport.id, {
         notes: notes.trim() || undefined,
         contact_method: contactMethod || undefined,
-        next_follow_up: nextFollowUp ? nextFollowUp.toISOString() : undefined,
         activity_type: 'note',
       });
       
       // Clear form
       setNotes("");
       setContactMethod("");
-      setNextFollowUp(undefined);
       setSelectedReport(null);
       
       toast.success('Activity saved successfully');
@@ -451,7 +447,6 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
               <TableHead>Assigned To</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Last Activity</TableHead>
-              <TableHead>Next Follow-up</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -538,16 +533,6 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                       <div className="text-sm text-muted-foreground">No activity</div>
                     )}
                   </TableCell>
-                  <TableCell>
-                    {activity?.next_follow_up ? (
-                      <div className="text-sm">
-                        <Calendar className="h-4 w-4 inline mr-1" />
-                        {formatDate(activity.next_follow_up)}
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">Not scheduled</span>
-                    )}
-                  </TableCell>
                    <TableCell>
                        <DropdownMenu>
                          <DropdownMenuTrigger asChild>
@@ -568,19 +553,17 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
                              View Report
                            </DropdownMenuItem>
                            <DropdownMenuSeparator />
-                           <DropdownMenuItem onClick={() => {
-                             setSelectedReport(report);
-                             const existingActivity = activities[report.id];
-                             if (existingActivity) {
-                               setNotes(existingActivity.notes || "");
-                               setContactMethod(existingActivity.contact_method || "");
-                               setNextFollowUp(existingActivity.next_follow_up ? new Date(existingActivity.next_follow_up) : undefined);
-                             } else {
-                               setNotes("");
-                               setContactMethod("");
-                               setNextFollowUp(undefined);
-                             }
-                           }}>
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedReport(report);
+                              const existingActivity = activities[report.id];
+                              if (existingActivity) {
+                                setNotes(existingActivity.notes || "");
+                                setContactMethod(existingActivity.contact_method || "");
+                              } else {
+                                setNotes("");
+                                setContactMethod("");
+                              }
+                            }}>
                              <Plus className="h-4 w-4 mr-2" />
                              Add Detailed Activity
                            </DropdownMenuItem>
@@ -629,35 +612,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
               />
             </div>
 
-            <div>
-              <Label htmlFor="follow-up-date">Next Follow-up Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="follow-up-date"
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !nextFollowUp && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {nextFollowUp ? format(nextFollowUp, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={nextFollowUp}
-                    onSelect={setNextFollowUp}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <Button 
+            <Button
               onClick={handleAddActivity} 
               className="w-full"
               disabled={isUpdating}

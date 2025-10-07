@@ -298,13 +298,6 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
         if (updates.notes && updates.notes !== existingActivity.notes) {
           businessContext += `Notes updated. `;
         }
-        if (updates.next_follow_up !== existingActivity.next_follow_up) {
-          if (updates.next_follow_up) {
-            businessContext += `Follow-up scheduled for ${formatDateShort(updates.next_follow_up)}. `;
-          } else {
-            businessContext += `Follow-up date cleared. `;
-          }
-        }
 
         // Update existing activity
         const { error } = await supabase
@@ -419,8 +412,7 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
     
     const updates = {
       notes: notesValue.trim(),
-      contact_method: contactMethod || null,
-      next_follow_up: followUpDate ? followUpDate.toISOString() : null
+      contact_method: contactMethod || null
     };
 
     await updateActivity(report.id, updates);
@@ -738,69 +730,25 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                   </div>
                 </div>
                 
-                {/* Contact Method and Follow-up */}
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <Label htmlFor="contact-method">Contact Method</Label>
-                    <Select 
-                      value={contactMethod} 
-                      onValueChange={setContactMethod}
-                      disabled={!canEdit}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select method" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">None</SelectItem>
-                        <SelectItem value="email">Email</SelectItem>
-                        <SelectItem value="phone">Phone</SelectItem>
-                        <SelectItem value="linkedin">LinkedIn</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="follow-up">Next Follow-up</Label>
-                    <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start text-left font-normal"
-                          disabled={!canEdit}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {followUpDate ? format(followUpDate, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={followUpDate}
-                          onSelect={(date) => {
-                            setFollowUpDate(date);
-                            setShowDatePicker(false);
-                          }}
-                          initialFocus
-                          className="p-3 pointer-events-auto"
-                        />
-                        {followUpDate && (
-                          <div className="p-3 border-t">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setFollowUpDate(undefined);
-                                setShowDatePicker(false);
-                              }}
-                              className="w-full"
-                            >
-                              Clear Date
-                            </Button>
-                          </div>
-                        )}
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                {/* Contact Method */}
+                <div className="mt-4">
+                  <Label htmlFor="contact-method">Contact Method</Label>
+                  <Select 
+                    value={contactMethod} 
+                    onValueChange={setContactMethod}
+                    disabled={!canEdit}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="phone">Phone</SelectItem>
+                      <SelectItem value="linkedin">LinkedIn</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Notes Section */}
@@ -990,12 +938,6 @@ export const ProspectProfile = ({ isOpen, onClose, report, onActivityUpdate }: P
                             <p className="text-sm p-2 bg-muted rounded">
                               {activity.notes}
                             </p>
-                          )}
-                          {activity.next_follow_up && (
-                            <div className="flex items-center gap-1 text-sm text-blue-600">
-                              <Calendar className="h-4 w-4" />
-                              Follow-up: {formatDateShort(activity.next_follow_up)}
-                            </div>
                           )}
                         </div>
                       </div>

@@ -28,7 +28,6 @@ interface ProspectRow {
   priority: string;
   status: string;
   assignedTo: string | null;
-  nextFollowUp: string | null;
   reportId: string;
   lostReason: string | null;
   lostNotes: string | null;
@@ -40,7 +39,7 @@ interface CRMTableViewProps {
   view?: 'active' | 'closed';
 }
 
-type SortKey = 'domain' | 'monthlyRevenue' | 'trafficTier' | 'priority' | 'status' | 'nextFollowUp';
+type SortKey = 'domain' | 'monthlyRevenue' | 'trafficTier' | 'priority' | 'status';
 type SortDirection = 'asc' | 'desc';
 
 export default function CRMTableView({ onSelectProspect, compact = false, view = 'active' }: CRMTableViewProps) {
@@ -54,8 +53,8 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const [trafficFilter, setTrafficFilter] = useState("all");
   const [assignedFilter, setAssignedFilter] = useState("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<SortKey>('nextFollowUp');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [sortBy, setSortBy] = useState<SortKey>('priority');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [selectedProspectIds, setSelectedProspectIds] = useState<Set<string>>(new Set());
   const [autoMarkContacted, setAutoMarkContacted] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
@@ -109,7 +108,6 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
           report_id,
           status,
           priority,
-          next_follow_up,
           assigned_to,
           lost_reason,
           lost_notes,
@@ -128,7 +126,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         query = query.in('status', ['new', 'contacted', 'proposal']);
       }
 
-      const { data, error } = await query.order("next_follow_up", { ascending: true, nullsFirst: false });
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -142,7 +140,6 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         priority: p.priority,
         status: p.status,
         assignedTo: p.assigned_to,
-        nextFollowUp: p.next_follow_up,
         lostReason: p.lost_reason,
         lostNotes: p.lost_notes,
       })) || [];
@@ -160,32 +157,6 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     if (traffic < 100000) return "medium";
     if (traffic < 500000) return "high";
     return "enterprise";
-  };
-
-  const isOverdue = (date: string | null): boolean => {
-    if (!date) return false;
-    return new Date(date) < new Date();
-  };
-
-  const isDueToday = (date: string | null): boolean => {
-    if (!date) return false;
-    const today = new Date();
-    const dueDate = new Date(date);
-    return (
-      dueDate.getDate() === today.getDate() &&
-      dueDate.getMonth() === today.getMonth() &&
-      dueDate.getFullYear() === today.getFullYear()
-    );
-  };
-
-  const getRowClassName = (prospect: ProspectRow): string => {
-    if (isOverdue(prospect.nextFollowUp)) {
-      return "hover:bg-muted/40 border-l-2 border-l-destructive";
-    }
-    if (isDueToday(prospect.nextFollowUp)) {
-      return "hover:bg-muted/40 border-l-2 border-l-accent";
-    }
-    return "hover:bg-muted/50";
   };
 
   const getPriorityBadge = (priority: string, isOverdueRow: boolean) => {
@@ -454,10 +425,6 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
           aVal = getStatusValue(a.status);
           bVal = getStatusValue(b.status);
           break;
-        case 'nextFollowUp':
-          aVal = a.nextFollowUp ? new Date(a.nextFollowUp).getTime() : Infinity;
-          bVal = b.nextFollowUp ? new Date(b.nextFollowUp).getTime() : Infinity;
-          break;
         default:
           return 0;
       }
@@ -710,20 +677,17 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
               <SortableHeader label="Priority" sortKey="priority" />
               <SortableHeader label="Status" sortKey="status" />
               <TableHead>Assigned To</TableHead>
-              <SortableHeader label="Next Follow-Up" sortKey="nextFollowUp" />
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {displayedProspects.map((prospect) => {
-              const overdueRow = isOverdue(prospect.nextFollowUp);
               const isSelected = selectedProspectIds.has(prospect.id);
               return (
                 <TableRow 
                   key={prospect.id} 
                   className={cn(
-                    "h-14 even:bg-muted/30",
-                    getRowClassName(prospect),
+                    "h-14 even:bg-muted/30 hover:bg-muted/50",
                     isSelected && "bg-primary/20 border-l-4 border-primary"
                   )}
                 >
@@ -793,15 +757,6 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                       disabled={updatingId === prospect.id}
                     />
                   </TableCell>
-                  <TableCell>
-                    {prospect.nextFollowUp ? (
-                      <span className={overdueRow ? "font-bold text-orange-400" : ""}>
-                        {format(new Date(prospect.nextFollowUp), "MMM d, yyyy")}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">Not set</span>
-                    )}
-                  </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -830,7 +785,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
             })}
             {displayedProspects.length === 0 && (
               <TableRow>
-                <TableCell colSpan={compact ? 7 : 9} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={compact ? 6 : 8} className="text-center text-muted-foreground py-8">
                   No prospects found
                 </TableCell>
               </TableRow>
