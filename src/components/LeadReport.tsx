@@ -75,9 +75,9 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false, onUpdate 
     }
   }, []);
   
-  // Calculate peak months
-  const peakLeadLoss = findPeakLeadLossMonth(data.monthlyRevenueData);
-  const peakRevenue = findPeakRevenueMonth(data.monthlyRevenueData);
+  // Calculate peak months with safety checks
+  const peakLeadLoss = data?.monthlyRevenueData ? findPeakLeadLossMonth(data.monthlyRevenueData) : null;
+  const peakRevenue = data?.monthlyRevenueData ? findPeakRevenueMonth(data.monthlyRevenueData) : null;
   
   return (
     <div

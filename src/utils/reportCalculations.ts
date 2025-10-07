@@ -3,39 +3,61 @@ import { ReportData, MonthlyRevenueData } from "@/types/report";
 /**
  * Find the month with the highest missed leads
  */
-export function findPeakLeadLossMonth(monthlyRevenueData: MonthlyRevenueData[]) {
-  if (!monthlyRevenueData || monthlyRevenueData.length === 0) {
+export function findPeakLeadLossMonth(monthlyRevenueData: MonthlyRevenueData[] | undefined | null) {
+  if (!monthlyRevenueData || !Array.isArray(monthlyRevenueData) || monthlyRevenueData.length === 0) {
     return null;
   }
   
-  const peak = monthlyRevenueData.reduce((max, current) => {
-    return current.missedLeads > max.missedLeads ? current : max;
-  });
-  
-  return {
-    month: peak.month,
-    year: peak.year,
-    value: peak.missedLeads
-  };
+  try {
+    const peak = monthlyRevenueData.reduce((max, current) => {
+      const currentLeads = current?.missedLeads || 0;
+      const maxLeads = max?.missedLeads || 0;
+      return currentLeads > maxLeads ? current : max;
+    });
+    
+    if (!peak || !peak.month) {
+      return null;
+    }
+    
+    return {
+      month: peak.month,
+      year: peak.year,
+      value: peak.missedLeads || 0
+    };
+  } catch (error) {
+    console.error('Error finding peak lead loss month:', error);
+    return null;
+  }
 }
 
 /**
  * Find the month with the highest revenue lost
  */
-export function findPeakRevenueMonth(monthlyRevenueData: MonthlyRevenueData[]) {
-  if (!monthlyRevenueData || monthlyRevenueData.length === 0) {
+export function findPeakRevenueMonth(monthlyRevenueData: MonthlyRevenueData[] | undefined | null) {
+  if (!monthlyRevenueData || !Array.isArray(monthlyRevenueData) || monthlyRevenueData.length === 0) {
     return null;
   }
   
-  const peak = monthlyRevenueData.reduce((max, current) => {
-    return current.revenueLost > max.revenueLost ? current : max;
-  });
-  
-  return {
-    month: peak.month,
-    year: peak.year,
-    value: peak.revenueLost
-  };
+  try {
+    const peak = monthlyRevenueData.reduce((max, current) => {
+      const currentRevenue = current?.revenueLost || 0;
+      const maxRevenue = max?.revenueLost || 0;
+      return currentRevenue > maxRevenue ? current : max;
+    });
+    
+    if (!peak || !peak.month) {
+      return null;
+    }
+    
+    return {
+      month: peak.month,
+      year: peak.year,
+      value: peak.revenueLost || 0
+    };
+  } catch (error) {
+    console.error('Error finding peak revenue month:', error);
+    return null;
+  }
 }
 
 /**
