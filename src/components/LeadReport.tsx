@@ -31,7 +31,7 @@ import CaseStudyCard from "./report/CaseStudyCard";
 import { RelatedReports } from "./report/RelatedReports";
 import { Breadcrumb } from "./report/Breadcrumb";
 import { BreadcrumbSchema } from "./seo/BreadcrumbSchema";
-import { findPeakLeadLossMonth, findPeakRevenueMonth } from "@/utils/reportCalculations";
+
 
 interface LeadReportProps {
   data: ReportData;
@@ -75,10 +75,6 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false, onUpdate 
     }
   }, []);
   
-  // Calculate peak months with safety checks
-  const peakLeadLoss = data?.monthlyRevenueData ? findPeakLeadLossMonth(data.monthlyRevenueData) : null;
-  const peakRevenue = data?.monthlyRevenueData ? findPeakRevenueMonth(data.monthlyRevenueData) : null;
-  
   return (
     <div
       className="w-full max-w-6xl mx-auto space-y-8"
@@ -106,14 +102,12 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false, onUpdate 
 
       <ChangelogCard reportData={data} />
 
-      <StatsOverview
-        missedLeads={data.missedLeads}
-        estimatedSalesLost={data.estimatedSalesLost}
-        monthlyRevenueLost={data.monthlyRevenueLost}
-        yearlyRevenueLost={data.yearlyRevenueLost}
-        peakLeadLoss={peakLeadLoss}
-        peakRevenue={peakRevenue}
-      />
+        <StatsOverview
+          missedLeads={data.missedLeads}
+          estimatedSalesLost={data.estimatedSalesLost}
+          monthlyRevenueLost={data.monthlyRevenueLost}
+          yearlyRevenueLost={data.yearlyRevenueLost}
+        />
 
       <div className="bg-secondary/50 border border-accent/20 rounded-lg p-4">
         <div className="text-white/90 text-sm text-center space-y-1">

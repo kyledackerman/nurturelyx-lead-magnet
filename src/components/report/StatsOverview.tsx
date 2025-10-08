@@ -1,19 +1,11 @@
-import { DollarSign, Users, ShoppingCart, TrendingUp, Calendar } from "lucide-react";
+import { DollarSign, Users, ShoppingCart } from "lucide-react";
 import StatCard from "./StatCard";
-
-interface PeakMonth {
-  month: string;
-  year: number;
-  value: number;
-}
 
 interface StatsOverviewProps {
   missedLeads: number;
   estimatedSalesLost: number;
   monthlyRevenueLost: number;
   yearlyRevenueLost: number;
-  peakLeadLoss: PeakMonth | null;
-  peakRevenue: PeakMonth | null;
 }
 
 const StatsOverview = ({
@@ -21,8 +13,6 @@ const StatsOverview = ({
   estimatedSalesLost,
   monthlyRevenueLost,
   yearlyRevenueLost,
-  peakLeadLoss,
-  peakRevenue,
 }: StatsOverviewProps) => {
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat("en-US", {
@@ -33,7 +23,7 @@ const StatsOverview = ({
   };
 
   return (
-    <div id="stats-overview" className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 animate-slide-up">
+    <div id="stats-overview" className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
       <StatCard
         label="Monthly Missed Leads"
         value={missedLeads.toLocaleString()}
@@ -52,24 +42,6 @@ const StatsOverview = ({
         icon={DollarSign}
         isHighValue={monthlyRevenueLost > 5000}
       />
-
-      {peakLeadLoss && (
-        <StatCard
-          label="Peak Lead Loss"
-          value={`${peakLeadLoss.month} ${peakLeadLoss.year}`}
-          subtitle={`${peakLeadLoss.value.toLocaleString()} leads`}
-          icon={TrendingUp}
-        />
-      )}
-
-      {peakRevenue && (
-        <StatCard
-          label="Peak Revenue Loss"
-          value={`${peakRevenue.month} ${peakRevenue.year}`}
-          subtitle={formatCurrency(peakRevenue.value)}
-          icon={Calendar}
-        />
-      )}
     </div>
   );
 };
