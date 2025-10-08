@@ -131,7 +131,7 @@ export default function BulkEnrichmentDialog({
 
           const existingEmails = new Set(existingContacts?.map(c => c.email?.toLowerCase()) || []);
           const existingNames = new Set(
-            existingContacts?.map(c => `${c.first_name.toLowerCase()}_${c.last_name.toLowerCase()}`) || []
+            existingContacts?.map(c => `${c.first_name.toLowerCase()}_${(c.last_name || '').toLowerCase()}`) || []
           );
 
           // Filter out duplicates
@@ -139,7 +139,7 @@ export default function BulkEnrichmentDialog({
             if (contact.email && existingEmails.has(contact.email.toLowerCase())) {
               return false;
             }
-            const nameKey = `${contact.first_name.toLowerCase()}_${contact.last_name.toLowerCase()}`;
+            const nameKey = `${contact.first_name.toLowerCase()}_${(contact.last_name || '').toLowerCase()}`;
             if (existingNames.has(nameKey)) {
               return false;
             }
@@ -163,7 +163,7 @@ export default function BulkEnrichmentDialog({
                 report_id: reports.id,
                 prospect_activity_id: activityId,
                 first_name: contact.first_name,
-                last_name: contact.last_name,
+                last_name: contact.last_name || null,
                 email: contact.email || null,
                 phone: contact.phone || null,
                 title: contact.title || null,
