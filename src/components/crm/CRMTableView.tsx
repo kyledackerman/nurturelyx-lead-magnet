@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Eye, Search, MoreVertical, ExternalLink, Copy, ChevronUp, ChevronDown, Users, UserPlus, AlertCircle, Upload } from "lucide-react";
+import { Eye, Search, MoreVertical, ExternalLink, Copy, ChevronUp, ChevronDown, Users, UserPlus, AlertCircle, Upload, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +20,7 @@ import ExportConfirmationDialog from "./ExportConfirmationDialog";
 import { LostReasonDialog } from "./LostReasonDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { auditService } from "@/services/auditService";
+import BulkEnrichmentDialog from "./BulkEnrichmentDialog";
 
 interface ProspectRow {
   id: string;
@@ -66,6 +67,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const [adminUsers, setAdminUsers] = useState<Array<{ id: string; email: string }>>([]);
   const [showLostReasonDialog, setShowLostReasonDialog] = useState(false);
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{ prospectId: string; status: string; domain: string } | null>(null);
+  const [showBulkEnrichment, setShowBulkEnrichment] = useState(false);
 
   useEffect(() => {
     fetchProspects();
@@ -586,17 +588,25 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   return (
     <div className="space-y-4">
       {view === 'needs-enrichment' && (
-        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border rounded-lg bg-muted/50">
-          <div>
-            <h3 className="font-semibold text-lg">Import Enriched Prospects</h3>
-            <p className="text-sm text-muted-foreground">
-              Already have enriched contact data? Import them in bulk via CSV
-            </p>
+        <div className="mb-6 flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border rounded-lg bg-muted/50">
+            <div>
+              <h3 className="font-semibold text-lg">Enrich Your Prospects</h3>
+              <p className="text-sm text-muted-foreground">
+                Import enriched data via CSV or paste raw contact info for AI processing
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => navigate('/admin?tab=import')} variant="outline">
+                <Upload className="h-4 w-4 mr-2" />
+                Bulk Import CSV
+              </Button>
+              <Button onClick={() => setShowBulkEnrichment(true)} variant="secondary">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Smart Paste Enrichment
+              </Button>
+            </div>
           </div>
-          <Button onClick={() => navigate('/admin?tab=import')}>
-            <Upload className="h-4 w-4 mr-2" />
-            Bulk Import
-          </Button>
         </div>
       )}
 
@@ -898,6 +908,13 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         onOpenChange={setShowLostReasonDialog}
         onConfirm={handleLostReasonConfirm}
         domain={pendingStatusUpdate?.domain || ''}
+      />
+
+      <BulkEnrichmentDialog
+        open={showBulkEnrichment}
+        onOpenChange={setShowBulkEnrichment}
+        knownDomains={sortedProspects.map(p => p.domain)}
+        onSuccess={fetchProspects}
       />
     </div>
   );
