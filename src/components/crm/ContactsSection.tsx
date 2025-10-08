@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Mail, Phone, Linkedin, Edit, Trash2, User } from "lucide-react";
+import { Plus, Mail, Phone, Linkedin, Edit, Trash2, User, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { auditService } from "@/services/auditService";
 
@@ -35,6 +35,8 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [prospectStatus, setProspectStatus] = useState<string>("");
+  const [markingEnriched, setMarkingEnriched] = useState(false);
   
   // Form state
   const [firstName, setFirstName] = useState("");
@@ -49,6 +51,7 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
 
   useEffect(() => {
     fetchContacts();
+    fetchProspectStatus();
 
     // Real-time subscription
     const channel = supabase
@@ -87,6 +90,21 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
       console.error("Error fetching contacts:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProspectStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("prospect_activities")
+        .select("status")
+        .eq("id", prospectActivityId)
+        .single();
+
+      if (error) throw error;
+      setProspectStatus(data?.status || "");
+    } catch (error) {
+      console.error("Error fetching prospect status:", error);
     }
   };
 
@@ -215,6 +233,32 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
     }
   };
 
+  const markAsEnriched = async () => {
+    setMarkingEnriched(true);
+    try {
+      const { error } = await supabase
+        .from("prospect_activities")
+        .update({ status: "enriched" })
+        .eq("id", prospectActivityId);
+
+      if (error) throw error;
+
+      await auditService.logBusinessContext(
+        "prospect_activities",
+        prospectActivityId,
+        `Marked as enriched with ${contacts.length} contact(s)`
+      );
+
+      toast.success("Prospect marked as enriched and moved to main pipeline");
+      setProspectStatus("enriched");
+    } catch (error) {
+      console.error("Error marking as enriched:", error);
+      toast.error("Failed to mark as enriched");
+    } finally {
+      setMarkingEnriched(false);
+    }
+  };
+
   if (loading) {
     return <div className="text-sm text-muted-foreground">Loading contacts...</div>;
   }
@@ -226,13 +270,26 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
           <h3 className="text-sm font-semibold">Contacts</h3>
           <Badge variant="secondary">{contacts.length}</Badge>
         </div>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogTrigger asChild>
-            <Button size="sm" onClick={openAddDialog}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Contact
+        <div className="flex gap-2">
+          {contacts.length > 0 && prospectStatus === "enriching" && (
+            <Button 
+              onClick={markAsEnriched} 
+              size="sm"
+              variant="default"
+              disabled={markingEnriched}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              Mark as Enriched
             </Button>
-          </DialogTrigger>
+          )}
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogTrigger asChild>
+              <Button size="sm" onClick={openAddDialog}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Contact
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingContact ? "Edit Contact" : "Add New Contact"}</DialogTitle>
@@ -353,8 +410,9 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
                 </Button>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Separator />

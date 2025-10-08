@@ -1,0 +1,2 @@
+-- Add 'enriched' as a valid status value for prospect_activities
+COMMENT ON COLUMN public.prospect_activities.status IS 'Valid values: new, enriching, enriched, contacted, proposal, closed_won, closed_lost';

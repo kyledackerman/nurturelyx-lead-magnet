@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { AssignmentDropdown } from "@/components/admin/AssignmentDropdown";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import ExportToolbar from "./ExportToolbar";
 import ExportConfirmationDialog from "./ExportConfirmationDialog";
 import { LostReasonDialog } from "./LostReasonDialog";
@@ -126,7 +127,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         query = query.in('status', ['new', 'enriching']);
       } else {
         // Default to active pipeline
-        query = query.in('status', ['new', 'enriching', 'contacted', 'proposal']);
+        query = query.in('status', ['new', 'enriching', 'enriched', 'contacted', 'proposal']);
       }
 
       const { data, error } = await query;
@@ -199,6 +200,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     const variants: Record<string, string> = {
       new: "bg-brand-purple text-white border-brand-purple",
       enriching: "bg-purple-500 text-white border-purple-400",
+      enriched: "bg-green-500 text-white border-green-400",
       contacted: "bg-accent text-black border-accent",
       interested: "bg-yellow-500 text-white border-yellow-400",
       qualified: "bg-yellow-500 text-white border-yellow-400", // Legacy status, mapped to interested
@@ -347,7 +349,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
 
   const getStatusValue = (status: string): number => {
     const values: Record<string, number> = { 
-      new: 1, enriching: 2, contacted: 3, proposal: 4, closed_won: 5, closed_lost: 6, not_viable: 7 
+      new: 1, enriching: 2, enriched: 3, contacted: 4, proposal: 5, closed_won: 6, closed_lost: 7, not_viable: 8 
     };
     return values[status] || 0;
   };
@@ -581,7 +583,16 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
 
   return (
     <div className="space-y-4">
-      {!compact && (
+      {view === 'needs-enrichment' && (
+        <Alert className="mb-4 border-orange-300 bg-orange-50">
+          <AlertCircle className="h-4 w-4 text-orange-600" />
+          <AlertDescription className="text-orange-800">
+            These prospects need contact information before outreach. Add contacts and mark as enriched when ready.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {!compact && view !== 'needs-enrichment' && (
         <>
           <ExportToolbar
             selectedCount={selectedProspectIds.size}
@@ -617,14 +628,15 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                     <SelectItem value="closed_won">Closed Won</SelectItem>
                     <SelectItem value="closed_lost">Closed Lost</SelectItem>
                   </>
-                ) : (
+                 ) : (
                   <>
                     <SelectItem value="new">New</SelectItem>
                     <SelectItem value="enriching">Enriching</SelectItem>
+                    <SelectItem value="enriched">Enriched</SelectItem>
                     <SelectItem value="contacted">Contacted</SelectItem>
                     <SelectItem value="proposal">Proposal</SelectItem>
                   </>
-                )}
+                 )}
               </SelectContent>
             </Select>
             <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -788,20 +800,21 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                       <SelectTrigger className="w-36 h-8">
                         <SelectValue />
                       </SelectTrigger>
-                       <SelectContent className="z-50 bg-popover">
-                        {view === 'active' && (
-                          <>
-                            <SelectItem value="new">New</SelectItem>
-                            <SelectItem value="enriching">Enriching</SelectItem>
-                            <SelectItem value="contacted">Contacted</SelectItem>
-                            <SelectItem value="interested">Interested</SelectItem>
-                            <SelectItem value="proposal">Proposal</SelectItem>
-                          </>
-                        )}
-                        <SelectItem value="closed_won">Closed Won</SelectItem>
-                        <SelectItem value="closed_lost">Closed Lost</SelectItem>
-                        <SelectItem value="not_viable">Not Viable</SelectItem>
-                      </SelectContent>
+                        <SelectContent className="z-50 bg-popover">
+                         {view === 'active' && (
+                           <>
+                             <SelectItem value="new">New</SelectItem>
+                             <SelectItem value="enriching">Enriching</SelectItem>
+                             <SelectItem value="enriched">Enriched</SelectItem>
+                             <SelectItem value="contacted">Contacted</SelectItem>
+                             <SelectItem value="interested">Interested</SelectItem>
+                             <SelectItem value="proposal">Proposal</SelectItem>
+                           </>
+                         )}
+                         <SelectItem value="closed_won">Closed Won</SelectItem>
+                         <SelectItem value="closed_lost">Closed Lost</SelectItem>
+                         <SelectItem value="not_viable">Not Viable</SelectItem>
+                       </SelectContent>
                     </Select>
                   </TableCell>
                   <TableCell>
