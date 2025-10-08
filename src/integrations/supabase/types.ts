@@ -110,11 +110,15 @@ export type Database = {
           assigned_at: string | null
           assigned_by: string | null
           assigned_to: string | null
+          auto_enriched: boolean | null
           closed_at: string | null
           contact_method: string | null
           created_at: string
           created_by: string | null
+          enrichment_retry_count: number | null
+          enrichment_source: string | null
           id: string
+          last_enrichment_attempt: string | null
           lost_notes: string | null
           lost_reason: string | null
           next_follow_up: string | null
@@ -129,11 +133,15 @@ export type Database = {
           assigned_at?: string | null
           assigned_by?: string | null
           assigned_to?: string | null
+          auto_enriched?: boolean | null
           closed_at?: string | null
           contact_method?: string | null
           created_at?: string
           created_by?: string | null
+          enrichment_retry_count?: number | null
+          enrichment_source?: string | null
           id?: string
+          last_enrichment_attempt?: string | null
           lost_notes?: string | null
           lost_reason?: string | null
           next_follow_up?: string | null
@@ -148,11 +156,15 @@ export type Database = {
           assigned_at?: string | null
           assigned_by?: string | null
           assigned_to?: string | null
+          auto_enriched?: boolean | null
           closed_at?: string | null
           contact_method?: string | null
           created_at?: string
           created_by?: string | null
+          enrichment_retry_count?: number | null
+          enrichment_source?: string | null
           id?: string
+          last_enrichment_attempt?: string | null
           lost_notes?: string | null
           lost_reason?: string | null
           next_follow_up?: string | null

@@ -129,7 +129,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       if (view === 'closed') {
         query = query.in('status', ['closed_won', 'closed_lost']);
       } else if (view === 'needs-enrichment') {
-        query = query.in('status', ['new', 'enriching']);
+        query = query.in('status', ['new', 'enriching', 'review']);
       } else {
         // Default to active pipeline
         query = query.in('status', ['new', 'enriching', 'enriched', 'contacted', 'proposal']);
@@ -317,6 +317,36 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error("Failed to update status");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const retryEnrichment = async (prospectId: string) => {
+    setUpdatingId(prospectId);
+    try {
+      const { error } = await supabase
+        .from("prospect_activities")
+        .update({ 
+          status: 'enriching',
+          enrichment_retry_count: 0,
+          last_enrichment_attempt: null
+        })
+        .eq("id", prospectId);
+
+      if (error) throw error;
+
+      await auditService.logBusinessContext(
+        "prospect_activities",
+        prospectId,
+        "Manual re-enrichment initiated - reset retry count and status to enriching"
+      );
+
+      toast.success("Re-enrichment initiated - will be processed in next auto-enrichment run");
+      fetchProspects();
+    } catch (error) {
+      console.error("Error retrying enrichment:", error);
+      toast.error("Failed to initiate re-enrichment");
     } finally {
       setUpdatingId(null);
     }
@@ -681,6 +711,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                   <>
                     <SelectItem value="new">New</SelectItem>
                     <SelectItem value="enriching">Enriching</SelectItem>
+                    <SelectItem value="review">Review</SelectItem>
                     <SelectItem value="enriched">Enriched</SelectItem>
                     <SelectItem value="contacted">Contacted</SelectItem>
                     <SelectItem value="proposal">Proposal</SelectItem>
@@ -852,6 +883,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                         <SelectContent className="z-50 bg-popover">
                          <SelectItem value="new">New</SelectItem>
                          <SelectItem value="enriching">Enriching</SelectItem>
+                         <SelectItem value="review">⚠️ Review</SelectItem>
                          <SelectItem value="enriched">Enriched</SelectItem>
                          <SelectItem value="contacted">Contacted</SelectItem>
                          <SelectItem value="interested">Interested</SelectItem>
@@ -889,6 +921,15 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                           >
                             <UserPlus className="h-4 w-4 mr-2" />
                             Add Contact
+                          </DropdownMenuItem>
+                        )}
+                        {prospect.status === 'review' && (
+                          <DropdownMenuItem 
+                            onClick={() => retryEnrichment(prospect.id)}
+                            className="text-blue-600 dark:text-blue-400"
+                          >
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Re-try Enrichment
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem onClick={() => window.open(`/report/${prospect.slug}`, '_blank')}>

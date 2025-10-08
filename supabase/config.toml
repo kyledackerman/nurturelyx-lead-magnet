@@ -50,3 +50,10 @@ verify_jwt = true
 
 [functions.reset-user-password]
 verify_jwt = true
+
+[functions.import-prospects]
+verify_jwt = true
+
+[functions.auto-enrich-prospects]
+verify_jwt = false
+
