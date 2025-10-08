@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Eye, Search, MoreVertical, ExternalLink, Copy, ChevronUp, ChevronDown } from "lucide-react";
+import { Eye, Search, MoreVertical, ExternalLink, Copy, ChevronUp, ChevronDown, Users, UserPlus, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -31,12 +31,13 @@ interface ProspectRow {
   reportId: string;
   lostReason: string | null;
   lostNotes: string | null;
+  contactCount: number;
 }
 
 interface CRMTableViewProps {
   onSelectProspect: (id: string) => void;
   compact?: boolean;
-  view?: 'active' | 'closed';
+  view?: 'active' | 'closed' | 'needs-enrichment';
 }
 
 type SortKey = 'domain' | 'monthlyRevenue' | 'trafficTier' | 'priority' | 'status';
@@ -121,6 +122,8 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       // Filter based on view
       if (view === 'closed') {
         query = query.in('status', ['closed_won', 'closed_lost']);
+      } else if (view === 'needs-enrichment') {
+        query = query.in('status', ['new', 'enriching']);
       } else {
         // Default to active pipeline
         query = query.in('status', ['new', 'enriching', 'contacted', 'proposal']);
@@ -130,7 +133,19 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
 
       if (error) throw error;
 
-      const mapped = data?.map((p: any) => ({
+      // Fetch contact counts for all prospects
+      const prospectIds = data?.map((p: any) => p.id) || [];
+      const { data: contactCounts } = await supabase
+        .from('prospect_contacts')
+        .select('prospect_activity_id')
+        .in('prospect_activity_id', prospectIds);
+
+      const contactCountMap = new Map<string, number>();
+      contactCounts?.forEach((c: any) => {
+        contactCountMap.set(c.prospect_activity_id, (contactCountMap.get(c.prospect_activity_id) || 0) + 1);
+      });
+
+      let mapped = data?.map((p: any) => ({
         id: p.id,
         reportId: p.report_id,
         domain: p.reports.domain,
@@ -142,7 +157,13 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         assignedTo: p.assigned_to,
         lostReason: p.lost_reason,
         lostNotes: p.lost_notes,
+        contactCount: contactCountMap.get(p.id) || 0,
       })) || [];
+
+      // Filter for needs-enrichment view: only show prospects with 0 contacts
+      if (view === 'needs-enrichment') {
+        mapped = mapped.filter(p => p.contactCount === 0);
+      }
 
       setProspects(mapped);
     } catch (error) {
@@ -661,6 +682,18 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         </>
       )}
 
+      {view === 'needs-enrichment' && (
+        <div className="mb-4 p-4 border border-orange-200 bg-orange-50 dark:bg-orange-950/20 rounded-lg flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium text-orange-900 dark:text-orange-100">Prospects Needing Enrichment</p>
+            <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">
+              These prospects need contact information before outreach. Click "View Details" to add contacts and move them to "Enriching" status.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="border rounded-lg overflow-auto">
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-background">
@@ -674,6 +707,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                 </TableHead>
               )}
               <SortableHeader label="Domain" sortKey="domain" />
+              {!compact && <TableHead>Contacts</TableHead>}
               <SortableHeader label="Monthly Revenue" sortKey="monthlyRevenue" className="text-right" />
               {!compact && <SortableHeader label="Traffic" sortKey="trafficTier" />}
               <SortableHeader label="Priority" sortKey="priority" />
@@ -702,6 +736,24 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                     </TableCell>
                   )}
                   <TableCell className="font-medium">{prospect.domain}</TableCell>
+                  {!compact && (
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant="outline" 
+                          className={cn(
+                            "flex items-center gap-1",
+                            prospect.contactCount === 0 
+                              ? "bg-red-100 text-red-700 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-800" 
+                              : "bg-green-100 text-green-700 border-green-300 dark:bg-green-950 dark:text-green-300 dark:border-green-800"
+                          )}
+                        >
+                          <Users className="h-3 w-3" />
+                          {prospect.contactCount}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                  )}
                   <TableCell className={cn("text-right", prospect.monthlyRevenue > 5000 && "font-semibold")}>
                     ${(prospect.monthlyRevenue / 1000).toFixed(1)}K
                   </TableCell>
@@ -767,11 +819,20 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="z-50 bg-popover">
+                       <DropdownMenuContent align="end" className="z-50 bg-popover">
                         <DropdownMenuItem onClick={() => onSelectProspect(prospect.id)}>
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </DropdownMenuItem>
+                        {prospect.contactCount === 0 && (
+                          <DropdownMenuItem 
+                            onClick={() => onSelectProspect(prospect.id)}
+                            className="text-orange-600 dark:text-orange-400"
+                          >
+                            <UserPlus className="h-4 w-4 mr-2" />
+                            Add Contact
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={() => window.open(`/report/${prospect.slug}`, '_blank')}>
                           <ExternalLink className="h-4 w-4 mr-2" />
                           View Report
@@ -788,8 +849,10 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
             })}
             {displayedProspects.length === 0 && (
               <TableRow>
-                <TableCell colSpan={compact ? 6 : 8} className="text-center text-muted-foreground py-8">
-                  No prospects found
+                <TableCell colSpan={compact ? 6 : 9} className="text-center text-muted-foreground py-8">
+                  {view === 'needs-enrichment' 
+                    ? "No prospects need enrichment - great job!" 
+                    : "No prospects found"}
                 </TableCell>
               </TableRow>
             )}
