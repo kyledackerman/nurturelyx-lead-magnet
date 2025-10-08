@@ -274,6 +274,42 @@ export type Database = {
         }
         Relationships: []
       }
+      prospect_imports: {
+        Row: {
+          created_at: string
+          error_log: Json | null
+          failed_rows: number
+          file_name: string
+          id: string
+          imported_at: string
+          imported_by: string
+          successful_rows: number
+          total_rows: number
+        }
+        Insert: {
+          created_at?: string
+          error_log?: Json | null
+          failed_rows: number
+          file_name: string
+          id?: string
+          imported_at?: string
+          imported_by: string
+          successful_rows: number
+          total_rows: number
+        }
+        Update: {
+          created_at?: string
+          error_log?: Json | null
+          failed_rows?: number
+          file_name?: string
+          id?: string
+          imported_at?: string
+          imported_by?: string
+          successful_rows?: number
+          total_rows?: number
+        }
+        Relationships: []
+      }
       prospect_tasks: {
         Row: {
           assigned_to: string | null

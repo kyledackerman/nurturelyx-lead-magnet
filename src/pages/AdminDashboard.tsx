@@ -5,6 +5,7 @@ import { AdminManagement } from "@/components/admin/AdminManagement";
 import { PasswordManagement } from "@/components/admin/PasswordManagement";
 import LeaderboardTab from "@/components/admin/LeaderboardTab";
 import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
+import { ProspectImporter } from "@/components/admin/ProspectImporter";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon, Award, Crown, AlertTriangle, Briefcase, Flame, Filter, DollarSign } from "lucide-react";
+import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon, Award, Crown, AlertTriangle, Briefcase, Flame, Filter, DollarSign, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { ComposedChart, Area, Line, Bar, BarChart, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
@@ -1973,7 +1974,7 @@ const AdminDashboard = () => {
 
 
           <Tabs defaultValue="generate" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="generate">
                 <FileText className="h-4 w-4 mr-2" />
                 Generate
@@ -1985,6 +1986,10 @@ const AdminDashboard = () => {
               <TabsTrigger value="crm">
                 <UsersIcon className="h-4 w-4 mr-2" />
                 CRM
+              </TabsTrigger>
+              <TabsTrigger value="import">
+                <Upload className="h-4 w-4 mr-2" />
+                Import
               </TabsTrigger>
               <TabsTrigger value="admin">
                 <Shield className="h-4 w-4 mr-2" />
@@ -2104,6 +2109,10 @@ const AdminDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="import" className="space-y-6">
+              <ProspectImporter />
             </TabsContent>
 
             <TabsContent value="admin" className="space-y-6">
