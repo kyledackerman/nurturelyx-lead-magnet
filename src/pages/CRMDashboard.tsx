@@ -24,8 +24,6 @@ export default function CRMDashboard() {
       <CRMHeader />
       
       <div className="container mx-auto px-4 py-6 max-w-[2000px]">
-        <AutoEnrichmentBar />
-        
         <Tabs value={selectedView} onValueChange={(v) => setSelectedView(v as any)} className="w-full">
           <TabsList className="grid w-full max-w-2xl grid-cols-4 mb-6">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
@@ -76,6 +74,7 @@ export default function CRMDashboard() {
           </TabsContent>
 
           <TabsContent value="needs-enrichment">
+            <AutoEnrichmentBar />
             <CRMTableView 
               onSelectProspect={setSelectedProspectId}
               compact={false}
