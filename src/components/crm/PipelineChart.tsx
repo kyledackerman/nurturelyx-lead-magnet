@@ -4,13 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 const STATUS_COLORS = {
-  new: "#8B5CF6",
-  enriching: "#a78bfa",
   enriched: "#c084fc",
   review: "#f59e0b",
   contacted: "#81e6d9",
   interested: "#eab308",
-  qualified: "#eab308", // Legacy status, mapped to interested
   proposal: "#3b82f6",
   closed_won: "#10b981",
   closed_lost: "#6b7280",
@@ -18,13 +15,10 @@ const STATUS_COLORS = {
 };
 
 const STATUS_LABELS = {
-  new: "New",
-  enriching: "Enriching",
   enriched: "Enriched",
   review: "Review",
   contacted: "Contacted",
   interested: "Interested",
-  qualified: "Qualified", // Legacy status
   proposal: "Proposal",
   closed_won: "Won",
   closed_lost: "Lost",
