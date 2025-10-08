@@ -5,6 +5,9 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 const STATUS_COLORS = {
   new: "#8B5CF6",
+  enriching: "#a78bfa",
+  enriched: "#c084fc",
+  review: "#f59e0b",
   contacted: "#81e6d9",
   interested: "#eab308",
   qualified: "#eab308", // Legacy status, mapped to interested
@@ -16,6 +19,9 @@ const STATUS_COLORS = {
 
 const STATUS_LABELS = {
   new: "New",
+  enriching: "Enriching",
+  enriched: "Enriched",
+  review: "Review",
   contacted: "Contacted",
   interested: "Interested",
   qualified: "Qualified", // Legacy status
