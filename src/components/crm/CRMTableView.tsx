@@ -793,8 +793,6 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
               <SortableHeader label="Domain" sortKey="domain" />
               {!compact && <TableHead>Contacts</TableHead>}
               {view !== 'needs-enrichment' && <SortableHeader label="Monthly Revenue" sortKey="monthlyRevenue" className="text-right" />}
-              {!compact && view !== 'needs-enrichment' && <SortableHeader label="Traffic" sortKey="trafficTier" />}
-              {view !== 'needs-enrichment' && <SortableHeader label="Priority" sortKey="priority" />}
               <SortableHeader label="Status" sortKey="status" />
               {view !== 'needs-enrichment' && <TableHead>Assigned To</TableHead>}
               <TableHead className="text-right">Actions</TableHead>
@@ -841,30 +839,6 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                   {view !== 'needs-enrichment' && (
                     <TableCell className={cn("text-right", prospect.monthlyRevenue > 5000 && "font-semibold")}>
                       ${(prospect.monthlyRevenue / 1000).toFixed(1)}K
-                    </TableCell>
-                  )}
-                  {!compact && view !== 'needs-enrichment' && (
-                    <TableCell>
-                      <Badge variant="outline">{prospect.trafficTier}</Badge>
-                    </TableCell>
-                  )}
-                  {view !== 'needs-enrichment' && (
-                    <TableCell>
-                      <Select
-                        value={prospect.priority}
-                        onValueChange={(value) => updatePriority(prospect.id, value)}
-                        disabled={updatingId === prospect.id}
-                      >
-                        <SelectTrigger className="w-32 h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="z-50 bg-popover">
-                          <SelectItem value="hot">🔥 Hot</SelectItem>
-                          <SelectItem value="warm">☀️ Warm</SelectItem>
-                          <SelectItem value="cold">❄️ Cold</SelectItem>
-                          <SelectItem value="not_viable">❌ Not Viable</SelectItem>
-                        </SelectContent>
-                      </Select>
                     </TableCell>
                   )}
                   <TableCell>
