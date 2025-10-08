@@ -107,21 +107,70 @@ export default function BulkEnrichmentDialog({
       for (const domainData of parsedResult.matched) {
         try {
           // Find the report and activity for this domain
-          const { data: reports, error: reportError } = await supabase
-            .from('reports')
-            .select('id, domain, prospect_activities(id, status)')
-            .eq('domain', domainData.domain)
-            .single();
+          // Normalize domain to improve matching
+          const normalizeDomain = (d: string) =>
+            d.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '');
 
-          if (reportError || !reports) {
-            console.error(`Report not found for domain ${domainData.domain}`);
+          const normalizedDomain = normalizeDomain(domainData.domain);
+
+          // Fetch the most recent report for this domain (handle duplicates safely)
+          const { data: report, error: reportError } = await supabase
+            .from('reports')
+            .select('id, domain, created_at')
+            .eq('domain', normalizedDomain)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (reportError || !report) {
+            console.error(`Report not found for domain ${domainData.domain} (normalized: ${normalizedDomain})`, reportError);
             errorCount++;
             continue;
           }
 
-          const activityId = reports.prospect_activities?.[0]?.id;
+          console.info('Enriching report', { reportId: report.id, domain: report.domain });
+
+          // Get the latest activity or create one if missing
+          let activityId: string | null = null;
+          let activityStatus: string | null = null;
+
+          const { data: existingActivity, error: activityError } = await supabase
+            .from('prospect_activities')
+            .select('id, status, created_at')
+            .eq('report_id', report.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (activityError) {
+            console.error(`Error fetching activity for ${normalizedDomain}:`, activityError);
+          }
+
+          if (existingActivity) {
+            activityId = existingActivity.id;
+            activityStatus = existingActivity.status as string;
+          } else {
+            const { data: newActivity, error: insertActivityError } = await supabase
+              .from('prospect_activities')
+              .insert({
+                report_id: report.id,
+                activity_type: 'enrichment',
+                status: 'enriching',
+              })
+              .select('id, status')
+              .single();
+
+            if (insertActivityError || !newActivity) {
+              console.error(`Failed to create activity for ${normalizedDomain}:`, insertActivityError);
+              errorCount++;
+              continue;
+            }
+            activityId = newActivity.id;
+            activityStatus = newActivity.status as string;
+          }
+
           if (!activityId) {
-            console.error(`No activity found for domain ${domainData.domain}`);
+            console.error(`No activity found or created for domain ${normalizedDomain}`);
             errorCount++;
             continue;
           }
@@ -130,7 +179,7 @@ export default function BulkEnrichmentDialog({
           const { data: existingContacts } = await supabase
             .from('prospect_contacts')
             .select('email, first_name, last_name')
-            .eq('report_id', reports.id);
+            .eq('report_id', report.id);
 
           const existingEmails = new Set(existingContacts?.map(c => c.email?.toLowerCase()) || []);
           const existingNames = new Set(
@@ -163,8 +212,8 @@ export default function BulkEnrichmentDialog({
             const { error: insertError } = await supabase
               .from('prospect_contacts')
               .insert({
-                report_id: reports.id,
-                prospect_activity_id: activityId,
+                report_id: report.id,
+                prospect_activity_id: activityId as string,
                 first_name: contact.first_name,
                 last_name: contact.last_name || null,
                 email: contact.email || null,
@@ -184,7 +233,7 @@ export default function BulkEnrichmentDialog({
           }
 
           // Update activity status to enriched if it was enriching
-          const currentStatus = reports.prospect_activities?.[0]?.status;
+          const currentStatus = activityStatus;
           if (currentStatus === 'enriching' || currentStatus === 'new') {
             const { error: statusError } = await supabase
               .from('prospect_activities')
