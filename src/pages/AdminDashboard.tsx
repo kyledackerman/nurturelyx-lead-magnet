@@ -314,6 +314,24 @@ const AdminDashboard = () => {
     const filtered = reports.filter(report => report.domain.toLowerCase().includes(searchTerm.toLowerCase()));
     setFilteredReports(filtered);
   }, [searchTerm, reports]);
+
+  // Helper function to convert month number (1-12) to full month name
+  const getMonthName = (month: string | number): string => {
+    const monthNum = typeof month === 'string' ? parseInt(month) : month;
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    return monthNames[monthNum - 1] || '';
+  };
+
+  // Helper function to convert month to number for sorting
+  const getMonthNumber = (month: string | number): number => {
+    if (typeof month === 'number') return month;
+    const parsed = parseInt(month);
+    if (!isNaN(parsed)) return parsed;
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return monthNames.indexOf(month) + 1;
+  };
+
   const fetchReports = async () => {
     try {
       const {
@@ -1007,8 +1025,8 @@ const AdminDashboard = () => {
           if (monthlyData.length > 0) {
             const sortedData = [...monthlyData].sort((a: any, b: any) => {
               if (a.year !== b.year) return b.year - a.year;
-              const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-              return monthOrder.indexOf(b.month) - monthOrder.indexOf(a.month);
+              // Convert months to numbers for proper sorting
+              return getMonthNumber(b.month) - getMonthNumber(a.month);
             });
             const recent = sortedData[0];
             recentMonth = { 
@@ -1022,10 +1040,10 @@ const AdminDashboard = () => {
             domain: report.domain,
             yearlyRevenueLost,
             monthlyRevenueLost,
-            peakMonth: peakMonth.month,
+            peakMonth: getMonthName(peakMonth.month),
             peakYear: peakMonth.year,
             peakValue: peakMonth.value,
-            recentMonth: recentMonth.month,
+            recentMonth: getMonthName(recentMonth.month),
             recentYear: recentMonth.year,
             recentValue: recentMonth.value
           };
@@ -1080,8 +1098,8 @@ const AdminDashboard = () => {
           if (monthlyData.length > 0) {
             const sortedData = [...monthlyData].sort((a: any, b: any) => {
               if (a.year !== b.year) return b.year - a.year;
-              const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-              return monthOrder.indexOf(b.month) - monthOrder.indexOf(a.month);
+              // Convert months to numbers for proper sorting
+              return getMonthNumber(b.month) - getMonthNumber(a.month);
             });
             const recent = sortedData[0];
             recentMonth = { 
@@ -1094,10 +1112,10 @@ const AdminDashboard = () => {
           topDomain = {
             domain: report.domain,
             missedLeads,
-            peakMonth: peakMonth.month,
+            peakMonth: getMonthName(peakMonth.month),
             peakYear: peakMonth.year,
             peakValue: peakMonth.value,
-            recentMonth: recentMonth.month,
+            recentMonth: getMonthName(recentMonth.month),
             recentYear: recentMonth.year,
             recentValue: recentMonth.value
           };
