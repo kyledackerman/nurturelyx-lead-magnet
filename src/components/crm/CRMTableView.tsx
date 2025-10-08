@@ -68,6 +68,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const [showLostReasonDialog, setShowLostReasonDialog] = useState(false);
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{ prospectId: string; status: string; domain: string } | null>(null);
   const [showBulkEnrichment, setShowBulkEnrichment] = useState(false);
+  const [domainActivityMap, setDomainActivityMap] = useState<Map<string, { activityId: string; reportId: string }>>(new Map());
 
   useEffect(() => {
     fetchProspects();
@@ -138,16 +139,45 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
 
       if (error) throw error;
 
-      // Fetch contact counts for all prospects
-      const prospectIds = data?.map((p: any) => p.id) || [];
-      const { data: contactCounts } = await supabase
+      // Get all unique domains from prospects
+      const domains = [...new Set(data?.map((p: any) => p.reports.domain) || [])];
+      
+      // Fetch ALL reports for these domains to count contacts at domain level
+      const { data: allReports } = await supabase
+        .from('reports')
+        .select('id, domain')
+        .in('domain', domains);
+      
+      const reportIdsByDomain = new Map<string, string[]>();
+      allReports?.forEach((r: any) => {
+        if (!reportIdsByDomain.has(r.domain)) {
+          reportIdsByDomain.set(r.domain, []);
+        }
+        reportIdsByDomain.get(r.domain)!.push(r.id);
+      });
+      
+      // Fetch contacts for all report_ids and count by domain
+      const allReportIds = allReports?.map((r: any) => r.id) || [];
+      const { data: allContacts } = await supabase
         .from('prospect_contacts')
-        .select('prospect_activity_id')
-        .in('prospect_activity_id', prospectIds);
-
-      const contactCountMap = new Map<string, number>();
-      contactCounts?.forEach((c: any) => {
-        contactCountMap.set(c.prospect_activity_id, (contactCountMap.get(c.prospect_activity_id) || 0) + 1);
+        .select('report_id')
+        .in('report_id', allReportIds);
+      
+      const domainContactCount = new Map<string, number>();
+      allContacts?.forEach((c: any) => {
+        const report = allReports?.find((r: any) => r.id === c.report_id);
+        if (report) {
+          domainContactCount.set(report.domain, (domainContactCount.get(report.domain) || 0) + 1);
+        }
+      });
+      
+      // Create map of domain -> {activityId, reportId} for the displayed row
+      const domainActivityMap = new Map<string, { activityId: string; reportId: string }>();
+      data?.forEach((p: any) => {
+        domainActivityMap.set(p.reports.domain, {
+          activityId: p.id,
+          reportId: p.report_id
+        });
       });
 
       let mapped = data?.map((p: any) => ({
@@ -162,7 +192,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         assignedTo: p.assigned_to,
         lostReason: p.lost_reason,
         lostNotes: p.lost_notes,
-        contactCount: contactCountMap.get(p.id) || 0,
+        contactCount: domainContactCount.get(p.reports.domain) || 0,
       })) || [];
 
       // Filter for needs-enrichment view: only show prospects with 0 contacts
@@ -171,6 +201,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       }
 
       setProspects(mapped);
+      setDomainActivityMap(domainActivityMap);
     } catch (error) {
       console.error("Error fetching prospects:", error);
     } finally {
@@ -915,6 +946,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         onOpenChange={setShowBulkEnrichment}
         knownDomains={sortedProspects.map(p => p.domain)}
         onSuccess={fetchProspects}
+        domainActivityMap={domainActivityMap}
       />
     </div>
   );

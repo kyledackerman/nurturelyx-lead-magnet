@@ -36,6 +36,7 @@ interface BulkEnrichmentDialogProps {
   onOpenChange: (open: boolean) => void;
   knownDomains: string[];
   onSuccess: () => void;
+  domainActivityMap?: Map<string, { activityId: string; reportId: string }>;
 }
 
 export default function BulkEnrichmentDialog({
@@ -43,6 +44,7 @@ export default function BulkEnrichmentDialog({
   onOpenChange,
   knownDomains,
   onSuccess,
+  domainActivityMap,
 }: BulkEnrichmentDialogProps) {
   const [rawText, setRawText] = useState("");
   const [businessName, setBusinessName] = useState("");
@@ -106,80 +108,95 @@ export default function BulkEnrichmentDialog({
     try {
       for (const domainData of parsedResult.matched) {
         try {
-          // Find the report and activity for this domain
           // Normalize domain to improve matching
           const normalizeDomain = (d: string) =>
             d.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '');
 
           const normalizedDomain = normalizeDomain(domainData.domain);
 
-          // Fetch the most recent report for this domain (handle duplicates safely)
-          const { data: report, error: reportError } = await supabase
-            .from('reports')
-            .select('id, domain, created_at')
-            .eq('domain', normalizedDomain)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          if (reportError || !report) {
-            console.error(`Report not found for domain ${domainData.domain} (normalized: ${normalizedDomain})`, reportError);
-            errorCount++;
-            continue;
-          }
-
-          console.info('Enriching report', { reportId: report.id, domain: report.domain });
-
-          // Get the latest activity or create one if missing
-          let activityId: string | null = null;
+          let reportId: string;
+          let activityId: string;
           let activityStatus: string | null = null;
 
-          const { data: existingActivity, error: activityError } = await supabase
-            .from('prospect_activities')
-            .select('id, status, created_at')
-            .eq('report_id', report.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          if (activityError) {
-            console.error(`Error fetching activity for ${normalizedDomain}:`, activityError);
-          }
-
-          if (existingActivity) {
-            activityId = existingActivity.id;
-            activityStatus = existingActivity.status as string;
-          } else {
-            const { data: newActivity, error: insertActivityError } = await supabase
+          // First check if we have a mapped activity for this domain from the CRM table
+          if (domainActivityMap && domainActivityMap.has(normalizedDomain)) {
+            const mapped = domainActivityMap.get(normalizedDomain)!;
+            reportId = mapped.reportId;
+            activityId = mapped.activityId;
+            
+            // Fetch the status of the mapped activity
+            const { data: activityData } = await supabase
               .from('prospect_activities')
-              .insert({
-                report_id: report.id,
-                activity_type: 'enrichment',
-                status: 'enriching',
-              })
-              .select('id, status')
+              .select('status')
+              .eq('id', activityId)
               .single();
+            
+            activityStatus = activityData?.status || null;
+            console.info('Using mapped activity for domain', { domain: normalizedDomain, reportId, activityId, status: activityStatus });
+          } else {
+            // Fallback: find the most recent report and activity for this domain
+            const { data: report, error: reportError } = await supabase
+              .from('reports')
+              .select('id, domain, created_at')
+              .eq('domain', normalizedDomain)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
 
-            if (insertActivityError || !newActivity) {
-              console.error(`Failed to create activity for ${normalizedDomain}:`, insertActivityError);
+            if (reportError || !report) {
+              console.error(`Report not found for domain ${domainData.domain} (normalized: ${normalizedDomain})`, reportError);
               errorCount++;
               continue;
             }
-            activityId = newActivity.id;
-            activityStatus = newActivity.status as string;
+
+            reportId = report.id;
+
+            // Get or create activity
+            const { data: existingActivity, error: activityError } = await supabase
+              .from('prospect_activities')
+              .select('id, status, created_at')
+              .eq('report_id', reportId)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (existingActivity) {
+              activityId = existingActivity.id;
+              activityStatus = existingActivity.status;
+            } else {
+              const { data: newActivity, error: insertActivityError } = await supabase
+                .from('prospect_activities')
+                .insert({
+                  report_id: reportId,
+                  activity_type: 'enrichment',
+                  status: 'enriching',
+                })
+                .select('id, status')
+                .single();
+
+              if (insertActivityError || !newActivity) {
+                console.error(`Failed to create activity for ${normalizedDomain}:`, insertActivityError);
+                errorCount++;
+                continue;
+              }
+              activityId = newActivity.id;
+              activityStatus = newActivity.status;
+            }
           }
 
-          if (!activityId) {
-            console.error(`No activity found or created for domain ${normalizedDomain}`);
-            errorCount++;
-            continue;
-          }
+          // Fetch ALL reports for this domain to check for existing contacts across all reports
+          const { data: allDomainReports } = await supabase
+            .from('reports')
+            .select('id')
+            .eq('domain', normalizedDomain);
 
-          // Check for existing contacts to avoid duplicates
+          const allReportIds = allDomainReports?.map(r => r.id) || [reportId];
+
+          // Check for existing contacts to avoid duplicates (check ALL reports for this domain)
           const { data: existingContacts } = await supabase
             .from('prospect_contacts')
             .select('email, first_name, last_name')
-            .eq('report_id', report.id);
+            .in('report_id', allReportIds);
 
           const existingEmails = new Set(existingContacts?.map(c => c.email?.toLowerCase()) || []);
           const existingNames = new Set(
@@ -212,8 +229,8 @@ export default function BulkEnrichmentDialog({
             const { error: insertError } = await supabase
               .from('prospect_contacts')
               .insert({
-                report_id: report.id,
-                prospect_activity_id: activityId as string,
+                report_id: reportId,
+                prospect_activity_id: activityId,
                 first_name: contact.first_name,
                 last_name: contact.last_name || null,
                 email: contact.email || null,
