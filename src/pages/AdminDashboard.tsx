@@ -193,10 +193,27 @@ const AdminDashboard = () => {
   // Business Insights State
   const [peakDay, setPeakDay] = useState({ date: '', count: 0, percentageOfTotal: 0 });
   const [qualityScore, setQualityScore] = useState({ highImpactCount: 0, totalCount: 0, percentage: 0 });
-  const [topRevenueDomain, setTopRevenueDomain] = useState({ domain: '', yearlyRevenueLost: 0, monthlyRevenueLost: 0 });
-  const [topLeadsDomain, setTopLeadsDomain] = useState({ domain: '', missedLeads: 0 });
-  const [peakLeadLossMonth, setPeakLeadLossMonth] = useState({ month: '', year: 0, totalLeads: 0 });
-  const [peakRevenueMonth, setPeakRevenueMonth] = useState({ month: '', year: 0, totalRevenue: 0 });
+  const [topRevenueDomain, setTopRevenueDomain] = useState({ 
+    domain: '', 
+    yearlyRevenueLost: 0, 
+    monthlyRevenueLost: 0,
+    peakMonth: '',
+    peakYear: 0,
+    peakValue: 0,
+    recentMonth: '',
+    recentYear: 0,
+    recentValue: 0
+  });
+  const [topLeadsDomain, setTopLeadsDomain] = useState({ 
+    domain: '', 
+    missedLeads: 0,
+    peakMonth: '',
+    peakYear: 0,
+    peakValue: 0,
+    recentMonth: '',
+    recentYear: 0,
+    recentValue: 0
+  });
   const [avgDealSize, setAvgDealSize] = useState({ avgDealSize: 0, medianDealSize: 0 });
   const [hotStreak, setHotStreak] = useState({ currentStreak: 0, longestStreak: 0, isActive: false });
   const [conversionHealth, setConversionHealth] = useState({ conversionRate: 0, reportsInCRM: 0, totalReports: 0 });
@@ -217,8 +234,6 @@ const AdminDashboard = () => {
     fetchQualityScore();
     fetchTopRevenueDomain();
     fetchTopLeadsDomain();
-    fetchPeakLeadLossMonth();
-    fetchPeakRevenueMonth();
     fetchAverageDealSize();
     fetchHotStreak();
     fetchConversionRate();
@@ -250,8 +265,6 @@ const AdminDashboard = () => {
           fetchQualityScore();
           fetchTopRevenueDomain();
           fetchTopLeadsDomain();
-          fetchPeakLeadLossMonth();
-          fetchPeakRevenueMonth();
           fetchAverageDealSize();
           fetchHotStreak();
           fetchConversionRate();
@@ -277,8 +290,6 @@ const AdminDashboard = () => {
       fetchQualityScore();
       fetchTopRevenueDomain();
       fetchTopLeadsDomain();
-      fetchPeakLeadLossMonth();
-      fetchPeakRevenueMonth();
       fetchAverageDealSize();
       fetchHotStreak();
       fetchConversionRate();
@@ -962,7 +973,17 @@ const AdminDashboard = () => {
       
       if (error) throw error;
 
-      let topDomain = { domain: '', yearlyRevenueLost: 0, monthlyRevenueLost: 0 };
+      let topDomain = { 
+        domain: '', 
+        yearlyRevenueLost: 0, 
+        monthlyRevenueLost: 0,
+        peakMonth: '',
+        peakYear: 0,
+        peakValue: 0,
+        recentMonth: '',
+        recentYear: 0,
+        recentValue: 0
+      };
 
       reports?.forEach(report => {
         const reportData = report.report_data as any;
@@ -970,10 +991,43 @@ const AdminDashboard = () => {
         const monthlyRevenueLost = reportData?.monthlyRevenueLost || 0;
         
         if (yearlyRevenueLost > topDomain.yearlyRevenueLost) {
+          const monthlyData = reportData?.monthlyRevenueData || [];
+          
+          // Find peak month
+          let peakMonth = { month: '', year: 0, value: 0 };
+          monthlyData.forEach((data: any) => {
+            const revenueLost = data.revenueLost || data.lostRevenue || 0;
+            if (revenueLost > peakMonth.value) {
+              peakMonth = { month: data.month, year: data.year, value: revenueLost };
+            }
+          });
+          
+          // Find most recent month
+          let recentMonth = { month: '', year: 0, value: 0 };
+          if (monthlyData.length > 0) {
+            const sortedData = [...monthlyData].sort((a: any, b: any) => {
+              if (a.year !== b.year) return b.year - a.year;
+              const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+              return monthOrder.indexOf(b.month) - monthOrder.indexOf(a.month);
+            });
+            const recent = sortedData[0];
+            recentMonth = { 
+              month: recent.month, 
+              year: recent.year, 
+              value: recent.revenueLost || recent.lostRevenue || 0 
+            };
+          }
+          
           topDomain = {
             domain: report.domain,
             yearlyRevenueLost,
-            monthlyRevenueLost
+            monthlyRevenueLost,
+            peakMonth: peakMonth.month,
+            peakYear: peakMonth.year,
+            peakValue: peakMonth.value,
+            recentMonth: recentMonth.month,
+            recentYear: recentMonth.year,
+            recentValue: recentMonth.value
           };
         }
       });
@@ -994,16 +1048,58 @@ const AdminDashboard = () => {
       
       if (error) throw error;
 
-      let topDomain = { domain: '', missedLeads: 0 };
+      let topDomain = { 
+        domain: '', 
+        missedLeads: 0,
+        peakMonth: '',
+        peakYear: 0,
+        peakValue: 0,
+        recentMonth: '',
+        recentYear: 0,
+        recentValue: 0
+      };
 
       reports?.forEach(report => {
         const reportData = report.report_data as any;
         const missedLeads = reportData?.missedLeads || 0;
         
         if (missedLeads > topDomain.missedLeads) {
+          const monthlyData = reportData?.monthlyRevenueData || [];
+          
+          // Find peak month
+          let peakMonth = { month: '', year: 0, value: 0 };
+          monthlyData.forEach((data: any) => {
+            const leads = data.missedLeads || 0;
+            if (leads > peakMonth.value) {
+              peakMonth = { month: data.month, year: data.year, value: leads };
+            }
+          });
+          
+          // Find most recent month
+          let recentMonth = { month: '', year: 0, value: 0 };
+          if (monthlyData.length > 0) {
+            const sortedData = [...monthlyData].sort((a: any, b: any) => {
+              if (a.year !== b.year) return b.year - a.year;
+              const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+              return monthOrder.indexOf(b.month) - monthOrder.indexOf(a.month);
+            });
+            const recent = sortedData[0];
+            recentMonth = { 
+              month: recent.month, 
+              year: recent.year, 
+              value: recent.missedLeads || 0 
+            };
+          }
+          
           topDomain = {
             domain: report.domain,
-            missedLeads
+            missedLeads,
+            peakMonth: peakMonth.month,
+            peakYear: peakMonth.year,
+            peakValue: peakMonth.value,
+            recentMonth: recentMonth.month,
+            recentYear: recentMonth.year,
+            recentValue: recentMonth.value
           };
         }
       });
@@ -1014,97 +1110,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchPeakLeadLossMonth = async () => {
-    try {
-      const { data: reports, error } = await supabase
-        .from('reports')
-        .select('report_data');
-      
-      if (error) throw error;
-
-      // Aggregate missed leads by month/year across all reports
-      const monthlyAggregates = new Map<string, { month: string, year: number, totalLeads: number }>();
-
-      reports?.forEach(report => {
-        const reportData = report.report_data as any;
-        const monthlyData = reportData?.monthlyRevenueData || [];
-        
-        monthlyData.forEach((data: any) => {
-          const key = `${data.month}-${data.year}`;
-          const existing = monthlyAggregates.get(key);
-          const missedLeads = data.missedLeads || 0;
-          
-          if (existing) {
-            existing.totalLeads += missedLeads;
-          } else {
-            monthlyAggregates.set(key, {
-              month: data.month,
-              year: data.year,
-              totalLeads: missedLeads
-            });
-          }
-        });
-      });
-
-      // Find the peak month
-      let peakMonth = { month: '', year: 0, totalLeads: 0 };
-      monthlyAggregates.forEach(aggregate => {
-        if (aggregate.totalLeads > peakMonth.totalLeads) {
-          peakMonth = aggregate;
-        }
-      });
-
-      setPeakLeadLossMonth(peakMonth);
-    } catch (error) {
-      console.error('Error fetching peak lead loss month:', error);
-    }
-  };
-
-  const fetchPeakRevenueMonth = async () => {
-    try {
-      const { data: reports, error } = await supabase
-        .from('reports')
-        .select('report_data');
-      
-      if (error) throw error;
-
-      // Aggregate revenue lost by month/year across all reports
-      const monthlyAggregates = new Map<string, { month: string, year: number, totalRevenue: number }>();
-
-      reports?.forEach(report => {
-        const reportData = report.report_data as any;
-        const monthlyData = reportData?.monthlyRevenueData || [];
-        
-        monthlyData.forEach((data: any) => {
-          const key = `${data.month}-${data.year}`;
-          const existing = monthlyAggregates.get(key);
-          const revenueLost = data.revenueLost || 0;
-          
-          if (existing) {
-            existing.totalRevenue += revenueLost;
-          } else {
-            monthlyAggregates.set(key, {
-              month: data.month,
-              year: data.year,
-              totalRevenue: revenueLost
-            });
-          }
-        });
-      });
-
-      // Find the peak month
-      let peakMonth = { month: '', year: 0, totalRevenue: 0 };
-      monthlyAggregates.forEach(aggregate => {
-        if (aggregate.totalRevenue > peakMonth.totalRevenue) {
-          peakMonth = aggregate;
-        }
-      });
-
-      setPeakRevenueMonth(peakMonth);
-    } catch (error) {
-      console.error('Error fetching peak revenue month:', error);
-    }
-  };
 
   const fetchAverageDealSize = async () => {
     try {
@@ -1690,49 +1695,59 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Card #3: Peak Lead Loss Month */}
+              {/* Card #3: Biggest Lead Volume Loss */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
-                  <CardTitle className="text-sm font-medium">Peak Lead Loss Month</CardTitle>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <TrendingUp className="h-3 w-3 text-muted-foreground" />
-                  </div>
+                  <CardTitle className="text-sm font-medium">Biggest Lead Volume Loss</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent className="p-3 pt-0">
-                  <div className="text-2xl font-bold">
-                    {peakLeadLossMonth.month && peakLeadLossMonth.year 
-                      ? `${peakLeadLossMonth.month} ${peakLeadLossMonth.year}` 
-                      : 'N/A'}
+                  <div className="text-2xl font-bold truncate" title={topLeadsDomain.domain}>
+                    {topLeadsDomain.domain || 'N/A'}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {peakLeadLossMonth.totalLeads > 0 
-                      ? `${peakLeadLossMonth.totalLeads.toLocaleString()} leads lost` 
+                    {topLeadsDomain.missedLeads > 0 
+                      ? `${topLeadsDomain.missedLeads.toLocaleString()} leads lost` 
                       : 'No data available'}
                   </p>
+                  {topLeadsDomain.peakMonth && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Peak: {topLeadsDomain.peakMonth} {topLeadsDomain.peakYear} ({topLeadsDomain.peakValue.toLocaleString()} leads)
+                    </p>
+                  )}
+                  {topLeadsDomain.recentMonth && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Recent: {topLeadsDomain.recentMonth} {topLeadsDomain.recentYear} ({topLeadsDomain.recentValue.toLocaleString()} leads)
+                    </p>
+                  )}
                 </CardContent>
               </Card>
 
-              {/* Card #4: Peak Revenue Month */}
+              {/* Card #4: Biggest Revenue Opportunity */}
               <Card className="border-orange-200 bg-orange-50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
-                  <CardTitle className="text-sm font-medium text-black">Peak Revenue Month</CardTitle>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4 text-orange-600" />
-                    <DollarSign className="h-3 w-3 text-orange-600" />
-                  </div>
+                  <CardTitle className="text-sm font-medium text-black">Biggest Revenue Opportunity</CardTitle>
+                  <DollarSign className="h-4 w-4 text-orange-600" />
                 </CardHeader>
                 <CardContent className="p-3 pt-0">
-                  <div className="text-2xl font-bold text-orange-700">
-                    {peakRevenueMonth.month && peakRevenueMonth.year 
-                      ? `${peakRevenueMonth.month} ${peakRevenueMonth.year}` 
-                      : 'N/A'}
+                  <div className="text-2xl font-bold text-orange-700 truncate" title={topRevenueDomain.domain}>
+                    {topRevenueDomain.domain || 'N/A'}
                   </div>
                   <p className="text-xs text-orange-600 mt-0.5 font-semibold">
-                    {peakRevenueMonth.totalRevenue > 0 
-                      ? `${formatLargeNumber(peakRevenueMonth.totalRevenue)} lost` 
+                    {topRevenueDomain.yearlyRevenueLost > 0 
+                      ? `${formatLargeNumber(topRevenueDomain.yearlyRevenueLost)} lost yearly` 
                       : 'No data available'}
                   </p>
+                  {topRevenueDomain.peakMonth && (
+                    <p className="text-xs text-orange-600 mt-0.5">
+                      Peak: {topRevenueDomain.peakMonth} {topRevenueDomain.peakYear} ({formatLargeNumber(topRevenueDomain.peakValue)})
+                    </p>
+                  )}
+                  {topRevenueDomain.recentMonth && (
+                    <p className="text-xs text-orange-600 mt-0.5">
+                      Recent: {topRevenueDomain.recentMonth} {topRevenueDomain.recentYear} ({formatLargeNumber(topRevenueDomain.recentValue)})
+                    </p>
+                  )}
                 </CardContent>
               </Card>
 
