@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { prospectIds, autoUpdateStatus, filtersApplied } = await req.json();
+    const { prospectIds, autoUpdateStatus, filtersApplied, exportAllContacts = true } = await req.json();
 
     if (!prospectIds || prospectIds.length === 0) {
       return new Response(JSON.stringify({ error: 'No prospects selected' }), {
@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     // Fetch prospect data with report information
     const { data: prospects, error: fetchError } = await supabase
       .from('prospect_activities')
-      .select('id, report_id, assigned_to, lost_reason, lost_notes, reports!inner(domain, slug, report_data)')
+      .select('id, report_id, assigned_to, lost_reason, lost_notes, reports!inner(domain, slug, report_data, extracted_company_name)')
       .in('id', prospectIds);
 
     if (fetchError) {
@@ -63,6 +63,27 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Fetch contacts for all prospects
+    const { data: allContacts, error: contactsError } = await supabase
+      .from('prospect_contacts')
+      .select('*')
+      .in('prospect_activity_id', prospectIds)
+      .order('is_primary', { ascending: false })
+      .order('created_at', { ascending: true });
+
+    if (contactsError) {
+      console.error('Error fetching contacts:', contactsError);
+    }
+
+    // Group contacts by prospect_activity_id
+    const contactsByProspect = new Map();
+    (allContacts || []).forEach((contact: any) => {
+      if (!contactsByProspect.has(contact.prospect_activity_id)) {
+        contactsByProspect.set(contact.prospect_activity_id, []);
+      }
+      contactsByProspect.get(contact.prospect_activity_id).push(contact);
+    });
 
     // Fetch admin details for assignment mapping
     const { data: adminsData } = await supabase.functions.invoke('get-admins', {
@@ -78,39 +99,90 @@ Deno.serve(async (req) => {
 
     // Build CSV
     const csvRows: string[] = [];
-    csvRows.push('Domain,Monthly Traffic,Estimated Leads,Missed Sales,Monthly Revenue Loss,Report URL,Assigned To');
+    csvRows.push('Domain,Company Name,Contact First Name,Contact Last Name,Email,Phone,Title,LinkedIn URL,Monthly Traffic,Estimated Leads,Missed Sales,Monthly Revenue Loss,Report URL,Assigned To');
 
     const domains: string[] = [];
 
     for (const prospect of prospects) {
       const reportData = prospect.reports.report_data as any;
       const domain = prospect.reports.domain;
+      const companyName = prospect.reports.extracted_company_name || domain;
       const reportUrl = `https://x1.nurturely.io/report/${prospect.reports.slug}`;
-      domains.push(domain);
+      
+      if (!domains.includes(domain)) {
+        domains.push(domain);
+      }
 
       const assignedAdmin = prospect.assigned_to 
         ? (adminMap.get(prospect.assigned_to) || 'Unknown Admin')
         : 'Unassigned';
 
-      const row = [
-        domain,
-        reportData.organicTraffic || '0',
-        reportData.missedLeads || '0',
-        reportData.estimatedSalesLost || '0',
-        reportData.monthlyRevenueLost || '0',
-        reportUrl,
-        assignedAdmin,
-      ];
+      const prospectContacts = contactsByProspect.get(prospect.id) || [];
+      
+      // Filter contacts based on export option
+      const contactsToExport = exportAllContacts 
+        ? prospectContacts 
+        : prospectContacts.filter((c: any) => c.is_primary).slice(0, 1);
 
-      const escapedRow = row.map(value => {
-        const str = String(value);
-        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-          return `"${str.replace(/"/g, '""')}"`;
+      // If no contacts, still create one row with prospect data
+      if (contactsToExport.length === 0) {
+        const row = [
+          domain,
+          companyName,
+          '', // No contact first name
+          '', // No contact last name
+          '', // No email
+          '', // No phone
+          '', // No title
+          '', // No LinkedIn
+          reportData.organicTraffic || '0',
+          reportData.missedLeads || '0',
+          reportData.estimatedSalesLost || '0',
+          reportData.monthlyRevenueLost || '0',
+          reportUrl,
+          assignedAdmin,
+        ];
+
+        const escapedRow = row.map(value => {
+          const str = String(value);
+          if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+            return `"${str.replace(/"/g, '""')}"`;
+          }
+          return str;
+        });
+
+        csvRows.push(escapedRow.join(','));
+      } else {
+        // Create a row for each contact
+        for (const contact of contactsToExport) {
+          const row = [
+            domain,
+            companyName,
+            contact.first_name || '',
+            contact.last_name || '',
+            contact.email || '',
+            contact.phone || '',
+            contact.title || '',
+            contact.linkedin_url || '',
+            reportData.organicTraffic || '0',
+            reportData.missedLeads || '0',
+            reportData.estimatedSalesLost || '0',
+            reportData.monthlyRevenueLost || '0',
+            reportUrl,
+            assignedAdmin,
+          ];
+
+          const escapedRow = row.map(value => {
+            const str = String(value);
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+              return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+          });
+
+          csvRows.push(escapedRow.join(','));
         }
-        return str;
-      });
-
-      csvRows.push(escapedRow.join(','));
+      }
     }
 
     const csv = csvRows.join('\n');

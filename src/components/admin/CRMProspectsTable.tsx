@@ -64,7 +64,7 @@ interface CRMProspectsTableProps {
   loading: boolean;
 }
 
-type StatusFilter = 'all' | 'new' | 'contacted' | 'interested' | 'proposal' | 'closed_won' | 'closed_lost' | 'not_viable';
+type StatusFilter = 'all' | 'new' | 'enriching' | 'contacted' | 'interested' | 'proposal' | 'closed_won' | 'closed_lost' | 'not_viable';
 type PriorityFilter = 'all' | 'hot' | 'warm' | 'cold' | 'not_viable';
 type OwnershipFilter = 'all' | 'mine' | 'unassigned' | 'assigned';
 
@@ -204,6 +204,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new': return 'bg-gray-100 text-gray-800';
+      case 'enriching': return 'bg-purple-100 text-purple-800';
       case 'contacted': return 'bg-blue-100 text-blue-800';
       case 'interested': return 'bg-yellow-100 text-yellow-800';
       case 'qualified': return 'bg-yellow-100 text-yellow-800'; // Legacy status, mapped to interested
@@ -393,6 +394,7 @@ export const CRMProspectsTable = ({ reports, loading }: CRMProspectsTableProps) 
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="new">New</SelectItem>
+            <SelectItem value="enriching">Enriching</SelectItem>
             <SelectItem value="contacted">Contacted</SelectItem>
             <SelectItem value="interested">Interested</SelectItem>
             <SelectItem value="proposal">Proposal</SelectItem>

@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { auditService } from "@/services/auditService";
+import ContactsSection from "./ContactsSection";
 
 interface ProspectDetailPanelProps {
   prospectId: string;
@@ -340,6 +341,7 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
                 </SelectTrigger>
                 <SelectContent className="z-50 bg-popover">
                   <SelectItem value="new">New</SelectItem>
+                  <SelectItem value="enriching">Enriching</SelectItem>
                   <SelectItem value="contacted">Contacted</SelectItem>
                   <SelectItem value="interested">Interested</SelectItem>
                   <SelectItem value="proposal">Proposal</SelectItem>
@@ -580,6 +582,15 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
 
           {/* Activity Notes */}
           <Separator />
+          
+          {/* Contacts Section */}
+          <ContactsSection 
+            prospectActivityId={prospectId}
+            reportId={prospect.report_id}
+          />
+          
+          <Separator />
+          
           <div className="space-y-3">
             <h3 className="font-semibold">Notes</h3>
             {prospect.notes && (

@@ -172,6 +172,72 @@ export type Database = {
           },
         ]
       }
+      prospect_contacts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string | null
+          first_name: string
+          id: string
+          is_primary: boolean
+          last_name: string
+          linkedin_url: string | null
+          notes: string | null
+          phone: string | null
+          prospect_activity_id: string
+          report_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          first_name: string
+          id?: string
+          is_primary?: boolean
+          last_name: string
+          linkedin_url?: string | null
+          notes?: string | null
+          phone?: string | null
+          prospect_activity_id: string
+          report_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          first_name?: string
+          id?: string
+          is_primary?: boolean
+          last_name?: string
+          linkedin_url?: string | null
+          notes?: string | null
+          phone?: string | null
+          prospect_activity_id?: string
+          report_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prospect_contacts_prospect_activity_id_fkey"
+            columns: ["prospect_activity_id"]
+            isOneToOne: false
+            referencedRelation: "prospect_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prospect_contacts_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prospect_exports: {
         Row: {
           auto_updated_to_contacted: boolean

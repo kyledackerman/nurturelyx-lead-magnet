@@ -123,7 +123,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         query = query.in('status', ['closed_won', 'closed_lost']);
       } else {
         // Default to active pipeline
-        query = query.in('status', ['new', 'contacted', 'proposal']);
+        query = query.in('status', ['new', 'enriching', 'contacted', 'proposal']);
       }
 
       const { data, error } = await query;
@@ -177,6 +177,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const getStatusBadge = (status: string, isOverdueRow: boolean) => {
     const variants: Record<string, string> = {
       new: "bg-brand-purple text-white border-brand-purple",
+      enriching: "bg-purple-500 text-white border-purple-400",
       contacted: "bg-accent text-black border-accent",
       interested: "bg-yellow-500 text-white border-yellow-400",
       qualified: "bg-yellow-500 text-white border-yellow-400", // Legacy status, mapped to interested
@@ -325,7 +326,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
 
   const getStatusValue = (status: string): number => {
     const values: Record<string, number> = { 
-      new: 1, contacted: 2, proposal: 3, closed_won: 4, closed_lost: 5, not_viable: 6 
+      new: 1, enriching: 2, contacted: 3, proposal: 4, closed_won: 5, closed_lost: 6, not_viable: 7 
     };
     return values[status] || 0;
   };
@@ -598,6 +599,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                 ) : (
                   <>
                     <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="enriching">Enriching</SelectItem>
                     <SelectItem value="contacted">Contacted</SelectItem>
                     <SelectItem value="proposal">Proposal</SelectItem>
                   </>
@@ -734,10 +736,11 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                       <SelectTrigger className="w-36 h-8">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="z-50 bg-popover">
+                       <SelectContent className="z-50 bg-popover">
                         {view === 'active' && (
                           <>
                             <SelectItem value="new">New</SelectItem>
+                            <SelectItem value="enriching">Enriching</SelectItem>
                             <SelectItem value="contacted">Contacted</SelectItem>
                             <SelectItem value="interested">Interested</SelectItem>
                             <SelectItem value="proposal">Proposal</SelectItem>
