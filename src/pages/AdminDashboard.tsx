@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AdminReportsTable } from "@/components/admin/AdminReportsTable";
 import { AdminManagement } from "@/components/admin/AdminManagement";
 import { PasswordManagement } from "@/components/admin/PasswordManagement";
@@ -130,9 +130,11 @@ interface RecentView {
 }
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const {
     user
   } = useAuth();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'generate');
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [filteredReports, setFilteredReports] = useState<ReportSummary[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -1973,7 +1975,7 @@ const AdminDashboard = () => {
           </div>
 
 
-          <Tabs defaultValue="generate" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="generate">
                 <FileText className="h-4 w-4 mr-2" />

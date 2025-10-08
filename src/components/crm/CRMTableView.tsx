@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Eye, Search, MoreVertical, ExternalLink, Copy, ChevronUp, ChevronDown, Users, UserPlus, AlertCircle } from "lucide-react";
+import { Eye, Search, MoreVertical, ExternalLink, Copy, ChevronUp, ChevronDown, Users, UserPlus, AlertCircle, Upload } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,7 @@ type SortDirection = 'asc' | 'desc';
 
 export default function CRMTableView({ onSelectProspect, compact = false, view = 'active' }: CRMTableViewProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [prospects, setProspects] = useState<ProspectRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -584,12 +586,18 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   return (
     <div className="space-y-4">
       {view === 'needs-enrichment' && (
-        <Alert className="mb-4 border-orange-300 bg-orange-50">
-          <AlertCircle className="h-4 w-4 text-orange-600" />
-          <AlertDescription className="text-orange-800">
-            These prospects need contact information before outreach. Add contacts and mark as enriched when ready.
-          </AlertDescription>
-        </Alert>
+        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border rounded-lg bg-muted/50">
+          <div>
+            <h3 className="font-semibold text-lg">Import Enriched Prospects</h3>
+            <p className="text-sm text-muted-foreground">
+              Already have enriched contact data? Import them in bulk via CSV
+            </p>
+          </div>
+          <Button onClick={() => navigate('/admin?tab=import')}>
+            <Upload className="h-4 w-4 mr-2" />
+            Bulk Import
+          </Button>
+        </div>
       )}
 
       {!compact && view !== 'needs-enrichment' && (
