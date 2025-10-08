@@ -6,6 +6,7 @@ import CRMMetrics from "@/components/crm/CRMMetrics";
 import CRMTableView from "@/components/crm/CRMTableView";
 import TasksWidget from "@/components/crm/TasksWidget";
 import ProspectDetailPanel from "@/components/crm/ProspectDetailPanel";
+import { AutoEnrichmentBar } from "@/components/crm/AutoEnrichmentBar";
 
 export default function CRMDashboard() {
   const [selectedView, setSelectedView] = useState<"dashboard" | "table" | "needs-enrichment" | "closed">("dashboard");
@@ -16,6 +17,8 @@ export default function CRMDashboard() {
       <CRMHeader />
       
       <div className="container mx-auto px-4 py-6 max-w-[2000px]">
+        <AutoEnrichmentBar />
+        
         <Tabs value={selectedView} onValueChange={(v) => setSelectedView(v as any)} className="w-full">
           <TabsList className="grid w-full max-w-2xl grid-cols-4 mb-6">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">

@@ -18,6 +18,28 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Check if auto-enrichment is enabled
+    const { data: settings, error: settingsError } = await supabase
+      .from("enrichment_settings")
+      .select("*")
+      .single();
+
+    if (settingsError) {
+      console.error("Error fetching enrichment settings:", settingsError);
+      return new Response(
+        JSON.stringify({ error: "Failed to fetch enrichment settings" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!settings.auto_enrichment_enabled) {
+      console.log("Auto-enrichment is disabled, skipping...");
+      return new Response(
+        JSON.stringify({ message: "Auto-enrichment is disabled" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     console.log("Starting auto-enrichment process...");
 
     // Get up to 12 prospects that need enrichment
@@ -264,6 +286,16 @@ Extract all contact information following the email rules. Return ONLY the JSON 
     }
 
     console.log("Auto-enrichment complete:", results);
+
+    // Update enrichment settings with last run time and totals
+    await supabase
+      .from("enrichment_settings")
+      .update({
+        last_run_at: new Date().toISOString(),
+        total_enriched: settings.total_enriched + results.successful,
+        total_failed: settings.total_failed + results.failed,
+      })
+      .eq("id", settings.id);
 
     return new Response(JSON.stringify(results), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

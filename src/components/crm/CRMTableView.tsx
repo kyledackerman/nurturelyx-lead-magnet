@@ -235,6 +235,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     const variants: Record<string, string> = {
       new: "bg-brand-purple text-white border-brand-purple",
       enriching: "bg-purple-500 text-white border-purple-400",
+      review: "bg-orange-500 text-white border-orange-400",
       enriched: "bg-green-500 text-white border-green-400",
       contacted: "bg-accent text-black border-accent",
       interested: "bg-yellow-500 text-white border-yellow-400",

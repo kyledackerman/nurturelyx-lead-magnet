@@ -65,6 +65,36 @@ export type Database = {
         }
         Relationships: []
       }
+      enrichment_settings: {
+        Row: {
+          auto_enrichment_enabled: boolean
+          created_at: string
+          id: string
+          last_run_at: string | null
+          total_enriched: number
+          total_failed: number
+          updated_at: string
+        }
+        Insert: {
+          auto_enrichment_enabled?: boolean
+          created_at?: string
+          id?: string
+          last_run_at?: string | null
+          total_enriched?: number
+          total_failed?: number
+          updated_at?: string
+        }
+        Update: {
+          auto_enrichment_enabled?: boolean
+          created_at?: string
+          id?: string
+          last_run_at?: string | null
+          total_enriched?: number
+          total_failed?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       password_reset_requests: {
         Row: {
           approved_at: string | null

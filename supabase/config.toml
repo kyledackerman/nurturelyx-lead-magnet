@@ -57,3 +57,6 @@ verify_jwt = true
 [functions.auto-enrich-prospects]
 verify_jwt = false
 
+[functions.get-enrichment-stats]
+verify_jwt = true
+
