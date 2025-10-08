@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Sparkles, Check, AlertCircle } from "lucide-react";
+import { Loader2, Sparkles, Check, AlertCircle, CheckCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { auditService } from "@/services/auditService";
+import { validateSalesEmail, getEmailTypeLabel, getEmailTypeBadgeVariant } from "@/lib/emailValidation";
 
 interface Contact {
   first_name: string;
@@ -371,48 +373,100 @@ export default function BulkEnrichmentDialog({
                 </AlertDescription>
               </Alert>
 
+              {/* Email Quality Summary */}
+              <div className="p-4 bg-muted rounded-md">
+                <h3 className="font-semibold mb-2 flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  Email Quality Summary
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {(() => {
+                    const allContacts = parsedResult.matched.flatMap(d => d.contacts);
+                    const emailStats = {
+                      personal: 0,
+                      corporate: 0,
+                      generic: 0,
+                      noEmail: 0
+                    };
+                    
+                    allContacts.forEach(contact => {
+                      if (!contact.email) {
+                        emailStats.noEmail++;
+                      } else {
+                        const validation = validateSalesEmail(contact.email);
+                        if (validation.emailType === 'personal') emailStats.personal++;
+                        else if (validation.emailType === 'corporate-person') emailStats.corporate++;
+                        else if (validation.emailType === 'generic') emailStats.generic++;
+                      }
+                    });
+
+                    return (
+                      <>
+                        <Badge variant="default">{emailStats.personal} Personal</Badge>
+                        <Badge variant="secondary">{emailStats.corporate} Work</Badge>
+                        {emailStats.generic > 0 && (
+                          <Badge variant="destructive">{emailStats.generic} Generic (Filtered)</Badge>
+                        )}
+                        {emailStats.noEmail > 0 && (
+                          <Badge variant="outline">{emailStats.noEmail} No Email</Badge>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+
               <ScrollArea className="flex-1 border rounded-lg p-4">
                 <div className="space-y-6">
                   {parsedResult.matched.map((domainData, idx) => (
                     <div key={idx} className="space-y-2">
                       <h4 className="font-semibold text-lg">{domainData.domain}</h4>
-                      {domainData.contacts.map((contact, cIdx) => (
-                        <div key={cIdx} className="ml-4 p-3 border rounded-lg bg-muted/30">
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>
-                              <span className="font-medium">Name:</span> {contact.first_name}{contact.last_name ? ` ${contact.last_name}` : ''}
+                      {domainData.contacts.map((contact, cIdx) => {
+                        const emailValidation = contact.email ? validateSalesEmail(contact.email) : null;
+                        
+                        return (
+                          <div key={cIdx} className="ml-4 p-3 border rounded-lg bg-muted/30">
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div>
+                                <span className="font-medium">Name:</span> {contact.first_name}{contact.last_name ? ` ${contact.last_name}` : ''}
+                              </div>
+                              {contact.title && (
+                                <div>
+                                  <span className="font-medium">Title:</span> {contact.title}
+                                </div>
+                              )}
+                              {contact.email && (
+                                <div className="col-span-2 flex items-center gap-2">
+                                  <span className="font-medium">Email:</span> {contact.email}
+                                  {emailValidation && (
+                                    <Badge variant={getEmailTypeBadgeVariant(emailValidation)} className="text-xs">
+                                      {getEmailTypeLabel(emailValidation)}
+                                    </Badge>
+                                  )}
+                                </div>
+                              )}
+                              {contact.phone && (
+                                <div>
+                                  <span className="font-medium">Phone:</span> {contact.phone}
+                                </div>
+                              )}
+                              {contact.linkedin_url && (
+                                <div className="col-span-2">
+                                  <span className="font-medium">LinkedIn:</span>{" "}
+                                  <a href={contact.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                                    {contact.linkedin_url}
+                                  </a>
+                                </div>
+                              )}
+                              {contact.notes && (
+                                <div className="col-span-2">
+                                  <span className="font-medium">Notes:</span> {contact.notes}
+                                </div>
+                              )}
                             </div>
-                            {contact.title && (
-                              <div>
-                                <span className="font-medium">Title:</span> {contact.title}
-                              </div>
-                            )}
-                            {contact.email && (
-                              <div>
-                                <span className="font-medium">Email:</span> {contact.email}
-                              </div>
-                            )}
-                            {contact.phone && (
-                              <div>
-                                <span className="font-medium">Phone:</span> {contact.phone}
-                              </div>
-                            )}
-                            {contact.linkedin_url && (
-                              <div className="col-span-2">
-                                <span className="font-medium">LinkedIn:</span>{" "}
-                                <a href={contact.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                                  {contact.linkedin_url}
-                                </a>
-                              </div>
-                            )}
-                            {contact.notes && (
-                              <div className="col-span-2">
-                                <span className="font-medium">Notes:</span> {contact.notes}
-                              </div>
-                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ))}
 

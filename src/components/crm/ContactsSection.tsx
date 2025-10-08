@@ -7,10 +7,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Mail, Phone, Linkedin, Edit, Trash2, User, CheckCircle2 } from "lucide-react";
+import { Plus, Mail, Phone, Linkedin, Edit, Trash2, User, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { auditService } from "@/services/auditService";
+import { validateSalesEmail, getEmailTypeLabel, getEmailTypeBadgeVariant } from "@/lib/emailValidation";
 
 interface Contact {
   id: string;
@@ -320,14 +322,37 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
 
               <div>
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="john@company.com"
-                  disabled={saving}
-                />
+                <div className="space-y-2">
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="john@company.com"
+                    disabled={saving}
+                  />
+                  {email && (() => {
+                    const validation = validateSalesEmail(email);
+                    if (!validation.isValid) {
+                      return (
+                        <Alert variant="destructive">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription>{validation.warning}</AlertDescription>
+                        </Alert>
+                      );
+                    }
+                    return (
+                      <div className="flex items-center gap-2">
+                        <Badge variant={getEmailTypeBadgeVariant(validation)}>
+                          {getEmailTypeLabel(validation)}
+                        </Badge>
+                        {validation.emailType === 'personal' && (
+                          <span className="text-xs text-muted-foreground">✓ Personal emails are great for outreach</span>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
               </div>
 
               <div>

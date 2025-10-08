@@ -55,6 +55,9 @@ IMPORTANT:
 - If you find a person's name, use it for first_name and last_name
 - If you only find an email or contact info with no person name, use "${businessName}" as first_name and leave last_name empty
 - ALWAYS capitalize the first letter of first_name and last_name (proper name formatting)
+- AVOID GENERIC EMAILS: Do NOT extract generic role-based emails like info@, legal@, privacy@, supplier@, admin@, support@, billing@, careers@, etc.
+- PREFER PERSONAL EMAILS: Gmail, Yahoo, Outlook, Hotmail, and person-specific work emails (e.g., john.smith@company.com) are acceptable
+- Focus on extracting emails that appear to belong to real people, not departments or roles
 
 Return ONLY a JSON object with this exact structure:
 {
@@ -148,6 +151,24 @@ ${rawText}`;
       parsedResult.unmatched = [];
     }
 
+    // Generic email prefixes to filter out
+    const GENERIC_PREFIXES = [
+      'info', 'contact', 'admin', 'support', 'help',
+      'sales', 'marketing', 'legal', 'privacy',
+      'supplier', 'billing', 'accounts', 'finance',
+      'hr', 'jobs', 'careers', 'noreply', 'no-reply',
+      'webmaster', 'postmaster', 'abuse', 'security'
+    ];
+
+    // Helper to check if email is generic
+    const isGenericEmail = (email: string): boolean => {
+      if (!email) return false;
+      const localPart = email.split('@')[0]?.toLowerCase();
+      return GENERIC_PREFIXES.some(prefix => 
+        localPart === prefix || localPart.startsWith(`${prefix}.`) || localPart.startsWith(`${prefix}-`)
+      );
+    };
+
     // Validate each contact has required fields and capitalize names
     parsedResult.matched = parsedResult.matched.filter((item: any) => {
       if (!item.domain || !item.contacts || !Array.isArray(item.contacts)) {
@@ -160,6 +181,12 @@ ${rawText}`;
         }
         if (contact.last_name) {
           contact.last_name = capitalizeName(contact.last_name);
+        }
+        
+        // Filter out generic emails
+        if (contact.email && isGenericEmail(contact.email)) {
+          console.log(`Filtered generic email: ${contact.email}`);
+          return false;
         }
         
         return contact.first_name; // Only require first_name
