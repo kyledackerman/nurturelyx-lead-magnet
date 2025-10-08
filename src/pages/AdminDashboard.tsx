@@ -985,7 +985,7 @@ const AdminDashboard = () => {
     try {
       const { data: reports, error } = await supabase
         .from('reports')
-        .select('domain, report_data')
+        .select('domain, report_data, created_at')
         .order('id', { ascending: false })
         .limit(1000);
       
@@ -1020,21 +1020,13 @@ const AdminDashboard = () => {
             }
           });
           
-          // Find most recent month
-          let recentMonth = { month: '', year: 0, value: 0 };
-          if (monthlyData.length > 0) {
-            const sortedData = [...monthlyData].sort((a: any, b: any) => {
-              if (a.year !== b.year) return b.year - a.year;
-              // Convert months to numbers for proper sorting
-              return getMonthNumber(b.month) - getMonthNumber(a.month);
-            });
-            const recent = sortedData[0];
-            recentMonth = { 
-              month: recent.month, 
-              year: recent.year, 
-              value: recent.revenueLost || recent.lostRevenue || 0 
-            };
-          }
+          // Use the report creation date for recent month
+          const reportDate = new Date(report.created_at);
+          const recentMonth = {
+            month: reportDate.getMonth() + 1, // JavaScript months are 0-indexed
+            year: reportDate.getFullYear(),
+            value: monthlyRevenueLost // Use the monthly average
+          };
           
           topDomain = {
             domain: report.domain,
@@ -1060,7 +1052,7 @@ const AdminDashboard = () => {
     try {
       const { data: reports, error } = await supabase
         .from('reports')
-        .select('domain, report_data')
+        .select('domain, report_data, created_at')
         .order('id', { ascending: false })
         .limit(1000);
       
@@ -1093,21 +1085,14 @@ const AdminDashboard = () => {
             }
           });
           
-          // Find most recent month
-          let recentMonth = { month: '', year: 0, value: 0 };
-          if (monthlyData.length > 0) {
-            const sortedData = [...monthlyData].sort((a: any, b: any) => {
-              if (a.year !== b.year) return b.year - a.year;
-              // Convert months to numbers for proper sorting
-              return getMonthNumber(b.month) - getMonthNumber(a.month);
-            });
-            const recent = sortedData[0];
-            recentMonth = { 
-              month: recent.month, 
-              year: recent.year, 
-              value: recent.missedLeads || 0 
-            };
-          }
+          // Use the report creation date for recent month
+          const reportDate = new Date(report.created_at);
+          const avgMonthlyLeads = Math.round(missedLeads / 12); // Average monthly leads
+          const recentMonth = {
+            month: reportDate.getMonth() + 1, // JavaScript months are 0-indexed
+            year: reportDate.getFullYear(),
+            value: avgMonthlyLeads
+          };
           
           topDomain = {
             domain: report.domain,
