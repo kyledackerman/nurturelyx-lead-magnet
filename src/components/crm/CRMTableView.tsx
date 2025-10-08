@@ -809,16 +809,12 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                         <SelectValue />
                       </SelectTrigger>
                         <SelectContent className="z-50 bg-popover">
-                         {view === 'active' && (
-                           <>
-                             <SelectItem value="new">New</SelectItem>
-                             <SelectItem value="enriching">Enriching</SelectItem>
-                             <SelectItem value="enriched">Enriched</SelectItem>
-                             <SelectItem value="contacted">Contacted</SelectItem>
-                             <SelectItem value="interested">Interested</SelectItem>
-                             <SelectItem value="proposal">Proposal</SelectItem>
-                           </>
-                         )}
+                         <SelectItem value="new">New</SelectItem>
+                         <SelectItem value="enriching">Enriching</SelectItem>
+                         <SelectItem value="enriched">Enriched</SelectItem>
+                         <SelectItem value="contacted">Contacted</SelectItem>
+                         <SelectItem value="interested">Interested</SelectItem>
+                         <SelectItem value="proposal">Proposal</SelectItem>
                          <SelectItem value="closed_won">Closed Won</SelectItem>
                          <SelectItem value="closed_lost">Closed Lost</SelectItem>
                          <SelectItem value="not_viable">Not Viable</SelectItem>
