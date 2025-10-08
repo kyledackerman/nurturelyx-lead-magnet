@@ -7,10 +7,17 @@ import CRMTableView from "@/components/crm/CRMTableView";
 import TasksWidget from "@/components/crm/TasksWidget";
 import ProspectDetailPanel from "@/components/crm/ProspectDetailPanel";
 import { AutoEnrichmentBar } from "@/components/crm/AutoEnrichmentBar";
+import PipelineChart from "@/components/crm/PipelineChart";
 
 export default function CRMDashboard() {
   const [selectedView, setSelectedView] = useState<"dashboard" | "table" | "needs-enrichment" | "closed">("dashboard");
   const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
+  const [pipelineStatusFilter, setPipelineStatusFilter] = useState<string | null>(null);
+
+  const handlePipelineClick = (status: string) => {
+    // Toggle filter - click same status to clear
+    setPipelineStatusFilter(prev => prev === status ? null : status);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -39,19 +46,26 @@ export default function CRMDashboard() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard" className="space-y-6">
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              <div className="xl:col-span-2 space-y-6">
-                <CRMMetrics />
-                <CRMTableView 
-                  onSelectProspect={setSelectedProspectId}
-                  compact={true}
+          <TabsContent value="dashboard" className="space-y-4">
+            <CRMMetrics />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2">
+                <PipelineChart 
+                  onStatusClick={handlePipelineClick}
+                  activeStatus={pipelineStatusFilter}
                 />
               </div>
               <div>
                 <TasksWidget />
               </div>
             </div>
+
+            <CRMTableView 
+              onSelectProspect={setSelectedProspectId}
+              compact={false}
+              externalStatusFilter={pipelineStatusFilter}
+            />
           </TabsContent>
 
           <TabsContent value="table">

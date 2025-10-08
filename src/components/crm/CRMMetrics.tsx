@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, DollarSign, Target, Flame, AlertCircle, Calendar } from "lucide-react";
+import { DollarSign, Users, Flame, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import PipelineChart from "./PipelineChart";
-import TeamLeaderboard from "./TeamLeaderboard";
 
 interface MetricsData {
   totalProspects: number;
@@ -91,14 +89,11 @@ export default function CRMMetrics() {
 
   if (loading) {
     return (
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-        {[...Array(6)].map((_, i) => (
-          <Card key={i}>
-            <CardHeader className="pb-2">
-              <Skeleton className="h-4 w-24" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-8 w-16" />
+      <div className="flex gap-3">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="flex-1">
+            <CardContent className="p-4">
+              <Skeleton className="h-12 w-full" />
             </CardContent>
           </Card>
         ))}
@@ -110,80 +105,44 @@ export default function CRMMetrics() {
     {
       title: "Total Prospects",
       value: metrics?.totalProspects || 0,
-      icon: Target,
-      format: (v: number) => v.toString(),
+      icon: Users,
+      format: (v: number) => v.toLocaleString()
     },
     {
       title: "Pipeline Value",
       value: metrics?.pipelineValue || 0,
       icon: DollarSign,
-      format: (v: number) => {
-        if (v >= 1000000000) return `$${(v / 1000000000).toFixed(1)}B`;
-        if (v >= 1000000) return `$${(v / 1000000).toFixed(1)}M`;
-        if (v >= 1000) return `$${(v / 1000).toFixed(1)}K`;
-        return `$${Math.round(v)}`;
-      },
-    },
-    {
-      title: "Conversion Rate",
-      value: metrics?.conversionRate || 0,
-      icon: TrendingUp,
-      format: (v: number) => `${v.toFixed(1)}%`,
+      format: (v: number) => `$${(v / 1000).toFixed(1)}k`
     },
     {
       title: "Hot Leads",
       value: metrics?.hotLeads || 0,
       icon: Flame,
-      format: (v: number) => v.toString(),
-      className: "text-red-500",
+      format: (v: number) => v.toLocaleString()
     },
     {
       title: "Overdue Tasks",
       value: metrics?.overdueTasks || 0,
       icon: AlertCircle,
-      format: (v: number) => v.toString(),
-      className: metrics?.overdueTasks ? "text-red-500" : "",
-    },
-    {
-      title: "Due Today",
-      value: metrics?.dueTodayTasks || 0,
-      icon: Calendar,
-      format: (v: number) => v.toString(),
-      className: metrics?.dueTodayTasks ? "text-yellow-500" : "",
-    },
+      format: (v: number) => v.toLocaleString()
+    }
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-        {metricCards.map((metric) => {
-          const Icon = metric.icon;
-          const isHighValue = metric.title === "Hot Leads" || metric.title === "Overdue Tasks";
-          return (
-            <Card 
-              key={metric.title} 
-              className="shadow-sm hover:shadow-md transition-all"
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {metric.title}
-                </CardTitle>
-                <Icon className="h-5 w-5 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">
-                  {metric.format(metric.value)}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <PipelineChart />
-        <TeamLeaderboard />
-      </div>
+    <div className="flex gap-3">
+      {metricCards.map((metric) => (
+        <Card key={metric.title} className="flex-1">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">{metric.title}</p>
+                <p className="text-2xl font-bold">{metric.format(metric.value)}</p>
+              </div>
+              <metric.icon className="h-8 w-8 text-muted-foreground/30" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

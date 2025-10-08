@@ -291,26 +291,58 @@ export default function TasksWidget() {
   const overdueTasks = tasks.filter((t) => isOverdue(t.due_date));
   const dueTodayTasks = tasks.filter((t) => isDueToday(t.due_date));
   const dueTomorrowTasks = tasks.filter((t) => isDueTomorrow(t.due_date));
+  
+  const overdueCount = overdueTasks.length;
+  const dueTodayCount = dueTodayTasks.length;
+  const dueTomorrowCount = dueTomorrowTasks.length;
 
   if (loading) {
     return (
-      <Card className="sticky top-4">
+      <Card className="h-full">
         <CardHeader>
-          <CardTitle className="text-lg">Tasks</CardTitle>
+          <CardTitle>Tasks</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Skeleton className="h-64 w-full" />
+        <CardContent className="space-y-3">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="sticky top-4 h-fit">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Tasks</CardTitle>
-          <div className="flex gap-2">
+    <Collapsible open={!collapsed} onOpenChange={() => setCollapsed(!collapsed)}>
+      <Card className={cn("h-full transition-all", collapsed && "h-auto")}>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+          <div className="flex items-center gap-2">
+            <CardTitle>Tasks</CardTitle>
+            {collapsed && (
+              <div className="flex gap-1.5">
+                {overdueCount > 0 && (
+                  <Badge variant="outline" className="bg-red-600 text-white border-red-400">
+                    {overdueCount}
+                  </Badge>
+                )}
+                {dueTodayCount > 0 && (
+                  <Badge variant="outline" className="bg-orange-500 text-white border-orange-400">
+                    {dueTodayCount}
+                  </Badge>
+                )}
+                {dueTomorrowCount > 0 && (
+                  <Badge variant="outline" className="bg-blue-500 text-white border-blue-400">
+                    {dueTomorrowCount}
+                  </Badge>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm">
+                {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+              </Button>
+            </CollapsibleTrigger>
             {tasks.length === 0 && availableProspects.length > 0 && (
               <Button
                 size="sm"
@@ -423,9 +455,10 @@ export default function TasksWidget() {
             </DialogContent>
           </Dialog>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
+        </CardHeader>
+
+        <CollapsibleContent>
+          <CardContent>
         <Tabs defaultValue="overdue" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overdue" className="relative">
@@ -552,8 +585,10 @@ export default function TasksWidget() {
               </div>
             )}
           </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+          </Tabs>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }

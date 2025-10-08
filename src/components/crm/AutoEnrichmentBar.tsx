@@ -2,21 +2,18 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Card } from "@/components/ui/card";
-import { Loader2, Play, RefreshCw, AlertCircle, CheckCircle2, Clock, Users } from "lucide-react";
+import { Loader2, Play, RefreshCw, AlertCircle, Users, Sparkles, Power } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface EnrichmentStats {
-  auto_enrichment_enabled: boolean;
-  last_run_at: string | null;
+  enabled: boolean;
+  last_run: string | null;
   queue_count: number;
-  review_count: number;
-  last_24h: {
-    processed: number;
-    succeeded: number;
-    failed: number;
-  };
+  needs_review_count: number;
+  last_24h_attempts: number;
+  last_24h_successful: number;
   total_enriched: number;
   total_failed: number;
 }
@@ -68,14 +65,14 @@ export function AutoEnrichmentBar() {
 
       const { error: updateError } = await supabase
         .from('enrichment_settings')
-        .update({ auto_enrichment_enabled: !stats.auto_enrichment_enabled })
+        .update({ auto_enrichment_enabled: !stats.enabled })
         .eq('id', currentSettings.id);
 
       if (updateError) throw updateError;
 
       toast({
-        title: stats.auto_enrichment_enabled ? "Auto-Enrichment Disabled" : "Auto-Enrichment Enabled",
-        description: stats.auto_enrichment_enabled 
+        title: stats.enabled ? "Auto-Enrichment Disabled" : "Auto-Enrichment Enabled",
+        description: stats.enabled 
           ? "Automatic enrichment has been turned off" 
           : "Automatic enrichment will run every 2 hours"
       });
@@ -121,100 +118,99 @@ export function AutoEnrichmentBar() {
 
   if (loading) {
     return (
-      <Card className="p-4 mb-4">
-        <div className="flex items-center justify-center">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        </div>
-      </Card>
+      <div className="mb-4 h-14 bg-muted/30 rounded-lg animate-pulse" />
     );
   }
 
   if (!stats) return null;
 
   return (
-    <Card className="p-4 mb-4 border-primary/20 bg-gradient-to-r from-background to-primary/5">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        {/* Left: Toggle and Status */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            <Switch
-              checked={stats.auto_enrichment_enabled}
-              onCheckedChange={toggleAutoEnrichment}
-              disabled={toggling}
-            />
-            <div>
-              <h3 className="font-semibold text-sm">Smart AI Enrichment</h3>
-              <p className="text-xs text-muted-foreground">
-                {stats.auto_enrichment_enabled ? 'Runs every 2 hours' : 'Currently disabled'}
-              </p>
+    <div className="mb-4 bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg px-4 py-2.5">
+      <div className="flex items-center justify-between gap-4">
+        {/* Left: Toggle */}
+        <div className="flex items-center gap-3">
+          <Switch
+            id="auto-enrich"
+            checked={stats?.enabled || false}
+            onCheckedChange={toggleAutoEnrichment}
+            disabled={toggling}
+          />
+          <div className="flex items-center gap-2">
+            {stats?.enabled ? (
+              <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+            ) : (
+              <Power className="h-4 w-4 text-muted-foreground" />
+            )}
+            <span className="text-sm font-medium">
+              Auto-Enrichment {stats?.enabled ? "Active" : "Paused"}
+            </span>
+          </div>
+        </div>
+
+        {/* Center: Key Metrics */}
+        {stats && (
+          <div className="flex items-center gap-6 text-sm">
+            <div className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="font-medium">{stats.queue_count}</span>
+              <span className="text-muted-foreground">Queue</span>
+            </div>
+            
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-green-500" />
+              <span className="font-medium">
+                {stats.last_24h_attempts > 0 
+                  ? Math.round((stats.last_24h_successful / stats.last_24h_attempts) * 100) 
+                  : 0}%
+              </span>
+              <span className="text-muted-foreground">24h Success</span>
+            </div>
+            
+            <div className="flex items-center gap-1.5">
+              <AlertCircle className="h-3.5 w-3.5 text-orange-500" />
+              <span className="font-medium">{stats.needs_review_count}</span>
+              <span className="text-muted-foreground">Review</span>
             </div>
           </div>
+        )}
 
-          {stats.last_run_at && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              <span>Last run {formatDistanceToNow(new Date(stats.last_run_at), { addSuffix: true })}</span>
-            </div>
+        {/* Right: Last Run + Actions */}
+        <div className="flex items-center gap-3">
+          {stats?.last_run && (
+            <span className="text-xs text-muted-foreground">
+              Last: {formatDistanceToNow(new Date(stats.last_run), { addSuffix: true })}
+            </span>
           )}
-        </div>
-
-        {/* Center: Stats */}
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-blue-500" />
-            <div className="text-center">
-              <p className="text-lg font-bold text-blue-600">{stats.queue_count}</p>
-              <p className="text-xs text-muted-foreground">In Queue</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
-            <div className="text-center">
-              <p className="text-lg font-bold text-green-600">{stats.last_24h.succeeded}</p>
-              <p className="text-xs text-muted-foreground">24h Success</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 text-orange-500" />
-            <div className="text-center">
-              <p className="text-lg font-bold text-orange-600">{stats.review_count}</p>
-              <p className="text-xs text-muted-foreground">Need Review</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2">
+          
           <Button
-            variant="outline"
-            size="sm"
+            variant="ghost"
+            size="xs"
             onClick={fetchStats}
             disabled={loading}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
           </Button>
+          
           <Button
-            size="sm"
+            variant="default"
+            size="xs"
             onClick={runNow}
-            disabled={running || stats.queue_count === 0}
+            disabled={running || !stats?.enabled}
           >
             {running ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 Running...
               </>
             ) : (
               <>
-                <Play className="h-4 w-4 mr-2" />
+                <Play className="h-3.5 w-3.5" />
                 Run Now
               </>
             )}
           </Button>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

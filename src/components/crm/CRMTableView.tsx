@@ -41,12 +41,13 @@ interface CRMTableViewProps {
   onSelectProspect: (id: string) => void;
   compact?: boolean;
   view?: 'active' | 'closed' | 'needs-enrichment';
+  externalStatusFilter?: string | null;
 }
 
 type SortKey = 'domain' | 'monthlyRevenue' | 'trafficTier' | 'priority' | 'status';
 type SortDirection = 'asc' | 'desc';
 
-export default function CRMTableView({ onSelectProspect, compact = false, view = 'active' }: CRMTableViewProps) {
+export default function CRMTableView({ onSelectProspect, compact = false, view = 'active', externalStatusFilter = null }: CRMTableViewProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [prospects, setProspects] = useState<ProspectRow[]>([]);
@@ -460,7 +461,9 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     if (searchTerm && !p.domain.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
-    if (statusFilter !== "all" && p.status !== statusFilter) {
+    // External filter takes precedence over internal filter
+    const activeStatusFilter = externalStatusFilter || statusFilter;
+    if (activeStatusFilter !== "all" && p.status !== activeStatusFilter) {
       return false;
     }
     if (priorityFilter !== "all" && p.priority !== priorityFilter) {

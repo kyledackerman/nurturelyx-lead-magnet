@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { cn } from "@/lib/utils";
 
 const STATUS_COLORS = {
   enriched: "#c084fc",
@@ -25,7 +26,12 @@ const STATUS_LABELS = {
   not_viable: "Not Viable",
 };
 
-export default function PipelineChart() {
+interface PipelineChartProps {
+  onStatusClick?: (status: string) => void;
+  activeStatus?: string | null;
+}
+
+export default function PipelineChart({ onStatusClick, activeStatus }: PipelineChartProps) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +62,8 @@ export default function PipelineChart() {
       });
 
       const chartData = Object.entries(STATUS_LABELS).map(([status, label]) => ({
-        status: label,
+        status,
+        label,
         count: statusCounts[status]?.count || 0,
         value: statusCounts[status]?.value || 0,
         color: STATUS_COLORS[status as keyof typeof STATUS_COLORS],
@@ -72,47 +79,79 @@ export default function PipelineChart() {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="h-full">
         <CardHeader>
-          <CardTitle>Sales Pipeline</CardTitle>
+          <CardTitle>Pipeline Overview</CardTitle>
         </CardHeader>
-        <CardContent className="h-64 flex items-center justify-center">
+        <CardContent className="h-[350px] flex items-center justify-center">
           <p className="text-muted-foreground">Loading...</p>
         </CardContent>
       </Card>
     );
   }
 
+  const handleBarClick = (data: any) => {
+    if (onStatusClick) {
+      onStatusClick(data.status);
+    }
+  };
+
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
-        <CardTitle>Sales Pipeline</CardTitle>
+        <CardTitle>Pipeline Overview</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={350}>
           <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="status" tick={{ fill: 'hsl(var(--foreground))' }} />
-            <YAxis tick={{ fill: 'hsl(var(--foreground))' }} />
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+              dataKey="label"
+              tick={{ fontSize: 12 }}
+            />
+            <YAxis />
             <Tooltip 
-              contentStyle={{
-                backgroundColor: 'hsl(var(--popover))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '6px',
-                color: 'hsl(var(--popover-foreground))'
-              }}
-              labelStyle={{
-                color: 'hsl(var(--popover-foreground))',
-                fontWeight: 600
-              }}
-              formatter={(value: number, name: string) => {
-                if (name === "count") return value;
-                return `$${(value / 1000).toFixed(1)}K`;
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0].payload;
+                  return (
+                    <div className="bg-background border rounded-lg p-3 shadow-lg">
+                      <p className="font-semibold mb-1">{data.label}</p>
+                      <p className="text-sm">
+                        <span className="text-muted-foreground">Prospects:</span>{" "}
+                        <span className="font-medium">{data.count}</span>
+                      </p>
+                      <p className="text-sm">
+                        <span className="text-muted-foreground">Value:</span>{" "}
+                        <span className="font-medium">${(data.value / 1000).toFixed(1)}k</span>
+                      </p>
+                      {onStatusClick && (
+                        <p className="text-xs text-muted-foreground mt-1 italic">
+                          Click to filter table
+                        </p>
+                      )}
+                    </div>
+                  );
+                }
+                return null;
               }}
             />
-            <Bar dataKey="count" name="Prospects">
+            <Bar 
+              dataKey="count" 
+              radius={[8, 8, 0, 0]}
+              onClick={handleBarClick}
+              cursor="pointer"
+            >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={entry.color}
+                  opacity={activeStatus && activeStatus !== entry.status ? 0.3 : 1}
+                  className={cn(
+                    "transition-opacity",
+                    activeStatus === entry.status && "drop-shadow-lg"
+                  )}
+                />
               ))}
             </Bar>
           </BarChart>
