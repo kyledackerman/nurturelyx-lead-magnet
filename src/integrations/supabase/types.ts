@@ -180,7 +180,7 @@ export type Database = {
           first_name: string
           id: string
           is_primary: boolean
-          last_name: string
+          last_name: string | null
           linkedin_url: string | null
           notes: string | null
           phone: string | null
@@ -196,7 +196,7 @@ export type Database = {
           first_name: string
           id?: string
           is_primary?: boolean
-          last_name: string
+          last_name?: string | null
           linkedin_url?: string | null
           notes?: string | null
           phone?: string | null
@@ -212,7 +212,7 @@ export type Database = {
           first_name?: string
           id?: string
           is_primary?: boolean
-          last_name?: string
+          last_name?: string | null
           linkedin_url?: string | null
           notes?: string | null
           phone?: string | null

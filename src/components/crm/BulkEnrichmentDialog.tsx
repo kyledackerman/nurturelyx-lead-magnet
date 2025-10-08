@@ -288,7 +288,7 @@ export default function BulkEnrichmentDialog({
                         <div key={cIdx} className="ml-4 p-3 border rounded-lg bg-muted/30">
                           <div className="grid grid-cols-2 gap-2 text-sm">
                             <div>
-                              <span className="font-medium">Name:</span> {contact.first_name} {contact.last_name}
+                              <span className="font-medium">Name:</span> {contact.first_name}{contact.last_name ? ` ${contact.last_name}` : ''}
                             </div>
                             {contact.title && (
                               <div>

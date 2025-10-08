@@ -31,15 +31,17 @@ serve(async (req) => {
 
 Known company domains: ${knownDomains.join(', ')}
 
-Extract for each person:
-- first_name (required)
-- last_name (required)
+Extract for each contact:
+- first_name (required - use person's first name, or company name if no person is identified)
+- last_name (optional - only if a person's last name is found, leave empty if not available or if using company name)
 - email (optional)
 - phone (optional)
 - title (optional)
 - linkedin_url (optional)
 - company_domain (required - must match one of the known domains, extract from email or context)
 - notes (optional - any additional context)
+
+IMPORTANT: If you only find a company name with no individual person, use the company name as first_name and leave last_name empty.
 
 Return ONLY a JSON object with this exact structure:
 {
@@ -139,7 +141,7 @@ ${rawText}`;
         return false;
       }
       item.contacts = item.contacts.filter((contact: any) => {
-        return contact.first_name && contact.last_name;
+        return contact.first_name; // Only require first_name
       });
       return item.contacts.length > 0;
     });
