@@ -792,11 +792,11 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
               )}
               <SortableHeader label="Domain" sortKey="domain" />
               {!compact && <TableHead>Contacts</TableHead>}
-              <SortableHeader label="Monthly Revenue" sortKey="monthlyRevenue" className="text-right" />
-              {!compact && <SortableHeader label="Traffic" sortKey="trafficTier" />}
-              <SortableHeader label="Priority" sortKey="priority" />
+              {view !== 'needs-enrichment' && <SortableHeader label="Monthly Revenue" sortKey="monthlyRevenue" className="text-right" />}
+              {!compact && view !== 'needs-enrichment' && <SortableHeader label="Traffic" sortKey="trafficTier" />}
+              {view !== 'needs-enrichment' && <SortableHeader label="Priority" sortKey="priority" />}
               <SortableHeader label="Status" sortKey="status" />
-              <TableHead>Assigned To</TableHead>
+              {view !== 'needs-enrichment' && <TableHead>Assigned To</TableHead>}
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -838,31 +838,35 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                       </div>
                     </TableCell>
                   )}
-                  <TableCell className={cn("text-right", prospect.monthlyRevenue > 5000 && "font-semibold")}>
-                    ${(prospect.monthlyRevenue / 1000).toFixed(1)}K
-                  </TableCell>
-                  {!compact && (
+                  {view !== 'needs-enrichment' && (
+                    <TableCell className={cn("text-right", prospect.monthlyRevenue > 5000 && "font-semibold")}>
+                      ${(prospect.monthlyRevenue / 1000).toFixed(1)}K
+                    </TableCell>
+                  )}
+                  {!compact && view !== 'needs-enrichment' && (
                     <TableCell>
                       <Badge variant="outline">{prospect.trafficTier}</Badge>
                     </TableCell>
                   )}
-                  <TableCell>
-                    <Select
-                      value={prospect.priority}
-                      onValueChange={(value) => updatePriority(prospect.id, value)}
-                      disabled={updatingId === prospect.id}
-                    >
-                      <SelectTrigger className="w-32 h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="z-50 bg-popover">
-                        <SelectItem value="hot">🔥 Hot</SelectItem>
-                        <SelectItem value="warm">☀️ Warm</SelectItem>
-                        <SelectItem value="cold">❄️ Cold</SelectItem>
-                        <SelectItem value="not_viable">❌ Not Viable</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
+                  {view !== 'needs-enrichment' && (
+                    <TableCell>
+                      <Select
+                        value={prospect.priority}
+                        onValueChange={(value) => updatePriority(prospect.id, value)}
+                        disabled={updatingId === prospect.id}
+                      >
+                        <SelectTrigger className="w-32 h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="z-50 bg-popover">
+                          <SelectItem value="hot">🔥 Hot</SelectItem>
+                          <SelectItem value="warm">☀️ Warm</SelectItem>
+                          <SelectItem value="cold">❄️ Cold</SelectItem>
+                          <SelectItem value="not_viable">❌ Not Viable</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  )}
                   <TableCell>
                     <Select
                       value={prospect.status}
@@ -886,14 +890,16 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                        </SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell>
-                    <AssignmentDropdown
-                      currentAssignedTo={prospect.assignedTo}
-                      reportId={prospect.reportId}
-                      onAssignmentChange={() => fetchProspects()}
-                      disabled={updatingId === prospect.id}
-                    />
-                  </TableCell>
+                  {view !== 'needs-enrichment' && (
+                    <TableCell>
+                      <AssignmentDropdown
+                        currentAssignedTo={prospect.assignedTo}
+                        reportId={prospect.reportId}
+                        onAssignmentChange={() => fetchProspects()}
+                        disabled={updatingId === prospect.id}
+                      />
+                    </TableCell>
+                  )}
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
