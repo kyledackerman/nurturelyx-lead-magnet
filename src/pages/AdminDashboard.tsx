@@ -1718,11 +1718,6 @@ const AdminDashboard = () => {
                       Peak: {topLeadsDomain.peakMonth} {topLeadsDomain.peakYear} ({topLeadsDomain.peakValue.toLocaleString()} leads)
                     </p>
                   )}
-                  {topLeadsDomain.recentMonth && (
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Recent: {topLeadsDomain.recentMonth} {topLeadsDomain.recentYear} ({topLeadsDomain.recentValue.toLocaleString()} leads)
-                    </p>
-                  )}
                 </CardContent>
               </Card>
 
@@ -1744,11 +1739,6 @@ const AdminDashboard = () => {
                   {topRevenueDomain.peakMonth && (
                     <p className="text-xs text-orange-600 mt-0.5">
                       Peak: {topRevenueDomain.peakMonth} {topRevenueDomain.peakYear} ({formatLargeNumber(topRevenueDomain.peakValue)})
-                    </p>
-                  )}
-                  {topRevenueDomain.recentMonth && (
-                    <p className="text-xs text-orange-600 mt-0.5">
-                      Recent: {topRevenueDomain.recentMonth} {topRevenueDomain.recentYear} ({formatLargeNumber(topRevenueDomain.recentValue)})
                     </p>
                   )}
                 </CardContent>
