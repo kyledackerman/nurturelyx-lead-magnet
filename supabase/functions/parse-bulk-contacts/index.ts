@@ -6,17 +6,26 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to capitalize first letter of each word
+function capitalizeName(name: string): string {
+  if (!name) return name;
+  return name
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { rawText, knownDomains } = await req.json();
+    const { rawText, knownDomains, businessName } = await req.json();
     
-    if (!rawText || !knownDomains || !Array.isArray(knownDomains)) {
+    if (!rawText || !knownDomains || !Array.isArray(knownDomains) || !businessName) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: rawText and knownDomains' }),
+        JSON.stringify({ error: 'Missing required fields: rawText, knownDomains, and businessName' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -30,10 +39,11 @@ serve(async (req) => {
     const prompt = `You are a contact information extraction assistant. Parse the following raw text and extract contact information for people. Match them to the known company domains provided.
 
 Known company domains: ${knownDomains.join(', ')}
+Business name for fallback: ${businessName}
 
 Extract for each contact:
-- first_name (required - use person's first name, or company name if no person is identified)
-- last_name (optional - only if a person's last name is found, leave empty if not available or if using company name)
+- first_name (required - use person's first name if found, otherwise use "${businessName}")
+- last_name (optional - only if a person's last name is found, leave empty if using business name as fallback)
 - email (optional)
 - phone (optional)
 - title (optional)
@@ -41,7 +51,10 @@ Extract for each contact:
 - company_domain (required - must match one of the known domains, extract from email or context)
 - notes (optional - any additional context)
 
-IMPORTANT: If you only find a company name with no individual person, use the company name as first_name and leave last_name empty.
+IMPORTANT: 
+- If you find a person's name, use it for first_name and last_name
+- If you only find an email or contact info with no person name, use "${businessName}" as first_name and leave last_name empty
+- ALWAYS capitalize the first letter of first_name and last_name (proper name formatting)
 
 Return ONLY a JSON object with this exact structure:
 {
@@ -135,12 +148,20 @@ ${rawText}`;
       parsedResult.unmatched = [];
     }
 
-    // Validate each contact has required fields
+    // Validate each contact has required fields and capitalize names
     parsedResult.matched = parsedResult.matched.filter((item: any) => {
       if (!item.domain || !item.contacts || !Array.isArray(item.contacts)) {
         return false;
       }
       item.contacts = item.contacts.filter((contact: any) => {
+        // Capitalize names before validation
+        if (contact.first_name) {
+          contact.first_name = capitalizeName(contact.first_name);
+        }
+        if (contact.last_name) {
+          contact.last_name = capitalizeName(contact.last_name);
+        }
+        
         return contact.first_name; // Only require first_name
       });
       return item.contacts.length > 0;

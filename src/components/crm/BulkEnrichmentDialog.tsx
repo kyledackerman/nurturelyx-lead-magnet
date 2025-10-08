@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles, Check, AlertCircle } from "lucide-react";
@@ -43,16 +45,17 @@ export default function BulkEnrichmentDialog({
   onSuccess,
 }: BulkEnrichmentDialogProps) {
   const [rawText, setRawText] = useState("");
+  const [businessName, setBusinessName] = useState("");
   const [parsing, setParsing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [parsedResult, setParsedResult] = useState<ParsedResult | null>(null);
   const { toast } = useToast();
 
   const handleParse = async () => {
-    if (!rawText.trim()) {
+    if (!rawText.trim() || !businessName.trim()) {
       toast({
-        title: "No data to parse",
-        description: "Please paste some text containing contact information",
+        title: "Missing information",
+        description: "Please provide both business name and contact data",
         variant: "destructive",
       });
       return;
@@ -61,7 +64,7 @@ export default function BulkEnrichmentDialog({
     setParsing(true);
     try {
       const { data, error } = await supabase.functions.invoke('parse-bulk-contacts', {
-        body: { rawText, knownDomains }
+        body: { rawText, knownDomains, businessName }
       });
 
       if (error) throw error;
@@ -223,6 +226,7 @@ export default function BulkEnrichmentDialog({
 
   const handleClose = () => {
     setRawText("");
+    setBusinessName("");
     setParsedResult(null);
     onOpenChange(false);
   };
@@ -245,17 +249,30 @@ export default function BulkEnrichmentDialog({
         <div className="flex-1 overflow-hidden flex flex-col gap-4">
           {!parsedResult ? (
             <>
+              <div className="space-y-2">
+                <Label htmlFor="businessName">Business/Company Name *</Label>
+                <Input
+                  id="businessName"
+                  placeholder="e.g., Stage Step Dance Floors"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Used as contact name fallback when no person is identified
+                </p>
+              </div>
+              
               <Textarea
                 placeholder="Paste contact information here...&#10;&#10;Examples:&#10;- Email signatures&#10;- LinkedIn profile text&#10;- Spreadsheet cells&#10;- Meeting notes&#10;- Business card scans"
                 value={rawText}
                 onChange={(e) => setRawText(e.target.value)}
-                className="min-h-[300px] font-mono text-sm"
+                className="min-h-[250px] font-mono text-sm"
               />
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
                   {knownDomains.length} prospect{knownDomains.length !== 1 ? 's' : ''} available for matching
                 </p>
-                <Button onClick={handleParse} disabled={parsing || !rawText.trim()}>
+                <Button onClick={handleParse} disabled={parsing || !rawText.trim() || !businessName.trim()}>
                   {parsing ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
