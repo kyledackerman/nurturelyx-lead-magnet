@@ -186,10 +186,19 @@ export default function BulkEnrichmentDialog({
           // Update activity status to enriched if it was enriching
           const currentStatus = reports.prospect_activities?.[0]?.status;
           if (currentStatus === 'enriching' || currentStatus === 'new') {
-            await supabase
+            const { error: statusError } = await supabase
               .from('prospect_activities')
               .update({ status: 'enriched' })
               .eq('id', activityId);
+            
+            if (statusError) {
+              console.error('Failed to update status to enriched:', statusError);
+              toast({
+                title: "Warning",
+                description: `Contacts saved but status update failed for ${domainData.domain}`,
+                variant: "destructive",
+              });
+            }
           }
 
           // Log audit trail
