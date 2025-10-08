@@ -778,18 +778,6 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         </>
       )}
 
-      {view === 'needs-enrichment' && (
-        <div className="mb-4 p-4 border border-orange-200 bg-orange-50 dark:bg-orange-950/20 rounded-lg flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-medium text-orange-900 dark:text-orange-100">Prospects Needing Enrichment</p>
-            <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">
-              These prospects need contact information before outreach. Click "View Details" to add contacts and move them to "Enriching" status.
-            </p>
-          </div>
-        </div>
-      )}
-
       <div className="border rounded-lg overflow-auto">
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-background">
