@@ -237,28 +237,126 @@ Extract all contact information following the email rules. Return ONLY the JSON 
           throw new Error(`Failed to save contacts: ${insertError.message}`);
         }
 
-        // Update prospect to enriched status
+        let contactsFound = contacts.length;
+        let icebreakerGenerated = false;
+
+        // Check if icebreaker already exists
+        const { data: existingProspect } = await supabase
+          .from("prospect_activities")
+          .select("icebreaker_text")
+          .eq("id", prospect.id)
+          .single();
+
+        // Generate icebreaker if missing
+        if (!existingProspect?.icebreaker_text?.trim()) {
+          try {
+            console.log(`Generating personalized icebreaker for ${domain}...`);
+            
+            const icebreakerResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${lovableApiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "google/gemini-2.5-flash",
+                messages: [
+                  {
+                    role: "system",
+                    content: `You are a B2B sales expert. Create a personalized, conversational opener for a cold outreach email.
+
+CRITICAL RULES:
+- Maximum 1-2 sentences
+- Reference something specific about their business (from website content)
+- Be conversational and authentic, not salesy
+- Focus on a pain point, achievement, or relevant observation
+- Do not use generic phrases like "I noticed" or "I came across"
+- Sound like a real person reaching out to help
+
+Example good openers:
+"Your HVAC service area covers 3 counties—that's a lot of ground to cover when leads slip through the cracks on your website."
+"Most law firms lose 40% of their web visitors because they can't identify them, and with your traffic numbers, that's real money walking away."
+
+Return ONLY the opener text, nothing else.`,
+                  },
+                  {
+                    role: "user",
+                    content: `Company: ${companyName}
+Domain: ${domain}
+
+Website content:
+${scrapedData.substring(0, 8000)}
+
+Create a personalized opener that references something specific about their business.`,
+                  },
+                ],
+                tools: [{ type: "google_search_retrieval" }],
+              }),
+            });
+
+            if (icebreakerResponse.ok) {
+              const icebreakerData = await icebreakerResponse.json();
+              const icebreakerText = icebreakerData.choices?.[0]?.message?.content?.trim();
+
+              if (icebreakerText) {
+                await supabase
+                  .from("prospect_activities")
+                  .update({
+                    icebreaker_text: icebreakerText,
+                    icebreaker_generated_at: new Date().toISOString(),
+                    icebreaker_edited_manually: false,
+                  })
+                  .eq("id", prospect.id);
+
+                icebreakerGenerated = true;
+                console.log(`✅ Icebreaker generated for ${domain}`);
+              }
+            } else if (icebreakerResponse.status === 429) {
+              console.warn(`⚠️ Rate limit hit while generating icebreaker for ${domain}`);
+            } else if (icebreakerResponse.status === 402) {
+              console.warn(`⚠️ Credits exhausted while generating icebreaker for ${domain}`);
+            } else {
+              console.error(`Failed to generate icebreaker for ${domain}: ${icebreakerResponse.status}`);
+            }
+          } catch (icebreakerError) {
+            console.error(`Error generating icebreaker for ${domain}:`, icebreakerError);
+            // Don't throw - continue with enrichment even if icebreaker fails
+          }
+        } else {
+          console.log(`Icebreaker already exists for ${domain}, skipping generation`);
+        }
+
+        // Determine final status: enriched if we have contacts OR icebreaker, otherwise review
+        const finalStatus = (contactsFound > 0 || icebreakerGenerated) ? "enriched" : "review";
+
+        // Update prospect status
         await supabase
           .from("prospect_activities")
           .update({
-            status: "enriched",
+            status: finalStatus,
             auto_enriched: true,
             enrichment_source: "auto_scrape_ai",
           })
           .eq("id", prospect.id);
 
         // Log success to audit
+        const enrichmentDetails = [];
+        if (contactsFound > 0) enrichmentDetails.push(`${contactsFound} contacts`);
+        if (icebreakerGenerated) enrichmentDetails.push('icebreaker');
+        
         await supabase.rpc("log_business_context", {
           p_table_name: "prospect_activities",
           p_record_id: prospect.id,
-          p_context: `Auto-enrichment successful: extracted ${contacts.length} contacts from ${domain}`,
+          p_context: `Auto-enrichment ${finalStatus === 'enriched' ? 'successful' : 'needs review'}: ${enrichmentDetails.join(' + ')} from ${domain}`,
         });
 
         results.successful++;
         results.details.push({
           domain,
           status: "success",
-          contactsFound: contacts.length,
+          contactsFound,
+          icebreakerGenerated,
+          finalStatus,
         });
 
         console.log(`✅ Successfully enriched ${domain}`);

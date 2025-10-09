@@ -227,8 +227,8 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         // Needs review: show ALL review status prospects regardless of contact count
         // No filter needed
       } else if (view === 'ready-outreach') {
-        // Ready for outreach: only show enriched prospects with contacts
-        mapped = mapped.filter(p => p.contactCount > 0);
+        // Ready for outreach: must have contacts OR icebreaker
+        mapped = mapped.filter(p => p.contactCount > 0 || !!p.icebreakerText?.trim());
       }
 
       setProspects(mapped);
