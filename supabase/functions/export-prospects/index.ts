@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
 
     // Build CSV
     const csvRows: string[] = [];
-    csvRows.push('Domain,Company Name,Contact First Name,Contact Last Name,Email,Phone,Title,LinkedIn URL,Monthly Traffic,Estimated Leads,Missed Sales,Monthly Revenue Loss,Report URL,Assigned To');
+    csvRows.push('First Name,Company Name,Email,Domain,Report URL,Monthly Traffic,Estimated Leads,Missed Sales,Monthly Revenue Loss');
 
     const domains: string[] = [];
 
@@ -127,20 +127,15 @@ Deno.serve(async (req) => {
       // If no contacts, still create one row with prospect data
       if (contactsToExport.length === 0) {
         const row = [
-          domain,
-          companyName,
           '', // No contact first name
-          '', // No contact last name
+          companyName,
           '', // No email
-          '', // No phone
-          '', // No title
-          '', // No LinkedIn
+          domain,
+          reportUrl,
           reportData.organicTraffic || '0',
           reportData.missedLeads || '0',
           reportData.estimatedSalesLost || '0',
           reportData.monthlyRevenueLost || '0',
-          reportUrl,
-          assignedAdmin,
         ];
 
         const escapedRow = row.map(value => {
@@ -156,20 +151,15 @@ Deno.serve(async (req) => {
         // Create a row for each contact
         for (const contact of contactsToExport) {
           const row = [
-            domain,
-            companyName,
             contact.first_name || '',
-            contact.last_name || '',
+            companyName,
             contact.email || '',
-            contact.phone || '',
-            contact.title || '',
-            contact.linkedin_url || '',
+            domain,
+            reportUrl,
             reportData.organicTraffic || '0',
             reportData.missedLeads || '0',
             reportData.estimatedSalesLost || '0',
             reportData.monthlyRevenueLost || '0',
-            reportUrl,
-            assignedAdmin,
           ];
 
           const escapedRow = row.map(value => {
