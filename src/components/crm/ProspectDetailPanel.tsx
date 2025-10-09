@@ -7,7 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { ExternalLink, ChevronDown, ChevronUp, Plus, Clock } from "lucide-react";
+import { ExternalLink, ChevronDown, ChevronUp, Plus, Clock, Sparkles } from "lucide-react";
 import { ProspectMetricsCard } from "./ProspectMetricsCard";
 import { ProspectStatusBar } from "./ProspectStatusBar";
 import { ProspectTaskPanel } from "./ProspectTaskPanel";
@@ -32,6 +32,7 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
   const [auditTrailOpen, setAuditTrailOpen] = useState(false);
   const [pendingTasks, setPendingTasks] = useState<any[]>([]);
   const [admins, setAdmins] = useState<Array<{ id: string; email: string }>>([]);
+  const [isEnriching, setIsEnriching] = useState(false);
 
   useEffect(() => {
     if (prospectId) {
@@ -329,6 +330,29 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
     }
   };
 
+  const enrichProspect = async () => {
+    setIsEnriching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("enrich-single-prospect", {
+        body: { prospect_id: prospectId },
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast.success(data.message);
+        fetchProspectDetails();
+      } else {
+        toast.error(data.error || "Enrichment failed");
+      }
+    } catch (error) {
+      console.error("Error enriching prospect:", error);
+      toast.error("Failed to enrich prospect");
+    } finally {
+      setIsEnriching(false);
+    }
+  };
+
   const nextAction = pendingTasks.length > 0
     ? { type: 'task', date: pendingTasks[0].due_date, title: pendingTasks[0].title }
     : prospect?.next_follow_up
@@ -354,15 +378,25 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
                     </p>
                   )}
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="shrink-0"
-                  onClick={() => window.open(`/report/${prospect.report?.slug}`, '_blank')}
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Report
-                </Button>
+                <div className="flex gap-2 shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={enrichProspect}
+                    disabled={isEnriching}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    {isEnriching ? "Enriching..." : "Enrich with AI"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(`/report/${prospect.report?.slug}`, '_blank')}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Report
+                  </Button>
+                </div>
               </div>
             </SheetHeader>
 

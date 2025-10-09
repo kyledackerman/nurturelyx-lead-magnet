@@ -66,3 +66,6 @@ verify_jwt = true
 [functions.update-prospect-status]
 verify_jwt = true
 
+[functions.enrich-single-prospect]
+verify_jwt = true
+
