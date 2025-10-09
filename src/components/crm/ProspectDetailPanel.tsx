@@ -374,21 +374,9 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
                 <div className="flex-1 min-w-0">
                   <SheetTitle className="text-xl truncate">{prospect.report?.domain}</SheetTitle>
                   {prospect.report?.extracted_company_name && (
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className="text-xs text-muted-foreground truncate">
-                        {prospect.report.extracted_company_name}
-                      </p>
-                      {prospect.report?.facebook_url && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => window.open(prospect.report.facebook_url, '_blank')}
-                        >
-                          <Facebook className="h-3 w-3 text-muted-foreground" />
-                        </Button>
-                      )}
-                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-1">
+                      {prospect.report.extracted_company_name}
+                    </p>
                   )}
                 </div>
                 <div className="flex gap-2 shrink-0">
@@ -451,6 +439,23 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
               isUpdating={isUpdating}
               admins={admins}
             />
+
+            {/* Company Facebook Link - Above Primary Contact */}
+            {prospect.report?.facebook_url && (
+              <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                <Facebook className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Company Facebook</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto"
+                  onClick={() => window.open(prospect.report.facebook_url, '_blank')}
+                >
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  View Profile
+                </Button>
+              </div>
+            )}
 
             {/* Contacts Section - MOVED UP */}
             {prospect.contacts && prospect.contacts.length > 0 && (
