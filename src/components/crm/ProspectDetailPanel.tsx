@@ -522,17 +522,6 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
               </div>
             )}
 
-            {/* Key Metrics - MOVED TO TOP */}
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold">Revenue Opportunity</h3>
-              <ProspectMetricsCard
-                monthlyRevenueLost={prospect.report?.report_data?.monthlyRevenueLost || 0}
-                yearlyRevenueLost={prospect.report?.report_data?.yearlyRevenueLost || 0}
-                estimatedLeads={prospect.report?.report_data?.missedLeads || 0}
-                monthlyTraffic={prospect.report?.report_data?.organicTraffic || 0}
-              />
-            </div>
-
             {/* Status Bar - COMPRESSED */}
             <ProspectStatusBar
               status={prospect.status}
@@ -543,6 +532,17 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
               isUpdating={isUpdating}
               admins={admins}
             />
+
+            {/* Key Metrics - MOVED TO TOP */}
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold">Revenue Opportunity</h3>
+              <ProspectMetricsCard
+                monthlyRevenueLost={prospect.report?.report_data?.monthlyRevenueLost || 0}
+                yearlyRevenueLost={prospect.report?.report_data?.yearlyRevenueLost || 0}
+                estimatedLeads={prospect.report?.report_data?.missedLeads || 0}
+                monthlyTraffic={prospect.report?.report_data?.organicTraffic || 0}
+              />
+            </div>
 
             {/* Company Social - Always Visible */}
             <div className="space-y-2">
