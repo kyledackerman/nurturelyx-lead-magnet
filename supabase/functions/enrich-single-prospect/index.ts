@@ -36,7 +36,7 @@ serve(async (req) => {
         id,
         report_id,
         status,
-        reports!inner(domain, extracted_company_name)
+        reports!inner(domain, extracted_company_name, facebook_url, industry)
       `)
       .eq("id", prospect_id)
       .single();
@@ -95,12 +95,13 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a contact extraction specialist. Extract ALL legitimate contact information AND the properly capitalized company name.
+            content: `You are a contact extraction specialist. Extract ALL legitimate contact information, the properly capitalized company name, AND the business industry.
 
 **RETURN THIS EXACT JSON STRUCTURE:**
 {
   "company_name": "Properly Capitalized Company Name Inc.",
   "facebook_url": "https://www.facebook.com/CompanyPageName",
+  "industry": "hvac",
   "contacts": [
     {
       "first_name": "John",
@@ -127,6 +128,23 @@ serve(async (req) => {
 - If individual contacts have personal Facebook profiles, include in their contact object
 - Look for Facebook links in contact pages, footer, social media sections
 - Only include valid Facebook URLs (must start with facebook.com or fb.com)
+
+**INDUSTRY DETECTION:**
+- Analyze the website content to determine the business industry
+- Valid categories: hvac, plumbing, roofing, electrical, automotive, legal, medical, real-estate, restaurant, retail, other
+- Look for keywords in: services offered, page titles, meta descriptions, business descriptions
+- Common indicators:
+  * hvac: heating, cooling, air conditioning, HVAC, furnace, AC repair
+  * plumbing: plumber, pipes, water heater, drain cleaning
+  * roofing: roofer, roof repair, shingles, gutters
+  * electrical: electrician, wiring, electrical repair
+  * automotive: car repair, auto service, mechanic
+  * legal: lawyer, attorney, law firm, legal services
+  * medical: doctor, clinic, hospital, healthcare
+  * real-estate: realtor, real estate, property, homes for sale
+  * restaurant: restaurant, cafe, dining, food service
+  * retail: store, shop, retail, merchandise
+- If unclear or doesn't fit categories, use "other"
 
 **CRITICAL EMAIL RULES:**
 - ✅ INCLUDE: info@, contact@, sales@, admin@, support@, hello@, team@
@@ -191,7 +209,7 @@ Extract the proper company name and all contact information. Return ONLY the JSO
     }
 
     // Parse AI response
-    let extractedData: { company_name: string; contacts: any[] };
+    let extractedData: { company_name: string; contacts: any[]; facebook_url?: string; industry?: string };
     try {
       const cleanedContent = aiContent.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       extractedData = JSON.parse(cleanedContent);
@@ -234,23 +252,45 @@ Extract the proper company name and all contact information. Return ONLY the JSO
       }
     }
 
-    // Update company name and Facebook URL in reports table
+    // Update company name, Facebook URL, and industry in reports table
+    const currentFacebookUrl = prospect.reports.facebook_url;
+    const currentIndustry = prospect.reports.industry;
     const companyFacebookUrl = extractedData.facebook_url || null;
-    let companyNameUpdated = false;
+    const detectedIndustry = extractedData.industry || null;
     
-    if ((companyName && companyName !== currentCompanyName) || companyFacebookUrl) {
-      const updateData: any = {};
-      
-      if (companyName && companyName !== currentCompanyName) {
-        updateData.extracted_company_name = companyName;
-        companyNameUpdated = true;
-      }
-      
-      if (companyFacebookUrl) {
-        updateData.facebook_url = companyFacebookUrl;
-        console.log(`Adding company Facebook URL: ${companyFacebookUrl}`);
-      }
-      
+    let companyNameUpdated = false;
+    let facebookUrlAdded = false;
+    let industryUpdated = false;
+    
+    const updateData: any = {};
+    
+    // Only update company name if changed
+    if (companyName && companyName !== currentCompanyName) {
+      updateData.extracted_company_name = companyName;
+      companyNameUpdated = true;
+      console.log(`✅ Updating company name to "${companyName}"`);
+    }
+    
+    // Only update facebook_url if currently empty
+    if (!currentFacebookUrl && companyFacebookUrl) {
+      updateData.facebook_url = companyFacebookUrl;
+      facebookUrlAdded = true;
+      console.log(`✅ Adding company Facebook URL: ${companyFacebookUrl}`);
+    } else if (currentFacebookUrl && companyFacebookUrl) {
+      console.log(`ℹ️ Facebook URL already exists, keeping: ${currentFacebookUrl}`);
+    }
+    
+    // Only update industry if currently empty or "other"
+    if (detectedIndustry && (!currentIndustry || currentIndustry === 'other')) {
+      updateData.industry = detectedIndustry;
+      industryUpdated = true;
+      console.log(`✅ Setting industry to: ${detectedIndustry}`);
+    } else if (currentIndustry && currentIndustry !== 'other') {
+      console.log(`ℹ️ Industry already set to "${currentIndustry}", keeping existing value`);
+    }
+    
+    // Apply updates if any changes detected
+    if (Object.keys(updateData).length > 0) {
       const { error: updateError } = await supabase
         .from("reports")
         .update(updateData)
@@ -258,8 +298,6 @@ Extract the proper company name and all contact information. Return ONLY the JSO
 
       if (updateError) {
         console.error("Error updating company info:", updateError);
-      } else if (companyNameUpdated) {
-        console.log(`✅ Updated company name to "${companyName}"`);
       }
     }
 
@@ -277,16 +315,26 @@ Extract the proper company name and all contact information. Return ONLY the JSO
       .eq("id", prospect_id);
 
     // Log to audit trail
+    const contextParts = [`Manual enrichment: extracted ${contactsInserted} contacts`];
+    if (companyNameUpdated) contextParts.push(`updated company name to "${companyName}"`);
+    if (facebookUrlAdded) contextParts.push(`added Facebook URL`);
+    if (industryUpdated) contextParts.push(`set industry to "${detectedIndustry}"`);
+    contextParts.push(`from ${domain}. Status: ${prospect.status} → ${newStatus}`);
+    
     await supabase.rpc("log_business_context", {
       p_table_name: "prospect_activities",
       p_record_id: prospect_id,
-      p_context: `Manual enrichment: extracted ${contactsInserted} contacts${companyNameUpdated ? `, updated company name to "${companyName}"` : ""} from ${domain}. Status: ${prospect.status} → ${newStatus}`,
+      p_context: contextParts.join(", "),
     });
 
-    const resultMessage = contactsInserted > 0
-      ? `Found ${contactsInserted} contact${contactsInserted > 1 ? "s" : ""}${companyNameUpdated ? `. Company name updated to "${companyName}"` : ""}`
-      : companyNameUpdated
-      ? `Company name updated to "${companyName}". No additional contacts found.`
+    const messageParts = [];
+    if (contactsInserted > 0) messageParts.push(`Found ${contactsInserted} contact${contactsInserted > 1 ? "s" : ""}`);
+    if (companyNameUpdated) messageParts.push(`Company: "${companyName}"`);
+    if (facebookUrlAdded) messageParts.push(`Facebook URL added`);
+    if (industryUpdated) messageParts.push(`Industry: ${detectedIndustry}`);
+    
+    const resultMessage = messageParts.length > 0 
+      ? messageParts.join(". ")
       : "No contacts found. Try manual entry.";
 
     console.log(`✅ Manual enrichment complete: ${resultMessage}`);

@@ -50,7 +50,7 @@ serve(async (req) => {
                 id,
                 report_id,
                 status,
-                reports!inner(domain, extracted_company_name)
+                reports!inner(domain, extracted_company_name, facebook_url, industry)
               `)
               .eq("id", prospectId)
               .single();
@@ -133,12 +133,13 @@ serve(async (req) => {
                 messages: [
                   {
                     role: "system",
-                    content: `You are a contact extraction specialist. Extract ALL legitimate contact information AND the properly capitalized company name.
+                    content: `You are a contact extraction specialist. Extract ALL legitimate contact information, the properly capitalized company name, AND the business industry.
 
 **RETURN THIS EXACT JSON STRUCTURE:**
 {
   "company_name": "Properly Capitalized Company Name Inc.",
   "facebook_url": "https://www.facebook.com/CompanyPageName",
+  "industry": "hvac",
   "contacts": [
     {
       "first_name": "John",
@@ -159,6 +160,23 @@ serve(async (req) => {
 - Preserve brand-specific capitalization (e.g., "iPhone", "eBay", "YouTube")
 - Remove "www." or domain suffixes
 - If company name not found, use domain name with proper capitalization
+
+**INDUSTRY DETECTION:**
+- Analyze the website content to determine the business industry
+- Valid categories: hvac, plumbing, roofing, electrical, automotive, legal, medical, real-estate, restaurant, retail, other
+- Look for keywords in: services offered, page titles, meta descriptions, business descriptions
+- Common indicators:
+  * hvac: heating, cooling, air conditioning, HVAC, furnace, AC repair
+  * plumbing: plumber, pipes, water heater, drain cleaning
+  * roofing: roofer, roof repair, shingles, gutters
+  * electrical: electrician, wiring, electrical repair
+  * automotive: car repair, auto service, mechanic
+  * legal: lawyer, attorney, law firm, legal services
+  * medical: doctor, clinic, hospital, healthcare
+  * real-estate: realtor, real estate, property, homes for sale
+  * restaurant: restaurant, cafe, dining, food service
+  * retail: store, shop, retail, merchandise
+- If unclear or doesn't fit categories, use "other"
 
 **CRITICAL EMAIL RULES:**
 - ✅ INCLUDE: info@, contact@, sales@, admin@, support@, hello@, team@
@@ -236,7 +254,7 @@ Extract the proper company name and all contact information. Return ONLY the JSO
             }
 
             // Parse AI response
-            let extractedData: { company_name: string; contacts: any[]; facebook_url?: string };
+            let extractedData: { company_name: string; contacts: any[]; facebook_url?: string; industry?: string };
             try {
               const cleanedContent = aiContent.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
               extractedData = JSON.parse(cleanedContent);
@@ -274,22 +292,36 @@ Extract the proper company name and all contact information. Return ONLY the JSO
               }
             }
 
-            // Update company name and Facebook URL
+            // Update company name, Facebook URL, and industry
+            const currentFacebookUrl = prospect.reports.facebook_url;
+            const currentIndustry = prospect.reports.industry;
             const companyFacebookUrl = extractedData.facebook_url || null;
-            let companyNameUpdated = false;
+            const detectedIndustry = extractedData.industry || null;
             
-            if ((companyName && companyName !== currentCompanyName) || companyFacebookUrl) {
-              const updateData: any = {};
-              
-              if (companyName && companyName !== currentCompanyName) {
-                updateData.extracted_company_name = companyName;
-                companyNameUpdated = true;
-              }
-              
-              if (companyFacebookUrl) {
-                updateData.facebook_url = companyFacebookUrl;
-              }
-              
+            let companyNameUpdated = false;
+            let industryUpdated = false;
+            
+            const updateData: any = {};
+            
+            // Only update company name if changed
+            if (companyName && companyName !== currentCompanyName) {
+              updateData.extracted_company_name = companyName;
+              companyNameUpdated = true;
+            }
+            
+            // Only update facebook_url if currently empty
+            if (!currentFacebookUrl && companyFacebookUrl) {
+              updateData.facebook_url = companyFacebookUrl;
+            }
+            
+            // Only update industry if currently empty or "other"
+            if (detectedIndustry && (!currentIndustry || currentIndustry === 'other')) {
+              updateData.industry = detectedIndustry;
+              industryUpdated = true;
+            }
+            
+            // Apply updates if any changes detected
+            if (Object.keys(updateData).length > 0) {
               await supabase
                 .from("reports")
                 .update(updateData)
@@ -306,10 +338,15 @@ Extract the proper company name and all contact information. Return ONLY the JSO
               .eq("id", prospectId);
 
             // Log to audit trail
+            const contextParts = [`Bulk enrichment: extracted ${contactsInserted} contacts`];
+            if (companyNameUpdated) contextParts.push(`updated company name to "${companyName}"`);
+            if (industryUpdated) contextParts.push(`set industry to "${detectedIndustry}"`);
+            contextParts.push(`from ${domain}`);
+            
             await supabase.rpc("log_business_context", {
               p_table_name: "prospect_activities",
               p_record_id: prospectId,
-              p_context: `Bulk enrichment: extracted ${contactsInserted} contacts${companyNameUpdated ? `, updated company name to "${companyName}"` : ""} from ${domain}`,
+              p_context: contextParts.join(", "),
             });
 
             // Send success update
@@ -321,7 +358,8 @@ Extract the proper company name and all contact information. Return ONLY the JSO
                   domain,
                   status: "success",
                   contactsFound: contactsInserted,
-                  companyName: companyNameUpdated ? companyName : null
+                  companyName: companyNameUpdated ? companyName : null,
+                  industry: industryUpdated ? detectedIndustry : null
                 })}\n\n`
               )
             );
