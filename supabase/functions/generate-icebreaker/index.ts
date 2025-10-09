@@ -121,7 +121,7 @@ Now search the web and write the icebreaker:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-exp',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -140,13 +140,31 @@ Now search the web and write the icebreaker:
       console.error('❌ Lovable AI error:', aiResponse.status, errorText);
       
       if (aiResponse.status === 429) {
-        throw new Error('Rate limit exceeded. Please try again in a moment.');
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 429
+          }
+        );
       }
       if (aiResponse.status === 402) {
-        throw new Error('AI credits exhausted. Please add credits to your workspace.');
+        return new Response(
+          JSON.stringify({ error: 'AI credits exhausted. Please add credits to your workspace.' }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 402
+          }
+        );
       }
       
-      throw new Error(`AI API error: ${aiResponse.status}`);
+      return new Response(
+        JSON.stringify({ error: `AI API error: ${aiResponse.status}` }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500
+        }
+      );
     }
 
     const aiData = await aiResponse.json();

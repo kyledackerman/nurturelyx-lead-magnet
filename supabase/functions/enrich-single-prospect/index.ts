@@ -330,7 +330,7 @@ Extract the proper company name and all contact information. Return ONLY the JSO
     // Generate personalized icebreaker using AI
     console.log(`🎯 Generating personalized icebreaker for ${domain}...`);
     try {
-      const { data: icebreakerData, error: icebreakerError } = await supabaseClient.functions.invoke(
+      const { data: icebreakerData, error: icebreakerError } = await supabase.functions.invoke(
         'generate-icebreaker',
         {
           body: {

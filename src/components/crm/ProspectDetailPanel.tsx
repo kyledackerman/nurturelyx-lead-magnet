@@ -477,13 +477,34 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        const errorMsg = error.message || "Failed to regenerate icebreaker";
+        if (errorMsg.includes('429') || errorMsg.toLowerCase().includes('rate limit')) {
+          toast.error("Rate limit exceeded. Please try again in a moment.");
+        } else if (errorMsg.includes('402') || errorMsg.toLowerCase().includes('credits')) {
+          toast.error("AI credits exhausted. Please add credits to your workspace.");
+        } else {
+          toast.error(errorMsg);
+        }
+        return;
+      }
+
+      if (data?.error) {
+        if (data.error.includes('429') || data.error.toLowerCase().includes('rate limit')) {
+          toast.error("Rate limit exceeded. Please try again in a moment.");
+        } else if (data.error.includes('402') || data.error.toLowerCase().includes('credits')) {
+          toast.error("AI credits exhausted. Please add credits to your workspace.");
+        } else {
+          toast.error(data.error);
+        }
+        return;
+      }
 
       toast.success("Icebreaker regenerated!");
       fetchProspectDetails();
     } catch (error) {
       console.error('Error regenerating icebreaker:', error);
-      toast.error("Failed to regenerate icebreaker");
+      toast.error(error instanceof Error ? error.message : "Failed to regenerate icebreaker");
     } finally {
       setIsRegeneratingIcebreaker(false);
     }
