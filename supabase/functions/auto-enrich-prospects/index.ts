@@ -50,7 +50,7 @@ serve(async (req) => {
         report_id,
         status,
         enrichment_retry_count,
-        reports!inner(domain, extracted_company_name)
+        reports!inner(domain, extracted_company_name, facebook_url, industry)
       `)
       .in("status", ["new", "enriching"])
       .lt("enrichment_retry_count", 3)
@@ -119,7 +119,56 @@ serve(async (req) => {
             messages: [
               {
                 role: "system",
-                content: `You are a contact extraction specialist. Extract ALL legitimate contact information from scraped website text.
+                content: `You are a contact extraction specialist. Extract ALL legitimate contact information, the properly capitalized company name, AND the business industry.
+
+**RETURN THIS EXACT JSON STRUCTURE:**
+{
+  "company_name": "Properly Capitalized Company Name Inc.",
+  "facebook_url": "https://www.facebook.com/CompanyPageName",
+  "industry": "hvac",
+  "contacts": [
+    {
+      "first_name": "John",
+      "last_name": "Smith",
+      "email": "john@company.com",
+      "phone": "+1-555-0123",
+      "title": "CEO",
+      "linkedin_url": "https://linkedin.com/in/johnsmith",
+      "facebook_url": "https://www.facebook.com/johnsmith",
+      "notes": "Found on about page"
+    }
+  ]
+}
+
+**COMPANY NAME RULES:**
+- Use proper capitalization (Title Case for most words)
+- Keep acronyms uppercase (LLC, Inc., Corp., USA, HVAC, etc.)
+- Preserve brand-specific capitalization (e.g., "iPhone", "eBay", "YouTube")
+- Remove "www." or domain suffixes
+- If company name not found, use domain name with proper capitalization
+
+**FACEBOOK URL RULES:**
+- Extract the company's official Facebook page URL at the top level (e.g., https://www.facebook.com/CompanyName)
+- If individual contacts have personal Facebook profiles, include in their contact object
+- Look for Facebook links in contact pages, footer, social media sections
+- Only include valid Facebook URLs (must start with facebook.com or fb.com)
+
+**INDUSTRY DETECTION:**
+- Analyze the website content to determine the business industry
+- Valid categories: hvac, plumbing, roofing, electrical, automotive, legal, medical, real-estate, restaurant, retail, other
+- Look for keywords in: services offered, page titles, meta descriptions, business descriptions
+- Common indicators:
+  * hvac: heating, cooling, air conditioning, HVAC, furnace, AC repair
+  * plumbing: plumber, pipes, water heater, drain cleaning
+  * roofing: roofer, roof repair, shingles, gutters
+  * electrical: electrician, wiring, electrical repair
+  * automotive: car repair, auto service, mechanic
+  * legal: lawyer, attorney, law firm, legal services
+  * medical: doctor, clinic, hospital, healthcare
+  * real-estate: realtor, real estate, property, homes for sale
+  * restaurant: restaurant, cafe, dining, food service
+  * retail: store, shop, retail, merchandise
+- If unclear or doesn't fit categories, use "other"
 
 **CRITICAL EMAIL RULES:**
 - ✅ INCLUDE: info@, contact@, sales@, admin@, support@, hello@, team@
@@ -142,32 +191,7 @@ serve(async (req) => {
 - MUST include where the contact was found (e.g., "Found on contact page", "Listed on team page")
 - If found in testimonial/review context, DO NOT include the contact at all
 
-Return ONLY valid JSON array of contacts. Each contact object should have:
-- first_name (required: person's name OR company name if no person found)
-- last_name (optional: only if person's last name is clearly identified)
-- email (required: following rules above)
-- phone (optional: full phone number with country code if found)
-- title (optional: job title or role)
-- linkedin_url (optional: LinkedIn profile URL)
-- notes (optional: any additional context)
-
-Example output:
-[
-  {
-    "first_name": "John",
-    "last_name": "Smith",
-    "email": "john@company.com",
-    "phone": "+1-555-0123",
-    "title": "CEO",
-    "linkedin_url": "https://linkedin.com/in/johnsmith",
-    "notes": "Found on about page"
-  },
-  {
-    "first_name": "Company Name",
-    "email": "info@company.com",
-    "notes": "Main contact email"
-  }
-]`,
+Return ONLY valid JSON with the structure above.`,
               },
               {
                 role: "user",
@@ -177,7 +201,7 @@ Domain: ${domain}
 Scraped website content:
 ${scrapedData.substring(0, 10000)}
 
-Extract all contact information following the email rules. Return ONLY the JSON array.`,
+Extract company name, Facebook URL, industry, and all contact information following the rules. Return ONLY the JSON object with the specified structure.`,
               },
             ],
             temperature: 0.3,
@@ -198,46 +222,101 @@ Extract all contact information following the email rules. Return ONLY the JSON 
         }
 
         // Parse AI response
-        let contacts = [];
+        let extractedData: { company_name: string; contacts: any[]; facebook_url?: string; industry?: string };
         try {
           // Remove markdown code blocks if present
           const cleanedContent = aiContent.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-          contacts = JSON.parse(cleanedContent);
+          extractedData = JSON.parse(cleanedContent);
         } catch (parseError) {
           console.error("Failed to parse AI response:", aiContent);
           throw new Error("Invalid JSON from AI");
         }
 
-        if (!Array.isArray(contacts) || contacts.length === 0) {
-          throw new Error("No contacts extracted by AI");
+        const extractedCompanyName = extractedData.company_name || companyName;
+        const contacts = extractedData.contacts || [];
+
+        console.log(`AI extracted company name: "${extractedCompanyName}" and ${contacts.length} contacts`);
+
+        let contactsInserted = 0;
+
+        // Save contacts to database if any found
+        if (Array.isArray(contacts) && contacts.length > 0) {
+          const contactsToInsert = contacts.map((contact: any) => ({
+            prospect_activity_id: prospect.id,
+            report_id: prospect.report_id,
+            first_name: contact.first_name,
+            last_name: contact.last_name || null,
+            email: contact.email || null,
+            phone: contact.phone || null,
+            title: contact.title || null,
+            linkedin_url: contact.linkedin_url || null,
+            facebook_url: contact.facebook_url || null,
+            notes: contact.notes || null,
+            is_primary: false,
+          }));
+
+          const { error: insertError } = await supabase
+            .from("prospect_contacts")
+            .insert(contactsToInsert);
+
+          if (insertError) {
+            console.error("Error inserting contacts:", insertError);
+          } else {
+            contactsInserted = contacts.length;
+          }
         }
 
-        console.log(`AI extracted ${contacts.length} contacts`);
+        // Update company name, Facebook URL, and industry in reports table
+        const currentFacebookUrl = prospect.reports.facebook_url;
+        const currentIndustry = prospect.reports.industry;
+        const currentCompanyName = prospect.reports.extracted_company_name;
+        const companyFacebookUrl = extractedData.facebook_url || null;
+        const detectedIndustry = extractedData.industry || null;
 
-        // Save contacts to database
-        const contactsToInsert = contacts.map((contact: any) => ({
-          prospect_activity_id: prospect.id,
-          report_id: prospect.report_id,
-          first_name: contact.first_name,
-          last_name: contact.last_name || null,
-          email: contact.email || null,
-          phone: contact.phone || null,
-          title: contact.title || null,
-          linkedin_url: contact.linkedin_url || null,
-          notes: contact.notes || null,
-          is_primary: false,
-        }));
+        let companyNameUpdated = false;
+        let facebookUrlAdded = false;
+        let industryUpdated = false;
 
-        const { error: insertError } = await supabase
-          .from("prospect_contacts")
-          .insert(contactsToInsert);
+        const updateData: any = {};
 
-        if (insertError) {
-          console.error("Error inserting contacts:", insertError);
-          throw new Error(`Failed to save contacts: ${insertError.message}`);
+        // Only update company name if changed
+        if (extractedCompanyName && extractedCompanyName !== currentCompanyName) {
+          updateData.extracted_company_name = extractedCompanyName;
+          companyNameUpdated = true;
+          console.log(`✅ Updating company name to "${extractedCompanyName}"`);
         }
 
-        let contactsFound = contacts.length;
+        // Only update facebook_url if currently empty
+        if (!currentFacebookUrl && companyFacebookUrl) {
+          updateData.facebook_url = companyFacebookUrl;
+          facebookUrlAdded = true;
+          console.log(`✅ Adding company Facebook URL: ${companyFacebookUrl}`);
+        } else if (currentFacebookUrl && companyFacebookUrl) {
+          console.log(`ℹ️ Facebook URL already exists, keeping: ${currentFacebookUrl}`);
+        }
+
+        // Only update industry if currently empty or "other"
+        if (detectedIndustry && (!currentIndustry || currentIndustry === 'other')) {
+          updateData.industry = detectedIndustry;
+          industryUpdated = true;
+          console.log(`✅ Setting industry to: ${detectedIndustry}`);
+        } else if (currentIndustry && currentIndustry !== 'other') {
+          console.log(`ℹ️ Industry already set to "${currentIndustry}", keeping existing value`);
+        }
+
+        // Apply updates if any changes detected
+        if (Object.keys(updateData).length > 0) {
+          const { error: updateError } = await supabase
+            .from("reports")
+            .update(updateData)
+            .eq("id", prospect.report_id);
+
+          if (updateError) {
+            console.error("Error updating company info:", updateError);
+          }
+        }
+
+        let contactsFound = contactsInserted;
         let icebreakerGenerated = false;
 
         // Check if icebreaker already exists
