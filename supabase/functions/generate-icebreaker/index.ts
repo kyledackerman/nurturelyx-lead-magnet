@@ -78,26 +78,27 @@ Search the web for recent information about this company and write a casual, fri
 
 **TONE & STYLE:**
 - Conversational and warm (like internal team communication)
-- Use casual language: "Hey", "I noticed", "just saw", "looks like"
+- Use casual language: "I noticed", "just saw", "looks like"
 - Specific and personalized (reference something unique you found)
 - Authentic (not obviously AI-generated or salesy)
+- NO greetings (Hey, Hi, Hello, etc.) - start directly with content
 - NO formal greetings like "Dear" or "To whom it may concern"
 - NO obvious sales language like "I wanted to reach out about..."
 
 **STRUCTURE:**
-1st sentence: Reference something SPECIFIC you found (achievement, review highlight, expansion, etc.)
+1st sentence: START with something SPECIFIC you found (achievement, review highlight, expansion, etc.)
 2nd sentence: Natural transition mentioning you analyzed their website traffic and found untapped lead potential
 
 **EXAMPLE OUTPUTS:**
 
 Example 1 (HVAC):
-"Hey! Just saw you folks were featured in the Tribune for your emergency response during that winter storm - impressive 24/7 service. I ran some numbers on your website traffic and noticed you might be missing out on a pretty significant number of leads each month from anonymous visitors."
+"Just saw you folks were featured in the Tribune for your emergency response during that winter storm - impressive 24/7 service. I ran some numbers on your website traffic and noticed you might be missing out on a pretty significant number of leads each month from anonymous visitors."
 
 Example 2 (Law Firm):
-"Hey there! Noticed you recently expanded into family law mediation - looks like that's filling a real gap in the area. Quick heads up: I analyzed your site traffic and found some interesting opportunities to capture more of those website visitors who are checking out your services but not filling out forms."
+"Noticed you recently expanded into family law mediation - looks like that's filling a real gap in the area. Quick heads up: I analyzed your site traffic and found some interesting opportunities to capture more of those website visitors who are checking out your services but not filling out forms."
 
 Example 3 (Plumbing):
-"Hey! Your Google reviews are killer - 4.9 stars with customers raving about your same-day service is no joke. I took a look at your website analytics and found you're getting solid traffic, but there might be a way to turn more of those anonymous visitors into actual leads."
+"Your Google reviews are killer - 4.9 stars with customers raving about your same-day service is no joke. I took a look at your website analytics and found you're getting solid traffic, but there might be a way to turn more of those anonymous visitors into actual leads."
 
 **IMPORTANT RULES:**
 - Must reference something SPECIFIC from your web research
