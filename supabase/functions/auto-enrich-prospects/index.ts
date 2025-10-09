@@ -316,7 +316,6 @@ Extract company name, Facebook URL, industry, and all contact information follow
           }
         }
 
-        let contactsFound = contactsInserted;
         let icebreakerGenerated = false;
 
         // Check if icebreaker already exists
@@ -326,8 +325,10 @@ Extract company name, Facebook URL, industry, and all contact information follow
           .eq("id", prospect.id)
           .single();
 
+        const hasExistingIcebreaker = !!(existingProspect?.icebreaker_text?.trim());
+
         // Generate icebreaker if missing
-        if (!existingProspect?.icebreaker_text?.trim()) {
+        if (!hasExistingIcebreaker) {
           try {
             console.log(`Generating personalized icebreaker for ${domain}...`);
             
@@ -436,8 +437,9 @@ Now search the web and write the icebreaker:
           console.log(`Icebreaker already exists for ${domain}, skipping generation`);
         }
 
-        // Determine final status: enriched ONLY if we have BOTH contacts AND icebreaker
-        const finalStatus = (contactsFound > 0 && icebreakerGenerated) ? "enriched" : "review";
+        // Determine final status: enriched ONLY if we have BOTH contacts AND icebreaker (existing or newly generated)
+        const hasIcebreaker = hasExistingIcebreaker || icebreakerGenerated;
+        const finalStatus = (contactsInserted > 0 && hasIcebreaker) ? "enriched" : "review";
 
         // Update prospect status
         await supabase
@@ -451,8 +453,8 @@ Now search the web and write the icebreaker:
 
         // Log success to audit
         const enrichmentDetails = [];
-        if (contactsFound > 0) enrichmentDetails.push(`${contactsFound} contacts`);
-        if (icebreakerGenerated) enrichmentDetails.push('icebreaker');
+        if (contactsInserted > 0) enrichmentDetails.push(`${contactsInserted} contacts`);
+        if (hasIcebreaker) enrichmentDetails.push('icebreaker');
         
         await supabase.rpc("log_business_context", {
           p_table_name: "prospect_activities",
@@ -464,8 +466,8 @@ Now search the web and write the icebreaker:
         results.details.push({
           domain,
           status: "success",
-          contactsFound,
-          icebreakerGenerated,
+          contactsFound: contactsInserted,
+          icebreakerGenerated: hasIcebreaker,
           finalStatus,
         });
 
