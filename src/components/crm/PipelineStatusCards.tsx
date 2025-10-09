@@ -86,7 +86,7 @@ export default function PipelineStatusCards({ onStatusClick, activeStatus }: Pip
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
       {data.map((item) => {
         const isActive = activeStatus === item.status;
         const color = STATUS_COLORS[item.status as keyof typeof STATUS_COLORS];
@@ -94,25 +94,25 @@ export default function PipelineStatusCards({ onStatusClick, activeStatus }: Pip
         return (
           <Card
             key={item.status}
-            className={`p-4 cursor-pointer transition-all hover:shadow-md ${
+            className={`p-2.5 cursor-pointer transition-all hover:shadow-md ${
               isActive ? "ring-2 ring-primary" : ""
             }`}
             onClick={() => onStatusClick?.(item.status)}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
                 <div
-                  className="w-3 h-3 rounded-full"
+                  className="w-2 h-2 rounded-full"
                   style={{ backgroundColor: color }}
                 />
-                <span className="font-medium text-sm">
+                <span className="font-medium text-xs">
                   {STATUS_LABELS[item.status as keyof typeof STATUS_LABELS]}
                 </span>
               </div>
-              <span className="text-lg font-bold">{item.count}</span>
+              <span className="text-sm font-bold">{item.count}</span>
             </div>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <DollarSign className="h-3 w-3" />
+            <div className="flex items-center gap-0.5 text-[10px] text-muted-foreground ml-3.5">
+              <DollarSign className="h-2.5 w-2.5" />
               <span>${(item.value / 1000).toFixed(1)}k</span>
             </div>
           </Card>
