@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LayoutDashboard, Table, CheckCircle, UserPlus } from "lucide-react";
+import { LayoutDashboard, UserCheck, Search, Target, CheckCircle, Sparkles } from "lucide-react";
 import CRMHeader from "@/components/crm/CRMHeader";
 import CRMMetrics from "@/components/crm/CRMMetrics";
 import CRMTableView from "@/components/crm/CRMTableView";
@@ -10,7 +10,7 @@ import { AutoEnrichmentBar } from "@/components/crm/AutoEnrichmentBar";
 import PipelineChart from "@/components/crm/PipelineChart";
 
 export default function CRMDashboard() {
-  const [selectedView, setSelectedView] = useState<"dashboard" | "table" | "needs-enrichment" | "closed">("dashboard");
+  const [selectedView, setSelectedView] = useState<"new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed">("dashboard");
   const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
   const [pipelineStatusFilter, setPipelineStatusFilter] = useState<string | null>(null);
 
@@ -25,24 +25,53 @@ export default function CRMDashboard() {
       
       <div className="container mx-auto px-4 py-6 max-w-[2000px]">
         <Tabs value={selectedView} onValueChange={(v) => setSelectedView(v as any)} className="w-full">
-          <TabsList className="grid w-full max-w-2xl grid-cols-4 mb-6">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="table" className="flex items-center gap-2">
-              <Table className="h-4 w-4" />
-              Table
+          <TabsList className="grid w-full max-w-4xl grid-cols-5 mb-6">
+            <TabsTrigger value="new-prospects" className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              New Prospects
             </TabsTrigger>
             <TabsTrigger value="needs-enrichment" className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
+              <Search className="h-4 w-4" />
               Needs Enrichment
+            </TabsTrigger>
+            <TabsTrigger value="ready-outreach" className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              Ready for Outreach
+            </TabsTrigger>
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              Active Pipeline
             </TabsTrigger>
             <TabsTrigger value="closed" className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
               Closed Deals
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="new-prospects">
+            <CRMTableView 
+              onSelectProspect={setSelectedProspectId}
+              compact={false}
+              view="new-prospects"
+            />
+          </TabsContent>
+
+          <TabsContent value="needs-enrichment">
+            <AutoEnrichmentBar />
+            <CRMTableView 
+              onSelectProspect={setSelectedProspectId}
+              compact={false}
+              view="needs-enrichment"
+            />
+          </TabsContent>
+
+          <TabsContent value="ready-outreach">
+            <CRMTableView 
+              onSelectProspect={setSelectedProspectId}
+              compact={false}
+              view="ready-outreach"
+            />
+          </TabsContent>
 
           <TabsContent value="dashboard" className="space-y-4">
             <CRMMetrics />
@@ -62,23 +91,8 @@ export default function CRMDashboard() {
             <CRMTableView 
               onSelectProspect={setSelectedProspectId}
               compact={false}
+              view="active"
               externalStatusFilter={pipelineStatusFilter}
-            />
-          </TabsContent>
-
-          <TabsContent value="table">
-            <CRMTableView 
-              onSelectProspect={setSelectedProspectId}
-              compact={false}
-            />
-          </TabsContent>
-
-          <TabsContent value="needs-enrichment">
-            <AutoEnrichmentBar />
-            <CRMTableView 
-              onSelectProspect={setSelectedProspectId}
-              compact={false}
-              view="needs-enrichment"
             />
           </TabsContent>
 

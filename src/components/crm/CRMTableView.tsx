@@ -40,14 +40,14 @@ interface ProspectRow {
 interface CRMTableViewProps {
   onSelectProspect: (id: string) => void;
   compact?: boolean;
-  view?: 'active' | 'closed' | 'needs-enrichment';
+  view?: 'new-prospects' | 'needs-enrichment' | 'ready-outreach' | 'active' | 'closed';
   externalStatusFilter?: string | null;
 }
 
 type SortKey = 'domain' | 'monthlyRevenue' | 'trafficTier' | 'priority' | 'status';
 type SortDirection = 'asc' | 'desc';
 
-export default function CRMTableView({ onSelectProspect, compact = false, view = 'active', externalStatusFilter = null }: CRMTableViewProps) {
+export default function CRMTableView({ onSelectProspect, compact = false, view = 'new-prospects', externalStatusFilter = null }: CRMTableViewProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [prospects, setProspects] = useState<ProspectRow[]>([]);
@@ -127,13 +127,19 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         `);
 
       // Filter based on view
-      if (view === 'closed') {
-        query = query.in('status', ['closed_won', 'closed_lost']);
+      if (view === 'new-prospects') {
+        query = query.eq('status', 'new');
       } else if (view === 'needs-enrichment') {
-        query = query.in('status', ['new', 'enriching', 'review']);
+        query = query.in('status', ['enriching', 'review']);
+      } else if (view === 'ready-outreach') {
+        query = query.eq('status', 'enriched');
+      } else if (view === 'active') {
+        query = query.in('status', ['contacted', 'proposal']);
+      } else if (view === 'closed') {
+        query = query.in('status', ['closed_won', 'closed_lost']);
       } else {
-        // Default to active pipeline
-        query = query.in('status', ['new', 'enriching', 'enriched', 'contacted', 'proposal']);
+        // Fallback: show all active statuses
+        query = query.in('status', ['new', 'enriching', 'review', 'enriched', 'contacted', 'proposal']);
       }
 
       const { data, error } = await query;
@@ -196,9 +202,13 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         contactCount: domainContactCount.get(p.reports.domain) || 0,
       })) || [];
 
-      // Filter for needs-enrichment view: only show prospects with 0 contacts
+      // Apply contact count filters per view
       if (view === 'needs-enrichment') {
+        // Needs enrichment: only show prospects with 0 contacts
         mapped = mapped.filter(p => p.contactCount === 0);
+      } else if (view === 'ready-outreach') {
+        // Ready for outreach: only show enriched prospects with contacts
+        mapped = mapped.filter(p => p.contactCount > 0);
       }
 
       setProspects(mapped);
