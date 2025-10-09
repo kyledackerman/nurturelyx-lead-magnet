@@ -417,7 +417,7 @@ Deno.serve(async (req) => {
             .insert({
               domain: cleanedDomain,
               slug: slugData,
-              user_id: null, // Mark as admin import, not a user report
+              user_id: user.id, // Assign to importing admin
               import_source: 'csv_bulk_import',
               report_data: {
                 domain: cleanedDomain,
