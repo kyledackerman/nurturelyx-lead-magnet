@@ -214,12 +214,13 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       })) || [];
 
       // Apply contact count filters per view
-      if (view === 'ready-outreach') {
+      if (view === 'needs-enrichment') {
+        // Needs enrichment: only show prospects with 0 contacts
+        mapped = mapped.filter(p => p.contactCount === 0);
+      } else if (view === 'ready-outreach') {
         // Ready for outreach: only show enriched prospects with contacts
         mapped = mapped.filter(p => p.contactCount > 0);
       }
-      // Note: needs-enrichment view no longer filters by contact count,
-      // allowing re-enrichment of prospects with existing contacts
 
       setProspects(mapped);
       setDomainActivityMap(domainActivityMap);
@@ -855,7 +856,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
               updatingStatus={updatingBulkStatus}
               onBulkEnrich={handleBulkEnrich}
               enriching={bulkEnriching}
-              showEnrichAction={view === 'needs-enrichment'}
+              showEnrichAction={view === 'ready-outreach'}
             />
 
           <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
