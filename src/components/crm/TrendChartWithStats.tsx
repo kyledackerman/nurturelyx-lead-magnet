@@ -69,10 +69,11 @@ export default function TrendChartWithStats({
       // Fill in missing dates with zeros
       const chartData: TrendData[] = [];
       for (let i = 29; i >= 0; i--) {
-        const date = format(subDays(new Date(), i), "yyyy-MM-dd");
+        const dateObj = subDays(new Date(), i);
+        const dateKey = format(dateObj, "yyyy-MM-dd");
         chartData.push({
-          date: format(parseISO(date), "MMM dd"),
-          count: recordsMap.get(date)?.size || 0,
+          date: format(dateObj, "MMM dd"),
+          count: recordsMap.get(dateKey)?.size || 0,
         });
       }
 

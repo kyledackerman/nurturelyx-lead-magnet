@@ -338,17 +338,24 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
         body: { prospect_id: prospectId },
       });
 
-      if (error) throw error;
+      // If there's a function invocation error, try to extract the message
+      if (error) {
+        console.error("Error enriching prospect:", error);
+        toast.error(error.message || "Failed to enrich prospect");
+        return;
+      }
 
-      if (data.success) {
+      // Handle the response from the function
+      if (data?.success) {
         toast.success(data.message);
         fetchProspectDetails();
       } else {
-        toast.error(data.error || "Enrichment failed");
+        // Show the specific error from the function
+        toast.error(data?.error || "Enrichment failed");
       }
     } catch (error) {
-      console.error("Error enriching prospect:", error);
-      toast.error("Failed to enrich prospect");
+      console.error("Unexpected error enriching prospect:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to enrich prospect");
     } finally {
       setIsEnriching(false);
     }
