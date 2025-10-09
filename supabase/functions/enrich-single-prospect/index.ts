@@ -248,11 +248,15 @@ Extract the proper company name and all contact information. Return ONLY the JSO
       }
     }
 
-    // Update prospect status
+    // Update prospect status - preserve status if already in advanced stages
+    const newStatus = ["new", "needs_review", "enriching"].includes(prospect.status)
+      ? "enriched"
+      : prospect.status;
+    
     await supabase
       .from("prospect_activities")
       .update({
-        status: "enriched",
+        status: newStatus,
         enrichment_source: "manual_ai",
       })
       .eq("id", prospect_id);
@@ -261,7 +265,7 @@ Extract the proper company name and all contact information. Return ONLY the JSO
     await supabase.rpc("log_business_context", {
       p_table_name: "prospect_activities",
       p_record_id: prospect_id,
-      p_context: `Manual enrichment: extracted ${contactsInserted} contacts${companyNameUpdated ? `, updated company name to "${companyName}"` : ""} from ${domain}`,
+      p_context: `Manual enrichment: extracted ${contactsInserted} contacts${companyNameUpdated ? `, updated company name to "${companyName}"` : ""} from ${domain}. Status: ${prospect.status} → ${newStatus}`,
     });
 
     const resultMessage = contactsInserted > 0
