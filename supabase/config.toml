@@ -1,8 +1,5 @@
 project_id = "apjlauuidcbvuplfcshg"
 
-[functions.re-enrich-contacted]
-verify_jwt = true
-
 [functions.parse-bulk-contacts]
 verify_jwt = true
 
