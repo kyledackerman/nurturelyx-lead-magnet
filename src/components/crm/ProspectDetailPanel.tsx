@@ -7,7 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { ExternalLink, ChevronDown, ChevronUp, Plus, Clock, Sparkles } from "lucide-react";
+import { ExternalLink, ChevronDown, ChevronUp, Plus, Clock, Sparkles, Facebook } from "lucide-react";
 import { ProspectMetricsCard } from "./ProspectMetricsCard";
 import { ProspectStatusBar } from "./ProspectStatusBar";
 import { ProspectTaskPanel } from "./ProspectTaskPanel";
@@ -94,7 +94,8 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
             industry,
             city,
             state,
-            extracted_company_name
+            extracted_company_name,
+            facebook_url
           )
         `)
         .eq("id", prospectId)
@@ -373,9 +374,21 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
                 <div className="flex-1 min-w-0">
                   <SheetTitle className="text-xl truncate">{prospect.report?.domain}</SheetTitle>
                   {prospect.report?.extracted_company_name && (
-                    <p className="text-xs text-muted-foreground mt-1 truncate">
-                      {prospect.report.extracted_company_name}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-muted-foreground truncate">
+                        {prospect.report.extracted_company_name}
+                      </p>
+                      {prospect.report?.facebook_url && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => window.open(prospect.report.facebook_url, '_blank')}
+                        >
+                          <Facebook className="h-3 w-3 text-muted-foreground" />
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div className="flex gap-2 shrink-0">
