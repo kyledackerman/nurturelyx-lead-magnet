@@ -16,7 +16,7 @@ export const ProspectImporter = () => {
   } | null>(null);
   const { toast } = useToast();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       if (!selectedFile.name.endsWith('.csv')) {
@@ -37,17 +37,18 @@ export const ProspectImporter = () => {
       }
       setFile(selectedFile);
       setResult(null);
+      
+      // Auto-import the file
+      await handleImport(selectedFile);
     }
   };
 
-  const handleImport = async () => {
-    if (!file) return;
-
+  const handleImport = async (fileToImport: File) => {
     setImporting(true);
     setResult(null);
 
     try {
-      const csvData = await file.text();
+      const csvData = await fileToImport.text();
       const lines = csvData.split('\n').filter(line => line.trim());
       
       if (lines.length > 1001) {
@@ -61,7 +62,7 @@ export const ProspectImporter = () => {
       }
 
       const { data, error } = await supabase.functions.invoke('import-prospects', {
-        body: { csvData, fileName: file.name },
+        body: { csvData, fileName: fileToImport.name },
       });
 
       if (error) throw error;
@@ -128,38 +129,29 @@ bestplumbing.com,6200`;
             </AlertDescription>
           </Alert>
 
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleFileChange}
-                className="block w-full text-sm text-muted-foreground
-                  file:mr-4 file:py-2 file:px-4
-                  file:rounded-md file:border-0
-                  file:text-sm file:font-semibold
-                  file:bg-primary file:text-primary-foreground
-                  hover:file:bg-primary/90
-                  cursor-pointer"
-              />
-            </div>
-            <Button
-              onClick={handleImport}
-              disabled={!file || importing}
-            >
-              {importing ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                  Importing...
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Import
-                </>
-              )}
-            </Button>
+          <div>
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleFileChange}
+              disabled={importing}
+              className="block w-full text-sm text-muted-foreground
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-md file:border-0
+                file:text-sm file:font-semibold
+                file:bg-primary file:text-primary-foreground
+                hover:file:bg-primary/90
+                disabled:opacity-50 disabled:cursor-not-allowed
+                cursor-pointer"
+            />
           </div>
+
+          {importing && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+              Importing and validating...
+            </div>
+          )}
 
           {file && !importing && !result && (
             <p className="text-sm text-muted-foreground">
