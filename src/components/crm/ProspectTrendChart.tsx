@@ -19,7 +19,7 @@ interface ComparisonStats {
   lastMonth: number;
 }
 
-export const ContactTrendChart = () => {
+export const ProspectTrendChart = () => {
   const [data, setData] = useState<TrendData[]>([]);
   const [stats, setStats] = useState<ComparisonStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,25 +32,25 @@ export const ContactTrendChart = () => {
     try {
       const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
 
-      // Fetch all prospect_contacts INSERT operations for the last 30 days
-      const { data: contactsData, error } = await supabase
+      // Fetch all prospect_activities INSERT operations for the last 30 days
+      const { data: domainsData, error } = await supabase
         .from("audit_logs")
         .select("changed_at, record_id")
-        .eq("table_name", "prospect_contacts")
+        .eq("table_name", "prospect_activities")
         .eq("action_type", "INSERT")
         .gte("changed_at", thirtyDaysAgo)
         .order("changed_at", { ascending: true });
 
       if (error) throw error;
 
-      // Group contacts by date
-      const contactsMap = new Map<string, Set<string>>();
-      contactsData?.forEach((log) => {
+      // Group domains by date
+      const domainsMap = new Map<string, Set<string>>();
+      domainsData?.forEach((log) => {
         const date = format(parseISO(log.changed_at), "yyyy-MM-dd");
-        if (!contactsMap.has(date)) {
-          contactsMap.set(date, new Set());
+        if (!domainsMap.has(date)) {
+          domainsMap.set(date, new Set());
         }
-        contactsMap.get(date)!.add(log.record_id);
+        domainsMap.get(date)!.add(log.record_id);
       });
 
       // Fill in missing dates with zeros
@@ -59,7 +59,7 @@ export const ContactTrendChart = () => {
         const date = format(subDays(new Date(), i), "yyyy-MM-dd");
         chartData.push({
           date: format(parseISO(date), "MMM dd"),
-          count: contactsMap.get(date)?.size || 0,
+          count: domainsMap.get(date)?.size || 0,
         });
       }
 
@@ -68,7 +68,7 @@ export const ContactTrendChart = () => {
       // Calculate comparison stats
       await fetchComparisonStats();
     } catch (error) {
-      console.error("Error fetching contact trend data:", error);
+      console.error("Error fetching prospect trend data:", error);
     } finally {
       setLoading(false);
     }
@@ -93,7 +93,7 @@ export const ContactTrendChart = () => {
       const { data: todayData } = await supabase
         .from("audit_logs")
         .select("record_id")
-        .eq("table_name", "prospect_contacts")
+        .eq("table_name", "prospect_activities")
         .eq("action_type", "INSERT")
         .gte("changed_at", todayStart);
 
@@ -101,7 +101,7 @@ export const ContactTrendChart = () => {
       const { data: yesterdayData } = await supabase
         .from("audit_logs")
         .select("record_id")
-        .eq("table_name", "prospect_contacts")
+        .eq("table_name", "prospect_activities")
         .eq("action_type", "INSERT")
         .gte("changed_at", yesterdayStart)
         .lt("changed_at", yesterdayEnd);
@@ -110,7 +110,7 @@ export const ContactTrendChart = () => {
       const { data: thisWeekData } = await supabase
         .from("audit_logs")
         .select("record_id")
-        .eq("table_name", "prospect_contacts")
+        .eq("table_name", "prospect_activities")
         .eq("action_type", "INSERT")
         .gte("changed_at", thisWeekStart);
 
@@ -118,7 +118,7 @@ export const ContactTrendChart = () => {
       const { data: lastWeekData } = await supabase
         .from("audit_logs")
         .select("record_id")
-        .eq("table_name", "prospect_contacts")
+        .eq("table_name", "prospect_activities")
         .eq("action_type", "INSERT")
         .gte("changed_at", lastWeekStart)
         .lte("changed_at", lastWeekEnd);
@@ -127,7 +127,7 @@ export const ContactTrendChart = () => {
       const { data: thisMonthData } = await supabase
         .from("audit_logs")
         .select("record_id")
-        .eq("table_name", "prospect_contacts")
+        .eq("table_name", "prospect_activities")
         .eq("action_type", "INSERT")
         .gte("changed_at", thisMonthStart);
 
@@ -135,7 +135,7 @@ export const ContactTrendChart = () => {
       const { data: lastMonthData } = await supabase
         .from("audit_logs")
         .select("record_id")
-        .eq("table_name", "prospect_contacts")
+        .eq("table_name", "prospect_activities")
         .eq("action_type", "INSERT")
         .gte("changed_at", lastMonthStart)
         .lte("changed_at", lastMonthEnd);
@@ -188,7 +188,7 @@ export const ContactTrendChart = () => {
     return (
       <Card className="p-4">
         <div className="h-[350px] flex items-center justify-center text-muted-foreground">
-          Loading contact trends...
+          Loading prospect trends...
         </div>
       </Card>
     );
@@ -199,9 +199,9 @@ export const ContactTrendChart = () => {
   if (!hasData) {
     return (
       <Card className="p-4">
-        <h3 className="text-sm font-semibold mb-3">Contacts Added (Last 30 Days)</h3>
+        <h3 className="text-sm font-semibold mb-3">Prospects Added (Last 30 Days)</h3>
         <div className="h-[350px] flex items-center justify-center text-muted-foreground">
-          No contacts added in the last 30 days
+          No prospects added in the last 30 days
         </div>
       </Card>
     );
@@ -209,7 +209,7 @@ export const ContactTrendChart = () => {
 
   return (
     <Card className="p-4">
-      <h3 className="text-sm font-semibold mb-3">Contacts Added (Last 30 Days)</h3>
+      <h3 className="text-sm font-semibold mb-3">Prospects Added (Last 30 Days)</h3>
       
       {stats && (
         <div className="grid grid-cols-3 gap-2 mb-4">
@@ -246,10 +246,10 @@ export const ContactTrendChart = () => {
           <Line
             type="monotone"
             dataKey="count"
-            stroke="#c084fc"
+            stroke="#81e6d9"
             strokeWidth={2.5}
-            dot={{ r: 3, fill: "#c084fc" }}
-            name="Contacts Added"
+            dot={{ r: 3, fill: "#81e6d9" }}
+            name="Prospects Added"
             activeDot={{ r: 5 }}
           />
         </LineChart>
