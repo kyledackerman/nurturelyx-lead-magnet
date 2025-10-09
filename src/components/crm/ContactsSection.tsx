@@ -141,8 +141,8 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
   };
 
   const saveContact = async () => {
-    if (!firstName.trim() || !lastName.trim()) {
-      toast.error("First and last name are required");
+    if (!firstName.trim()) {
+      toast.error("First name is required");
       return;
     }
 
@@ -154,7 +154,7 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
         prospect_activity_id: prospectActivityId,
         report_id: reportId,
         first_name: firstName.trim(),
-        last_name: lastName.trim(),
+        last_name: lastName.trim() || null,
         email: email.trim() || null,
         phone: phone.trim() || null,
         title: title.trim() || null,
@@ -176,7 +176,7 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
         await auditService.logBusinessContext(
           "prospect_activities",
           prospectActivityId,
-          `Updated contact: ${firstName} ${lastName}${title ? ` (${title})` : ""}`
+          `Updated contact: ${firstName}${lastName ? ` ${lastName}` : ''}${title ? ` (${title})` : ""}`
         );
 
         toast.success("Contact updated");
@@ -191,7 +191,7 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
         await auditService.logBusinessContext(
           "prospect_activities",
           prospectActivityId,
-          `Added contact: ${firstName} ${lastName}${title ? ` (${title})` : ""}`
+          `Added contact: ${firstName}${lastName ? ` ${lastName}` : ''}${title ? ` (${title})` : ""}`
         );
 
         toast.success("Contact added");
@@ -309,7 +309,7 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
                   />
                 </div>
                 <div>
-                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Label htmlFor="lastName">Last Name</Label>
                   <Input
                     id="lastName"
                     value={lastName}
@@ -418,7 +418,7 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
               <div className="flex gap-2 pt-2">
                 <Button
                   onClick={saveContact}
-                  disabled={saving || !firstName.trim() || !lastName.trim()}
+                  disabled={saving || !firstName.trim()}
                   className="flex-1"
                 >
                   {saving ? "Saving..." : editingContact ? "Update Contact" : "Add Contact"}
