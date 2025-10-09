@@ -263,32 +263,62 @@ Extract all contact information following the email rules. Return ONLY the JSON 
                 messages: [
                   {
                     role: "system",
-                    content: `You are a B2B sales expert. Create a personalized, conversational opener for a cold outreach email.
-
-CRITICAL RULES:
-- Maximum 1-2 sentences
-- Reference something specific about their business (from website content)
-- Be conversational and authentic, not salesy
-- Focus on a pain point, achievement, or relevant observation
-- Do not use generic phrases like "I noticed" or "I came across"
-- Sound like a real person reaching out to help
-
-Example good openers:
-"Your HVAC service area covers 3 counties—that's a lot of ground to cover when leads slip through the cracks on your website."
-"Most law firms lose 40% of their web visitors because they can't identify them, and with your traffic numbers, that's real money walking away."
-
-Return ONLY the opener text, nothing else.`,
+                    content: `You are a B2B sales copywriting expert helping a sales team craft personalized cold outreach openers for local service businesses. Your goal is to write casual, friendly, colleague-like messages that feel authentic and conversational.`
                   },
                   {
                     role: "user",
-                    content: `Company: ${companyName}
-Domain: ${domain}
+                    content: `
+**COMPANY INFORMATION:**
+- Domain: ${domain}
+- Company Name: ${companyName}
 
-Website content:
-${scrapedData.substring(0, 8000)}
+**YOUR TASK:**
+Search the web for recent information about this company and write a casual, friendly 1-2 sentence opener as if you're emailing a colleague.
 
-Create a personalized opener that references something specific about their business.`,
-                  },
+**RESEARCH FOCUS:**
+- Recent news mentions or press releases
+- Customer reviews and testimonials (especially standout feedback)
+- Awards, certifications, or recognitions
+- Service expansions or new offerings
+- Community involvement or charity work
+- Notable projects or case studies
+- Social media highlights
+
+**TONE & STYLE:**
+- Conversational and warm (like internal team communication)
+- Use casual language: "Hey", "I noticed", "just saw", "looks like"
+- Specific and personalized (reference something unique you found)
+- Authentic (not obviously AI-generated or salesy)
+- NO formal greetings like "Dear" or "To whom it may concern"
+- NO obvious sales language like "I wanted to reach out about..."
+
+**STRUCTURE:**
+1st sentence: Reference something SPECIFIC you found (achievement, review highlight, expansion, etc.)
+2nd sentence: Natural transition mentioning you analyzed their website traffic and found untapped lead potential
+
+**EXAMPLE OUTPUTS:**
+
+Example 1 (HVAC):
+"Hey! Just saw you folks were featured in the Tribune for your emergency response during that winter storm - impressive 24/7 service. I ran some numbers on your website traffic and noticed you might be missing out on a pretty significant number of leads each month from anonymous visitors."
+
+Example 2 (Law Firm):
+"Hey there! Noticed you recently expanded into family law mediation - looks like that's filling a real gap in the area. Quick heads up: I analyzed your site traffic and found some interesting opportunities to capture more of those website visitors who are checking out your services but not filling out forms."
+
+Example 3 (Plumbing):
+"Hey! Your Google reviews are killer - 4.9 stars with customers raving about your same-day service is no joke. I took a look at your website analytics and found you're getting solid traffic, but there might be a way to turn more of those anonymous visitors into actual leads."
+
+**IMPORTANT RULES:**
+- Must reference something SPECIFIC from your web research
+- Keep it under 50 words total
+- Make it feel like you genuinely researched them (because you did!)
+- End with a soft mention of their "lead loss" or "missed website opportunities"
+- Be conversational, not corporate
+
+${scrapedData ? `\n**WEBSITE CONTENT (for additional context):**\n${scrapedData.substring(0, 1500)}\n` : ''}
+
+Now search the web and write the icebreaker:
+`
+                  }
                 ],
                 tools: [{ type: "google_search_retrieval" }],
               }),
