@@ -55,9 +55,9 @@ IMPORTANT:
 - If you find a person's name, use it for first_name and last_name
 - If you only find an email or contact info with no person name, use "${businessName}" as first_name and leave last_name empty
 - ALWAYS capitalize the first letter of first_name and last_name (proper name formatting)
-- AVOID GENERIC EMAILS: Do NOT extract generic role-based emails like info@, legal@, privacy@, supplier@, admin@, support@, billing@, careers@, etc.
-- PREFER PERSONAL EMAILS: Gmail, Yahoo, Outlook, Hotmail, and person-specific work emails (e.g., john.smith@company.com) are acceptable
-- Focus on extracting emails that appear to belong to real people, not departments or roles
+- ✅ ACCEPT SALES-FRIENDLY EMAILS: info@, hello@, contact@, sales@, marketing@, team@, support@, admin@, help@
+- ✅ ACCEPT PERSONAL EMAILS: Gmail, Yahoo, Outlook, Hotmail, and person-specific work emails (e.g., john.smith@company.com)
+- ❌ REJECT NON-SALES DEPARTMENTS: legal@, privacy@, hr@, billing@, finance@, careers@, supplier@, noreply@, abuse@, security@
 
 Return ONLY a JSON object with this exact structure:
 {
@@ -151,20 +151,20 @@ ${rawText}`;
       parsedResult.unmatched = [];
     }
 
-    // Generic email prefixes to filter out
-    const GENERIC_PREFIXES = [
-      'info', 'contact', 'admin', 'support', 'help',
-      'sales', 'marketing', 'legal', 'privacy',
-      'supplier', 'billing', 'accounts', 'finance',
-      'hr', 'jobs', 'careers', 'noreply', 'no-reply',
-      'webmaster', 'postmaster', 'abuse', 'security'
+    // Non-sales department email prefixes to filter out
+    // NOTE: We ACCEPT info@, contact@, sales@, marketing@, support@, admin@, help@, hello@, team@
+    const AVOID_PREFIXES = [
+      'legal', 'privacy', 'supplier', 'billing', 'accounts', 'finance',
+      'hr', 'jobs', 'careers', 'noreply', 'no-reply', 'donotreply',
+      'webmaster', 'postmaster', 'abuse', 'security',
+      'devnull', 'bounce', 'unsubscribe'
     ];
 
-    // Helper to check if email is generic
-    const isGenericEmail = (email: string): boolean => {
+    // Helper to check if email should be avoided (non-sales departments)
+    const isAvoidableEmail = (email: string): boolean => {
       if (!email) return false;
       const localPart = email.split('@')[0]?.toLowerCase();
-      return GENERIC_PREFIXES.some(prefix => 
+      return AVOID_PREFIXES.some(prefix => 
         localPart === prefix || localPart.startsWith(`${prefix}.`) || localPart.startsWith(`${prefix}-`)
       );
     };
@@ -183,9 +183,9 @@ ${rawText}`;
           contact.last_name = capitalizeName(contact.last_name);
         }
         
-        // Filter out generic emails
-        if (contact.email && isGenericEmail(contact.email)) {
-          console.log(`Filtered generic email: ${contact.email}`);
+        // Filter out non-sales department emails
+        if (contact.email && isAvoidableEmail(contact.email)) {
+          console.log(`Filtered non-sales email: ${contact.email}`);
           return false;
         }
         

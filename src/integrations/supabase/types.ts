@@ -219,6 +219,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           email: string | null
+          facebook_url: string | null
           first_name: string
           id: string
           is_primary: boolean
@@ -235,6 +236,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           email?: string | null
+          facebook_url?: string | null
           first_name: string
           id?: string
           is_primary?: boolean
@@ -251,6 +253,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           email?: string | null
+          facebook_url?: string | null
           first_name?: string
           id?: string
           is_primary?: boolean
@@ -495,6 +498,7 @@ export type Database = {
           created_at: string
           domain: string
           extracted_company_name: string | null
+          facebook_url: string | null
           id: string
           industry: string | null
           is_public: boolean
@@ -513,6 +517,7 @@ export type Database = {
           created_at?: string
           domain: string
           extracted_company_name?: string | null
+          facebook_url?: string | null
           id?: string
           industry?: string | null
           is_public?: boolean
@@ -531,6 +536,7 @@ export type Database = {
           created_at?: string
           domain?: string
           extracted_company_name?: string | null
+          facebook_url?: string | null
           id?: string
           industry?: string | null
           is_public?: boolean

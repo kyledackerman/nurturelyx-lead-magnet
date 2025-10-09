@@ -100,6 +100,7 @@ serve(async (req) => {
 **RETURN THIS EXACT JSON STRUCTURE:**
 {
   "company_name": "Properly Capitalized Company Name Inc.",
+  "facebook_url": "https://www.facebook.com/CompanyPageName",
   "contacts": [
     {
       "first_name": "John",
@@ -108,6 +109,7 @@ serve(async (req) => {
       "phone": "+1-555-0123",
       "title": "CEO",
       "linkedin_url": "https://linkedin.com/in/johnsmith",
+      "facebook_url": "https://www.facebook.com/johnsmith",
       "notes": "Found on about page"
     }
   ]
@@ -119,6 +121,12 @@ serve(async (req) => {
 - Preserve brand-specific capitalization (e.g., "iPhone", "eBay", "YouTube")
 - Remove "www." or domain suffixes
 - If company name not found, use domain name with proper capitalization
+
+**FACEBOOK URL RULES:**
+- Extract the company's official Facebook page URL at the top level (e.g., https://www.facebook.com/CompanyName)
+- If individual contacts have personal Facebook profiles, include in their contact object
+- Look for Facebook links in contact pages, footer, social media sections
+- Only include valid Facebook URLs (must start with facebook.com or fb.com)
 
 **CRITICAL EMAIL RULES:**
 - ✅ INCLUDE: info@, contact@, sales@, admin@, support@, hello@, team@
@@ -195,6 +203,7 @@ Extract the proper company name and all contact information. Return ONLY the JSO
         phone: contact.phone || null,
         title: contact.title || null,
         linkedin_url: contact.linkedin_url || null,
+        facebook_url: contact.facebook_url || null,
         notes: contact.notes || null,
         is_primary: false,
       }));
@@ -210,18 +219,31 @@ Extract the proper company name and all contact information. Return ONLY the JSO
       }
     }
 
-    // Update company name in reports table
+    // Update company name and Facebook URL in reports table
+    const companyFacebookUrl = extractedData.facebook_url || null;
     let companyNameUpdated = false;
-    if (companyName && companyName !== currentCompanyName) {
+    
+    if ((companyName && companyName !== currentCompanyName) || companyFacebookUrl) {
+      const updateData: any = {};
+      
+      if (companyName && companyName !== currentCompanyName) {
+        updateData.extracted_company_name = companyName;
+        companyNameUpdated = true;
+      }
+      
+      if (companyFacebookUrl) {
+        updateData.facebook_url = companyFacebookUrl;
+        console.log(`Adding company Facebook URL: ${companyFacebookUrl}`);
+      }
+      
       const { error: updateError } = await supabase
         .from("reports")
-        .update({ extracted_company_name: companyName })
+        .update(updateData)
         .eq("id", prospect.report_id);
 
       if (updateError) {
-        console.error("Error updating company name:", updateError);
-      } else {
-        companyNameUpdated = true;
+        console.error("Error updating company info:", updateError);
+      } else if (companyNameUpdated) {
         console.log(`✅ Updated company name to "${companyName}"`);
       }
     }

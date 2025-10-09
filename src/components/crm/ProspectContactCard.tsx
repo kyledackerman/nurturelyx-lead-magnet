@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Phone, Linkedin, Copy, CheckCircle2 } from "lucide-react";
+import { Mail, Phone, Linkedin, Copy, CheckCircle2, Facebook } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -13,6 +13,7 @@ interface Contact {
   phone: string | null;
   title: string | null;
   linkedin_url: string | null;
+  facebook_url: string | null;
   is_primary: boolean;
 }
 
@@ -135,6 +136,23 @@ export function ProspectContactCard({ contacts }: ProspectContactCardProps) {
                 onClick={() => window.open(primaryContact.linkedin_url!, '_blank')}
               >
                 <Linkedin className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+
+          {primaryContact.facebook_url && (
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <Facebook className="h-3 w-3 text-muted-foreground shrink-0" />
+                <span className="text-xs truncate">Facebook Profile</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 shrink-0"
+                onClick={() => window.open(primaryContact.facebook_url!, '_blank')}
+              >
+                <Facebook className="h-3 w-3" />
               </Button>
             </div>
           )}
