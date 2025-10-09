@@ -22,6 +22,7 @@ import { LostReasonDialog } from "./LostReasonDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { auditService } from "@/services/auditService";
 import BulkEnrichmentDialog from "./BulkEnrichmentDialog";
+import BulkEnrichmentProgressDialog, { EnrichmentProgress } from "./BulkEnrichmentProgressDialog";
 
 interface ProspectRow {
   id: string;
@@ -74,6 +75,9 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const [showBulkEnrichment, setShowBulkEnrichment] = useState(false);
   const [domainActivityMap, setDomainActivityMap] = useState<Map<string, { activityId: string; reportId: string }>>(new Map());
   const [updatingBulkStatus, setUpdatingBulkStatus] = useState(false);
+  const [bulkEnriching, setBulkEnriching] = useState(false);
+  const [showEnrichmentProgress, setShowEnrichmentProgress] = useState(false);
+  const [enrichmentProgress, setEnrichmentProgress] = useState<Map<string, any>>(new Map());
 
   useEffect(() => {
     fetchProspects();
@@ -684,6 +688,111 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     }
   };
 
+  const handleBulkEnrich = async () => {
+    if (selectedProspectIds.size === 0) {
+      toast.error("No prospects selected");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Enrich ${selectedProspectIds.size} prospect(s) with AI? This will scrape their websites and extract contact information.`
+    );
+    if (!confirmed) return;
+
+    setBulkEnriching(true);
+    setShowEnrichmentProgress(true);
+    
+    // Initialize progress tracking
+    const progressMap = new Map<string, EnrichmentProgress>();
+    selectedProspectIds.forEach(id => {
+      const prospect = displayedProspects.find(p => p.id === id);
+      if (prospect) {
+        progressMap.set(id, {
+          prospectId: id,
+          domain: prospect.domain,
+          status: 'pending'
+        });
+      }
+    });
+    setEnrichmentProgress(progressMap);
+
+    try {
+      const response = await fetch(
+        `https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/bulk-enrich-prospects`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwamxhdXVpZGNidnVwbGZjc2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc5NjA1NjMsImV4cCI6MjA3MzUzNjU2M30.1Lv6xs2zAbg24V-7f0nzC8OxoZUVw03_ZD2QIkS_hDU`,
+          },
+          body: JSON.stringify({
+            prospect_ids: Array.from(selectedProspectIds),
+          }),
+        }
+      );
+
+      if (!response.ok || !response.body) {
+        throw new Error('Failed to start bulk enrichment');
+      }
+
+      // Parse SSE stream
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          
+          try {
+            const data = JSON.parse(line.slice(6));
+            
+            if (data.type === 'progress' || data.type === 'success' || data.type === 'error') {
+              setEnrichmentProgress(prev => {
+                const newMap = new Map(prev);
+                const existing = newMap.get(data.prospectId);
+                if (existing) {
+                  newMap.set(data.prospectId, {
+                    ...existing,
+                    status: data.status || (data.type === 'success' ? 'success' : data.type === 'error' ? 'failed' : 'processing'),
+                    contactsFound: data.contactsFound,
+                    error: data.error,
+                  });
+                }
+                return newMap;
+              });
+            }
+            
+            if (data.type === 'complete') {
+              toast.success(
+                `Enrichment complete: ${data.summary.succeeded}/${data.summary.total} successful`
+              );
+            }
+          } catch (e) {
+            console.error('Failed to parse SSE message:', e);
+          }
+        }
+      }
+
+      // Refresh table
+      await fetchProspects();
+      setSelectedProspectIds(new Set());
+      
+    } catch (error: any) {
+      console.error('Bulk enrichment error:', error);
+      toast.error(error?.message || 'Failed to enrich prospects');
+    } finally {
+      setBulkEnriching(false);
+    }
+  };
+
   const getFilterSummary = () => {
     const filters = [];
     if (statusFilter !== "all") filters.push(`Status: ${statusFilter}`);
@@ -730,7 +839,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         </div>
       )}
 
-      {!compact && view !== 'needs-enrichment' && (
+      {!compact && (
         <>
             <ExportToolbar
               selectedCount={selectedProspectIds.size}
@@ -745,6 +854,9 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
               exporting={exporting}
               onBulkStatusUpdate={handleBulkStatusUpdate}
               updatingStatus={updatingBulkStatus}
+              onBulkEnrich={handleBulkEnrich}
+              enriching={bulkEnriching}
+              showEnrichAction={view === 'needs-enrichment'}
             />
 
           <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
@@ -1034,6 +1146,12 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         knownDomains={sortedProspects.map(p => p.domain)}
         onSuccess={fetchProspects}
         domainActivityMap={domainActivityMap}
+      />
+
+      <BulkEnrichmentProgressDialog
+        open={showEnrichmentProgress}
+        onOpenChange={setShowEnrichmentProgress}
+        progress={enrichmentProgress}
       />
     </div>
   );

@@ -16,6 +16,9 @@ interface ExportToolbarProps {
   exporting?: boolean;
   onBulkStatusUpdate: (newStatus: string) => void;
   updatingStatus?: boolean;
+  onBulkEnrich?: () => void;
+  enriching?: boolean;
+  showEnrichAction?: boolean;
 }
 
 export default function ExportToolbar({
@@ -31,6 +34,9 @@ export default function ExportToolbar({
   exporting = false,
   onBulkStatusUpdate,
   updatingStatus = false,
+  onBulkEnrich,
+  enriching = false,
+  showEnrichAction = false,
 }: ExportToolbarProps) {
   return (
     <div className="bg-card border rounded-lg p-4 mb-4 sticky top-0 z-10 shadow-sm">
@@ -127,6 +133,28 @@ export default function ExportToolbar({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
+
+          {showEnrichAction && selectedCount > 0 && (
+            <Button
+              onClick={onBulkEnrich}
+              disabled={selectedCount === 0 || enriching || exporting || updatingStatus}
+              size="sm"
+              variant="default"
+              className="gap-2 bg-purple-600 hover:bg-purple-700"
+            >
+              {enriching ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Enriching...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Enrich with AI ({selectedCount})
+                </>
+              )}
+            </Button>
           )}
 
           <Button
