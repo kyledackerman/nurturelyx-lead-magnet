@@ -389,8 +389,8 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
               <ProspectMetricsCard
                 monthlyRevenueLost={prospect.report?.report_data?.monthlyRevenueLost || 0}
                 yearlyRevenueLost={prospect.report?.report_data?.yearlyRevenueLost || 0}
-                estimatedLeads={prospect.report?.report_data?.estimatedLeads || 0}
-                monthlyTraffic={prospect.report?.report_data?.monthlyTraffic || 0}
+                estimatedLeads={prospect.report?.report_data?.missedLeads || 0}
+                monthlyTraffic={prospect.report?.report_data?.organicTraffic || 0}
               />
             </div>
 
