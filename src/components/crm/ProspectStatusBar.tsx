@@ -22,13 +22,13 @@ export function ProspectStatusBar({
 }: ProspectStatusBarProps) {
   const statusColors: Record<string, string> = {
     new: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+    enriching: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
+    review: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
+    enriched: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
     contacted: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
-    qualified: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
-    proposal: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
-    negotiation: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
+    proposal: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
     closed_won: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
     closed_lost: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
-    enriched: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
   };
 
   const priorityColors: Record<string, string> = {
@@ -49,13 +49,13 @@ export function ProspectStatusBar({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="new">New</SelectItem>
+            <SelectItem value="enriching">Enriching</SelectItem>
+            <SelectItem value="review">Review</SelectItem>
+            <SelectItem value="enriched">Enriched</SelectItem>
             <SelectItem value="contacted">Contacted</SelectItem>
-            <SelectItem value="qualified">Qualified</SelectItem>
             <SelectItem value="proposal">Proposal</SelectItem>
-            <SelectItem value="negotiation">Negotiation</SelectItem>
             <SelectItem value="closed_won">Closed Won</SelectItem>
             <SelectItem value="closed_lost">Closed Lost</SelectItem>
-            <SelectItem value="enriched">Enriched</SelectItem>
           </SelectContent>
         </Select>
       </div>
