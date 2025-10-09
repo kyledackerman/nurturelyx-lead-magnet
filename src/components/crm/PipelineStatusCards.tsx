@@ -105,13 +105,13 @@ export default function PipelineStatusCards({ onStatusClick, activeStatus }: Pip
                   className="w-2 h-2 rounded-full"
                   style={{ backgroundColor: color }}
                 />
-                <span className="font-medium text-xs">
+                <span className="font-medium text-sm">
                   {STATUS_LABELS[item.status as keyof typeof STATUS_LABELS]}
                 </span>
               </div>
-              <span className="text-sm font-bold">{item.count}</span>
+              <span className="text-lg font-bold">{item.count}</span>
             </div>
-            <div className="flex items-center gap-0.5 text-[10px] text-muted-foreground ml-3.5">
+            <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
               <DollarSign className="h-2.5 w-2.5" />
               <span>${(item.value / 1000).toFixed(1)}k</span>
             </div>
