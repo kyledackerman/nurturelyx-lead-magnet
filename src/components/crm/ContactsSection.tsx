@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { auditService } from "@/services/auditService";
 import { validateSalesEmail, getEmailTypeLabel, getEmailTypeBadgeVariant } from "@/lib/emailValidation";
 import { updateProspectStatus } from "@/services/prospectService";
+import { getDisplayName } from "@/lib/crmHelpers";
 
 interface Contact {
   id: string;
@@ -31,9 +32,10 @@ interface Contact {
 interface ContactsSectionProps {
   prospectActivityId: string;
   reportId: string;
+  companyName?: string | null;
 }
 
-export default function ContactsSection({ prospectActivityId, reportId }: ContactsSectionProps) {
+export default function ContactsSection({ prospectActivityId, reportId, companyName }: ContactsSectionProps) {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -469,21 +471,25 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
               className="p-3 border rounded-lg hover:bg-muted/50 transition-colors"
             >
               <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-medium">
-                      {contact.first_name} {contact.last_name}
-                    </p>
-                    {contact.is_primary && (
-                      <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                        Primary
-                      </Badge>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-medium">
+                        {getDisplayName(companyName, contact.first_name, contact.last_name, contact.email)}
+                      </p>
+                      {contact.is_primary && (
+                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                          Primary
+                        </Badge>
+                      )}
+                    </div>
+                    {!companyName || getDisplayName(companyName, contact.first_name, contact.last_name, contact.email) !== companyName ? (
+                      contact.title && (
+                        <p className="text-sm text-muted-foreground mb-2">{contact.title}</p>
+                      )
+                    ) : (
+                      <p className="text-sm text-muted-foreground mb-2">Company Contact</p>
                     )}
-                  </div>
-                  {contact.title && (
-                    <p className="text-sm text-muted-foreground mb-2">{contact.title}</p>
-                  )}
-                  <div className="space-y-1">
+                    <div className="space-y-1">
                     {contact.email && (
                       <div className="flex items-center gap-2 text-sm">
                         <Mail className="h-3.5 w-3.5 text-muted-foreground" />

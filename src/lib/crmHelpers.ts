@@ -86,3 +86,36 @@ export function getStatusValue(status: string): number {
   };
   return values[status] || 0;
 }
+
+export function getDisplayName(
+  companyName: string | null | undefined,
+  firstName: string,
+  lastName: string | null,
+  email: string | null
+): string {
+  // If we have a company name, check if the contact name is just the company name
+  if (companyName) {
+    const fullContactName = `${firstName} ${lastName || ''}`.trim();
+    const normalizedCompany = companyName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const normalizedContact = fullContactName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    
+    // If contact name contains the company name, it's likely a generic contact
+    if (normalizedContact.includes(normalizedCompany) || normalizedCompany.includes(normalizedContact)) {
+      return companyName;
+    }
+  }
+  
+  // Check if email suggests this is a generic contact
+  if (email) {
+    const emailPrefix = email.split('@')[0].toLowerCase();
+    const genericPrefixes = ['info', 'contact', 'sales', 'support', 'hello', 'team', 'admin', 'help', 'marketing'];
+    
+    if (genericPrefixes.some(prefix => emailPrefix === prefix || emailPrefix.startsWith(prefix))) {
+      // Generic email - use company name if available
+      return companyName || `${firstName} ${lastName || ''}`.trim();
+    }
+  }
+  
+  // Looks like a real person - use their name
+  return `${firstName} ${lastName || ''}`.trim();
+}

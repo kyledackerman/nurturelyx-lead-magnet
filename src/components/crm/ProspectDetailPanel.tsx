@@ -456,7 +456,10 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
             {prospect.contacts && prospect.contacts.length > 0 && (
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold">Primary Contact</h3>
-                <ProspectContactCard contacts={prospect.contacts} />
+              <ProspectContactCard 
+                contacts={prospect.contacts}
+                companyName={prospect.report?.extracted_company_name}
+              />
               </div>
             )}
 
@@ -464,6 +467,7 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
             <ContactsSection
               prospectActivityId={prospectId}
               reportId={prospect.report_id}
+              companyName={prospect.report?.extracted_company_name}
             />
 
             {/* Task Panel - COLLAPSIBLE */}

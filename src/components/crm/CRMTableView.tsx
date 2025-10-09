@@ -37,6 +37,7 @@ interface ProspectRow {
   lostReason: string | null;
   lostNotes: string | null;
   contactCount: number;
+  companyName: string | null;
 }
 
 interface CRMTableViewProps {
@@ -125,7 +126,8 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
           reports!inner(
             domain,
             slug,
-            report_data
+            report_data,
+            extracted_company_name
           )
         `);
 
@@ -204,6 +206,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         lostReason: p.lost_reason,
         lostNotes: p.lost_notes,
         contactCount: domainContactCount.get(p.reports.domain) || 0,
+        companyName: p.reports.extracted_company_name,
       })) || [];
 
       // Apply contact count filters per view
@@ -871,7 +874,14 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                       />
                     </TableCell>
                   )}
-                  <TableCell className="font-medium">{prospect.domain}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex flex-col">
+                      <span>{prospect.companyName || prospect.domain}</span>
+                      {prospect.companyName && (
+                        <span className="text-xs text-muted-foreground">{prospect.domain}</span>
+                      )}
+                    </div>
+                  </TableCell>
                   {!compact && (
                     <TableCell>
                       <div className="flex items-center gap-2">

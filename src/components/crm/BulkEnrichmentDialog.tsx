@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { auditService } from "@/services/auditService";
 import { validateSalesEmail, getEmailTypeLabel, getEmailTypeBadgeVariant } from "@/lib/emailValidation";
+import { getDisplayName } from "@/lib/crmHelpers";
 
 interface Contact {
   first_name: string;

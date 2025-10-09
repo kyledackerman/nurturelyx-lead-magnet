@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, Linkedin, Copy, CheckCircle2, Facebook } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { getDisplayName } from "@/lib/crmHelpers";
 
 interface Contact {
   id: string;
@@ -19,9 +20,10 @@ interface Contact {
 
 interface ProspectContactCardProps {
   contacts: Contact[];
+  companyName?: string | null;
 }
 
-export function ProspectContactCard({ contacts }: ProspectContactCardProps) {
+export function ProspectContactCard({ contacts, companyName }: ProspectContactCardProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const copyToClipboard = (text: string, field: string) => {
@@ -40,6 +42,13 @@ export function ProspectContactCard({ contacts }: ProspectContactCardProps) {
   }
 
   const primaryContact = contacts.find(c => c.is_primary) || contacts[0];
+  const displayName = getDisplayName(
+    companyName, 
+    primaryContact.first_name, 
+    primaryContact.last_name, 
+    primaryContact.email
+  );
+  const isCompanyName = companyName && displayName === companyName;
 
   return (
     <div className="space-y-2">
@@ -48,14 +57,18 @@ export function ProspectContactCard({ contacts }: ProspectContactCardProps) {
           <div>
             <div className="flex items-center gap-2">
               <h4 className="text-sm font-semibold">
-                {primaryContact.first_name} {primaryContact.last_name}
+                {displayName}
               </h4>
               {primaryContact.is_primary && (
                 <Badge variant="secondary" className="text-xs">Primary</Badge>
               )}
             </div>
-            {primaryContact.title && (
-              <p className="text-xs text-muted-foreground mt-1">{primaryContact.title}</p>
+            {isCompanyName ? (
+              <p className="text-xs text-muted-foreground mt-1">Company Contact</p>
+            ) : (
+              primaryContact.title && (
+                <p className="text-xs text-muted-foreground mt-1">{primaryContact.title}</p>
+              )
             )}
           </div>
         </div>
