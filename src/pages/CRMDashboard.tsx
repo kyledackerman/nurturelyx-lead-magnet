@@ -24,6 +24,20 @@ export default function CRMDashboard() {
       <CRMHeader />
       
       <div className="container mx-auto px-4 py-6 max-w-[2000px]">
+        <CRMMetrics />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 my-4">
+          <div className="lg:col-span-2">
+            <PipelineChart 
+              onStatusClick={handlePipelineClick}
+              activeStatus={pipelineStatusFilter}
+            />
+          </div>
+          <div>
+            <TasksWidget />
+          </div>
+        </div>
+
         <Tabs value={selectedView} onValueChange={(v) => setSelectedView(v as any)} className="w-full">
           <TabsList className="grid w-full max-w-4xl grid-cols-5 mb-6">
             <TabsTrigger value="new-prospects" className="flex items-center gap-2">
@@ -74,20 +88,6 @@ export default function CRMDashboard() {
           </TabsContent>
 
           <TabsContent value="dashboard" className="space-y-4">
-            <CRMMetrics />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2">
-                <PipelineChart 
-                  onStatusClick={handlePipelineClick}
-                  activeStatus={pipelineStatusFilter}
-                />
-              </div>
-              <div>
-                <TasksWidget />
-              </div>
-            </div>
-
             <CRMTableView 
               onSelectProspect={setSelectedProspectId}
               compact={false}
