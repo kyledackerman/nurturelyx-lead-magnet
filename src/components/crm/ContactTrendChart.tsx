@@ -6,8 +6,8 @@ import { format, subDays, parseISO } from "date-fns";
 
 interface TrendData {
   date: string;
-  contacted: number;
-  domains: number;
+  domainsAdded: number;
+  contactsAdded: number;
 }
 
 export const ContactTrendChart = () => {
@@ -22,39 +22,53 @@ export const ContactTrendChart = () => {
     try {
       const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
 
-      const { data: auditData, error } = await supabase
+      // Fetch domains added (prospect_activities INSERT operations)
+      const { data: domainsData, error: domainsError } = await supabase
         .from("audit_logs")
         .select("changed_at, record_id")
         .eq("table_name", "prospect_activities")
-        .eq("field_name", "status")
-        .eq("new_value", "contacted")
+        .eq("action_type", "INSERT")
         .gte("changed_at", thirtyDaysAgo)
         .order("changed_at", { ascending: true });
 
-      if (error) throw error;
+      if (domainsError) throw domainsError;
 
-      // Group by date
-      const dateMap = new Map<string, { contacted: Set<string>; count: number }>();
+      // Fetch contacts added (prospect_contacts INSERT operations)
+      const { data: contactsData, error: contactsError } = await supabase
+        .from("audit_logs")
+        .select("changed_at, record_id")
+        .eq("table_name", "prospect_contacts")
+        .eq("action_type", "INSERT")
+        .gte("changed_at", thirtyDaysAgo)
+        .order("changed_at", { ascending: true });
 
-      auditData?.forEach((log) => {
+      if (contactsError) throw contactsError;
+
+      // Group domains by date
+      const domainsMap = new Map<string, Set<string>>();
+      domainsData?.forEach((log) => {
         const date = format(parseISO(log.changed_at), "yyyy-MM-dd");
-        if (!dateMap.has(date)) {
-          dateMap.set(date, { contacted: new Set(), count: 0 });
+        if (!domainsMap.has(date)) {
+          domainsMap.set(date, new Set());
         }
-        const entry = dateMap.get(date)!;
-        entry.contacted.add(log.record_id);
-        entry.count++;
+        domainsMap.get(date)!.add(log.record_id);
+      });
+
+      // Group contacts by date
+      const contactsMap = new Map<string, number>();
+      contactsData?.forEach((log) => {
+        const date = format(parseISO(log.changed_at), "yyyy-MM-dd");
+        contactsMap.set(date, (contactsMap.get(date) || 0) + 1);
       });
 
       // Fill in missing dates with zeros
       const chartData: TrendData[] = [];
       for (let i = 29; i >= 0; i--) {
         const date = format(subDays(new Date(), i), "yyyy-MM-dd");
-        const entry = dateMap.get(date);
         chartData.push({
           date: format(parseISO(date), "MMM dd"),
-          contacted: entry?.count || 0,
-          domains: entry?.contacted.size || 0,
+          domainsAdded: domainsMap.get(date)?.size || 0,
+          contactsAdded: contactsMap.get(date) || 0,
         });
       }
 
@@ -76,14 +90,14 @@ export const ContactTrendChart = () => {
     );
   }
 
-  const hasData = data.some((d) => d.contacted > 0 || d.domains > 0);
+  const hasData = data.some((d) => d.domainsAdded > 0 || d.contactsAdded > 0);
 
   if (!hasData) {
     return (
       <Card className="p-3">
-        <h3 className="text-sm font-semibold mb-2">Contact Outreach Trends (Last 30 Days)</h3>
+        <h3 className="text-sm font-semibold mb-2">Prospects & Contacts Added (Last 30 Days)</h3>
         <div className="h-[250px] flex items-center justify-center text-muted-foreground">
-          No contact activity in the last 30 days
+          No data added in the last 30 days
         </div>
       </Card>
     );
@@ -91,7 +105,7 @@ export const ContactTrendChart = () => {
 
   return (
     <Card className="p-3">
-      <h3 className="text-sm font-semibold mb-2">Contact Outreach Trends (Last 30 Days)</h3>
+      <h3 className="text-sm font-semibold mb-2">Prospects & Contacts Added (Last 30 Days)</h3>
       <ResponsiveContainer width="100%" height={250}>
         <LineChart data={data} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
@@ -122,20 +136,20 @@ export const ContactTrendChart = () => {
           />
           <Line
             type="monotone"
-            dataKey="contacted"
+            dataKey="domainsAdded"
             stroke="#81e6d9"
             strokeWidth={2.5}
             dot={{ r: 3, fill: "#81e6d9" }}
-            name="Contacted"
+            name="Domains Added"
             activeDot={{ r: 5 }}
           />
           <Line
             type="monotone"
-            dataKey="domains"
+            dataKey="contactsAdded"
             stroke="#c084fc"
             strokeWidth={2.5}
             dot={{ r: 3, fill: "#c084fc" }}
-            name="Unique Domains"
+            name="Contacts Added"
             activeDot={{ r: 5 }}
           />
         </LineChart>
