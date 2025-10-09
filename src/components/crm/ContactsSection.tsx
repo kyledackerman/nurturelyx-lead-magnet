@@ -13,6 +13,7 @@ import { Plus, Mail, Phone, Linkedin, Edit, Trash2, User, CheckCircle2, AlertCir
 import { toast } from "sonner";
 import { auditService } from "@/services/auditService";
 import { validateSalesEmail, getEmailTypeLabel, getEmailTypeBadgeVariant } from "@/lib/emailValidation";
+import { updateProspectStatus } from "@/services/prospectService";
 
 interface Contact {
   id: string;
@@ -194,7 +195,19 @@ export default function ContactsSection({ prospectActivityId, reportId }: Contac
           `Added contact: ${firstName}${lastName ? ` ${lastName}` : ''}${title ? ` (${title})` : ""}`
         );
 
-        toast.success("Contact added");
+        // If prospect is in 'review' status, automatically update to 'enriched'
+        if (prospectStatus === 'review') {
+          try {
+            await updateProspectStatus(prospectActivityId, 'enriched');
+            setProspectStatus('enriched');
+            toast.success("Contact added and prospect moved to enriched");
+          } catch (error) {
+            console.error("Error updating status:", error);
+            toast.success("Contact added");
+          }
+        } else {
+          toast.success("Contact added");
+        }
       }
 
       setShowAddDialog(false);
