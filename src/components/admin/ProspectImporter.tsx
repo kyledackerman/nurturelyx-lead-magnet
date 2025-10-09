@@ -71,7 +71,7 @@ export const ProspectImporter = () => {
       if (data.failed === 0) {
         toast({
           title: "Import successful",
-          description: `Successfully imported ${data.success} prospects with contacts`,
+          description: `Successfully imported ${data.success} domains. Auto-enrichment will begin processing shortly.`,
         });
       } else {
         toast({
@@ -93,9 +93,10 @@ export const ProspectImporter = () => {
   };
 
   const downloadTemplate = () => {
-    const template = `domain,first_name,last_name,email,phone,title,linkedin_url,company_name
-example.com,John,Doe,john@example.com,555-1234,CEO,https://linkedin.com/in/johndoe,Example Corp
-another.com,Jane,Smith,jane@another.com,555-5678,CTO,,Another Company`;
+    const template = `domain,avg_transaction_value
+example.com,5000
+acmehvac.com,8500
+bestplumbing.com,6200`;
     
     const blob = new Blob([template], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -113,7 +114,7 @@ another.com,Jane,Smith,jane@another.com,555-5678,CTO,,Another Company`;
       <Card className="p-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Import Enriched Prospects</h3>
+            <h3 className="text-lg font-semibold">Bulk Import Domains for Enrichment</h3>
             <Button variant="outline" size="sm" onClick={downloadTemplate}>
               <Download className="h-4 w-4 mr-2" />
               Download Template
@@ -122,8 +123,8 @@ another.com,Jane,Smith,jane@another.com,555-5678,CTO,,Another Company`;
 
           <Alert>
             <AlertDescription>
-              Upload a CSV file with columns: <strong>domain</strong>, <strong>first_name</strong>, <strong>last_name</strong> (required),
-              plus optional: email, phone, title, linkedin_url, company_name
+              Upload a CSV file with columns: <strong>domain</strong> and <strong>avg_transaction_value</strong> (both required).
+              After import, domains will be automatically queued for AI enrichment.
             </AlertDescription>
           </Alert>
 

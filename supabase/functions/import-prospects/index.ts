@@ -7,13 +7,7 @@ const corsHeaders = {
 
 interface CSVRow {
   domain: string;
-  first_name: string;
-  last_name: string;
-  email?: string;
-  phone?: string;
-  title?: string;
-  linkedin_url?: string;
-  company_name?: string;
+  avg_transaction_value: string;
 }
 
 interface ImportResult {
@@ -68,7 +62,7 @@ Deno.serve(async (req) => {
     const headers = rows[0].split(',').map((h: string) => h.trim().toLowerCase());
     
     // Validate headers
-    const requiredHeaders = ['domain', 'first_name', 'last_name'];
+    const requiredHeaders = ['domain', 'avg_transaction_value'];
     const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
     if (missingHeaders.length > 0) {
       return new Response(
@@ -91,12 +85,24 @@ Deno.serve(async (req) => {
       });
 
       // Validate required fields
-      if (!row.domain || !row.first_name || !row.last_name) {
+      if (!row.domain || !row.avg_transaction_value) {
         result.failed++;
         result.errors.push({
           row: rowNum,
           domain: row.domain || 'unknown',
-          error: 'Missing required fields (domain, first_name, last_name)',
+          error: 'Missing required fields (domain, avg_transaction_value)',
+        });
+        continue;
+      }
+
+      // Validate transaction value is a positive number
+      const transactionValue = parseFloat(row.avg_transaction_value);
+      if (isNaN(transactionValue) || transactionValue <= 0) {
+        result.failed++;
+        result.errors.push({
+          row: rowNum,
+          domain: row.domain,
+          error: 'Invalid avg_transaction_value: must be a positive number',
         });
         continue;
       }
@@ -115,14 +121,33 @@ Deno.serve(async (req) => {
           .eq('domain', cleanDomain)
           .maybeSingle();
 
-        // Create report if doesn't exist
-        if (!report) {
+        // Create or update report
+        if (report) {
+          // Update existing report with transaction value
+          const { error: updateError } = await supabaseClient
+            .from('reports')
+            .update({
+              report_data: {
+                avgTransactionValue: transactionValue,
+                dataSource: 'manual'
+              }
+            })
+            .eq('id', report.id);
+
+          if (updateError) {
+            throw new Error(`Failed to update report: ${updateError.message}`);
+          }
+        } else {
+          // Create new report
           const { data: newReport, error: createError } = await supabaseClient
             .from('reports')
             .insert({
               domain: cleanDomain,
-              extracted_company_name: row.company_name || null,
-              report_data: {},
+              report_data: {
+                domain: cleanDomain,
+                avgTransactionValue: transactionValue,
+                dataSource: 'manual'
+              },
               is_public: false,
             })
             .select('id')
@@ -141,56 +166,29 @@ Deno.serve(async (req) => {
           .eq('report_id', report.id)
           .maybeSingle();
 
-        let activityId: string;
-
-        if (existingActivity) {
-          activityId = existingActivity.id;
-        } else {
-          // Create prospect activity with enriched status
-          const { data: activity, error: activityError } = await supabaseClient
+        if (!existingActivity) {
+          // Create prospect activity with 'new' status for enrichment
+          const { error: activityError } = await supabaseClient
             .from('prospect_activities')
             .insert({
               report_id: report.id,
-              status: 'enriched',
+              status: 'new',
               activity_type: 'import',
-              notes: `Imported from CSV: ${fileName}`,
+              notes: `Imported for bulk processing - awaiting enrichment`,
               priority: 'cold',
               created_by: user.id,
               assigned_to: user.id,
               assigned_by: user.id,
               assigned_at: new Date().toISOString(),
-            })
-            .select('id')
-            .single();
+            });
 
           if (activityError) {
             throw new Error(`Failed to create activity: ${activityError.message}`);
           }
-          activityId = activity.id;
-        }
-
-        // Create contact
-        const { error: contactError } = await supabaseClient
-          .from('prospect_contacts')
-          .insert({
-            prospect_activity_id: activityId,
-            report_id: report.id,
-            first_name: row.first_name,
-            last_name: row.last_name,
-            email: row.email || null,
-            phone: row.phone || null,
-            title: row.title || null,
-            linkedin_url: row.linkedin_url || null,
-            is_primary: true,
-            created_by: user.id,
-          });
-
-        if (contactError) {
-          throw new Error(`Failed to create contact: ${contactError.message}`);
         }
 
         result.success++;
-        console.log(`Successfully imported: ${cleanDomain}`);
+        console.log(`Successfully imported domain: ${cleanDomain} with transaction value: ${transactionValue}`);
 
       } catch (error) {
         result.failed++;
