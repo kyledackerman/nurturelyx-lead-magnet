@@ -59,7 +59,7 @@ export default function TrendChartWithStats({
       // Group by date
       const recordsMap = new Map<string, Set<string>>();
       logsData?.forEach((log) => {
-        const date = format(parseISO(log.changed_at), "yyyy-MM-dd");
+        const date = log.changed_at.split('T')[0]; // Extract date in UTC to avoid timezone conversion
         if (!recordsMap.has(date)) {
           recordsMap.set(date, new Set());
         }
