@@ -105,18 +105,16 @@ serve(async (req) => {
     // Clean domain to prevent duplicates (strip http/https, www, paths)
     const sanitizedDomain = cleanDomain(reportData.domain);
 
-    // Generate unique slug
-    const { data: slugData, error: slugError } = await supabase.rpc(
-      'generate_report_slug', 
-      { domain_name: sanitizedDomain }
-    );
+    // Check if a report already exists for this domain
+    const { data: existingReport, error: lookupError } = await supabase
+      .from('reports')
+      .select('id, slug, report_data, created_at')
+      .eq('domain', sanitizedDomain)
+      .maybeSingle();
 
-    if (slugError) {
-      console.error('Error generating slug:', slugError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to generate report slug' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (lookupError) {
+      console.error('Error checking for existing report:', lookupError);
+      // Continue to create new report if lookup fails
     }
 
     // Auto-categorize the report using sanitized domain
@@ -132,31 +130,86 @@ serve(async (req) => {
 
     console.log(`Auto-categorized: ${sanitizedDomain} → ${industry} (${companySize}, ${trafficTier})`);
 
-    // Save report to database with categorization using sanitized domain
-    const { data, error } = await supabase
-      .from('reports')
-      .insert({
-        user_id: userId,
-        domain: sanitizedDomain,
-        report_data: { ...reportData, domain: sanitizedDomain },
-        slug: slugData,
-        is_public: true,
-        industry: industry,
-        company_size: companySize,
-        monthly_traffic_tier: trafficTier,
-        seo_title: seoTitle,
-        seo_description: seoDescription,
-        extracted_company_name: companyName,
-      })
-      .select('id, slug')
-      .single();
+    // Use existing report or create new one
+    let reportId: string;
+    let reportSlug: string;
 
-    if (error) {
-      console.error('Error saving report:', error);
-      return new Response(
-        JSON.stringify({ error: 'Unable to save report. Please try again.' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    if (existingReport) {
+      console.log(`Reusing existing report for ${sanitizedDomain} (ID: ${existingReport.id})`);
+      
+      // Update existing report with new data
+      const { data: updatedReport, error: updateError } = await supabase
+        .from('reports')
+        .update({
+          report_data: { ...reportData, domain: sanitizedDomain },
+          industry: industry,
+          company_size: companySize,
+          monthly_traffic_tier: trafficTier,
+          seo_title: seoTitle,
+          seo_description: seoDescription,
+          extracted_company_name: companyName,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existingReport.id)
+        .select('id, slug')
+        .single();
+
+      if (updateError) {
+        console.error('Error updating existing report:', updateError);
+        return new Response(
+          JSON.stringify({ error: 'Unable to update report. Please try again.' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      reportId = updatedReport.id;
+      reportSlug = updatedReport.slug;
+    } else {
+      console.log(`Creating new report for ${sanitizedDomain}`);
+      
+      // Generate unique slug only for new reports
+      const { data: slugData, error: slugError } = await supabase.rpc(
+        'generate_report_slug', 
+        { domain_name: sanitizedDomain }
       );
+
+      if (slugError) {
+        console.error('Error generating slug:', slugError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to generate report slug' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Create new report
+      const { data: newReport, error: insertError } = await supabase
+        .from('reports')
+        .insert({
+          user_id: userId,
+          domain: sanitizedDomain,
+          report_data: { ...reportData, domain: sanitizedDomain },
+          slug: slugData,
+          is_public: true,
+          industry: industry,
+          company_size: companySize,
+          monthly_traffic_tier: trafficTier,
+          seo_title: seoTitle,
+          seo_description: seoDescription,
+          extracted_company_name: companyName,
+        })
+        .select('id, slug')
+        .single();
+
+      if (insertError) {
+        console.error('Error creating report:', insertError);
+        return new Response(
+          JSON.stringify({ error: 'Unable to save report. Please try again.' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      reportId = newReport.id;
+      reportSlug = newReport.slug;
     }
 
     // Auto-assign prospect to CRM if report shows lead potential
@@ -180,7 +233,7 @@ serve(async (req) => {
             const { data: existingActivity } = await supabase
               .from('prospect_activities')
               .select('id')
-              .eq('report_id', data.id)
+              .eq('report_id', reportId)
               .maybeSingle();
             
             if (!existingActivity) {
@@ -198,7 +251,7 @@ serve(async (req) => {
               const { error: activityError } = await supabase
                 .from('prospect_activities')
                 .insert({
-                  report_id: data.id,
+                  report_id: reportId,
                   activity_type: 'assignment',
                   assigned_to: userId,
                   assigned_by: userId,
@@ -215,7 +268,7 @@ serve(async (req) => {
                 console.log(`✅ Auto-assigned prospect for ${sanitizedDomain}: ${missedLeads} leads/month (${priority} priority)`);
               }
             } else {
-              console.log(`Skipping auto-assignment: prospect activity already exists for report ${data.id}`);
+              console.log(`Skipping auto-assignment: prospect activity already exists for report ${reportId}`);
             }
           } else {
             console.log(`Skipping auto-assignment: no lead potential (${missedLeads} missed leads)`);
@@ -227,12 +280,12 @@ serve(async (req) => {
       }
     }
 
-    const publicUrl = `https://x1.nurturely.io/report/${data.slug}`;
+    const publicUrl = `https://x1.nurturely.io/report/${reportSlug}`;
 
     return new Response(
       JSON.stringify({ 
-        reportId: data.id, 
-        slug: data.slug,
+        reportId: reportId, 
+        slug: reportSlug,
         publicUrl,
         success: true 
       }),
