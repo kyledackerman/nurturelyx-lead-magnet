@@ -1,11 +1,10 @@
 // Email validation utility for sales-focused contact enrichment
 
-const GENERIC_PREFIXES = [
-  'info', 'contact', 'admin', 'support', 'help',
-  'sales', 'marketing', 'legal', 'privacy',
-  'supplier', 'billing', 'accounts', 'finance',
+const AVOID_PREFIXES = [
+  'legal', 'privacy', 'supplier', 'billing', 'accounts', 'finance',
   'hr', 'jobs', 'careers', 'noreply', 'no-reply',
-  'webmaster', 'postmaster', 'abuse', 'security'
+  'webmaster', 'postmaster', 'abuse', 'security',
+  'devnull', 'bounce', 'unsubscribe'
 ];
 
 const PERSONAL_DOMAINS = [
@@ -25,8 +24,9 @@ export interface EmailValidationResult {
 
 /**
  * Validates email for sales/marketing focus
- * Accepts: Personal emails (Gmail, Yahoo, etc.) and person-specific work emails
- * Rejects: Generic role emails (legal@, supplier@, privacy@, etc.)
+ * Accepts: Personal emails (Gmail, Yahoo, etc.), person-specific work emails,
+ *          AND sales-friendly contact emails (info@, contact@, sales@, support@)
+ * Rejects: Non-sales departments (legal@, privacy@, supplier@, billing@, hr@, etc.)
  */
 export function validateSalesEmail(email: string): EmailValidationResult {
   // Basic format validation
@@ -60,8 +60,8 @@ export function validateSalesEmail(email: string): EmailValidationResult {
   // Check if personal email domain
   const isPersonal = PERSONAL_DOMAINS.includes(domain);
   
-  // Check if generic prefix
-  const isGeneric = GENERIC_PREFIXES.some(prefix => 
+  // Check if avoided prefix (non-sales departments)
+  const isGeneric = AVOID_PREFIXES.some(prefix => 
     localPart === prefix || localPart.startsWith(`${prefix}.`) || localPart.startsWith(`${prefix}-`)
   );
 
@@ -82,7 +82,7 @@ export function validateSalesEmail(email: string): EmailValidationResult {
       isPersonal,
       isGeneric: true,
       emailType: 'generic',
-      warning: `Generic email detected (${localPart}@). We avoid role-based emails like legal@, supplier@, privacy@ for sales outreach.`
+      warning: `Non-sales department email detected (${localPart}@). We avoid emails like legal@, privacy@, supplier@, hr@ for sales outreach.`
     };
   }
 
@@ -114,7 +114,7 @@ export function getEmailTypeLabel(result: EmailValidationResult): string {
     case 'corporate-person':
       return 'Work Email';
     case 'generic':
-      return 'Generic Email';
+      return 'Avoided Email';
     case 'invalid':
       return 'Invalid Email';
   }
