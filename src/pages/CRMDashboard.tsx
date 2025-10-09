@@ -7,7 +7,7 @@ import CRMTableView from "@/components/crm/CRMTableView";
 import TasksWidget from "@/components/crm/TasksWidget";
 import ProspectDetailPanel from "@/components/crm/ProspectDetailPanel";
 import { AutoEnrichmentBar } from "@/components/crm/AutoEnrichmentBar";
-import PipelineChart from "@/components/crm/PipelineChart";
+import PipelineStatusCards from "@/components/crm/PipelineStatusCards";
 
 export default function CRMDashboard() {
   const [selectedView, setSelectedView] = useState<"new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed">("dashboard");
@@ -48,20 +48,6 @@ export default function CRMDashboard() {
             </TabsTrigger>
           </TabsList>
 
-          <CRMMetrics />
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 my-4">
-            <div className="lg:col-span-2">
-              <PipelineChart 
-                onStatusClick={handlePipelineClick}
-                activeStatus={pipelineStatusFilter}
-              />
-            </div>
-            <div>
-              <TasksWidget />
-            </div>
-          </div>
-
           <TabsContent value="new-prospects">
             <CRMTableView 
               onSelectProspect={setSelectedProspectId}
@@ -88,6 +74,20 @@ export default function CRMDashboard() {
           </TabsContent>
 
           <TabsContent value="dashboard" className="space-y-4">
+            <CRMMetrics />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-1">
+                <TasksWidget />
+              </div>
+              <div className="lg:col-span-2">
+                <PipelineStatusCards 
+                  onStatusClick={handlePipelineClick}
+                  activeStatus={pipelineStatusFilter}
+                />
+              </div>
+            </div>
+
             <CRMTableView 
               onSelectProspect={setSelectedProspectId}
               compact={false}
