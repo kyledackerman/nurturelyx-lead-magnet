@@ -575,6 +575,17 @@ export type Database = {
         Args: { domain_name: string }
         Returns: string
       }
+      get_crm_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_domain_contact_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          contact_count: number
+          domain: string
+        }[]
+      }
       is_admin: {
         Args: { user_uuid?: string }
         Returns: boolean

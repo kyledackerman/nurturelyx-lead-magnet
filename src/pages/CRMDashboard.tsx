@@ -10,6 +10,8 @@ import { AutoEnrichmentBar } from "@/components/crm/AutoEnrichmentBar";
 import PipelineStatusCards from "@/components/crm/PipelineStatusCards";
 import { ContactTrendChart } from "@/components/crm/ContactTrendChart";
 import { ProspectTrendChart } from "@/components/crm/ProspectTrendChart";
+import { CRMRealtimeProvider } from "@/contexts/CRMRealtimeContext";
+import { CRMErrorBoundary } from "@/components/crm/CRMErrorBoundary";
 
 export default function CRMDashboard() {
   const [selectedView, setSelectedView] = useState<"new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed">("dashboard");
@@ -22,8 +24,9 @@ export default function CRMDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <CRMHeader />
+    <CRMRealtimeProvider>
+      <div className="min-h-screen bg-background">
+        <CRMHeader />
       
       <div className="container mx-auto px-4 py-6 max-w-[2000px]">
         <Tabs value={selectedView} onValueChange={(v) => setSelectedView(v as any)} className="w-full">
@@ -118,6 +121,7 @@ export default function CRMDashboard() {
           onClose={() => setSelectedProspectId(null)}
         />
       )}
-    </div>
+      </div>
+    </CRMRealtimeProvider>
   );
 }
