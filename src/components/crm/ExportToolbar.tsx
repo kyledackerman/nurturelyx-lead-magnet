@@ -1,6 +1,6 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Download, X, Loader2, Target, CheckCircle, XCircle, AlertCircle, MessageSquare, FileCheck } from "lucide-react";
+import { Download, X, Loader2, Target, CheckCircle, XCircle, AlertCircle, MessageSquare, FileCheck, RefreshCw, FileText, Eye, Sparkles } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 interface ExportToolbarProps {
@@ -86,7 +86,20 @@ export default function ExportToolbar({
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => onBulkStatusUpdate('new')}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Mark as New
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onBulkStatusUpdate('enriching')}>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Mark as Enriching
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onBulkStatusUpdate('review')}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Mark as Review
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onBulkStatusUpdate('enriched')}>
                   <FileCheck className="h-4 w-4 mr-2" />
                   Mark as Enriched
@@ -96,7 +109,7 @@ export default function ExportToolbar({
                   Mark as Contacted
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onBulkStatusUpdate('proposal')}>
-                  <FileCheck className="h-4 w-4 mr-2" />
+                  <FileText className="h-4 w-4 mr-2" />
                   Mark as Proposal
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
