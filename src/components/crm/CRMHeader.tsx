@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import ReEnrichContactedButton from "./ReEnrichContactedButton";
 
 export default function CRMHeader() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export default function CRMHeader() {
               <ArrowLeft className="h-4 w-4" />
               Back to Admin
             </Button>
+            <ReEnrichContactedButton />
             <div>
               <h1 className="text-2xl font-bold">CRM Dashboard</h1>
               <p className="text-sm text-muted-foreground">
