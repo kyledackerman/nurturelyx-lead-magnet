@@ -76,15 +76,12 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        auto_enrichment_enabled: settings.auto_enrichment_enabled,
-        last_run_at: settings.last_run_at,
+        enabled: settings.auto_enrichment_enabled,
+        last_run: settings.last_run_at,
         queue_count: queueCount || 0,
-        review_count: reviewCount || 0,
-        last_24h: {
-          processed,
-          succeeded,
-          failed
-        },
+        needs_review_count: reviewCount || 0,
+        last_24h_attempts: processed,
+        last_24h_successful: succeeded,
         total_enriched: settings.total_enriched,
         total_failed: settings.total_failed
       }),
