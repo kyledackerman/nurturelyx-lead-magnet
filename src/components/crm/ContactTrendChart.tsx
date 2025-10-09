@@ -55,10 +55,13 @@ export const ContactTrendChart = () => {
       });
 
       // Group contacts by date
-      const contactsMap = new Map<string, number>();
+      const contactsMap = new Map<string, Set<string>>();
       contactsData?.forEach((log) => {
         const date = format(parseISO(log.changed_at), "yyyy-MM-dd");
-        contactsMap.set(date, (contactsMap.get(date) || 0) + 1);
+        if (!contactsMap.has(date)) {
+          contactsMap.set(date, new Set());
+        }
+        contactsMap.get(date)!.add(log.record_id);
       });
 
       // Fill in missing dates with zeros
@@ -68,7 +71,7 @@ export const ContactTrendChart = () => {
         chartData.push({
           date: format(parseISO(date), "MMM dd"),
           domainsAdded: domainsMap.get(date)?.size || 0,
-          contactsAdded: contactsMap.get(date) || 0,
+          contactsAdded: contactsMap.get(date)?.size || 0,
         });
       }
 
