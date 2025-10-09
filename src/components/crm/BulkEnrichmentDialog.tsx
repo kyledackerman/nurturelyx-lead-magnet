@@ -253,7 +253,7 @@ export default function BulkEnrichmentDialog({
 
           // Update activity status to enriched if it was enriching
           const currentStatus = activityStatus;
-          if (currentStatus === 'enriching' || currentStatus === 'new') {
+          if (currentStatus === 'enriching' || currentStatus === 'new' || currentStatus === 'review') {
             const { error: statusError } = await supabase
               .from('prospect_activities')
               .update({ status: 'enriched' })
