@@ -76,7 +76,7 @@ export default function CRMDashboard() {
           </TabsContent>
 
           <TabsContent value="dashboard" className="space-y-4">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <ProspectTrendChart />
               <ContactTrendChart />
             </div>
