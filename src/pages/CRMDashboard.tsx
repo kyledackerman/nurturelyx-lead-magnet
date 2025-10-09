@@ -8,6 +8,7 @@ import TasksWidget from "@/components/crm/TasksWidget";
 import ProspectDetailPanel from "@/components/crm/ProspectDetailPanel";
 import { AutoEnrichmentBar } from "@/components/crm/AutoEnrichmentBar";
 import PipelineStatusCards from "@/components/crm/PipelineStatusCards";
+import { ContactTrendChart } from "@/components/crm/ContactTrendChart";
 
 export default function CRMDashboard() {
   const [selectedView, setSelectedView] = useState<"new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed">("dashboard");
@@ -74,6 +75,8 @@ export default function CRMDashboard() {
           </TabsContent>
 
           <TabsContent value="dashboard" className="space-y-4">
+            <ContactTrendChart />
+            
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-1">
                 <TasksWidget />
