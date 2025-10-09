@@ -277,6 +277,16 @@ Deno.serve(async (req) => {
     const { csvData, fileName } = await req.json();
     console.log(`Processing import: ${fileName}`);
 
+    // Find Kyle's user ID for assignment
+    const { data: kyleUser } = await supabaseClient
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'super_admin')
+      .limit(1)
+      .single();
+    
+    const kyleUserId = kyleUser?.user_id || user.id; // Fallback to current user if Kyle not found
+
     // Parse CSV
     const rows = csvData.split('\n').map((line: string) => line.trim()).filter(Boolean);
     const headers = rows[0].split(',').map((h: string) => h.trim().toLowerCase());
@@ -410,12 +420,13 @@ Deno.serve(async (req) => {
             throw new Error(`Failed to generate slug: ${slugError.message}`);
           }
 
-          // Create new report with full data
+          // Create new report with full data (user_id = null for admin imports)
           const { data: newReport, error: createError } = await supabaseClient
             .from('reports')
             .insert({
               domain: cleanedDomain,
               slug: slugData,
+              user_id: null, // Mark as admin import, not a user report
               report_data: {
                 domain: cleanedDomain,
                 avgTransactionValue: transactionValue,
@@ -455,7 +466,7 @@ Deno.serve(async (req) => {
           .maybeSingle();
 
         if (!existingActivity) {
-          // Create prospect activity with 'new' status for AI enrichment
+          // Create prospect activity assigned to Kyle for AI enrichment
           const { error: activityError } = await supabaseClient
             .from('prospect_activities')
             .insert({
@@ -465,7 +476,7 @@ Deno.serve(async (req) => {
               notes: `Bulk imported with full report - awaiting AI enrichment for contacts and icebreakers`,
               priority: 'cold',
               created_by: user.id,
-              assigned_to: user.id,
+              assigned_to: kyleUserId,
               assigned_by: user.id,
               assigned_at: new Date().toISOString(),
             });
