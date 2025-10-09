@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LayoutDashboard, UserCheck, Search, Target, CheckCircle, Sparkles } from "lucide-react";
+import { LayoutDashboard, UserCheck, Search, Target, CheckCircle, Sparkles, AlertCircle } from "lucide-react";
 import CRMHeader from "@/components/crm/CRMHeader";
 import CRMMetrics from "@/components/crm/CRMMetrics";
 import CRMTableView from "@/components/crm/CRMTableView";
@@ -14,7 +14,7 @@ import { CRMRealtimeProvider } from "@/contexts/CRMRealtimeContext";
 import { CRMErrorBoundary } from "@/components/crm/CRMErrorBoundary";
 
 export default function CRMDashboard() {
-  const [selectedView, setSelectedView] = useState<"new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed">("dashboard");
+  const [selectedView, setSelectedView] = useState<"new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review">("dashboard");
   const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
   const [pipelineStatusFilter, setPipelineStatusFilter] = useState<string | null>(null);
 
@@ -30,10 +30,14 @@ export default function CRMDashboard() {
       
       <div className="container mx-auto px-4 py-6 max-w-[2000px]">
         <Tabs value={selectedView} onValueChange={(v) => setSelectedView(v as any)} className="w-full">
-          <TabsList className="grid w-full max-w-4xl grid-cols-5 mb-6">
+          <TabsList className="grid w-full max-w-5xl grid-cols-6 mb-6">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
               Active Pipeline
+            </TabsTrigger>
+            <TabsTrigger value="needs-review" className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              Needs Review
             </TabsTrigger>
             <TabsTrigger value="new-prospects" className="flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
@@ -52,6 +56,14 @@ export default function CRMDashboard() {
               Closed Deals
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="needs-review">
+            <CRMTableView 
+              onSelectProspect={setSelectedProspectId}
+              compact={false}
+              view="needs-review"
+            />
+          </TabsContent>
 
           <TabsContent value="new-prospects">
             <CRMTableView 

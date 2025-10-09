@@ -44,7 +44,7 @@ interface ProspectRow {
 interface CRMTableViewProps {
   onSelectProspect: (id: string) => void;
   compact?: boolean;
-  view?: 'new-prospects' | 'needs-enrichment' | 'ready-outreach' | 'active' | 'closed';
+  view?: 'new-prospects' | 'needs-enrichment' | 'ready-outreach' | 'active' | 'closed' | 'needs-review';
   externalStatusFilter?: string | null;
 }
 
@@ -135,21 +135,23 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
           )
         `);
 
-      // Filter based on view
-      if (view === 'new-prospects') {
-        query = query.eq('status', 'new');
-      } else if (view === 'needs-enrichment') {
-        query = query.in('status', ['enriching', 'review']);
-      } else if (view === 'ready-outreach') {
-        query = query.eq('status', 'enriched');
-      } else if (view === 'active') {
-        query = query.in('status', ['contacted', 'proposal']);
-      } else if (view === 'closed') {
-        query = query.in('status', ['closed_won', 'closed_lost']);
-      } else {
-        // Fallback: show all active statuses
-        query = query.in('status', ['new', 'enriching', 'review', 'enriched', 'contacted', 'proposal']);
-      }
+    // Filter based on view
+    if (view === 'new-prospects') {
+      query = query.eq('status', 'new');
+    } else if (view === 'needs-enrichment') {
+      query = query.eq('status', 'enriching');
+    } else if (view === 'needs-review') {
+      query = query.eq('status', 'review');
+    } else if (view === 'ready-outreach') {
+      query = query.eq('status', 'enriched');
+    } else if (view === 'active') {
+      query = query.in('status', ['contacted', 'proposal']);
+    } else if (view === 'closed') {
+      query = query.in('status', ['closed_won', 'closed_lost']);
+    } else {
+      // Fallback: show all active statuses
+      query = query.in('status', ['new', 'enriching', 'review', 'enriched', 'contacted', 'proposal']);
+    }
 
       const { data, error } = await query;
 
@@ -217,6 +219,9 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       if (view === 'needs-enrichment') {
         // Needs enrichment: only show prospects with 0 contacts
         mapped = mapped.filter(p => p.contactCount === 0);
+      } else if (view === 'needs-review') {
+        // Needs review: show ALL review status prospects regardless of contact count
+        // No filter needed
       } else if (view === 'ready-outreach') {
         // Ready for outreach: only show enriched prospects with contacts
         mapped = mapped.filter(p => p.contactCount > 0);
