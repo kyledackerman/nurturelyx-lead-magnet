@@ -328,29 +328,9 @@ Extract the proper company name and all contact information. Return ONLY the JSO
                 .eq("id", prospect.report_id);
             }
 
-            // Update prospect status
-            await supabase
-              .from("prospect_activities")
-              .update({
-                status: "enriched",
-                enrichment_source: "bulk_ai",
-              })
-              .eq("id", prospectId);
-
-            // Log to audit trail
-            const contextParts = [`Bulk enrichment: extracted ${contactsInserted} contacts`];
-            if (companyNameUpdated) contextParts.push(`updated company name to "${companyName}"`);
-            if (industryUpdated) contextParts.push(`set industry to "${detectedIndustry}"`);
-            contextParts.push(`from ${domain}`);
-            
-            await supabase.rpc("log_business_context", {
-              p_table_name: "prospect_activities",
-              p_record_id: prospectId,
-              p_context: contextParts.join(", "),
-            });
-
             // Generate personalized icebreaker using AI with Google Search grounding
             console.log(`🎯 Generating personalized icebreaker for ${domain}...`);
+            let icebreakerGenerated = false;
             try {
               // Check if icebreaker already exists
               const { data: existingIcebreaker } = await supabase
@@ -446,6 +426,7 @@ Now search the web and write the icebreaker:
                       .eq('id', prospectId);
 
                     console.log(`✅ Icebreaker generated for ${domain}`);
+                    icebreakerGenerated = true;
                   }
                 } else {
                   const errorText = await icebreakerResponse.text();
@@ -453,11 +434,38 @@ Now search the web and write the icebreaker:
                 }
               } else {
                 console.log(`ℹ️ Icebreaker already exists for ${domain}, skipping generation`);
+                icebreakerGenerated = true;
               }
             } catch (icebreakerErr) {
               console.error(`⚠️ Icebreaker generation error for ${domain}:`, icebreakerErr);
               // Silent fail - enrichment still succeeds
             }
+
+            // Determine final status: enriched ONLY if we have BOTH contacts AND icebreaker
+            const finalStatus = (contactsInserted > 0 && icebreakerGenerated) ? "enriched" : "review";
+
+            // Update prospect status AFTER both contacts and icebreaker attempts
+            await supabase
+              .from("prospect_activities")
+              .update({
+                status: finalStatus,
+                enrichment_source: "bulk_ai",
+              })
+              .eq("id", prospectId);
+
+            // Log to audit trail
+            const contextParts = [`Bulk enrichment: extracted ${contactsInserted} contacts`];
+            if (icebreakerGenerated) contextParts.push('generated icebreaker');
+            if (companyNameUpdated) contextParts.push(`updated company name to "${companyName}"`);
+            if (industryUpdated) contextParts.push(`set industry to "${detectedIndustry}"`);
+            contextParts.push(`from ${domain}`);
+            contextParts.push(`final status: ${finalStatus}`);
+            
+            await supabase.rpc("log_business_context", {
+              p_table_name: "prospect_activities",
+              p_record_id: prospectId,
+              p_context: contextParts.join(", "),
+            });
 
             // Send success update
             controller.enqueue(

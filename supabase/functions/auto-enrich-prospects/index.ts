@@ -326,8 +326,8 @@ Create a personalized opener that references something specific about their busi
           console.log(`Icebreaker already exists for ${domain}, skipping generation`);
         }
 
-        // Determine final status: enriched if we have contacts OR icebreaker, otherwise review
-        const finalStatus = (contactsFound > 0 || icebreakerGenerated) ? "enriched" : "review";
+        // Determine final status: enriched ONLY if we have BOTH contacts AND icebreaker
+        const finalStatus = (contactsFound > 0 && icebreakerGenerated) ? "enriched" : "review";
 
         // Update prospect status
         await supabase
