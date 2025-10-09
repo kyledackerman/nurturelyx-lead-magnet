@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     // Fetch prospect data with report information
     const { data: prospects, error: fetchError } = await supabase
       .from('prospect_activities')
-      .select('id, report_id, assigned_to, lost_reason, lost_notes, reports!inner(domain, slug, report_data, extracted_company_name)')
+      .select('id, report_id, assigned_to, lost_reason, lost_notes, icebreaker_text, icebreaker_generated_at, reports!inner(domain, slug, report_data, extracted_company_name)')
       .in('id', prospectIds);
 
     if (fetchError) {
@@ -99,9 +99,18 @@ Deno.serve(async (req) => {
 
     // Build CSV
     const csvRows: string[] = [];
-    csvRows.push('First Name,Company Name,Email,Domain,Report URL,Monthly Traffic,Estimated Leads,Missed Sales,Monthly Revenue Loss');
+    csvRows.push('First Name,Company Name,Email,Domain,Icebreaker,Report URL,Monthly Traffic,Estimated Leads,Missed Sales,Monthly Revenue Loss');
 
     const domains: string[] = [];
+    
+    const escapeCsv = (value: any): string => {
+      if (value === null || value === undefined) return '';
+      const stringValue = String(value);
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    };
 
     for (const prospect of prospects) {
       const reportData = prospect.reports.report_data as any;
@@ -117,6 +126,8 @@ Deno.serve(async (req) => {
         ? (adminMap.get(prospect.assigned_to) || 'Unknown Admin')
         : 'Unassigned';
 
+      const icebreaker = escapeCsv(prospect.icebreaker_text || '');
+
       const prospectContacts = contactsByProspect.get(prospect.id) || [];
       
       // Filter contacts based on export option
@@ -131,6 +142,7 @@ Deno.serve(async (req) => {
           companyName,
           '', // No email
           domain,
+          icebreaker,
           reportUrl,
           reportData.organicTraffic || '0',
           reportData.missedLeads || '0',
@@ -138,39 +150,24 @@ Deno.serve(async (req) => {
           reportData.monthlyRevenueLost || '0',
         ];
 
-        const escapedRow = row.map(value => {
-          const str = String(value);
-          if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-            return `"${str.replace(/"/g, '""')}"`;
-          }
-          return str;
-        });
-
-        csvRows.push(escapedRow.join(','));
+        csvRows.push(row.join(','));
       } else {
         // Create a row for each contact
         for (const contact of contactsToExport) {
           const row = [
-            contact.first_name || '',
-            companyName,
-            contact.email || '',
-            domain,
-            reportUrl,
-            reportData.organicTraffic || '0',
-            reportData.missedLeads || '0',
-            reportData.estimatedSalesLost || '0',
-            reportData.monthlyRevenueLost || '0',
+            escapeCsv(contact.first_name || ''),
+            escapeCsv(companyName),
+            escapeCsv(contact.email || ''),
+            escapeCsv(domain),
+            icebreaker,
+            escapeCsv(reportUrl),
+            escapeCsv(reportData.organicTraffic || '0'),
+            escapeCsv(reportData.missedLeads || '0'),
+            escapeCsv(reportData.estimatedSalesLost || '0'),
+            escapeCsv(reportData.monthlyRevenueLost || '0'),
           ];
 
-          const escapedRow = row.map(value => {
-            const str = String(value);
-            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-              return `"${str.replace(/"/g, '""')}"`;
-            }
-            return str;
-          });
-
-          csvRows.push(escapedRow.join(','));
+          csvRows.push(row.join(','));
         }
       }
     }

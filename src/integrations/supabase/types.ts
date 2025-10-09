@@ -147,6 +147,9 @@ export type Database = {
           created_by: string | null
           enrichment_retry_count: number | null
           enrichment_source: string | null
+          icebreaker_edited_manually: boolean | null
+          icebreaker_generated_at: string | null
+          icebreaker_text: string | null
           id: string
           last_enrichment_attempt: string | null
           lost_notes: string | null
@@ -170,6 +173,9 @@ export type Database = {
           created_by?: string | null
           enrichment_retry_count?: number | null
           enrichment_source?: string | null
+          icebreaker_edited_manually?: boolean | null
+          icebreaker_generated_at?: string | null
+          icebreaker_text?: string | null
           id?: string
           last_enrichment_attempt?: string | null
           lost_notes?: string | null
@@ -193,6 +199,9 @@ export type Database = {
           created_by?: string | null
           enrichment_retry_count?: number | null
           enrichment_source?: string | null
+          icebreaker_edited_manually?: boolean | null
+          icebreaker_generated_at?: string | null
+          icebreaker_text?: string | null
           id?: string
           last_enrichment_attempt?: string | null
           lost_notes?: string | null

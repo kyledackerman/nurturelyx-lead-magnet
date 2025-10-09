@@ -327,6 +327,33 @@ Extract the proper company name and all contact information. Return ONLY the JSO
       p_context: contextParts.join(", "),
     });
 
+    // Generate personalized icebreaker using AI
+    console.log(`🎯 Generating personalized icebreaker for ${domain}...`);
+    try {
+      const { data: icebreakerData, error: icebreakerError } = await supabaseClient.functions.invoke(
+        'generate-icebreaker',
+        {
+          body: {
+            prospect_activity_id: prospect_id,
+            domain: domain,
+            company_name: companyName,
+            scraped_content: scrapedData,
+            force_regenerate: false
+          }
+        }
+      );
+
+      if (icebreakerError) {
+        console.error('⚠️ Icebreaker generation failed:', icebreakerError);
+        // Don't fail enrichment - icebreaker is optional
+      } else {
+        console.log('✅ Icebreaker generated successfully');
+      }
+    } catch (icebreakerErr) {
+      console.error('⚠️ Icebreaker generation error:', icebreakerErr);
+      // Silent fail - enrichment still succeeds
+    }
+
     const messageParts = [];
     if (contactsInserted > 0) messageParts.push(`Found ${contactsInserted} contact${contactsInserted > 1 ? "s" : ""}`);
     if (companyNameUpdated) messageParts.push(`Company: "${companyName}"`);

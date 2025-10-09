@@ -7,7 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { ExternalLink, ChevronDown, ChevronUp, Plus, Clock, Sparkles, Facebook } from "lucide-react";
+import { ExternalLink, ChevronDown, ChevronUp, Plus, Clock, Sparkles, Facebook, MessageSquare, Copy, Edit2, RefreshCw } from "lucide-react";
 import { ProspectMetricsCard } from "./ProspectMetricsCard";
 import { ProspectStatusBar } from "./ProspectStatusBar";
 import { ProspectTaskPanel } from "./ProspectTaskPanel";
@@ -36,6 +36,10 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
   const [isEditingFacebookUrl, setIsEditingFacebookUrl] = useState(false);
   const [facebookUrlInput, setFacebookUrlInput] = useState("");
   const [isSavingFacebookUrl, setIsSavingFacebookUrl] = useState(false);
+  const [isEditingIcebreaker, setIsEditingIcebreaker] = useState(false);
+  const [icebreakerInput, setIcebreakerInput] = useState("");
+  const [isRegeneratingIcebreaker, setIsRegeneratingIcebreaker] = useState(false);
+  const [isSavingIcebreaker, setIsSavingIcebreaker] = useState(false);
 
   useEffect(() => {
     if (prospectId) {
@@ -89,6 +93,9 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
         .from("prospect_activities")
         .select(`
           *,
+          icebreaker_text,
+          icebreaker_generated_at,
+          icebreaker_edited_manually,
           reports!inner(
             id,
             domain,
@@ -458,6 +465,72 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
     }
   };
 
+  const regenerateIcebreaker = async () => {
+    setIsRegeneratingIcebreaker(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-icebreaker', {
+        body: {
+          prospect_activity_id: prospectId,
+          domain: prospect?.reports?.domain,
+          company_name: prospect?.reports?.extracted_company_name,
+          force_regenerate: true
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success("Icebreaker regenerated!");
+      fetchProspectDetails();
+    } catch (error) {
+      console.error('Error regenerating icebreaker:', error);
+      toast.error("Failed to regenerate icebreaker");
+    } finally {
+      setIsRegeneratingIcebreaker(false);
+    }
+  };
+
+  const saveIcebreaker = async () => {
+    if (!icebreakerInput.trim()) {
+      toast.error("Icebreaker cannot be empty");
+      return;
+    }
+
+    setIsSavingIcebreaker(true);
+    try {
+      const { error } = await supabase
+        .from('prospect_activities')
+        .update({
+          icebreaker_text: icebreakerInput.trim(),
+          icebreaker_edited_manually: true
+        })
+        .eq('id', prospectId);
+
+      if (error) throw error;
+
+      await auditService.logBusinessContext(
+        'prospect_activities',
+        prospectId,
+        'Icebreaker manually edited'
+      );
+
+      toast.success("Icebreaker updated!");
+      setIsEditingIcebreaker(false);
+      fetchProspectDetails();
+    } catch (error) {
+      console.error('Error saving icebreaker:', error);
+      toast.error("Failed to save icebreaker");
+    } finally {
+      setIsSavingIcebreaker(false);
+    }
+  };
+
+  const copyIcebreaker = () => {
+    if (prospect?.icebreaker_text) {
+      navigator.clipboard.writeText(prospect.icebreaker_text);
+      toast.success("Icebreaker copied to clipboard!");
+    }
+  };
+
   const nextAction = pendingTasks.length > 0
     ? { type: 'task', date: pendingTasks[0].due_date, title: pendingTasks[0].title }
     : prospect?.next_follow_up
@@ -625,6 +698,112 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
                           setFacebookUrlInput("");
                         }}
                         disabled={isSavingFacebookUrl}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Icebreaker Section */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  💬 Outreach Opener
+                </h3>
+                {prospect?.icebreaker_generated_at && !isEditingIcebreaker && (
+                  <span className="text-xs text-muted-foreground">
+                    {prospect.icebreaker_edited_manually ? 'Edited ' : 'Generated '}
+                    {format(new Date(prospect.icebreaker_generated_at), "MMM dd, h:mm a")}
+                  </span>
+                )}
+              </div>
+              
+              <div className="p-3 bg-blue-500/5 border border-blue-500/20 rounded-lg space-y-2">
+                {!isEditingIcebreaker ? (
+                  <>
+                    {prospect?.icebreaker_text ? (
+                      <>
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                          {prospect.icebreaker_text}
+                        </p>
+                        <div className="flex gap-2 pt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={copyIcebreaker}
+                          >
+                            <Copy className="h-3 w-3 mr-1" />
+                            Copy
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setIcebreakerInput(prospect.icebreaker_text);
+                              setIsEditingIcebreaker(true);
+                            }}
+                          >
+                            <Edit2 className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={regenerateIcebreaker}
+                            disabled={isRegeneratingIcebreaker}
+                          >
+                            <RefreshCw className={`h-3 w-3 mr-1 ${isRegeneratingIcebreaker ? 'animate-spin' : ''}`} />
+                            {isRegeneratingIcebreaker ? 'Generating...' : 'Regenerate'}
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-muted-foreground">No icebreaker generated yet</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={regenerateIcebreaker}
+                          disabled={isRegeneratingIcebreaker}
+                        >
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          {isRegeneratingIcebreaker ? 'Generating...' : 'Generate Icebreaker'}
+                        </Button>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={icebreakerInput}
+                      onChange={(e) => setIcebreakerInput(e.target.value)}
+                      placeholder="Write your personalized opener here..."
+                      className="min-h-[100px] text-sm"
+                      autoFocus
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      💡 Tip: Keep it casual and conversational, like you're emailing a colleague
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={saveIcebreaker}
+                        disabled={isSavingIcebreaker}
+                      >
+                        {isSavingIcebreaker ? 'Saving...' : 'Save'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setIsEditingIcebreaker(false);
+                          setIcebreakerInput("");
+                        }}
+                        disabled={isSavingIcebreaker}
                       >
                         Cancel
                       </Button>
