@@ -58,26 +58,8 @@ export default function ContactsSection({ prospectActivityId, reportId, companyN
     fetchContacts();
     fetchProspectStatus();
 
-    // Real-time subscription
-    const channel = supabase
-      .channel(`contacts-${prospectActivityId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'prospect_contacts',
-          filter: `prospect_activity_id=eq.${prospectActivityId}`
-        },
-        () => {
-          fetchContacts();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // Real-time subscription removed - using CRMRealtimeContext instead
+    return () => {};
   }, [prospectActivityId]);
 
   const fetchContacts = async () => {

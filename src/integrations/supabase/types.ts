@@ -142,13 +142,17 @@ export type Database = {
           assigned_to: string | null
           auto_enriched: boolean | null
           closed_at: string | null
+          contact_count: number | null
           contact_method: string | null
           created_at: string
           created_by: string | null
+          enrichment_locked_at: string | null
+          enrichment_locked_by: string | null
           enrichment_retry_count: number | null
           enrichment_source: string | null
           icebreaker_edited_manually: boolean | null
           icebreaker_generated_at: string | null
+          icebreaker_previous: string | null
           icebreaker_text: string | null
           id: string
           last_enrichment_attempt: string | null
@@ -168,13 +172,17 @@ export type Database = {
           assigned_to?: string | null
           auto_enriched?: boolean | null
           closed_at?: string | null
+          contact_count?: number | null
           contact_method?: string | null
           created_at?: string
           created_by?: string | null
+          enrichment_locked_at?: string | null
+          enrichment_locked_by?: string | null
           enrichment_retry_count?: number | null
           enrichment_source?: string | null
           icebreaker_edited_manually?: boolean | null
           icebreaker_generated_at?: string | null
+          icebreaker_previous?: string | null
           icebreaker_text?: string | null
           id?: string
           last_enrichment_attempt?: string | null
@@ -194,13 +202,17 @@ export type Database = {
           assigned_to?: string | null
           auto_enriched?: boolean | null
           closed_at?: string | null
+          contact_count?: number | null
           contact_method?: string | null
           created_at?: string
           created_by?: string | null
+          enrichment_locked_at?: string | null
+          enrichment_locked_by?: string | null
           enrichment_retry_count?: number | null
           enrichment_source?: string | null
           icebreaker_edited_manually?: boolean | null
           icebreaker_generated_at?: string | null
+          icebreaker_previous?: string | null
           icebreaker_text?: string | null
           id?: string
           last_enrichment_attempt?: string | null
@@ -586,6 +598,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      acquire_enrichment_lock: {
+        Args: { p_prospect_id: string; p_source: string }
+        Returns: boolean
+      }
       generate_report_slug: {
         Args: { domain_name: string }
         Returns: string
@@ -593,6 +609,33 @@ export type Database = {
       get_crm_metrics: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_crm_prospects_with_stats: {
+        Args: {
+          p_assigned_filter?: string
+          p_limit?: number
+          p_offset?: number
+          p_status_filter?: string[]
+        }
+        Returns: {
+          assigned_to: string
+          company_name: string
+          contact_count: number
+          created_at: string
+          domain: string
+          icebreaker_text: string
+          id: string
+          lost_notes: string
+          lost_reason: string
+          missed_leads: number
+          monthly_revenue: number
+          priority: string
+          report_id: string
+          slug: string
+          status: string
+          traffic_tier: string
+          updated_at: string
+        }[]
       }
       get_domain_contact_counts: {
         Args: Record<PropertyKey, never>
@@ -629,6 +672,10 @@ export type Database = {
           p_record_id: string
           p_table_name: string
         }
+        Returns: undefined
+      }
+      release_enrichment_lock: {
+        Args: { p_prospect_id: string }
         Returns: undefined
       }
     }

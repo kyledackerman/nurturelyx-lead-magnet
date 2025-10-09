@@ -75,6 +75,28 @@ serve(async (req) => {
             const domain = prospect.reports.domain;
             const currentCompanyName = prospect.reports.extracted_company_name || domain;
 
+            // Acquire enrichment lock to prevent concurrent processing
+            const { data: lockAcquired } = await supabase.rpc('acquire_enrichment_lock', {
+              p_prospect_id: prospectId,
+              p_source: 'bulk_enrichment'
+            });
+
+            if (!lockAcquired) {
+              console.log(`🔒 Prospect ${prospectId} is already being enriched`);
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({ 
+                    type: "error", 
+                    prospectId, 
+                    domain,
+                    status: "skipped",
+                    error: "Already being enriched" 
+                  })}\n\n`
+                )
+              );
+              continue;
+            }
+
             // Send processing update
             controller.enqueue(
               encoder.encode(
@@ -86,15 +108,6 @@ serve(async (req) => {
                 })}\n\n`
               )
             );
-
-            // Update status to enriching
-            await supabase
-              .from("prospect_activities")
-              .update({
-                status: "enriching",
-                last_enrichment_attempt: new Date().toISOString(),
-              })
-              .eq("id", prospectId);
 
             // Scrape the website
             const scrapedData = await scrapeWebsite(domain);
@@ -445,12 +458,14 @@ Now search the web and write the icebreaker:
             // Determine final status: enriched ONLY if we have BOTH contacts AND icebreaker
             const finalStatus = (contactsInserted > 0 && icebreakerGenerated) ? "enriched" : "review";
 
-            // Update prospect status AFTER both contacts and icebreaker attempts
+            // Update prospect status and release lock
             await supabase
               .from("prospect_activities")
               .update({
                 status: finalStatus,
                 enrichment_source: "bulk_ai",
+                enrichment_locked_at: null,
+                enrichment_locked_by: null,
               })
               .eq("id", prospectId);
 
@@ -487,6 +502,12 @@ Now search the web and write the icebreaker:
 
           } catch (error) {
             console.error(`Error enriching prospect ${prospectId}:`, error);
+            
+            // Release lock on error
+            await supabase.rpc('release_enrichment_lock', {
+              p_prospect_id: prospectId
+            });
+            
             controller.enqueue(
               encoder.encode(
                 `data: ${JSON.stringify({ 

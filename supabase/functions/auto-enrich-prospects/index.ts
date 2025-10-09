@@ -42,7 +42,10 @@ serve(async (req) => {
 
     console.log("Starting auto-enrichment process...");
 
-    // Get up to 12 prospects that need enrichment
+    // Get up to 12 prospects that need enrichment (with smart retry delays)
+    const RETRY_DELAYS = [0, 1800, 7200, 86400]; // 0s, 30m, 2h, 24h
+    const now = new Date();
+    
     const { data: prospects, error: fetchError } = await supabase
       .from("prospect_activities")
       .select(`
@@ -50,10 +53,12 @@ serve(async (req) => {
         report_id,
         status,
         enrichment_retry_count,
+        last_enrichment_attempt,
         reports!inner(domain, extracted_company_name, facebook_url, industry)
       `)
       .in("status", ["new", "enriching"])
       .lt("enrichment_retry_count", 3)
+      .is("enrichment_locked_at", null) // Not currently locked
       .order("last_enrichment_attempt", { ascending: true, nullsFirst: true })
       .limit(12);
 
@@ -85,18 +90,33 @@ serve(async (req) => {
     for (const prospect of prospects) {
       const domain = prospect.reports.domain;
       const companyName = prospect.reports.extracted_company_name || domain;
+      const retryCount = prospect.enrichment_retry_count || 0;
       
-      console.log(`Processing ${domain}...`);
+      // Check if enough time has passed since last attempt (exponential backoff)
+      if (prospect.last_enrichment_attempt && retryCount > 0) {
+        const lastAttempt = new Date(prospect.last_enrichment_attempt);
+        const secondsSince = (now.getTime() - lastAttempt.getTime()) / 1000;
+        const requiredDelay = RETRY_DELAYS[retryCount] || RETRY_DELAYS[RETRY_DELAYS.length - 1];
+        
+        if (secondsSince < requiredDelay) {
+          console.log(`⏱️ Skipping ${domain} - retry ${retryCount} not ready (${Math.floor(requiredDelay - secondsSince)}s remaining)`);
+          continue;
+        }
+      }
+      
+      console.log(`Processing ${domain} (attempt ${retryCount + 1}/3)...`);
 
       try {
-        // Update status to enriching
-        await supabase
-          .from("prospect_activities")
-          .update({
-            status: "enriching",
-            last_enrichment_attempt: new Date().toISOString(),
-          })
-          .eq("id", prospect.id);
+        // Acquire enrichment lock to prevent concurrent processing
+        const { data: lockAcquired } = await supabase.rpc('acquire_enrichment_lock', {
+          p_prospect_id: prospect.id,
+          p_source: 'auto_enrichment'
+        });
+
+        if (!lockAcquired) {
+          console.log(`🔒 ${domain} is already being enriched, skipping...`);
+          continue;
+        }
 
         // Scrape the website
         const scrapedData = await scrapeWebsite(domain);
@@ -441,13 +461,15 @@ Now search the web and write the icebreaker:
         const hasIcebreaker = hasExistingIcebreaker || icebreakerGenerated;
         const finalStatus = (contactsInserted > 0 && hasIcebreaker) ? "enriched" : "review";
 
-        // Update prospect status
+        // Update prospect status and release lock
         await supabase
           .from("prospect_activities")
           .update({
             status: finalStatus,
             auto_enriched: true,
             enrichment_source: "auto_scrape_ai",
+            enrichment_locked_at: null,
+            enrichment_locked_by: null,
           })
           .eq("id", prospect.id);
 
@@ -479,16 +501,21 @@ Now search the web and write the icebreaker:
       } catch (error) {
         console.error(`Failed to enrich ${domain}:`, error);
 
-        const retryCount = (prospect.enrichment_retry_count || 0) + 1;
-        const newStatus = retryCount >= 3 ? "review" : "enriching";
+        const newRetryCount = retryCount + 1;
+        const newStatus = newRetryCount >= 3 ? "enrichment_failed" : "enriching";
 
-        // Update retry count and status
+        // Update retry count, status, and release lock
         await supabase
           .from("prospect_activities")
           .update({
-            enrichment_retry_count: retryCount,
+            enrichment_retry_count: newRetryCount,
             last_enrichment_attempt: new Date().toISOString(),
             status: newStatus,
+            enrichment_locked_at: null,
+            enrichment_locked_by: null,
+            ...(newStatus === "enrichment_failed" && {
+              notes: `Auto-enrichment failed after 3 attempts. Last error: ${error instanceof Error ? error.message : String(error)}. Manual review required.`
+            }),
           })
           .eq("id", prospect.id);
 
@@ -496,7 +523,7 @@ Now search the web and write the icebreaker:
         await supabase.rpc("log_business_context", {
           p_table_name: "prospect_activities",
           p_record_id: prospect.id,
-          p_context: `Auto-enrichment attempt ${retryCount} failed: ${error instanceof Error ? error.message : String(error)}. Status set to ${newStatus}.`,
+          p_context: `Auto-enrichment attempt ${newRetryCount}/3 failed: ${error instanceof Error ? error.message : String(error)}. Status: ${newStatus}.`,
         });
 
         results.failed++;
@@ -504,7 +531,7 @@ Now search the web and write the icebreaker:
           domain,
           status: "failed",
           error: error instanceof Error ? error.message : String(error),
-          retryCount,
+          retryCount: newRetryCount,
           newStatus,
         });
       }

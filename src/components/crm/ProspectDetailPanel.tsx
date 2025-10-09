@@ -48,43 +48,8 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
       fetchAdmins();
     }
 
-    // Real-time subscriptions
-    const prospectChannel = supabase
-      .channel(`prospect-${prospectId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'prospect_activities',
-          filter: `id=eq.${prospectId}`
-        },
-        () => {
-          fetchProspectDetails();
-        }
-      )
-      .subscribe();
-
-    const tasksChannel = supabase
-      .channel(`tasks-${prospectId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'prospect_tasks',
-          filter: `prospect_activity_id=eq.${prospectId}`
-        },
-        () => {
-          fetchPendingTasks();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(prospectChannel);
-      supabase.removeChannel(tasksChannel);
-    };
+    // Real-time subscriptions removed - using CRMRealtimeContext instead
+    return () => {};
   }, [prospectId]);
 
   const fetchProspectDetails = async () => {
@@ -466,6 +431,14 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
   };
 
   const regenerateIcebreaker = async () => {
+    // Protect manual edits (Fix #13)
+    if (prospect?.icebreaker_edited_manually) {
+      const confirmed = window.confirm(
+        'This icebreaker was manually edited. Regenerating will overwrite your changes. Continue?'
+      );
+      if (!confirmed) return;
+    }
+
     setIsRegeneratingIcebreaker(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-icebreaker', {

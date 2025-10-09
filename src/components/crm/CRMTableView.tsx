@@ -84,26 +84,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   useEffect(() => {
     fetchProspects();
     fetchAdminUsers();
-    
-    // Real-time subscription
-    const channel = supabase
-      .channel('crm-table-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'prospect_activities'
-        },
-        () => {
-          fetchProspects();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // Real-time subscription removed - using CRMRealtimeContext instead
   }, []);
 
   const fetchAdminUsers = async () => {
@@ -119,120 +100,62 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
 
   const fetchProspects = async () => {
     try {
-      let query = supabase
-        .from("prospect_activities")
-        .select(`
-          id,
-          report_id,
-          status,
-          priority,
-          assigned_to,
-          lost_reason,
-          lost_notes,
-          icebreaker_text,
-          reports!inner(
-            domain,
-            slug,
-            report_data,
-            extracted_company_name
-          )
-        `);
+      // Map view to status filters
+      let statusFilter: string[] = [];
+      
+      if (view === 'new-prospects') {
+        statusFilter = ['new'];
+      } else if (view === 'needs-enrichment') {
+        statusFilter = ['enriching'];
+      } else if (view === 'needs-review') {
+        statusFilter = ['review'];
+      } else if (view === 'ready-outreach') {
+        statusFilter = ['enriched'];
+      } else if (view === 'active') {
+        statusFilter = ['contacted', 'proposal'];
+      } else if (view === 'closed') {
+        statusFilter = ['closed_won', 'closed_lost'];
+      } else {
+        statusFilter = ['new', 'enriching', 'review', 'enriched', 'contacted', 'proposal'];
+      }
 
-    // Filter based on view
-    if (view === 'new-prospects') {
-      query = query.eq('status', 'new');
-    } else if (view === 'needs-enrichment') {
-      query = query.eq('status', 'enriching');
-    } else if (view === 'needs-review') {
-      query = query.eq('status', 'review');
-    } else if (view === 'ready-outreach') {
-      query = query.eq('status', 'enriched');
-    } else if (view === 'active') {
-      query = query.in('status', ['contacted', 'proposal']);
-    } else if (view === 'closed') {
-      query = query.in('status', ['closed_won', 'closed_lost']);
-    } else {
-      // Fallback: show all active statuses
-      query = query.in('status', ['new', 'enriching', 'review', 'enriched', 'contacted', 'proposal']);
-    }
-
-      const { data, error } = await query;
+      // Use optimized database function - ONE QUERY instead of 4!
+      const { data, error } = await supabase.rpc('get_crm_prospects_with_stats', {
+        p_status_filter: statusFilter,
+        p_assigned_filter: null,
+        p_limit: 1000,
+        p_offset: 0
+      });
 
       if (error) throw error;
 
-      // Get all unique domains from prospects
-      const domains = [...new Set(data?.map((p: any) => p.reports.domain) || [])];
-      
-      // Fetch ALL reports for these domains to count contacts at domain level
-      const { data: allReports } = await supabase
-        .from('reports')
-        .select('id, domain')
-        .in('domain', domains);
-      
-      const reportIdsByDomain = new Map<string, string[]>();
-      allReports?.forEach((r: any) => {
-        if (!reportIdsByDomain.has(r.domain)) {
-          reportIdsByDomain.set(r.domain, []);
-        }
-        reportIdsByDomain.get(r.domain)!.push(r.id);
-      });
-      
-      // Fetch contacts for all report_ids and count by domain
-      const allReportIds = allReports?.map((r: any) => r.id) || [];
-      const { data: allContacts } = await supabase
-        .from('prospect_contacts')
-        .select('report_id')
-        .in('report_id', allReportIds);
-      
-      const domainContactCount = new Map<string, number>();
-      allContacts?.forEach((c: any) => {
-        const report = allReports?.find((r: any) => r.id === c.report_id);
-        if (report) {
-          domainContactCount.set(report.domain, (domainContactCount.get(report.domain) || 0) + 1);
-        }
-      });
-      
-      // Create map of domain -> {activityId, reportId} for the displayed row
-      const domainActivityMap = new Map<string, { activityId: string; reportId: string }>();
-      data?.forEach((p: any) => {
-        domainActivityMap.set(p.reports.domain, {
-          activityId: p.id,
-          reportId: p.report_id
-        });
-      });
-
+      // Map database function results to ProspectRow format
       let mapped = data?.map((p: any) => ({
         id: p.id,
         reportId: p.report_id,
-        domain: p.reports.domain,
-        slug: p.reports.slug,
-        monthlyRevenue: p.reports.report_data?.monthlyRevenueLost || 0,
-        missedLeads: p.reports.report_data?.missedLeads || 0,
-        trafficTier: getTrafficTier(p.reports.report_data?.organicTraffic || 0),
+        domain: p.domain,
+        slug: p.slug,
+        monthlyRevenue: p.monthly_revenue || 0,
+        missedLeads: p.missed_leads || 0,
+        trafficTier: p.traffic_tier,
         priority: p.priority,
         status: p.status,
         assignedTo: p.assigned_to,
         lostReason: p.lost_reason,
         lostNotes: p.lost_notes,
-        contactCount: domainContactCount.get(p.reports.domain) || 0,
-        companyName: p.reports.extracted_company_name,
+        contactCount: p.contact_count || 0,
+        companyName: p.company_name,
         icebreakerText: p.icebreaker_text,
       })) || [];
 
-      // Apply contact count filters per view
+      // Apply view-specific filters
       if (view === 'needs-enrichment') {
-        // Needs enrichment: only show prospects with 0 contacts
         mapped = mapped.filter(p => p.contactCount === 0);
-      } else if (view === 'needs-review') {
-        // Needs review: show ALL review status prospects regardless of contact count
-        // No filter needed
       } else if (view === 'ready-outreach') {
-        // Ready for outreach: must have BOTH contacts AND icebreaker
         mapped = mapped.filter(p => p.contactCount > 0 && !!p.icebreakerText?.trim());
       }
 
       setProspects(mapped);
-      setDomainActivityMap(domainActivityMap);
     } catch (error) {
       console.error("Error fetching prospects:", error);
     } finally {
@@ -726,13 +649,14 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     setEnrichmentProgress(progressMap);
 
     try {
+      // Use environment variables for security (Fix #4)
       const response = await fetch(
-        `https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/bulk-enrich-prospects`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bulk-enrich-prospects`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwamxhdXVpZGNidnVwbGZjc2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc5NjA1NjMsImV4cCI6MjA3MzUzNjU2M30.1Lv6xs2zAbg24V-7f0nzC8OxoZUVw03_ZD2QIkS_hDU`,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify({
             prospect_ids: Array.from(selectedProspectIds),
