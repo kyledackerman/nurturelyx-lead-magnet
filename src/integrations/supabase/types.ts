@@ -521,6 +521,7 @@ export type Database = {
           extracted_company_name: string | null
           facebook_url: string | null
           id: string
+          import_source: string | null
           industry: string | null
           is_public: boolean
           monthly_traffic_tier: string | null
@@ -540,6 +541,7 @@ export type Database = {
           extracted_company_name?: string | null
           facebook_url?: string | null
           id?: string
+          import_source?: string | null
           industry?: string | null
           is_public?: boolean
           monthly_traffic_tier?: string | null
@@ -559,6 +561,7 @@ export type Database = {
           extracted_company_name?: string | null
           facebook_url?: string | null
           id?: string
+          import_source?: string | null
           industry?: string | null
           is_public?: boolean
           monthly_traffic_tier?: string | null

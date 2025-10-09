@@ -43,6 +43,7 @@ const UserDashboard = () => {
         .from('reports')
         .select('*')
         .eq('user_id', user?.id)
+        .is('import_source', null) // Exclude admin CSV imports
         .order('created_at', { ascending: false });
 
       if (error) {

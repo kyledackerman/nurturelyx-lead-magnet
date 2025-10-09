@@ -274,15 +274,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { csvData, fileName, assignedToUserId } = await req.json();
-    console.log(`Processing import: ${fileName}`);
-
-    if (!assignedToUserId) {
-      return new Response(
-        JSON.stringify({ error: 'assignedToUserId is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { csvData, fileName } = await req.json();
+    console.log(`Processing import by admin ${user.id}: ${fileName}`);
 
     // Parse CSV
     const rows = csvData.split('\n').map((line: string) => line.trim()).filter(Boolean);
@@ -399,6 +392,7 @@ Deno.serve(async (req) => {
               industry,
               monthly_traffic_tier: trafficTier,
               company_size: companySize,
+              import_source: 'csv_bulk_import',
             })
             .eq('id', report.id);
 
@@ -424,6 +418,7 @@ Deno.serve(async (req) => {
               domain: cleanedDomain,
               slug: slugData,
               user_id: null, // Mark as admin import, not a user report
+              import_source: 'csv_bulk_import',
               report_data: {
                 domain: cleanedDomain,
                 avgTransactionValue: transactionValue,
@@ -463,7 +458,7 @@ Deno.serve(async (req) => {
           .maybeSingle();
 
         if (!existingActivity) {
-          // Create prospect activity assigned to selected admin for AI enrichment
+          // Create prospect activity assigned to importing admin for AI enrichment
           const { error: activityError } = await supabaseClient
             .from('prospect_activities')
             .insert({
@@ -473,7 +468,7 @@ Deno.serve(async (req) => {
               notes: `Bulk imported with full report - awaiting AI enrichment for contacts and icebreakers`,
               priority: 'cold',
               created_by: user.id,
-              assigned_to: assignedToUserId,
+              assigned_to: user.id,
               assigned_by: user.id,
               assigned_at: new Date().toISOString(),
             });

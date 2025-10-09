@@ -5,20 +5,16 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, Download, CheckCircle2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAdminUsers } from "@/hooks/useAdminUsers";
 
 export const ProspectImporter = () => {
   const [file, setFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
-  const [assignedToUserId, setAssignedToUserId] = useState<string>("");
   const [result, setResult] = useState<{
     success: number;
     failed: number;
     errors: Array<{ row: number; domain: string; error: string }>;
   } | null>(null);
   const { toast } = useToast();
-  const { admins, loading: loadingAdmins } = useAdminUsers();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -54,15 +50,6 @@ export const ProspectImporter = () => {
       return;
     }
 
-    if (!assignedToUserId) {
-      toast({
-        title: "No admin selected",
-        description: "Please select an admin to assign prospects to",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setImporting(true);
     setResult(null);
 
@@ -83,8 +70,7 @@ export const ProspectImporter = () => {
       const { data, error } = await supabase.functions.invoke('import-prospects', {
         body: { 
           csvData, 
-          fileName: file.name,
-          assignedToUserId 
+          fileName: file.name
         },
       });
 
@@ -148,27 +134,11 @@ bestplumbing.com,6200`;
           <Alert>
             <AlertDescription>
               Upload a CSV file with columns: <strong>domain</strong> and <strong>avg_transaction_value</strong> (both required).
-              After import, domains will be automatically queued for AI enrichment.
+              All prospects will be automatically assigned to you and queued for AI enrichment.
             </AlertDescription>
           </Alert>
 
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Assign prospects to:</label>
-              <Select value={assignedToUserId} onValueChange={setAssignedToUserId} disabled={importing || loadingAdmins}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select an admin..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {admins.map((admin) => (
-                    <SelectItem key={admin.id} value={admin.id}>
-                      {admin.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <div>
               <input
                 type="file"
@@ -189,7 +159,6 @@ bestplumbing.com,6200`;
             {file && !importing && (
               <Button 
                 onClick={handleImport} 
-                disabled={!assignedToUserId}
                 className="w-full"
               >
                 <Upload className="h-4 w-4 mr-2" />
