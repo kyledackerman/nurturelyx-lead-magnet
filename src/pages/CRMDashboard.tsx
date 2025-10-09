@@ -31,6 +31,10 @@ export default function CRMDashboard() {
       <div className="container mx-auto px-4 py-6 max-w-[2000px]">
         <Tabs value={selectedView} onValueChange={(v) => setSelectedView(v as any)} className="w-full">
           <TabsList className="grid w-full max-w-4xl grid-cols-5 mb-6">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              Active Pipeline
+            </TabsTrigger>
             <TabsTrigger value="new-prospects" className="flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
               New Prospects
@@ -42,10 +46,6 @@ export default function CRMDashboard() {
             <TabsTrigger value="ready-outreach" className="flex items-center gap-2">
               <Target className="h-4 w-4" />
               Ready for Outreach
-            </TabsTrigger>
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
-              <LayoutDashboard className="h-4 w-4" />
-              Active Pipeline
             </TabsTrigger>
             <TabsTrigger value="closed" className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
