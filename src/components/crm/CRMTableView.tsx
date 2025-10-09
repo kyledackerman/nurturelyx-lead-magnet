@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { formatCRMCurrency } from "@/lib/crmHelpers";
 import { AssignmentDropdown } from "@/components/admin/AssignmentDropdown";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,6 +28,7 @@ interface ProspectRow {
   domain: string;
   slug: string;
   monthlyRevenue: number;
+  missedLeads: number;
   trafficTier: string;
   priority: string;
   status: string;
@@ -193,6 +195,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         domain: p.reports.domain,
         slug: p.reports.slug,
         monthlyRevenue: p.reports.report_data?.monthlyRevenueLost || 0,
+        missedLeads: p.reports.report_data?.missedLeads || 0,
         trafficTier: getTrafficTier(p.reports.report_data?.organicTraffic || 0),
         priority: p.priority,
         status: p.status,
@@ -802,7 +805,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
               )}
               <SortableHeader label="Domain" sortKey="domain" />
               {!compact && <TableHead>Contacts</TableHead>}
-              {view !== 'needs-enrichment' && <SortableHeader label="Monthly Revenue" sortKey="monthlyRevenue" className="text-right" />}
+              {view !== 'needs-enrichment' && <SortableHeader label="Revenue & Leads" sortKey="monthlyRevenue" className="text-right w-32" />}
               <SortableHeader label="Status" sortKey="status" />
               {view !== 'needs-enrichment' && <TableHead>Assigned To</TableHead>}
               <TableHead className="text-right">Actions</TableHead>
@@ -847,8 +850,18 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                     </TableCell>
                   )}
                   {view !== 'needs-enrichment' && (
-                    <TableCell className={cn("text-right", prospect.monthlyRevenue > 5000 && "font-semibold")}>
-                      ${(prospect.monthlyRevenue / 1000).toFixed(1)}K
+                    <TableCell className="text-right w-32 px-2">
+                      <div className="flex flex-col gap-0.5">
+                        <span className={cn(
+                          "text-sm font-medium",
+                          prospect.monthlyRevenue > 50000 && "text-green-600 font-semibold"
+                        )}>
+                          {formatCRMCurrency(prospect.monthlyRevenue)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {prospect.missedLeads.toLocaleString()} leads
+                        </span>
+                      </div>
                     </TableCell>
                   )}
                   <TableCell>
