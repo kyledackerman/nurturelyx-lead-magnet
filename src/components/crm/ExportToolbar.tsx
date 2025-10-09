@@ -19,6 +19,7 @@ interface ExportToolbarProps {
   onBulkEnrich?: () => void;
   enriching?: boolean;
   showEnrichAction?: boolean;
+  showMarkContactedOption?: boolean;
 }
 
 export default function ExportToolbar({
@@ -37,6 +38,7 @@ export default function ExportToolbar({
   onBulkEnrich,
   enriching = false,
   showEnrichAction = false,
+  showMarkContactedOption = true,
 }: ExportToolbarProps) {
   return (
     <div className="bg-card border rounded-lg p-4 mb-4 sticky top-0 z-10 shadow-sm">
@@ -57,17 +59,19 @@ export default function ExportToolbar({
           {selectedCount} of {totalCount} selected
         </div>
 
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="auto-mark"
-            checked={autoMarkContacted}
-            onCheckedChange={onAutoMarkChange}
-            disabled={exporting}
-          />
-          <label htmlFor="auto-mark" className="text-sm cursor-pointer">
-            Mark as Contacted after export
-          </label>
-        </div>
+        {showMarkContactedOption && (
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="auto-mark"
+              checked={autoMarkContacted}
+              onCheckedChange={onAutoMarkChange}
+              disabled={exporting}
+            />
+            <label htmlFor="auto-mark" className="text-sm cursor-pointer">
+              Mark as Contacted after export
+            </label>
+          </div>
+        )}
 
         <div className="flex gap-2 ml-auto">
           {selectedCount > 0 && (

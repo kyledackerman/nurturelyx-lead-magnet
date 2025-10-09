@@ -856,7 +856,8 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
               updatingStatus={updatingBulkStatus}
               onBulkEnrich={handleBulkEnrich}
               enriching={bulkEnriching}
-              showEnrichAction={view === 'ready-outreach'}
+              showEnrichAction={view === 'needs-enrichment'}
+              showMarkContactedOption={view === 'ready-outreach'}
             />
 
           <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
