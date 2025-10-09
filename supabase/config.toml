@@ -60,6 +60,9 @@ verify_jwt = false
 [functions.get-enrichment-stats]
 verify_jwt = true
 
+[functions.bulk-update-status]
+verify_jwt = true
+
 [functions.update-prospect-status]
 verify_jwt = true
 

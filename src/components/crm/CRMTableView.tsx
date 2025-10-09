@@ -72,6 +72,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{ prospectId: string; status: string; domain: string } | null>(null);
   const [showBulkEnrichment, setShowBulkEnrichment] = useState(false);
   const [domainActivityMap, setDomainActivityMap] = useState<Map<string, { activityId: string; reportId: string }>>(new Map());
+  const [updatingBulkStatus, setUpdatingBulkStatus] = useState(false);
 
   useEffect(() => {
     fetchProspects();
@@ -403,6 +404,44 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     }
   };
 
+  const handleBulkStatusUpdate = async (newStatus: string) => {
+    if (selectedProspectIds.size === 0) {
+      toast.error("No prospects selected");
+      return;
+    }
+
+    if (['closed_lost', 'not_viable'].includes(newStatus)) {
+      const confirmed = window.confirm(
+        `Are you sure you want to mark ${selectedProspectIds.size} prospect(s) as "${newStatus.replace('_', ' ')}"? This action cannot be undone.`
+      );
+      if (!confirmed) return;
+    }
+
+    setUpdatingBulkStatus(true);
+
+    try {
+      const response = await supabase.functions.invoke('bulk-update-status', {
+        body: {
+          prospectIds: Array.from(selectedProspectIds),
+          newStatus: newStatus,
+        },
+      });
+
+      if (response.error) throw response.error;
+
+      const statusLabel = newStatus.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+      toast.success(`Updated ${selectedProspectIds.size} prospect(s) to ${statusLabel}`);
+      
+      setSelectedProspectIds(new Set());
+      await fetchProspects();
+    } catch (error: any) {
+      console.error("Bulk update error:", error);
+      toast.error(error?.message || "Failed to update prospects");
+    } finally {
+      setUpdatingBulkStatus(false);
+    }
+  };
+
   const copyDomain = (domain: string) => {
     navigator.clipboard.writeText(domain);
     toast.success("Domain copied to clipboard");
@@ -690,18 +729,20 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
 
       {!compact && view !== 'needs-enrichment' && (
         <>
-          <ExportToolbar
-            selectedCount={selectedProspectIds.size}
-            totalCount={displayedProspects.length}
-            allSelected={selectedProspectIds.size === displayedProspects.length && displayedProspects.length > 0}
-            onSelectAll={handleSelectAll}
-            autoMarkContacted={autoMarkContacted}
-            onAutoMarkChange={setAutoMarkContacted}
-            onExport={handleExport}
-            onClear={() => setSelectedProspectIds(new Set())}
-            filterSummary={getFilterSummary()}
-            exporting={exporting}
-          />
+            <ExportToolbar
+              selectedCount={selectedProspectIds.size}
+              totalCount={displayedProspects.length}
+              allSelected={selectedProspectIds.size === displayedProspects.length && displayedProspects.length > 0}
+              onSelectAll={handleSelectAll}
+              autoMarkContacted={autoMarkContacted}
+              onAutoMarkChange={setAutoMarkContacted}
+              onExport={handleExport}
+              onClear={() => setSelectedProspectIds(new Set())}
+              filterSummary={getFilterSummary()}
+              exporting={exporting}
+              onBulkStatusUpdate={handleBulkStatusUpdate}
+              updatingStatus={updatingBulkStatus}
+            />
 
           <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
             <div className="relative flex-1 min-w-[200px]">
