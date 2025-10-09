@@ -16,6 +16,12 @@ interface ImportResult {
   errors: Array<{ row: number; domain: string; error: string }>;
 }
 
+function parseCurrencyToNumber(value: string): number {
+  // Remove currency symbols, commas, spaces, and other non-numeric chars except decimal point
+  const numericValue = value.replace(/[^0-9.]/g, '');
+  return numericValue ? parseFloat(numericValue) : 0;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -96,7 +102,7 @@ Deno.serve(async (req) => {
       }
 
       // Validate transaction value is a positive number
-      const transactionValue = parseFloat(row.avg_transaction_value);
+      const transactionValue = parseCurrencyToNumber(row.avg_transaction_value);
       if (isNaN(transactionValue) || transactionValue <= 0) {
         result.failed++;
         result.errors.push({
