@@ -274,18 +274,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { csvData, fileName } = await req.json();
+    const { csvData, fileName, assignedToUserId } = await req.json();
     console.log(`Processing import: ${fileName}`);
 
-    // Find Kyle's user ID for assignment
-    const { data: kyleUser } = await supabaseClient
-      .from('user_roles')
-      .select('user_id')
-      .eq('role', 'super_admin')
-      .limit(1)
-      .single();
-    
-    const kyleUserId = kyleUser?.user_id || user.id; // Fallback to current user if Kyle not found
+    if (!assignedToUserId) {
+      return new Response(
+        JSON.stringify({ error: 'assignedToUserId is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Parse CSV
     const rows = csvData.split('\n').map((line: string) => line.trim()).filter(Boolean);
@@ -466,7 +463,7 @@ Deno.serve(async (req) => {
           .maybeSingle();
 
         if (!existingActivity) {
-          // Create prospect activity assigned to Kyle for AI enrichment
+          // Create prospect activity assigned to selected admin for AI enrichment
           const { error: activityError } = await supabaseClient
             .from('prospect_activities')
             .insert({
@@ -476,7 +473,7 @@ Deno.serve(async (req) => {
               notes: `Bulk imported with full report - awaiting AI enrichment for contacts and icebreakers`,
               priority: 'cold',
               created_by: user.id,
-              assigned_to: kyleUserId,
+              assigned_to: assignedToUserId,
               assigned_by: user.id,
               assigned_at: new Date().toISOString(),
             });

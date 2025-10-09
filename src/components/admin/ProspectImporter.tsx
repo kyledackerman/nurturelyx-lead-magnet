@@ -5,18 +5,22 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, Download, CheckCircle2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAdminUsers } from "@/hooks/useAdminUsers";
 
 export const ProspectImporter = () => {
   const [file, setFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
+  const [assignedToUserId, setAssignedToUserId] = useState<string>("");
   const [result, setResult] = useState<{
     success: number;
     failed: number;
     errors: Array<{ row: number; domain: string; error: string }>;
   } | null>(null);
   const { toast } = useToast();
+  const { admins, loading: loadingAdmins } = useAdminUsers();
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       if (!selectedFile.name.endsWith('.csv')) {
@@ -37,18 +41,33 @@ export const ProspectImporter = () => {
       }
       setFile(selectedFile);
       setResult(null);
-      
-      // Auto-import the file
-      await handleImport(selectedFile);
     }
   };
 
-  const handleImport = async (fileToImport: File) => {
+  const handleImport = async () => {
+    if (!file) {
+      toast({
+        title: "No file selected",
+        description: "Please select a CSV file to import",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!assignedToUserId) {
+      toast({
+        title: "No admin selected",
+        description: "Please select an admin to assign prospects to",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setImporting(true);
     setResult(null);
 
     try {
-      const csvData = await fileToImport.text();
+      const csvData = await file.text();
       const lines = csvData.split('\n').filter(line => line.trim());
       
       if (lines.length > 1001) {
@@ -62,7 +81,11 @@ export const ProspectImporter = () => {
       }
 
       const { data, error } = await supabase.functions.invoke('import-prospects', {
-        body: { csvData, fileName: fileToImport.name },
+        body: { 
+          csvData, 
+          fileName: file.name,
+          assignedToUserId 
+        },
       });
 
       if (error) throw error;
@@ -129,21 +152,50 @@ bestplumbing.com,6200`;
             </AlertDescription>
           </Alert>
 
-          <div>
-            <input
-              type="file"
-              accept=".csv"
-              onChange={handleFileChange}
-              disabled={importing}
-              className="block w-full text-sm text-muted-foreground
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-md file:border-0
-                file:text-sm file:font-semibold
-                file:bg-primary file:text-primary-foreground
-                hover:file:bg-primary/90
-                disabled:opacity-50 disabled:cursor-not-allowed
-                cursor-pointer"
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Assign prospects to:</label>
+              <Select value={assignedToUserId} onValueChange={setAssignedToUserId} disabled={importing || loadingAdmins}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select an admin..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {admins.map((admin) => (
+                    <SelectItem key={admin.id} value={admin.id}>
+                      {admin.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleFileChange}
+                disabled={importing}
+                className="block w-full text-sm text-muted-foreground
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-primary file:text-primary-foreground
+                  hover:file:bg-primary/90
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  cursor-pointer"
+              />
+            </div>
+
+            {file && !importing && (
+              <Button 
+                onClick={handleImport} 
+                disabled={!assignedToUserId}
+                className="w-full"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Import {file.name}
+              </Button>
+            )}
           </div>
 
           {importing && (
@@ -151,12 +203,6 @@ bestplumbing.com,6200`;
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
               Importing and validating...
             </div>
-          )}
-
-          {file && !importing && !result && (
-            <p className="text-sm text-muted-foreground">
-              Ready to import: <strong>{file.name}</strong>
-            </p>
           )}
         </div>
       </Card>
