@@ -349,30 +349,113 @@ Extract the proper company name and all contact information. Return ONLY the JSO
               p_context: contextParts.join(", "),
             });
 
-            // Generate personalized icebreaker using AI
+            // Generate personalized icebreaker using AI with Google Search grounding
             console.log(`🎯 Generating personalized icebreaker for ${domain}...`);
             try {
-              const { data: icebreakerData, error: icebreakerError } = await supabase.functions.invoke(
-                'generate-icebreaker',
-                {
-                  body: {
-                    prospect_activity_id: prospectId,
-                    domain: domain,
-                    company_name: companyName,
-                    scraped_content: scrapedData,
-                    force_regenerate: false
-                  }
-                }
-              );
+              // Check if icebreaker already exists
+              const { data: existingIcebreaker } = await supabase
+                .from('prospect_activities')
+                .select('icebreaker_text')
+                .eq('id', prospectId)
+                .single();
 
-              if (icebreakerError) {
-                console.error('⚠️ Icebreaker generation failed:', icebreakerError);
-                // Don't fail enrichment - icebreaker is optional
+              if (!existingIcebreaker?.icebreaker_text) {
+                const systemPrompt = `You are a B2B sales copywriting expert helping a sales team craft personalized cold outreach openers for local service businesses. Your goal is to write casual, friendly, colleague-like messages that feel authentic and conversational.`;
+
+                const userPrompt = `
+**COMPANY INFORMATION:**
+- Domain: ${domain}
+- Company Name: ${companyName || 'Unknown'}
+
+**YOUR TASK:**
+Search the web for recent information about this company and write a casual, friendly 1-2 sentence opener as if you're emailing a colleague.
+
+**RESEARCH FOCUS:**
+- Recent news mentions or press releases
+- Customer reviews and testimonials (especially standout feedback)
+- Awards, certifications, or recognitions
+- Service expansions or new offerings
+- Community involvement or charity work
+- Notable projects or case studies
+- Social media highlights
+
+**TONE & STYLE:**
+- Conversational and warm (like internal team communication)
+- Use casual language: "Hey", "I noticed", "just saw", "looks like"
+- Specific and personalized (reference something unique you found)
+- Authentic (not obviously AI-generated or salesy)
+- NO formal greetings like "Dear" or "To whom it may concern"
+- NO obvious sales language like "I wanted to reach out about..."
+
+**STRUCTURE:**
+1st sentence: Reference something SPECIFIC you found (achievement, review highlight, expansion, etc.)
+2nd sentence: Natural transition mentioning you analyzed their website traffic and found untapped lead potential
+
+**EXAMPLE OUTPUTS:**
+
+Example 1 (HVAC):
+"Hey! Just saw you folks were featured in the Tribune for your emergency response during that winter storm - impressive 24/7 service. I ran some numbers on your website traffic and noticed you might be missing out on a pretty significant number of leads each month from anonymous visitors."
+
+Example 2 (Law Firm):
+"Hey there! Noticed you recently expanded into family law mediation - looks like that's filling a real gap in the area. Quick heads up: I analyzed your site traffic and found some interesting opportunities to capture more of those website visitors who are checking out your services but not filling out forms."
+
+Example 3 (Plumbing):
+"Hey! Your Google reviews are killer - 4.9 stars with customers raving about your same-day service is no joke. I took a look at your website analytics and found you're getting solid traffic, but there might be a way to turn more of those anonymous visitors into actual leads."
+
+**IMPORTANT RULES:**
+- Must reference something SPECIFIC from your web research
+- Keep it under 50 words total
+- Make it feel like you genuinely researched them (because you did!)
+- End with a soft mention of their "lead loss" or "missed website opportunities"
+- Be conversational, not corporate
+
+${scrapedData ? `\n**WEBSITE CONTENT (for additional context):**\n${scrapedData.substring(0, 1500)}\n` : ''}
+
+Now search the web and write the icebreaker:
+`;
+
+                const icebreakerResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${lovableApiKey}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    model: "google/gemini-2.5-flash",
+                    messages: [
+                      { role: "system", content: systemPrompt },
+                      { role: "user", content: userPrompt }
+                    ],
+                    tools: [{ type: "google_search_retrieval" }],
+                    temperature: 0.8,
+                  }),
+                });
+
+                if (icebreakerResponse.ok) {
+                  const icebreakerData = await icebreakerResponse.json();
+                  const icebreaker = icebreakerData.choices?.[0]?.message?.content?.trim();
+
+                  if (icebreaker) {
+                    await supabase
+                      .from('prospect_activities')
+                      .update({
+                        icebreaker_text: icebreaker,
+                        icebreaker_generated_at: new Date().toISOString(),
+                        icebreaker_edited_manually: false
+                      })
+                      .eq('id', prospectId);
+
+                    console.log(`✅ Icebreaker generated for ${domain}`);
+                  }
+                } else {
+                  const errorText = await icebreakerResponse.text();
+                  console.error(`⚠️ Icebreaker generation failed for ${domain}:`, icebreakerResponse.status, errorText);
+                }
               } else {
-                console.log('✅ Icebreaker generated successfully');
+                console.log(`ℹ️ Icebreaker already exists for ${domain}, skipping generation`);
               }
             } catch (icebreakerErr) {
-              console.error('⚠️ Icebreaker generation error:', icebreakerErr);
+              console.error(`⚠️ Icebreaker generation error for ${domain}:`, icebreakerErr);
               // Silent fail - enrichment still succeeds
             }
 
