@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Eye, Search, MoreVertical, ExternalLink, Copy, ChevronUp, ChevronDown, Users, UserPlus, AlertCircle, Upload, Sparkles } from "lucide-react";
+import { Eye, Search, MoreVertical, ExternalLink, Copy, ChevronUp, ChevronDown, Users, UserPlus, AlertCircle, Upload, Sparkles, MessageSquare } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -39,6 +40,7 @@ interface ProspectRow {
   lostNotes: string | null;
   contactCount: number;
   companyName: string | null;
+  icebreakerText: string | null;
 }
 
 interface CRMTableViewProps {
@@ -127,6 +129,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
           assigned_to,
           lost_reason,
           lost_notes,
+          icebreaker_text,
           reports!inner(
             domain,
             slug,
@@ -213,6 +216,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         lostNotes: p.lost_notes,
         contactCount: domainContactCount.get(p.reports.domain) || 0,
         companyName: p.reports.extracted_company_name,
+        icebreakerText: p.icebreaker_text,
       })) || [];
 
       // Apply contact count filters per view
@@ -967,6 +971,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
               )}
               <SortableHeader label="Domain" sortKey="domain" />
               {!compact && <TableHead>Contacts</TableHead>}
+              {!compact && <TableHead className="w-20">Opener</TableHead>}
               {view !== 'needs-enrichment' && <SortableHeader label="Revenue & Leads" sortKey="monthlyRevenue" className="text-right w-32" />}
               <SortableHeader label="Status" sortKey="status" />
               {view !== 'needs-enrichment' && <TableHead>Assigned To</TableHead>}
@@ -1016,6 +1021,26 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                           {prospect.contactCount}
                         </Badge>
                       </div>
+                    </TableCell>
+                  )}
+                  {!compact && (
+                    <TableCell className="w-20">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center justify-center">
+                              {prospect.icebreakerText ? (
+                                <MessageSquare className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <AlertCircle className="h-4 w-4 text-orange-500" />
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{prospect.icebreakerText ? 'Has icebreaker' : 'Missing icebreaker - select and bulk enrich'}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </TableCell>
                   )}
                   {view !== 'needs-enrichment' && (
