@@ -166,6 +166,21 @@ serve(async (req) => {
 - ✅ INCLUDE: All emails with person names (john.smith@company.com)
 - ❌ ONLY EXCLUDE: noreply@, no-reply@, donotreply@, mailer-daemon@, example@example.com
 
+**CRITICAL CONTEXT FILTERING RULES:**
+- ❌ EXCLUDE contacts found in testimonial sections
+- ❌ EXCLUDE contacts with context like: "customer says", "client review", "testimonial from", "case study"
+- ❌ EXCLUDE contacts mentioned as users/customers of the company
+- ✅ ONLY INCLUDE contacts that appear to be EMPLOYEES or COMPANY REPRESENTATIVES
+- ✅ Look for context like: "our team", "contact us", "meet our staff", "leadership", "about us"
+- ✅ Prioritize contacts from: /contact, /about, /team pages
+- ❌ Ignore contacts from: /testimonials, /reviews, /case-studies sections
+- If unsure whether someone is an employee or customer, EXCLUDE them
+- Only extract contacts you are confident work FOR the company, not WITH the company
+
+**NOTES FIELD REQUIREMENT:**
+- MUST include where the contact was found (e.g., "Found on contact page", "Listed on team page")
+- If found in testimonial/review context, DO NOT include the contact at all
+
 Return ONLY valid JSON with the structure above.`,
                   },
                   {
