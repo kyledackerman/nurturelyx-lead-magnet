@@ -33,6 +33,9 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
   const [pendingTasks, setPendingTasks] = useState<any[]>([]);
   const [admins, setAdmins] = useState<Array<{ id: string; email: string }>>([]);
   const [isEnriching, setIsEnriching] = useState(false);
+  const [isEditingFacebookUrl, setIsEditingFacebookUrl] = useState(false);
+  const [facebookUrlInput, setFacebookUrlInput] = useState("");
+  const [isSavingFacebookUrl, setIsSavingFacebookUrl] = useState(false);
 
   useEffect(() => {
     if (prospectId) {
@@ -129,6 +132,100 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
       console.error("Error fetching prospect details:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const normalizeFacebookUrl = (url: string): string => {
+    let normalized = url.trim();
+    
+    // Ensure https
+    if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
+      normalized = 'https://' + normalized;
+    }
+    
+    // Replace http with https
+    normalized = normalized.replace(/^http:\/\//i, 'https://');
+    
+    // Normalize domain variations
+    normalized = normalized.replace(/fb\.com/gi, 'facebook.com');
+    normalized = normalized.replace(/m\.facebook\.com/gi, 'www.facebook.com');
+    normalized = normalized.replace(/web\.facebook\.com/gi, 'www.facebook.com');
+    
+    // Remove query params and hash
+    try {
+      const urlObj = new URL(normalized);
+      normalized = `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
+    } catch (e) {
+      // If URL parsing fails, just continue
+    }
+    
+    // Remove trailing slash
+    normalized = normalized.replace(/\/$/, '');
+    
+    return normalized;
+  };
+
+  const validateFacebookUrl = (url: string): { valid: boolean; error?: string } => {
+    if (!url.trim()) {
+      return { valid: false, error: "URL cannot be empty" };
+    }
+    
+    const normalized = normalizeFacebookUrl(url);
+    
+    // Must contain facebook.com or fb.com
+    if (!/(facebook\.com|fb\.com)/i.test(normalized)) {
+      return { valid: false, error: "Must be a Facebook URL" };
+    }
+    
+    // Reject sharer, plugins, dialogs
+    if (/(sharer\.php|share\.php|plugins|dialog|\/sharer\/)/i.test(normalized)) {
+      return { valid: false, error: "Cannot be a sharer or plugin URL" };
+    }
+    
+    // Must be valid URL format
+    try {
+      new URL(normalized);
+    } catch (e) {
+      return { valid: false, error: "Invalid URL format" };
+    }
+    
+    return { valid: true };
+  };
+
+  const saveFacebookUrl = async () => {
+    const validation = validateFacebookUrl(facebookUrlInput);
+    
+    if (!validation.valid) {
+      toast.error(validation.error || "Invalid Facebook URL");
+      return;
+    }
+    
+    const normalized = normalizeFacebookUrl(facebookUrlInput);
+    setIsSavingFacebookUrl(true);
+    
+    try {
+      const { error } = await supabase
+        .from('reports')
+        .update({ facebook_url: normalized })
+        .eq('id', prospect.report.id);
+      
+      if (error) throw error;
+      
+      await auditService.logBusinessContext(
+        'reports',
+        prospect.report.id,
+        `Set company Facebook URL to ${normalized}`
+      );
+      
+      toast.success("Facebook URL saved");
+      setIsEditingFacebookUrl(false);
+      setFacebookUrlInput("");
+      await fetchProspectDetails();
+    } catch (error: any) {
+      console.error("Error saving Facebook URL:", error);
+      toast.error(error.message || "Failed to save Facebook URL");
+    } finally {
+      setIsSavingFacebookUrl(false);
     }
   };
 
@@ -447,22 +544,95 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
               admins={admins}
             />
 
-            {/* Company Facebook Link - Above Primary Contact */}
-            {prospect.report?.facebook_url && (
-              <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
-                <Facebook className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Company Facebook</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="ml-auto"
-                  onClick={() => window.open(prospect.report.facebook_url, '_blank')}
-                >
-                  <ExternalLink className="h-3 w-3 mr-1" />
-                  View Profile
-                </Button>
+            {/* Company Social - Always Visible */}
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold">Company Social</h3>
+              <div className="p-3 bg-muted/30 rounded-lg space-y-2">
+                {!isEditingFacebookUrl ? (
+                  <div className="flex items-center gap-2">
+                    <Facebook className="h-4 w-4 text-muted-foreground" />
+                    {prospect.report?.facebook_url ? (
+                      <>
+                        <a
+                          href={prospect.report.facebook_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-primary hover:underline flex-1 truncate"
+                        >
+                          {prospect.report.facebook_url.replace(/^https?:\/\/(www\.)?/, '')}
+                        </a>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setFacebookUrlInput(prospect.report.facebook_url);
+                            setIsEditingFacebookUrl(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(prospect.report.facebook_url, '_blank')}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-sm text-muted-foreground flex-1">No Facebook URL</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setFacebookUrlInput("");
+                            setIsEditingFacebookUrl(true);
+                          }}
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Facebook URL
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={facebookUrlInput}
+                      onChange={(e) => setFacebookUrlInput(e.target.value)}
+                      placeholder="https://www.facebook.com/company-page"
+                      className="w-full px-3 py-2 text-sm border rounded-md"
+                      autoFocus
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Enter the company's Facebook page URL (not sharer or plugin links)
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={saveFacebookUrl}
+                        disabled={isSavingFacebookUrl}
+                      >
+                        {isSavingFacebookUrl ? "Saving..." : "Save"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setIsEditingFacebookUrl(false);
+                          setFacebookUrlInput("");
+                        }}
+                        disabled={isSavingFacebookUrl}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Contacts Section - MOVED UP */}
             {prospect.contacts && prospect.contacts.length > 0 && (
