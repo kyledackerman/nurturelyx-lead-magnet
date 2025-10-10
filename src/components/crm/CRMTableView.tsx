@@ -59,11 +59,15 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const [prospects, setProspects] = useState<ProspectRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [revenueFilter, setRevenueFilter] = useState("all");
   const [trafficFilter, setTrafficFilter] = useState("all");
   const [assignedFilter, setAssignedFilter] = useState("all");
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const PAGE_SIZE = 50;
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortKey>('priority');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -81,11 +85,28 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const [showEnrichmentProgress, setShowEnrichmentProgress] = useState(false);
   const [enrichmentProgress, setEnrichmentProgress] = useState<Map<string, any>>(new Map());
 
+  // Debounce search input
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setPage(0); // Reset to first page on search
+      setProspects([]); // Clear prospects on search
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    // Only fetch on initial load, view change, or search change
+    // Do NOT fetch on page change (that's handled by loadMore)
     fetchProspects();
     fetchAdminUsers();
-    // Real-time subscription removed - using CRMRealtimeContext instead
-  }, []);
+  }, [view, debouncedSearchTerm]);
+
+  useEffect(() => {
+    // Reset page when view changes
+    setPage(0);
+    setProspects([]);
+  }, [view]);
 
   const fetchAdminUsers = async () => {
     try {
@@ -98,39 +119,23 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     }
   };
 
-  const fetchProspects = async () => {
+  const fetchProspects = async (append = false) => {
+    if (!append) setLoading(true);
+    
     try {
-      // Map view to status filters
-      let statusFilter: string[] = [];
-      
-      if (view === 'new-prospects') {
-        statusFilter = ['new'];
-      } else if (view === 'needs-enrichment') {
-        statusFilter = ['enriching'];
-      } else if (view === 'needs-review') {
-        statusFilter = ['review'];
-      } else if (view === 'ready-outreach') {
-        statusFilter = ['enriched'];
-      } else if (view === 'active') {
-        statusFilter = ['contacted', 'proposal'];
-      } else if (view === 'closed') {
-        statusFilter = ['closed_won', 'closed_lost'];
-      } else {
-        statusFilter = ['new', 'enriching', 'review', 'enriched', 'contacted', 'proposal'];
-      }
-
-      // Use optimized database function - ONE QUERY instead of 4!
+      // Use optimized database function with pagination and view filtering
       const { data, error } = await supabase.rpc('get_crm_prospects_with_stats', {
-        p_status_filter: statusFilter,
+        p_status_filter: null, // Let view handle filtering
         p_assigned_filter: null,
-        p_limit: 1000,
-        p_offset: 0
+        p_view: view,
+        p_limit: PAGE_SIZE,
+        p_offset: page * PAGE_SIZE
       });
 
       if (error) throw error;
 
       // Map database function results to ProspectRow format
-      let mapped = data?.map((p: any) => ({
+      const mapped = data?.map((p: any) => ({
         id: p.id,
         reportId: p.report_id,
         domain: p.domain,
@@ -148,18 +153,24 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         icebreakerText: p.icebreaker_text,
       })) || [];
 
-      // Apply view-specific filters
-      if (view === 'needs-enrichment') {
-        mapped = mapped.filter(p => p.contactCount === 0);
-      } else if (view === 'ready-outreach') {
-        mapped = mapped.filter(p => p.contactCount > 0 && !!p.icebreakerText?.trim());
+      setHasMore(mapped.length === PAGE_SIZE);
+      
+      if (append) {
+        setProspects(prev => [...prev, ...mapped]);
+      } else {
+        setProspects(mapped);
       }
-
-      setProspects(mapped);
     } catch (error) {
       console.error("Error fetching prospects:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (!loading && hasMore) {
+      setPage(prev => prev + 1);
+      fetchProspects(true);
     }
   };
 
@@ -212,6 +223,12 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
 
   const updatePriority = async (prospectId: string, newPriority: string) => {
     setUpdatingId(prospectId);
+    
+    // Optimistic update
+    setProspects(prev => prev.map(p => 
+      p.id === prospectId ? { ...p, priority: newPriority } : p
+    ));
+    
     try {
       const { error } = await supabase
         .from("prospect_activities")
@@ -227,10 +244,11 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       );
 
       toast.success("Priority updated");
-      fetchProspects();
     } catch (error) {
       console.error("Error updating priority:", error);
       toast.error("Failed to update priority");
+      // Revert on error
+      fetchProspects();
     } finally {
       setUpdatingId(null);
     }
@@ -246,6 +264,12 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     }
 
     setUpdatingId(prospectId);
+    
+    // Optimistic update
+    setProspects(prev => prev.map(p => 
+      p.id === prospectId ? { ...p, status: newStatus } : p
+    ));
+    
     try {
       const updateData: any = { status: newStatus };
       
@@ -268,10 +292,11 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       );
 
       toast.success("Status updated");
-      fetchProspects();
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error("Failed to update status");
+      // Revert on error
+      fetchProspects();
     } finally {
       setUpdatingId(null);
     }
@@ -449,7 +474,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   };
 
   const filteredProspects = prospects.filter((p) => {
-    if (searchTerm && !p.domain.toLowerCase().includes(searchTerm.toLowerCase())) {
+    if (debouncedSearchTerm && !p.domain.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) {
       return false;
     }
     // External filter takes precedence over internal filter
@@ -1071,6 +1096,19 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination - Load More button */}
+      {hasMore && !loading && displayedProspects.length > 0 && (
+        <div className="flex justify-center py-4">
+          <Button 
+            onClick={loadMore}
+            variant="outline"
+            disabled={loading}
+          >
+            Load More ({displayedProspects.length} loaded)
+          </Button>
+        </div>
+      )}
 
       {compact && filteredProspects.length > 10 && (
         <p className="text-sm text-muted-foreground text-center">

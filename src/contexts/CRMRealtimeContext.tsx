@@ -1,8 +1,8 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
-// Phase 1.3: Global real-time subscription manager
+// Phase 3: Optimized real-time with debouncing and selective subscriptions
 
 interface CRMRealtimeContextType {
   prospects: Map<string, any>;
@@ -20,6 +20,25 @@ export function CRMRealtimeProvider({ children }: { children: ReactNode }) {
   const [contacts, setContacts] = useState(new Map());
   const [tasks, setTasks] = useState(new Map());
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
+  // Debounce timer ref - batch updates every 3 seconds
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingUpdatesRef = useRef<Set<string>>(new Set());
+
+  // Debounced refresh function
+  const triggerDebouncedRefresh = useCallback((source: string) => {
+    pendingUpdatesRef.current.add(source);
+    
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    debounceTimerRef.current = setTimeout(() => {
+      console.log('Batch refreshing CRM from:', Array.from(pendingUpdatesRef.current));
+      setRefreshTrigger(prev => prev + 1);
+      pendingUpdatesRef.current.clear();
+    }, 3000);
+  }, []);
 
   useEffect(() => {
     // Single global subscription for prospect_activities
@@ -28,9 +47,8 @@ export function CRMRealtimeProvider({ children }: { children: ReactNode }) {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'prospect_activities' },
-        (payload: RealtimePostgresChangesPayload<any>) => {
-          console.log('Prospect change:', payload);
-          setRefreshTrigger(prev => prev + 1);
+        () => {
+          triggerDebouncedRefresh('prospects');
         }
       )
       .subscribe();
@@ -41,9 +59,8 @@ export function CRMRealtimeProvider({ children }: { children: ReactNode }) {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'prospect_contacts' },
-        (payload: RealtimePostgresChangesPayload<any>) => {
-          console.log('Contact change:', payload);
-          setRefreshTrigger(prev => prev + 1);
+        () => {
+          triggerDebouncedRefresh('contacts');
         }
       )
       .subscribe();
@@ -54,23 +71,25 @@ export function CRMRealtimeProvider({ children }: { children: ReactNode }) {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'prospect_tasks' },
-        (payload: RealtimePostgresChangesPayload<any>) => {
-          console.log('Task change:', payload);
-          setRefreshTrigger(prev => prev + 1);
+        () => {
+          triggerDebouncedRefresh('tasks');
         }
       )
       .subscribe();
 
     return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
       supabase.removeChannel(prospectChannel);
       supabase.removeChannel(contactsChannel);
       supabase.removeChannel(tasksChannel);
     };
-  }, []);
+  }, [triggerDebouncedRefresh]);
 
-  const refreshProspects = () => setRefreshTrigger(prev => prev + 1);
-  const refreshContacts = () => setRefreshTrigger(prev => prev + 1);
-  const refreshTasks = () => setRefreshTrigger(prev => prev + 1);
+  const refreshProspects = useCallback(() => setRefreshTrigger(prev => prev + 1), []);
+  const refreshContacts = useCallback(() => setRefreshTrigger(prev => prev + 1), []);
+  const refreshTasks = useCallback(() => setRefreshTrigger(prev => prev + 1), []);
 
   return (
     <CRMRealtimeContext.Provider 
