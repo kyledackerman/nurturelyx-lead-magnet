@@ -167,7 +167,14 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     }
 
     if (!append) setLoading(true);
-    console.log('🔄 Fetching fresh CRM data');
+    console.log('🔄 Fetching fresh CRM data', { 
+      view, 
+      assignedFilter, 
+      page,
+      statusFilter,
+      p_view: view,
+      p_lead_source: view === 'warm-inbound' ? 'warm_inbound' : null 
+    });
     
     try {
       // Use optimized database function with pagination and view filtering
@@ -178,6 +185,14 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         p_lead_source: view === 'warm-inbound' ? 'warm_inbound' : null,
         p_limit: PAGE_SIZE,
         p_offset: page * PAGE_SIZE
+      });
+
+      console.log('✅ RPC Response:', { 
+        view, 
+        error: error ? error.message : null,
+        recordCount: data?.length || 0,
+        firstRecord: data?.[0],
+        statuses: data?.map((d: any) => d.status).slice(0, 5)
       });
 
       if (error) throw error;
