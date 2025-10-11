@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { sanitizeInput } from "@/lib/validation";
 import { format } from "date-fns";
 import { ExternalLink, ChevronDown, ChevronUp, Plus, Clock, Sparkles, Facebook, MessageSquare, Copy, Edit2, RefreshCw } from "lucide-react";
 import { ProspectMetricsCard } from "./ProspectMetricsCard";
@@ -721,9 +722,9 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
                   <>
                     {prospect?.icebreaker_text ? (
                       <>
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                          {prospect.icebreaker_text}
-                        </p>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                  {sanitizeInput(prospect.icebreaker_text)}
+                </p>
                         <div className="flex gap-2 pt-2">
                           <Button
                             variant="outline"
