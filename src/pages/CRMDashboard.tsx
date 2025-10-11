@@ -24,7 +24,8 @@ export default function CRMDashboard() {
   };
 
   return (
-    <CRMRealtimeProvider>
+    // Temporarily disabled real-time subscriptions for performance optimization
+    // <CRMRealtimeProvider>
       <div className="min-h-screen bg-background">
         <CRMHeader />
       
@@ -134,6 +135,6 @@ export default function CRMDashboard() {
         />
       )}
       </div>
-    </CRMRealtimeProvider>
+    // </CRMRealtimeProvider>
   );
 }

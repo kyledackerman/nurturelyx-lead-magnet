@@ -605,6 +605,10 @@ export type Database = {
         Args: { p_prospect_id: string; p_source: string }
         Returns: boolean
       }
+      cleanup_old_audit_logs: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_report_slug: {
         Args: { domain_name: string }
         Returns: string

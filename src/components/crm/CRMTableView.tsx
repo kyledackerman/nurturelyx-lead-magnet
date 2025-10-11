@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -85,13 +85,44 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const [showEnrichmentProgress, setShowEnrichmentProgress] = useState(false);
   const [enrichmentProgress, setEnrichmentProgress] = useState<Map<string, any>>(new Map());
 
-  // Debounce search input
+  // Performance optimization: Query caching (10 seconds)
+  const cacheRef = useRef<{
+    data: ProspectRow[];
+    timestamp: number;
+    searchTerm: string;
+    view: string;
+    statusFilter: string;
+  }>({ 
+    data: [], 
+    timestamp: 0, 
+    searchTerm: '',
+    view: '',
+    statusFilter: ''
+  });
+  const CACHE_DURATION = 10000; // 10 seconds
+
+  // Optimized search debounce with minimum character requirement
   useEffect(() => {
+    // Don't search single characters (too many false matches)
+    if (searchTerm.length === 1) {
+      return;
+    }
+    
+    // Empty search = clear immediately (no debounce needed)
+    if (searchTerm.length === 0) {
+      setDebouncedSearchTerm('');
+      setPage(0);
+      setProspects([]);
+      return;
+    }
+    
+    // For 2+ characters, debounce for 500ms
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
-      setPage(0); // Reset to first page on search
-      setProspects([]); // Clear prospects on search
-    }, 300);
+      setPage(0);
+      setProspects([]);
+    }, 500);
+    
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
@@ -120,7 +151,22 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   };
 
   const fetchProspects = async (append = false) => {
+    // Check cache first (skip for append/pagination)
+    if (!append) {
+      const now = Date.now();
+      const cacheKey = `${view}-${debouncedSearchTerm}-${statusFilter}`;
+      const cachedKey = `${cacheRef.current.view}-${cacheRef.current.searchTerm}-${cacheRef.current.statusFilter}`;
+      
+      if (cacheKey === cachedKey && (now - cacheRef.current.timestamp) < CACHE_DURATION) {
+        console.log('📦 Using cached CRM data');
+        setProspects(cacheRef.current.data);
+        setLoading(false);
+        return;
+      }
+    }
+
     if (!append) setLoading(true);
+    console.log('🔄 Fetching fresh CRM data');
     
     try {
       // Use optimized database function with pagination and view filtering
@@ -159,6 +205,14 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         setProspects(prev => [...prev, ...mapped]);
       } else {
         setProspects(mapped);
+        // Update cache on successful fetch
+        cacheRef.current = {
+          data: mapped,
+          timestamp: Date.now(),
+          searchTerm: debouncedSearchTerm,
+          view,
+          statusFilter
+        };
       }
     } catch (error) {
       console.error("Error fetching prospects:", error);
