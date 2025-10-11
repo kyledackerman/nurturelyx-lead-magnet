@@ -4,17 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { sanitizeInput } from "@/lib/validation";
 import { format } from "date-fns";
-import { ExternalLink, ChevronDown, ChevronUp, Plus, Clock, Sparkles, Facebook, MessageSquare, Copy, Edit2, RefreshCw } from "lucide-react";
+import { ExternalLink, ChevronDown, ChevronUp, Plus, Clock, Sparkles, Facebook, MessageSquare, Copy, Edit2, RefreshCw, Flame } from "lucide-react";
 import { ProspectMetricsCard } from "./ProspectMetricsCard";
 import { ProspectStatusBar } from "./ProspectStatusBar";
 import { ProspectTaskPanel } from "./ProspectTaskPanel";
 import { ProspectContactCard } from "./ProspectContactCard";
 import { auditService } from "@/services/auditService";
 import ContactsSection from "./ContactsSection";
+import { formatCRMCurrency } from "@/lib/crmHelpers";
 
 interface ProspectDetailPanelProps {
   prospectId: string;
@@ -572,6 +574,23 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
                 </div>
               </div>
             </SheetHeader>
+
+            {/* Warm Inbound Alert */}
+            {prospect.lead_source === 'warm_inbound' && (
+              <Alert className="bg-orange-50 border-orange-200">
+                <Flame className="h-4 w-4 text-orange-600" />
+                <AlertTitle className="text-orange-900">🔥 Warm Inbound Lead</AlertTitle>
+                <AlertDescription className="text-orange-800">
+                  <strong>This prospect came to you!</strong> They ran their own report and saw their{' '}
+                  {formatCRMCurrency(prospect.report?.report_data?.monthlyRevenueLost || 0)}/month revenue loss.
+                  
+                  <div className="mt-2 text-sm space-y-1">
+                    <p><strong>Key insight:</strong> They already understand the problem</p>
+                    <p><strong>Approach:</strong> Reference the report they ran + specific numbers they saw</p>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Next Action Indicator */}
             {nextAction && (

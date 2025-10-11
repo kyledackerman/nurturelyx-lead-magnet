@@ -41,12 +41,13 @@ interface ProspectRow {
   contactCount: number;
   companyName: string | null;
   icebreakerText: string | null;
+  leadSource: string;
 }
 
 interface CRMTableViewProps {
   onSelectProspect: (id: string) => void;
   compact?: boolean;
-  view?: 'new-prospects' | 'needs-enrichment' | 'ready-outreach' | 'active' | 'closed' | 'needs-review';
+  view?: 'warm-inbound' | 'new-prospects' | 'needs-enrichment' | 'ready-outreach' | 'active' | 'closed' | 'needs-review';
   externalStatusFilter?: string | null;
 }
 
@@ -174,6 +175,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         p_status_filter: null, // Let view handle filtering
         p_assigned_filter: null,
         p_view: view,
+        p_lead_source: view === 'warm-inbound' ? 'warm_inbound' : null,
         p_limit: PAGE_SIZE,
         p_offset: page * PAGE_SIZE
       });
@@ -197,6 +199,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         contactCount: p.contact_count || 0,
         companyName: p.company_name,
         icebreakerText: p.icebreaker_text,
+        leadSource: p.lead_source || 'cold_outbound',
       })) || [];
 
       setHasMore(mapped.length === PAGE_SIZE);
@@ -1001,8 +1004,15 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                     </TableCell>
                   )}
                   <TableCell className="font-medium">
-                    <div className="flex flex-col">
-                      <span>{prospect.companyName || prospect.domain}</span>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        {prospect.leadSource === 'warm_inbound' && (
+                          <Badge className="bg-orange-500 hover:bg-orange-600 text-white shrink-0">
+                            🔥 Warm
+                          </Badge>
+                        )}
+                        <span>{prospect.companyName || prospect.domain}</span>
+                      </div>
                       {prospect.companyName && (
                         <span className="text-xs text-muted-foreground">{prospect.domain}</span>
                       )}

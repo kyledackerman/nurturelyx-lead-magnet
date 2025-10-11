@@ -156,6 +156,7 @@ export type Database = {
           icebreaker_text: string | null
           id: string
           last_enrichment_attempt: string | null
+          lead_source: string | null
           lost_notes: string | null
           lost_reason: string | null
           next_follow_up: string | null
@@ -186,6 +187,7 @@ export type Database = {
           icebreaker_text?: string | null
           id?: string
           last_enrichment_attempt?: string | null
+          lead_source?: string | null
           lost_notes?: string | null
           lost_reason?: string | null
           next_follow_up?: string | null
@@ -216,6 +218,7 @@ export type Database = {
           icebreaker_text?: string | null
           id?: string
           last_enrichment_attempt?: string | null
+          lead_source?: string | null
           lost_notes?: string | null
           lost_reason?: string | null
           next_follow_up?: string | null
@@ -524,6 +527,7 @@ export type Database = {
           import_source: string | null
           industry: string | null
           is_public: boolean
+          lead_source: string | null
           monthly_traffic_tier: string | null
           report_data: Json
           seo_description: string | null
@@ -544,6 +548,7 @@ export type Database = {
           import_source?: string | null
           industry?: string | null
           is_public?: boolean
+          lead_source?: string | null
           monthly_traffic_tier?: string | null
           report_data: Json
           seo_description?: string | null
@@ -564,6 +569,7 @@ export type Database = {
           import_source?: string | null
           industry?: string | null
           is_public?: boolean
+          lead_source?: string | null
           monthly_traffic_tier?: string | null
           report_data?: Json
           seo_description?: string | null
@@ -619,6 +625,14 @@ export type Database = {
       }
       get_crm_prospects_with_stats: {
         Args:
+          | {
+              p_assigned_filter?: string
+              p_lead_source?: string
+              p_limit?: number
+              p_offset?: number
+              p_status_filter?: string[]
+              p_view?: string
+            }
           | {
               p_assigned_filter?: string
               p_limit?: number

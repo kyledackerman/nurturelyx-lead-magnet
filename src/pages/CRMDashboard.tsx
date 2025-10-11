@@ -14,7 +14,7 @@ import { CRMRealtimeProvider } from "@/contexts/CRMRealtimeContext";
 import { CRMErrorBoundary } from "@/components/crm/CRMErrorBoundary";
 
 export default function CRMDashboard() {
-  const [selectedView, setSelectedView] = useState<"new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review">("needs-review");
+  const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review">("needs-review");
   const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
   const [pipelineStatusFilter, setPipelineStatusFilter] = useState<string | null>(null);
 
@@ -31,7 +31,10 @@ export default function CRMDashboard() {
       
       <div className="container mx-auto px-4 py-6 max-w-[2000px]">
         <Tabs value={selectedView} onValueChange={(v) => setSelectedView(v as any)} className="w-full">
-          <TabsList className="grid w-full max-w-5xl grid-cols-6 mb-6">
+          <TabsList className="grid w-full max-w-5xl grid-cols-7 mb-6">
+            <TabsTrigger value="warm-inbound" className="flex items-center gap-2">
+              🔥 Warm Inbound
+            </TabsTrigger>
             <TabsTrigger value="needs-review" className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4" />
               Needs Review
@@ -57,6 +60,14 @@ export default function CRMDashboard() {
               Closed Deals
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="warm-inbound">
+            <CRMTableView 
+              onSelectProspect={setSelectedProspectId}
+              compact={false}
+              view="warm-inbound"
+            />
+          </TabsContent>
 
           <TabsContent value="needs-review">
             <CRMTableView 

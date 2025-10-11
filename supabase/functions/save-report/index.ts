@@ -196,6 +196,7 @@ serve(async (req) => {
           seo_title: seoTitle,
           seo_description: seoDescription,
           extracted_company_name: companyName,
+          lead_source: userId ? 'admin_generated' : 'self_service',
         })
         .select('id, slug')
         .single();
@@ -252,13 +253,16 @@ serve(async (req) => {
                 .from('prospect_activities')
                 .insert({
                   report_id: reportId,
-                  activity_type: 'assignment',
+                  activity_type: userId ? 'assignment' : 'inbound_self_service',
                   assigned_to: userId,
                   assigned_by: userId,
                   assigned_at: new Date().toISOString(),
                   status: 'new',
                   priority: priority,
-                  notes: `Auto-assigned: ~${missedLeads.toLocaleString()} potential leads/month detected${monthlyRevenue > 0 ? ` ($${monthlyRevenue.toLocaleString()}/month opportunity)` : ''}`
+                  lead_source: userId ? 'cold_outbound' : 'warm_inbound',
+                  notes: userId 
+                    ? `Auto-assigned: ~${missedLeads.toLocaleString()} potential leads/month detected${monthlyRevenue > 0 ? ` ($${monthlyRevenue.toLocaleString()}/month opportunity)` : ''}`
+                    : `🔥 WARM INBOUND: Visitor ran their own report. Saw ${missedLeads} missed leads and $${monthlyRevenue}/mo revenue loss. HIGH INTENT.`
                 });
               
               if (activityError) {

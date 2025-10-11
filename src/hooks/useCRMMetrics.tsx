@@ -10,6 +10,9 @@ interface CRMMetrics {
   overdueTasks: number;
   dueTodayTasks: number;
   statusBreakdown: Record<string, number>;
+  warmInboundCount: number;
+  warmInboundConversion: number;
+  coldOutboundConversion: number;
 }
 
 export function useCRMMetrics() {

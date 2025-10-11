@@ -142,25 +142,25 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Check if icebreaker already exists (unless force_regenerate)
-    if (!force_regenerate) {
-      const { data: existing } = await supabaseClient
-        .from('prospect_activities')
-        .select('icebreaker_text')
-        .eq('id', prospect_activity_id)
-        .single();
+    // Check if icebreaker already exists and fetch lead_source (unless force_regenerate)
+    const { data: prospectData } = await supabaseClient
+      .from('prospect_activities')
+      .select('icebreaker_text, lead_source')
+      .eq('id', prospect_activity_id)
+      .single();
 
-      if (existing?.icebreaker_text) {
-        console.log('✅ Icebreaker already exists, skipping generation');
-        return new Response(
-          JSON.stringify({ 
-            icebreaker: existing.icebreaker_text, 
-            skipped: true 
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+    if (!force_regenerate && prospectData?.icebreaker_text) {
+      console.log('✅ Icebreaker already exists, skipping generation');
+      return new Response(
+        JSON.stringify({ 
+          icebreaker: prospectData.icebreaker_text, 
+          skipped: true 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    const lead_source = prospectData?.lead_source || 'cold_outbound';
 
     // Get Lovable API key
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -171,7 +171,22 @@ serve(async (req) => {
     // Construct AI prompt for icebreaker generation
     const searchQuery = `Recent news, achievements, customer reviews, awards, community involvement, or notable information about ${company_name || domain} business`;
     
-    const systemPrompt = `You are a B2B sales copywriting expert. Your ONLY job is to output the icebreaker text itself - nothing else.
+    const systemPrompt = lead_source === 'warm_inbound'
+      ? `You are a B2B sales expert writing to someone who ALREADY ran their own lead recovery report on your website.
+
+They SAW their missed revenue. They took ACTION by running the report. This is a WARM lead.
+
+Your icebreaker should:
+- Acknowledge they ran the report (e.g., "I saw you ran a lead recovery analysis for [company]...")
+- Reference the specific numbers they saw
+- Position yourself as helping them solve a problem THEY discovered
+
+CRITICAL OUTPUT RULES:
+- Output ONLY the icebreaker text - no quotation marks, no explanations
+- Maximum 50 words, 2-3 sentences
+- First person, conversational tone`
+      
+      : `You are a B2B sales copywriting expert. Your ONLY job is to output the icebreaker text itself - nothing else.
 
 CRITICAL OUTPUT RULES:
 - Output ONLY the icebreaker sentences - no quotation marks, no explanations, no meta-commentary

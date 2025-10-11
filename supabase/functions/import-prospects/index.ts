@@ -419,6 +419,7 @@ Deno.serve(async (req) => {
               slug: slugData,
               user_id: user.id, // Assign to importing admin
               import_source: 'csv_bulk_import',
+              lead_source: 'csv_import',
               report_data: {
                 domain: cleanedDomain,
                 avgTransactionValue: transactionValue,
@@ -467,6 +468,7 @@ Deno.serve(async (req) => {
               activity_type: 'note',
               notes: `Bulk imported with full report - awaiting AI enrichment for contacts and icebreakers`,
               priority: 'cold',
+              lead_source: 'import',
               created_by: user.id,
               assigned_to: user.id,
               assigned_by: user.id,
