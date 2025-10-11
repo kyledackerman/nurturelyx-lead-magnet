@@ -121,8 +121,85 @@ serve(async (req) => {
         // Phase 5: Multi-stage enrichment - Stage 1: Website Scraping
         const { content: scrapedData, socialLinks } = await scrapeWebsite(domain);
         
+        // Don't hard-fail if scraping fails - try alternative methods
         if (!scrapedData || scrapedData.length === 0) {
-          throw new Error("No data scraped from website");
+          console.log(`⚠️ No website data scraped for ${domain}, trying alternative enrichment methods...`);
+          
+          // Try Google Search for emails as fallback
+          const foundEmails = await googleSearchEmails(domain, companyName, lovableApiKey);
+          
+          if (foundEmails.length > 0) {
+            console.log(`✅ Google Search found ${foundEmails.length} emails despite scraping failure`);
+            
+            // Create contacts from emails
+            const contactsToInsert = foundEmails.map(email => ({
+              prospect_activity_id: prospect.id,
+              report_id: prospect.report_id,
+              first_name: "Office",
+              last_name: null,
+              email: email,
+              phone: null,
+              title: "Contact Found via Search",
+              linkedin_url: null,
+              facebook_url: null,
+              notes: "Email found via Google Search (website scraping blocked)",
+              is_primary: false,
+            }));
+
+            const { error: insertError } = await supabase
+              .from("prospect_contacts")
+              .insert(contactsToInsert);
+
+            if (!insertError) {
+              // Mark as 'review' instead of 'enriched' since we only have partial data
+              await supabase
+                .from("prospect_activities")
+                .update({
+                  status: "review",
+                  enrichment_retry_count: 0,
+                  last_enrichment_attempt: new Date().toISOString(),
+                  enrichment_source: 'google_search_only',
+                  auto_enriched: true,
+                  notes: `⚠️ Partial enrichment: Found ${foundEmails.length} email(s) via search. Website scraping blocked.`
+                })
+                .eq("id", prospect.id);
+
+              await supabase.rpc('release_enrichment_lock', { p_prospect_id: prospect.id });
+
+              results.successful++;
+              results.details.push({
+                domain,
+                status: "partial_success",
+                contacts: foundEmails.length,
+                reason: "Website blocked, found emails via search"
+              });
+              
+              continue; // Move to next prospect
+            }
+          }
+          
+          // If all methods fail, mark as review (not failed) to allow manual handling
+          await supabase
+            .from("prospect_activities")
+            .update({
+              status: "review",
+              enrichment_retry_count: (retryCount + 1),
+              last_enrichment_attempt: new Date().toISOString(),
+              enrichment_source: 'failed_all_methods',
+              notes: `⚠️ Auto-enrichment could not scrape website after ${retryCount + 1} attempts. Needs manual review.`
+            })
+            .eq("id", prospect.id);
+
+          await supabase.rpc('release_enrichment_lock', { p_prospect_id: prospect.id });
+
+          results.failed++;
+          results.details.push({
+            domain,
+            status: "needs_review",
+            reason: "All enrichment methods failed - website blocked"
+          });
+          
+          continue; // Move to next prospect
         }
 
         console.log(`Scraped ${scrapedData.length} characters from ${domain}`);
@@ -715,6 +792,14 @@ async function googleSearchEmails(domain: string, companyName: string, lovableAp
 }
 
 async function scrapeWebsite(domain: string): Promise<{ content: string; socialLinks: string }> {
+  // Rotate through modern User-Agents to avoid bot detection
+  const userAgents = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15'
+  ];
+  
   const urlsToTry = [
     `https://${domain}`,
     `https://${domain}/contact`,
@@ -732,11 +817,26 @@ async function scrapeWebsite(domain: string): Promise<{ content: string; socialL
   for (const url of urlsToTry) {
     try {
       console.log(`Scraping ${url}...`);
+      
+      // Use random User-Agent for each request
+      const randomUA = userAgents[Math.floor(Math.random() * userAgents.length)];
+      
       const response = await fetch(url, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          'User-Agent': randomUA,
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'DNT': '1',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Cache-Control': 'max-age=0'
         },
-        signal: AbortSignal.timeout(10000), // 10 second timeout
+        redirect: 'follow',
+        signal: AbortSignal.timeout(15000), // Increase to 15 seconds
       });
 
       if (response.ok) {
@@ -760,6 +860,10 @@ async function scrapeWebsite(domain: string): Promise<{ content: string; socialL
         
         console.log(`✅ Successfully scraped ${url} (${text.length} chars)`);
       }
+      
+      // Add small delay between requests to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
+      
     } catch (error) {
       console.log(`⚠️ Failed to scrape ${url}:`, error instanceof Error ? error.message : String(error));
     }

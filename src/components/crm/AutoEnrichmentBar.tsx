@@ -23,6 +23,7 @@ export function AutoEnrichmentBar() {
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
   const [running, setRunning] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const { toast } = useToast();
 
   const fetchStats = async () => {
@@ -113,6 +114,32 @@ export function AutoEnrichmentBar() {
       });
     } finally {
       setRunning(false);
+    }
+  };
+
+  const retryFailed = async () => {
+    setRetrying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('retry-failed-enrichments');
+      
+      if (error) throw error;
+
+      toast({
+        title: "Failures Reset",
+        description: `${data.reset_count} prospects moved back to review queue`
+      });
+
+      // Refresh stats after retry
+      setTimeout(fetchStats, 2000);
+    } catch (error) {
+      console.error('Error retrying failed enrichments:', error);
+      toast({
+        title: "Failed to retry",
+        description: "Could not reset failed prospects",
+        variant: "destructive"
+      });
+    } finally {
+      setRetrying(false);
     }
   };
 
@@ -209,6 +236,27 @@ export function AutoEnrichmentBar() {
               </>
             )}
           </Button>
+
+          {stats.total_failed > 0 && (
+            <Button
+              variant="outline"
+              size="xs"
+              onClick={retryFailed}
+              disabled={retrying}
+            >
+              {retrying ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Retrying...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Retry {stats.total_failed} Failed
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </div>

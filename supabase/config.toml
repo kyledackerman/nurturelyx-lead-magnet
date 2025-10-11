@@ -1,5 +1,8 @@
 project_id = "apjlauuidcbvuplfcshg"
 
+[functions.retry-failed-enrichments]
+verify_jwt = false
+
 [functions.parse-bulk-contacts]
 verify_jwt = true
 
