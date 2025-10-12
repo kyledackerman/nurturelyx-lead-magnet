@@ -96,7 +96,9 @@ function validateIcebreaker(icebreaker: string): string[] {
     'let me know',
     'hope this helps',
     'icebreaker:',
-    'opener:'
+    'opener:',
+    'just saw you folks',
+    'you folks'
   ];
   
   const lowerIcebreaker = icebreaker.toLowerCase();
@@ -225,7 +227,7 @@ Search the web for recent information about this company and write a casual, fri
 
 **TONE & STYLE:**
 - Conversational and warm (like internal team communication)
-- Use casual language: "I noticed", "just saw", "looks like"
+- Use casual language: "I noticed", "I see", "looks like", "saw"
 - Specific and personalized (reference something unique you found)
 - Authentic (not obviously AI-generated or salesy)
 - NO greetings (Hey, Hi, Hello, etc.) - start directly with content
@@ -239,7 +241,7 @@ Search the web for recent information about this company and write a casual, fri
 **EXAMPLE OUTPUTS:**
 
 Example 1 (HVAC):
-"Just saw you folks were featured in the Tribune for your emergency response during that winter storm - impressive 24/7 service. I ran some numbers on your website traffic and noticed you might be missing out on a pretty significant number of leads each month from anonymous visitors."
+"I noticed you were featured in the Tribune for your emergency response during that winter storm - impressive 24/7 service. I ran some numbers on your website traffic and noticed you might be missing out on a pretty significant number of leads each month from anonymous visitors."
 
 Example 2 (Law Firm):
 "Noticed you recently expanded into family law mediation - looks like that's filling a real gap in the area. Quick heads up: I analyzed your site traffic and found some interesting opportunities to capture more of those website visitors who are checking out your services but not filling out forms."
@@ -256,11 +258,11 @@ Example 3 (Plumbing):
 
 **WHAT NOT TO OUTPUT:**
 ❌ "Here's a personalized icebreaker: Just saw you folks..."
-❌ "Just saw you folks were featured in the Tribune..."
+❌ "Just saw you folks were featured in the Tribune..." (too casual - avoid "you folks")
 ❌ I found that they recently expanded. Here's what I came up with: "Noticed you recently..."
 ❌ Based on my research, I couldn't find recent news, so here's a generic opener...
 
-✅ CORRECT OUTPUT (no quotes, no preamble): Just saw you folks were featured in the Tribune...
+✅ CORRECT OUTPUT (no quotes, no preamble): I noticed you were featured in the Tribune...
 
 ${scraped_content ? `\n**WEBSITE CONTENT (for additional context):**\n${scraped_content.substring(0, 1500)}\n` : ''}
 
