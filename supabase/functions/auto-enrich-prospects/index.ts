@@ -56,7 +56,7 @@ serve(async (req) => {
         last_enrichment_attempt,
         reports!inner(domain, extracted_company_name, facebook_url, industry)
       `)
-      .in("status", ["new", "enriching", "review"])
+      .in("status", ["new", "enriching"])
       .lt("enrichment_retry_count", 3)
       .is("enrichment_locked_at", null) // Not currently locked
       .order("last_enrichment_attempt", { ascending: true, nullsFirst: true })
@@ -151,16 +151,16 @@ serve(async (req) => {
               .insert(contactsToInsert);
 
             if (!insertError) {
-              // Mark as 'review' instead of 'enriched' since we only have partial data
+              // Mark as 'enriched' - partial data is still successful enrichment
               await supabase
                 .from("prospect_activities")
                 .update({
-                  status: "review",
+                  status: "enriched",
                   enrichment_retry_count: 0,
                   last_enrichment_attempt: new Date().toISOString(),
                   enrichment_source: 'google_search_only',
                   auto_enriched: true,
-                  notes: `⚠️ Partial enrichment: Found ${foundEmails.length} email(s) via search. Website scraping blocked.`
+                  notes: `✅ Enriched via Google Search: Found ${foundEmails.length} email(s). Website scraping was blocked.`
                 })
                 .eq("id", prospect.id);
 
