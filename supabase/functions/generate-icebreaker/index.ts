@@ -9,11 +9,13 @@ const corsHeaders = {
 // LAYER 2: Clean AI output from meta-commentary and formatting issues
 function cleanIcebreakerOutput(rawOutput: string): string {
   let cleaned = rawOutput.trim();
+  const originalWordCount = cleaned.split(/\s+/).length;
   
   // 1. Remove common AI meta-commentary patterns
   const metaPatterns = [
-    /^(here's|here is|here you go|based on|i found|i couldn't find|i noticed|let me|i'll|i've created|i've generated)[^.!?]*[:.-]\s*/i,
-    /^(icebreaker|opener|opening line|cold outreach|personalized message)[:.-]\s*/i,
+    // Only match explicit labels with colons/dashes (not normal sentences)
+    /^(here's|here is|here you go|i've created|i've generated)\s*[:\-–—]\s*/i,
+    /^(icebreaker|opener|opening line|cold outreach|personalized message)\s*[:\-–—]\s*/i,
     /\(.*?based on.*?\)/gi,  // Remove parenthetical notes
     /\[.*?note.*?\]/gi,       // Remove bracketed notes
   ];
@@ -51,6 +53,14 @@ function cleanIcebreakerOutput(rawOutput: string): string {
       // Capitalize first letter after removing filler
       cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
     }
+  }
+  
+  // 6. Safeguard: Warn if cleaning removed too much content
+  const finalWordCount = cleaned.trim().split(/\s+/).length;
+  const reductionPercentage = ((originalWordCount - finalWordCount) / originalWordCount) * 100;
+  
+  if (reductionPercentage > 40) {
+    console.warn(`⚠️ Aggressive cleaning detected: reduced from ${originalWordCount} to ${finalWordCount} words (${reductionPercentage.toFixed(1)}% reduction)`);
   }
   
   return cleaned.trim();
