@@ -746,14 +746,13 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     setEnrichmentProgress(progressMap);
 
     try {
-      // Use environment variables for security (Fix #4)
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bulk-enrich-prospects`,
+        `https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/bulk-enrich-prospects`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwamxhdXVpZGNidnVwbGZjc2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc5NjA1NjMsImV4cCI6MjA3MzUzNjU2M30.1Lv6xs2zAbg24V-7f0nzC8OxoZUVw03_ZD2QIkS_hDU`,
           },
           body: JSON.stringify({
             prospect_ids: Array.from(selectedProspectIds),
@@ -762,7 +761,9 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       );
 
       if (!response.ok || !response.body) {
-        throw new Error('Failed to start bulk enrichment');
+        const errorText = await response.text();
+        console.error('Bulk enrichment failed:', response.status, errorText);
+        throw new Error(`Failed to start bulk enrichment: ${response.status} ${errorText}`);
       }
 
       // Parse SSE stream
