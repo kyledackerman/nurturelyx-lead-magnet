@@ -5,6 +5,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Simple in-memory rate limiter
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 10; // 10 requests
+const RATE_WINDOW = 60000; // per minute
+
+function checkRateLimit(identifier: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(identifier);
+
+  if (!entry || entry.resetAt < now) {
+    rateLimitMap.set(identifier, { count: 1, resetAt: now + RATE_WINDOW });
+    return true;
+  }
+
+  if (entry.count >= RATE_LIMIT) {
+    return false;
+  }
+
+  entry.count++;
+  return true;
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -22,6 +44,18 @@ Deno.serve(async (req) => {
     }
 
     const jwt = authHeader.replace('Bearer ', '');
+
+    // Apply rate limiting per user
+    const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
+    const rateLimitKey = `get-admins:${clientIp}`;
+    
+    if (!checkRateLimit(rateLimitKey)) {
+      console.warn('Rate limit exceeded for:', clientIp);
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Create Supabase client for the authenticated user
     const supabase = createClient(

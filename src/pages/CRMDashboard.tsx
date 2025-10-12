@@ -24,10 +24,10 @@ export default function CRMDashboard() {
   };
 
   return (
-    // Temporarily disabled real-time subscriptions for performance optimization
-    // <CRMRealtimeProvider>
-      <div className="min-h-screen bg-background">
-        <CRMHeader />
+    <CRMErrorBoundary>
+      <CRMRealtimeProvider>
+        <div className="min-h-screen bg-background">
+          <CRMHeader />
       
       <div className="container mx-auto px-4 py-6 max-w-[2000px]">
         <Tabs value={selectedView} onValueChange={(v) => setSelectedView(v as any)} className="w-full">
@@ -139,13 +139,14 @@ export default function CRMDashboard() {
       </div>
 
       {/* Prospect Detail Panel */}
-      {selectedProspectId && (
-        <ProspectDetailPanel
-          prospectId={selectedProspectId}
-          onClose={() => setSelectedProspectId(null)}
-        />
-      )}
-      </div>
-    // </CRMRealtimeProvider>
+        {selectedProspectId && (
+          <ProspectDetailPanel
+            prospectId={selectedProspectId}
+            onClose={() => setSelectedProspectId(null)}
+          />
+        )}
+        </div>
+      </CRMRealtimeProvider>
+    </CRMErrorBoundary>
   );
 }
