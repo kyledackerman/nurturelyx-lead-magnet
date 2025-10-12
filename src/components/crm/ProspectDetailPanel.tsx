@@ -405,30 +405,74 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
 
   const enrichProspect = async () => {
     setIsEnriching(true);
+    
     try {
-      const { data, error } = await supabase.functions.invoke("enrich-single-prospect", {
+      // Show optimistic UI immediately
+      toast.info("Enriching prospect... This may take 60-90 seconds", {
+        duration: 5000,
+      });
+
+      // Start enrichment (fire-and-forget)
+      const enrichPromise = supabase.functions.invoke("enrich-single-prospect", {
         body: { prospect_id: prospectId },
       });
 
-      // If there's a function invocation error, try to extract the message
-      if (error) {
-        console.error("Error enriching prospect:", error);
-        toast.error(error.message || "Failed to enrich prospect");
-        return;
+      // Poll for status updates every 5 seconds
+      const pollInterval = setInterval(async () => {
+        const { data: updatedProspect } = await supabase
+          .from("prospect_activities")
+          .select("status, contact_count")
+          .eq("id", prospectId)
+          .single();
+
+        console.log("Polling enrichment status:", updatedProspect?.status);
+
+        if (updatedProspect?.status === "enriched" || updatedProspect?.status === "review") {
+          clearInterval(pollInterval);
+          setIsEnriching(false);
+          toast.success(`Enrichment complete! Found ${updatedProspect.contact_count || 0} contacts`);
+          fetchProspectDetails();
+        } else if (updatedProspect?.status === "new" || updatedProspect?.status === "enrichment_failed") {
+          // Enrichment failed or was reset
+          clearInterval(pollInterval);
+          setIsEnriching(false);
+          toast.error("Enrichment failed. Please try again.");
+          fetchProspectDetails();
+        }
+      }, 5000); // Poll every 5 seconds
+
+      // Set a maximum polling time of 2 minutes
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        if (isEnriching) {
+          setIsEnriching(false);
+          toast.warning("Enrichment is taking longer than expected. Check back in a few minutes.");
+          fetchProspectDetails();
+        }
+      }, 120000); // 2 minutes max
+
+      // Try to await the original promise, but don't fail if it times out
+      try {
+        const { data, error } = await enrichPromise;
+        
+        // If we get a response before polling completes, handle it
+        if (data?.success) {
+          clearInterval(pollInterval);
+          setIsEnriching(false);
+          toast.success(data.message);
+          fetchProspectDetails();
+        } else if (error) {
+          console.error("Error enriching prospect:", error);
+          // Don't show error toast here - polling will handle status updates
+        }
+      } catch (timeoutError) {
+        // HTTP timeout - that's OK, polling will handle it
+        console.log("HTTP timeout (expected), relying on polling:", timeoutError);
       }
 
-      // Handle the response from the function
-      if (data?.success) {
-        toast.success(data.message);
-        fetchProspectDetails();
-      } else {
-        // Show the specific error from the function
-        toast.error(data?.error || "Enrichment failed");
-      }
     } catch (error) {
       console.error("Unexpected error enriching prospect:", error);
       toast.error(error instanceof Error ? error.message : "Failed to enrich prospect");
-    } finally {
       setIsEnriching(false);
     }
   };

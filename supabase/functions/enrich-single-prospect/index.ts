@@ -344,7 +344,7 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
       }
     }
 
-    // Update prospect status - preserve status if already in advanced stages
+    // Update prospect status to "enriched" immediately (don't wait for icebreaker)
     const newStatus = ["new", "needs_review", "enriching"].includes(prospect.status)
       ? "enriched"
       : prospect.status;
@@ -370,33 +370,7 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
       p_context: contextParts.join(", "),
     });
 
-    // Generate personalized icebreaker using AI
-    console.log(`🎯 Generating personalized icebreaker for ${domain}...`);
-    try {
-      const { data: icebreakerData, error: icebreakerError } = await supabase.functions.invoke(
-        'generate-icebreaker',
-        {
-          body: {
-            prospect_activity_id: prospect_id,
-            domain: domain,
-            company_name: companyName,
-            scraped_content: scrapedData,
-            force_regenerate: false
-          }
-        }
-      );
-
-      if (icebreakerError) {
-        console.error('⚠️ Icebreaker generation failed:', icebreakerError);
-        // Don't fail enrichment - icebreaker is optional
-      } else {
-        console.log('✅ Icebreaker generated successfully');
-      }
-    } catch (icebreakerErr) {
-      console.error('⚠️ Icebreaker generation error:', icebreakerErr);
-      // Silent fail - enrichment still succeeds
-    }
-
+    // Build response message immediately
     const messageParts = [];
     if (contactsInserted > 0) messageParts.push(`Found ${contactsInserted} contact${contactsInserted > 1 ? "s" : ""}`);
     if (companyNameUpdated) messageParts.push(`Company: "${companyName}"`);
@@ -409,6 +383,42 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
 
     console.log(`✅ Manual enrichment complete: ${resultMessage}`);
 
+    // Generate icebreaker in background (async, no await)
+    // Using EdgeRuntime.waitUntil to ensure it completes even after response is sent
+    EdgeRuntime.waitUntil(
+      (async () => {
+        console.log("🧊 Generating icebreaker in background...");
+        try {
+          const { data: icebreakerData, error: icebreakerError } = await supabase.functions.invoke(
+            'generate-icebreaker',
+            {
+              body: {
+                prospect_activity_id: prospect_id,
+                domain: domain,
+                company_name: companyName,
+                scraped_content: scrapedData,
+                force_regenerate: false
+              }
+            }
+          );
+
+          if (icebreakerError) {
+            console.error('❌ Error generating icebreaker:', icebreakerError);
+          } else {
+            console.log('✅ Icebreaker generated successfully in background');
+            // Update status to review after icebreaker is done
+            await supabase
+              .from("prospect_activities")
+              .update({ status: "review" })
+              .eq("id", prospect_id);
+          }
+        } catch (error) {
+          console.error('❌ Background icebreaker generation failed:', error);
+        }
+      })()
+    );
+
+    // Return response immediately without waiting for icebreaker
     return new Response(
       JSON.stringify({
         success: true,
