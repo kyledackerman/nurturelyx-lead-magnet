@@ -21,6 +21,7 @@ export const blogPosts: BlogPost[] = [
     publishedAt: '2025-01-15',
     readTime: '8 min',
     category: 'Lead Generation',
+    featuredImage: 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png',
     content: `# How to Identify Anonymous Website Visitors in 2025
 
 ## The Problem: 95% of Website Visitors Are Anonymous
@@ -207,6 +208,7 @@ Want to see how many companies are visiting your website right now? Calculate yo
     publishedAt: '2025-01-10',
     readTime: '7 min',
     category: 'Industry Insights',
+    featuredImage: 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png',
     content: `# HVAC Lead Generation: Turn Website Traffic into Service Calls
 
 ## The HVAC Lead Generation Problem
@@ -426,6 +428,7 @@ Want to see how many leads you're missing? Use our free HVAC lead calculator to 
     publishedAt: '2025-01-05',
     readTime: '9 min',
     category: 'Education',
+    featuredImage: 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png',
     content: `# What is Identity Resolution? Complete Guide for Businesses
 
 ## Identity Resolution Definition
@@ -753,6 +756,7 @@ blogPosts.push(
     publishedAt: '2025-01-08',
     readTime: '12 min',
     category: 'Tool Comparison',
+    featuredImage: 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png',
     content: `# Website Visitor Identification: Best Tools Compared in 2025
 
 ## The Critical Difference You Need to Understand First
@@ -1103,6 +1107,7 @@ Want to see how many leads you're missing? Calculate your lost revenue with our 
     publishedAt: '2025-01-12',
     readTime: '8 min',
     category: 'Tools',
+    featuredImage: 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png',
     content: `# Calculate Your Website's Lost Revenue [Free Tool]
 
 ## The $127,000 Problem Every B2B Company Has
@@ -1515,6 +1520,7 @@ All you need to do is identify the visitors and follow up.`,
     publishedAt: '2025-01-03',
     readTime: '10 min',
     category: 'Education',
+    featuredImage: 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png',
     content: `# Visitor Tracking vs. Google Analytics: What's the Difference?
 
 ## The Fundamental Difference That Changes Everything
@@ -1968,6 +1974,7 @@ Ready to see how many companies are visiting your website right now? Calculate y
     publishedAt: '2025-01-01',
     readTime: '15 min',
     category: 'Statistics',
+    featuredImage: 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png',
     content: `# B2B Lead Generation Statistics You Need to Know in 2025
 
 ## 65+ Data-Driven Insights to Transform Your Marketing Strategy

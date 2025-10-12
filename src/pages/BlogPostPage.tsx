@@ -9,6 +9,7 @@ import { Calendar, Clock, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { scrollToTopIfHomeLink } from "@/lib/scroll";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
+import { RelatedArticles } from "@/components/blog/RelatedArticles";
 
 export default function BlogPostPage() {
   usePageViewTracking('marketing');
@@ -37,6 +38,25 @@ export default function BlogPostPage() {
       <Helmet>
         <title>{post.title} | NurturelyX Blog</title>
         <meta name="description" content={post.metaDescription} />
+        
+        {/* Canonical Tag */}
+        <link rel="canonical" href={`https://x1.nurturely.io/blog/${post.slug}`} />
+        
+        {/* Open Graph Tags */}
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={post.title} />
+        <meta property="og:description" content={post.metaDescription} />
+        <meta property="og:url" content={`https://x1.nurturely.io/blog/${post.slug}`} />
+        <meta property="og:image" content={post.featuredImage || 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png'} />
+        <meta property="article:published_time" content={post.publishedAt} />
+        <meta property="article:author" content={post.author} />
+        <meta property="article:section" content={post.category} />
+        
+        {/* Twitter Card Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={post.title} />
+        <meta name="twitter:description" content={post.metaDescription} />
+        <meta name="twitter:image" content={post.featuredImage || 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png'} />
       </Helmet>
       
       <ArticleSchema
@@ -76,6 +96,8 @@ export default function BlogPostPage() {
           <div className="prose prose-lg max-w-none">
             <ReactMarkdown>{post.content}</ReactMarkdown>
           </div>
+
+          <RelatedArticles relatedSlugs={post.relatedArticles} />
 
           <div className="mt-12 pt-8 border-t">
             <Button asChild size="lg" className="gradient-bg" onClick={scrollToTopIfHomeLink}>
