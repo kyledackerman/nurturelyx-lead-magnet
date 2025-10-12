@@ -21,7 +21,7 @@ serve(async (req) => {
     // Check if auto-enrichment is enabled
     const { data: settings, error: settingsError } = await supabase
       .from("enrichment_settings")
-      .select("*")
+      .select("auto_enrichment_enabled, facebook_scraping_enabled")
       .single();
 
     if (settingsError) {
@@ -39,6 +39,9 @@ serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const facebookScrapingEnabled = settings.facebook_scraping_enabled || false;
+    console.log(`Facebook scraping: ${facebookScrapingEnabled ? 'enabled' : 'disabled'}`);
 
     console.log("Starting auto-enrichment process...");
 
@@ -204,13 +207,17 @@ serve(async (req) => {
 
         console.log(`Scraped ${scrapedData.length} characters from ${domain}`);
         
-        // Phase 5: Stage 2: Facebook Scraping (if Facebook URL found in social links)
+        // Phase 5: Stage 2: Facebook Scraping (if enabled and Facebook URL found in social links)
         let facebookData = "";
-        const facebookUrlMatch = socialLinks.match(/https?:\/\/(www\.)?(facebook\.com|fb\.com)\/[^\s]+/i);
-        if (facebookUrlMatch) {
-          const extractedFacebookUrl = facebookUrlMatch[0];
-          console.log(`📘 Found Facebook URL: ${extractedFacebookUrl}`);
-          facebookData = await scrapeFacebookPage(extractedFacebookUrl);
+        if (facebookScrapingEnabled) {
+          const facebookUrlMatch = socialLinks.match(/https?:\/\/(www\.)?(facebook\.com|fb\.com)\/[^\s]+/i);
+          if (facebookUrlMatch) {
+            const extractedFacebookUrl = facebookUrlMatch[0];
+            console.log(`📘 Found Facebook URL: ${extractedFacebookUrl}`);
+            facebookData = await scrapeFacebookPage(extractedFacebookUrl);
+          }
+        } else {
+          console.log(`⏭️ Facebook scraping disabled, skipping...`);
         }
         
         // Phase 5: Stage 3: Google Search for emails (if no contacts found initially)
@@ -624,7 +631,7 @@ Now search the web and write the icebreaker:
         console.error(`Failed to enrich ${domain}:`, error);
 
         const newRetryCount = retryCount + 1;
-        const newStatus = newRetryCount >= 3 ? "enrichment_failed" : "enriching";
+        const newStatus = newRetryCount >= 3 ? "review" : "enriching";
 
         // Update retry count, status, and release lock
         await supabase
@@ -635,8 +642,8 @@ Now search the web and write the icebreaker:
             status: newStatus,
             enrichment_locked_at: null,
             enrichment_locked_by: null,
-            ...(newStatus === "enrichment_failed" && {
-              notes: `Auto-enrichment failed after 3 attempts. Last error: ${error instanceof Error ? error.message : String(error)}. Manual review required.`
+            ...(newStatus === "review" && {
+              notes: `⚠️ Auto-enrichment failed after 3 attempts. Last error: ${error instanceof Error ? error.message : String(error)}. Manual review required.`
             }),
           })
           .eq("id", prospect.id);

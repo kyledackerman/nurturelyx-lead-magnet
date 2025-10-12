@@ -69,6 +69,7 @@ export type Database = {
         Row: {
           auto_enrichment_enabled: boolean
           created_at: string
+          facebook_scraping_enabled: boolean | null
           id: string
           last_run_at: string | null
           total_enriched: number
@@ -78,6 +79,7 @@ export type Database = {
         Insert: {
           auto_enrichment_enabled?: boolean
           created_at?: string
+          facebook_scraping_enabled?: boolean | null
           id?: string
           last_run_at?: string | null
           total_enriched?: number
@@ -87,6 +89,7 @@ export type Database = {
         Update: {
           auto_enrichment_enabled?: boolean
           created_at?: string
+          facebook_scraping_enabled?: boolean | null
           id?: string
           last_run_at?: string | null
           total_enriched?: number

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 interface EnrichmentStats {
   enabled: boolean;
+  facebook_scraping_enabled: boolean;
   last_run: string | null;
   queue_count: number;
   needs_review_count: number;
@@ -22,6 +23,7 @@ export function AutoEnrichmentBar() {
   const [stats, setStats] = useState<EnrichmentStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
+  const [togglingFacebook, setTogglingFacebook] = useState(false);
   const [running, setRunning] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const { toast } = useToast();
@@ -91,6 +93,45 @@ export function AutoEnrichmentBar() {
     }
   };
 
+  const toggleFacebookScraping = async () => {
+    if (!stats) return;
+    
+    setTogglingFacebook(true);
+    try {
+      const { data: currentSettings, error: fetchError } = await supabase
+        .from('enrichment_settings')
+        .select('id')
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const { error: updateError } = await supabase
+        .from('enrichment_settings')
+        .update({ facebook_scraping_enabled: !stats.facebook_scraping_enabled })
+        .eq('id', currentSettings.id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: stats.facebook_scraping_enabled ? "Facebook Scraping Disabled" : "Facebook Scraping Enabled",
+        description: stats.facebook_scraping_enabled 
+          ? "Facebook pages will not be scraped during enrichment" 
+          : "Facebook pages will be scraped when found"
+      });
+
+      await fetchStats();
+    } catch (error) {
+      console.error('Error toggling Facebook scraping:', error);
+      toast({
+        title: "Failed to update settings",
+        description: "Could not toggle Facebook scraping",
+        variant: "destructive"
+      });
+    } finally {
+      setTogglingFacebook(false);
+    }
+  };
+
   const runNow = async () => {
     setRunning(true);
     try {
@@ -154,22 +195,38 @@ export function AutoEnrichmentBar() {
   return (
     <div className="mb-4 bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg px-4 py-2.5">
       <div className="flex items-center justify-between gap-4">
-        {/* Left: Toggle */}
-        <div className="flex items-center gap-3">
-          <Switch
-            id="auto-enrich"
-            checked={stats?.enabled || false}
-            onCheckedChange={toggleAutoEnrichment}
-            disabled={toggling}
-          />
+        {/* Left: Toggles */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <Switch
+              id="auto-enrich"
+              checked={stats?.enabled || false}
+              onCheckedChange={toggleAutoEnrichment}
+              disabled={toggling}
+            />
+            <div className="flex items-center gap-2">
+              {stats?.enabled ? (
+                <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+              ) : (
+                <Power className="h-4 w-4 text-muted-foreground" />
+              )}
+              <span className="text-sm font-medium">
+                Auto-Enrichment {stats?.enabled ? "Active" : "Paused"}
+              </span>
+            </div>
+          </div>
+          
+          <div className="h-6 w-px bg-border" />
+          
           <div className="flex items-center gap-2">
-            {stats?.enabled ? (
-              <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-            ) : (
-              <Power className="h-4 w-4 text-muted-foreground" />
-            )}
-            <span className="text-sm font-medium">
-              Auto-Enrichment {stats?.enabled ? "Active" : "Paused"}
+            <Switch
+              id="facebook-scraping"
+              checked={stats?.facebook_scraping_enabled || false}
+              onCheckedChange={toggleFacebookScraping}
+              disabled={togglingFacebook}
+            />
+            <span className="text-xs text-muted-foreground">
+              Facebook
             </span>
           </div>
         </div>

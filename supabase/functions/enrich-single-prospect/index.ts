@@ -83,13 +83,26 @@ serve(async (req) => {
 
     console.log(`Scraped ${scrapedData.length} characters from ${domain}`);
     
-    // Phase 2: Facebook Scraping (if Facebook URL found in social links)
+    // Phase 2: Facebook Scraping (check settings first)
     let facebookData = "";
-    const facebookUrlMatch = socialLinks.match(/https?:\/\/(www\.)?(facebook\.com|fb\.com)\/[^\s]+/i);
-    if (facebookUrlMatch) {
-      const extractedFacebookUrl = facebookUrlMatch[0];
-      console.log(`📘 Found Facebook URL: ${extractedFacebookUrl}`);
-      facebookData = await scrapeFacebookPage(extractedFacebookUrl);
+    
+    // Fetch Facebook scraping setting
+    const { data: settings } = await supabase
+      .from("enrichment_settings")
+      .select("facebook_scraping_enabled")
+      .single();
+    
+    const facebookScrapingEnabled = settings?.facebook_scraping_enabled || false;
+    
+    if (facebookScrapingEnabled) {
+      const facebookUrlMatch = socialLinks.match(/https?:\/\/(www\.)?(facebook\.com|fb\.com)\/[^\s]+/i);
+      if (facebookUrlMatch) {
+        const extractedFacebookUrl = facebookUrlMatch[0];
+        console.log(`📘 Found Facebook URL: ${extractedFacebookUrl}`);
+        facebookData = await scrapeFacebookPage(extractedFacebookUrl);
+      }
+    } else {
+      console.log(`⏭️ Facebook scraping disabled, skipping...`);
     }
 
     // Use AI to extract contacts AND company name

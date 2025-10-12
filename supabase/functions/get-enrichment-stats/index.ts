@@ -77,6 +77,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         enabled: settings.auto_enrichment_enabled,
+        facebook_scraping_enabled: settings.facebook_scraping_enabled || false,
         last_run: settings.last_run_at,
         queue_count: queueCount || 0,
         needs_review_count: reviewCount || 0,
