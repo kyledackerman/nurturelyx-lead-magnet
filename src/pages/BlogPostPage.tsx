@@ -4,6 +4,9 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getBlogPost, BlogPost } from "@/data/blogPosts";
 import { ArticleSchema } from "@/components/seo/ArticleSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { Breadcrumb } from "@/components/report/Breadcrumb";
+import { TableOfContents } from "@/components/blog/TableOfContents";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -63,8 +66,21 @@ export default function BlogPostPage() {
         title={post.title}
         description={post.metaDescription}
         publishedAt={post.publishedAt}
+        updatedAt={post.updatedAt}
         author={post.author}
         url={`https://x1.nurturely.io/blog/${post.slug}`}
+        imageUrl={post.featuredImage}
+        category={post.category}
+        wordCount={post.content.split(/\s+/).length}
+      />
+      
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', url: 'https://x1.nurturely.io/' },
+          { name: 'Blog', url: 'https://x1.nurturely.io/blog' },
+          { name: post.category, url: `https://x1.nurturely.io/blog/category/${post.category.toLowerCase().replace(/\s+/g, '-')}` },
+          { name: post.title, url: `https://x1.nurturely.io/blog/${post.slug}` }
+        ]}
       />
 
       <Header />
@@ -76,6 +92,14 @@ export default function BlogPostPage() {
               Back to Blog
             </Link>
           </Button>
+
+          <Breadcrumb
+            items={[
+              { label: 'Blog', href: '/blog' },
+              { label: post.category, href: `/blog/category/${post.category.toLowerCase().replace(/\s+/g, '-')}` },
+              { label: post.title, href: `/blog/${post.slug}` }
+            ]}
+          />
 
           <div className="mb-8">
             <div className="text-sm text-primary font-semibold mb-2">{post.category}</div>
@@ -93,8 +117,20 @@ export default function BlogPostPage() {
             </div>
           </div>
 
+          <TableOfContents content={post.content} />
+
           <div className="prose prose-lg max-w-none">
-            <ReactMarkdown>{post.content}</ReactMarkdown>
+            <ReactMarkdown
+              components={{
+                h2: ({ children, ...props }) => {
+                  const text = children?.toString() || '';
+                  const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                  return <h2 id={id} {...props}>{children}</h2>;
+                },
+              }}
+            >
+              {post.content}
+            </ReactMarkdown>
           </div>
 
           <RelatedArticles relatedSlugs={post.relatedArticles} />
