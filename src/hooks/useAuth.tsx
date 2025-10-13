@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode, useRef } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -17,18 +17,23 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Module-level admin cache (singleton) to prevent duplicate checks across components
+const adminCache = {
+  isAdmin: null as boolean | null,
+  isSuperAdmin: null as boolean | null,
+  timestamp: 0
+};
+
+// Track in-flight admin check promises to deduplicate concurrent calls
+let adminCheckPromise: Promise<boolean> | null = null;
+let superAdminCheckPromise: Promise<boolean> | null = null;
+
+const ADMIN_CACHE_TTL = 30 * 60 * 1000; // 30 minutes (single-user app, safe to cache longer)
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Cache for admin checks to prevent excessive RPC calls
-  const adminCacheRef = useRef<{ isAdmin: boolean | null; isSuperAdmin: boolean | null; timestamp: number }>({
-    isAdmin: null,
-    isSuperAdmin: null,
-    timestamp: 0
-  });
-  const ADMIN_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -94,27 +99,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const checkIsAdmin = async (): Promise<boolean> => {
+    // If already checking, return the same promise to deduplicate concurrent calls
+    if (adminCheckPromise) return adminCheckPromise;
+
     const now = Date.now();
-    if (adminCacheRef.current.isAdmin !== null && (now - adminCacheRef.current.timestamp) < ADMIN_CACHE_TTL) {
-      return adminCacheRef.current.isAdmin;
+    if (adminCache.isAdmin !== null && (now - adminCache.timestamp) < ADMIN_CACHE_TTL) {
+      return adminCache.isAdmin;
     }
 
-    const { data } = await supabase.rpc('is_admin');
-    adminCacheRef.current.isAdmin = !!data;
-    adminCacheRef.current.timestamp = now;
-    return !!data;
+    // Start new check and store promise for deduplication
+    adminCheckPromise = (async () => {
+      try {
+        const { data } = await supabase.rpc('is_admin');
+        adminCache.isAdmin = !!data;
+        adminCache.timestamp = now;
+        return !!data;
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        // Return cached value if available, even if expired
+        return adminCache.isAdmin ?? false;
+      } finally {
+        adminCheckPromise = null;
+      }
+    })();
+
+    return adminCheckPromise;
   };
 
   const checkIsSuperAdmin = async (): Promise<boolean> => {
+    // If already checking, return the same promise to deduplicate concurrent calls
+    if (superAdminCheckPromise) return superAdminCheckPromise;
+
     const now = Date.now();
-    if (adminCacheRef.current.isSuperAdmin !== null && (now - adminCacheRef.current.timestamp) < ADMIN_CACHE_TTL) {
-      return adminCacheRef.current.isSuperAdmin;
+    if (adminCache.isSuperAdmin !== null && (now - adminCache.timestamp) < ADMIN_CACHE_TTL) {
+      return adminCache.isSuperAdmin;
     }
 
-    const { data } = await supabase.rpc('is_super_admin');
-    adminCacheRef.current.isSuperAdmin = !!data;
-    adminCacheRef.current.timestamp = now;
-    return !!data;
+    // Start new check and store promise for deduplication
+    superAdminCheckPromise = (async () => {
+      try {
+        const { data } = await supabase.rpc('is_super_admin');
+        adminCache.isSuperAdmin = !!data;
+        adminCache.timestamp = now;
+        return !!data;
+      } catch (error) {
+        console.error('Error checking super admin status:', error);
+        // Return cached value if available, even if expired
+        return adminCache.isSuperAdmin ?? false;
+      } finally {
+        superAdminCheckPromise = null;
+      }
+    })();
+
+    return superAdminCheckPromise;
   };
 
   const value = {

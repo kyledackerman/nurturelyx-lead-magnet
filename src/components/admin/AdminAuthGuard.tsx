@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -14,7 +13,7 @@ interface AdminAuthGuardProps {
 export const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
-  const { user, signOut } = useAuth();
+  const { user, signOut, checkIsAdmin } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,11 +28,9 @@ export const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
     }
 
     try {
-      const { data, error } = await supabase
-        .rpc('is_admin');
-
-      if (error) throw error;
-      setIsAdmin(data);
+      // Use cached admin check from useAuth hook instead of direct RPC call
+      const isAdminStatus = await checkIsAdmin();
+      setIsAdmin(isAdminStatus);
     } catch (error) {
       console.error('Error checking admin status:', error);
       setIsAdmin(false);
