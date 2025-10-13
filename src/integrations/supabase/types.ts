@@ -98,6 +98,63 @@ export type Database = {
         }
         Relationships: []
       }
+      import_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          created_by: string
+          csv_data: string
+          current_batch: number | null
+          error_log: Json | null
+          failed_rows: number | null
+          file_name: string
+          id: string
+          last_updated_at: string | null
+          processed_rows: number | null
+          started_at: string | null
+          status: string | null
+          successful_rows: number | null
+          total_batches: number | null
+          total_rows: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by: string
+          csv_data: string
+          current_batch?: number | null
+          error_log?: Json | null
+          failed_rows?: number | null
+          file_name: string
+          id?: string
+          last_updated_at?: string | null
+          processed_rows?: number | null
+          started_at?: string | null
+          status?: string | null
+          successful_rows?: number | null
+          total_batches?: number | null
+          total_rows: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string
+          csv_data?: string
+          current_batch?: number | null
+          error_log?: Json | null
+          failed_rows?: number | null
+          file_name?: string
+          id?: string
+          last_updated_at?: string | null
+          processed_rows?: number | null
+          started_at?: string | null
+          status?: string | null
+          successful_rows?: number | null
+          total_batches?: number | null
+          total_rows?: number
+        }
+        Relationships: []
+      }
       password_reset_requests: {
         Row: {
           approved_at: string | null
