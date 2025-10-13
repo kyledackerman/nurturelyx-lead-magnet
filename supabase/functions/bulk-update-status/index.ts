@@ -67,38 +67,54 @@ serve(async (req) => {
 
     console.log(`Bulk updating ${prospectIds.length} prospects to status: ${newStatus}`);
 
-    // Update all selected prospects
-    const { error: updateError, count } = await supabase
-      .from('prospect_activities')
-      .update({ 
-        status: newStatus,
-        updated_at: new Date().toISOString()
-      })
-      .in('id', prospectIds);
-
-    if (updateError) {
-      console.error('Update error:', updateError);
-      return new Response(JSON.stringify({ error: updateError.message }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // Process prospects in batches to avoid timeout
+    const BATCH_SIZE = 10;
+    const batches: string[][] = [];
+    for (let i = 0; i < prospectIds.length; i += BATCH_SIZE) {
+      batches.push(prospectIds.slice(i, i + BATCH_SIZE));
     }
 
-    console.log(`Successfully updated ${count || prospectIds.length} prospects`);
+    let totalUpdated = 0;
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+      console.log(`Processing batch ${i + 1}/${batches.length} (${batch.length} prospects)`);
 
-    // Log audit trail for bulk action
-    for (const prospectId of prospectIds) {
-      await supabase.rpc('log_business_context', {
-        p_table_name: 'prospect_activities',
-        p_record_id: prospectId,
-        p_context: `Bulk status update to ${newStatus} by ${user.email}`,
-      });
+      const { error: updateError, count } = await supabase
+        .from('prospect_activities')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .in('id', batch);
+
+      if (updateError) {
+        console.error(`Error updating batch ${i + 1}:`, updateError);
+        return new Response(JSON.stringify({ error: updateError.message }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      totalUpdated += count || batch.length;
     }
+
+    console.log(`Successfully updated ${totalUpdated} prospects in ${batches.length} batches`);
+
+    // Log audit trail for bulk action (parallel execution)
+    await Promise.all(
+      prospectIds.map(prospectId =>
+        supabase.rpc('log_business_context', {
+          p_table_name: 'prospect_activities',
+          p_record_id: prospectId,
+          p_context: `Bulk status update to ${newStatus} by ${user.email}`,
+        })
+      )
+    );
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        updatedCount: count || prospectIds.length 
+        updatedCount: totalUpdated 
       }),
       {
         status: 200,
