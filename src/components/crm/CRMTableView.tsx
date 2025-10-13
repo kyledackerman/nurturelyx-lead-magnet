@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useCRMRealtime } from "@/contexts/CRMRealtimeContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,7 @@ type SortDirection = 'asc' | 'desc';
 export default function CRMTableView({ onSelectProspect, compact = false, view = 'new-prospects', externalStatusFilter = null }: CRMTableViewProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { refreshProspects: triggerRealtimeRefresh } = useCRMRealtime();
   const [prospects, setProspects] = useState<ProspectRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -139,6 +141,13 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     setPage(0);
     setProspects([]);
   }, [view]);
+
+  // Listen to real-time updates from CRMRealtimeContext
+  useEffect(() => {
+    // Clear cache and refetch when real-time changes detected
+    cacheRef.current.timestamp = 0; // Force cache miss
+    fetchProspects();
+  }, [triggerRealtimeRefresh]);
 
   const fetchAdminUsers = async () => {
     try {
