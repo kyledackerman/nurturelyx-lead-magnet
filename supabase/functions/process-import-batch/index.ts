@@ -7,7 +7,8 @@ const corsHeaders = {
 
 const SPYFU_API_USERNAME = "bd5d70b5-7793-4c6e-b012-2a62616bf1af";
 const SPYFU_API_KEY = "VESAPD8P";
-const BATCH_SIZE = 50;
+const BATCH_SIZE = 10; // Reduced from 50 to prevent timeouts
+const FUNCTION_TIMEOUT_MS = 90000; // 90 seconds safety margin (function timeout ~120s)
 
 interface MonthlyRevenueData {
   month: string;
@@ -295,9 +296,49 @@ Deno.serve(async (req) => {
     const errorLog = Array.isArray(job.error_log) ? job.error_log : [];
     let successCount = 0;
     let failCount = 0;
+    const processingStartTime = Date.now();
 
-    // Process batch
+    console.log(`[BATCH] Processing batch: rows ${startIdx} to ${endIdx - 1} (total: ${dataRows.length})`);
+
+    // Process batch with timeout protection
     for (let i = startIdx; i < endIdx; i++) {
+      // Check timeout protection - exit gracefully if approaching function timeout
+      const elapsedTime = Date.now() - processingStartTime;
+      if (elapsedTime > FUNCTION_TIMEOUT_MS) {
+        console.warn(`[TIMEOUT] Approaching function timeout after ${elapsedTime}ms. Gracefully exiting at row ${i}.`);
+        
+        // Update job with current progress
+        await supabaseClient
+          .from('import_jobs')
+          .update({
+            successful_rows: job.successful_rows + successCount,
+            failed_rows: job.failed_rows + failCount,
+            error_log: [...errorLog, {
+              timestamp: new Date().toISOString(),
+              row: 'system',
+              domain: 'system',
+              error: `Batch paused at row ${i} due to approaching timeout. Will resume in next batch.`
+            }],
+            last_updated_at: new Date().toISOString(),
+          })
+          .eq('id', jobId);
+        
+        // Schedule next batch
+        console.log(`[TIMEOUT] Scheduling next batch from row ${i}...`);
+        try {
+          await supabaseClient.functions.invoke('process-import-batch', {
+            body: { jobId }
+          });
+          console.log(`[TIMEOUT] Next batch scheduled successfully`);
+        } catch (scheduleError) {
+          console.error(`[TIMEOUT] Failed to schedule next batch:`, scheduleError);
+        }
+        
+        return new Response(
+          JSON.stringify({ status: 'timeout_graceful_exit', processed: i }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       // Check if job was cancelled before processing each row
       const { data: currentJob } = await supabaseClient
         .from('import_jobs')
@@ -324,13 +365,23 @@ Deno.serve(async (req) => {
       const domain = row.domain;
       const avgTransactionValue = parseCurrencyToNumber(row.avg_transaction_value);
 
+      // Validate required fields
       if (!domain || !avgTransactionValue) {
-        errorLog.push({ row: rowNum, domain: domain || 'unknown', error: 'Missing required fields' });
+        console.warn(`[ROW ${rowNum}] Missing required fields: domain=${!!domain}, avgTxValue=${!!avgTransactionValue}`);
+        failCount++;
+        errorLog.push({ 
+          timestamp: new Date().toISOString(),
+          row: rowNum, 
+          domain: domain || 'unknown', 
+          error: 'Missing required fields (domain or avg_transaction_value)' 
+        });
+        
+        // Immediately update progress even for failures
         await supabaseClient
           .from('import_jobs')
           .update({
             processed_rows: i + 1,
-            failed_rows: job.failed_rows + 1,
+            failed_rows: job.failed_rows + failCount,
             error_log: errorLog,
             last_updated_at: new Date().toISOString(),
           })
@@ -338,6 +389,7 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      // Wrap each row in try/catch to skip individual failures
       try {
         const cleanedDomain = cleanDomain(domain);
         console.log(`Processing ${i + 1}/${dataRows.length}: ${cleanedDomain}`);
@@ -460,39 +512,50 @@ Deno.serve(async (req) => {
         }
 
         successCount++;
+        console.log(`[ROW ${rowNum}] ✓ Success: ${cleanedDomain} (${successCount}/${i - startIdx + 1})`);
+        
+        // Immediately checkpoint progress after each successful row
         await supabaseClient
           .from('import_jobs')
           .update({
             processed_rows: i + 1,
+            successful_rows: job.successful_rows + successCount,
             last_updated_at: new Date().toISOString(),
           })
           .eq('id', jobId);
 
+        // Small delay to avoid overwhelming SpyFu API
         await new Promise(resolve => setTimeout(resolve, 1500));
+        
       } catch (error) {
-        console.error(`Error processing ${domain}:`, error);
         failCount++;
-        errorLog.push({ row: rowNum, domain, error: error.message });
+        const errorMsg = error?.message || 'Unknown error';
+        console.error(`[ROW ${rowNum}] ✗ Error processing ${domain}:`, errorMsg);
+        
+        errorLog.push({ 
+          timestamp: new Date().toISOString(),
+          row: rowNum, 
+          domain, 
+          error: errorMsg 
+        });
+        
+        // Checkpoint progress even for failures - don't lose progress!
         await supabaseClient
           .from('import_jobs')
           .update({
             processed_rows: i + 1,
+            failed_rows: job.failed_rows + failCount,
             error_log: errorLog,
             last_updated_at: new Date().toISOString(),
           })
           .eq('id', jobId);
+          
+        // Continue processing next row instead of halting
       }
     }
 
-    // Update final counts
-    await supabaseClient
-      .from('import_jobs')
-      .update({
-        successful_rows: job.successful_rows + successCount,
-        failed_rows: job.failed_rows + failCount,
-        last_updated_at: new Date().toISOString(),
-      })
-      .eq('id', jobId);
+    // Final batch summary (counts already updated per-row)
+    console.log(`[BATCH] Batch complete: ${successCount} succeeded, ${failCount} failed`);
 
     // Check if complete
     const { data: updatedJob } = await supabaseClient

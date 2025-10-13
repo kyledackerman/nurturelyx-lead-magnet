@@ -267,7 +267,8 @@ export const ProspectImporter = () => {
     const lastUpdate = new Date(job.last_updated_at);
     const now = new Date();
     const minutesSinceUpdate = (now.getTime() - lastUpdate.getTime()) / (1000 * 60);
-    return minutesSinceUpdate > 10;
+    // Reduced from 10 to 5 minutes for faster detection
+    return minutesSinceUpdate > 5;
   };
 
   const calculateTimeRemaining = (job: ImportJob): string => {
