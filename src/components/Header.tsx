@@ -18,16 +18,28 @@ const Header = () => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+    
     const checkAdminStatus = async () => {
-      if (user) {
+      if (!user) {
+        if (mounted) setIsAdmin(false);
+        return;
+      }
+      
+      try {
         const adminStatus = await checkIsAdmin();
-        setIsAdmin(adminStatus);
-      } else {
-        setIsAdmin(false);
+        if (mounted) setIsAdmin(adminStatus);
+      } catch (error) {
+        console.warn('Admin check failed in Header, keeping previous state:', error);
+        // Don't demote admin status on errors
       }
     };
 
     checkAdminStatus();
+    
+    return () => {
+      mounted = false;
+    };
   }, [user, checkIsAdmin]);
 
   const handleSignOut = async () => {

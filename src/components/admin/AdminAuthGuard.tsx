@@ -13,6 +13,7 @@ interface AdminAuthGuardProps {
 export const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const [verificationError, setVerificationError] = useState(false);
   const { user, signOut, checkIsAdmin } = useAuth();
   const navigate = useNavigate();
 
@@ -24,17 +25,20 @@ export const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
     if (!user) {
       setIsAdmin(false);
       setLoading(false);
+      setVerificationError(false);
       return;
     }
 
     try {
+      setLoading(true);
+      setVerificationError(false);
       // Use cached admin check from useAuth hook instead of direct RPC call
       const isAdminStatus = await checkIsAdmin();
       setIsAdmin(isAdminStatus);
     } catch (error) {
-      console.error('Error checking admin status:', error);
-      setIsAdmin(false);
-      toast.error('Failed to verify admin access');
+      console.error('Error verifying admin status:', error);
+      setVerificationError(true);
+      // Don't set isAdmin to false on network errors
     } finally {
       setLoading(false);
     }
@@ -78,6 +82,36 @@ export const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
           <CardContent>
             <Button onClick={handleLogin} className="w-full">
               Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (verificationError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-warning/10 mx-auto mb-2">
+              <Shield className="h-6 w-6 text-warning" />
+            </div>
+            <CardTitle className="text-2xl text-center">Verification Failed</CardTitle>
+            <CardDescription className="text-center">
+              Could not verify admin status. This may be a temporary network issue.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button onClick={checkAdminStatus} className="w-full">
+              Retry Verification
+            </Button>
+            <Button onClick={() => navigate('/')} variant="outline" className="w-full">
+              Return to Home
+            </Button>
+            <Button onClick={handleLogout} variant="ghost" className="w-full">
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
             </Button>
           </CardContent>
         </Card>

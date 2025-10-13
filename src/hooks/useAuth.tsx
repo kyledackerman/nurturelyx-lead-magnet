@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode, useCallback, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -30,6 +30,15 @@ const superAdminPromiseByUser: Record<string, Promise<boolean> | null> = {};
 
 const ADMIN_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
+// Helper to invalidate cache for a specific user
+export const invalidateAdminCache = (userId?: string) => {
+  if (userId) {
+    delete adminCacheByUser[userId];
+    adminPromiseByUser[userId] = null;
+    superAdminPromiseByUser[userId] = null;
+  }
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -55,50 +64,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl
-      }
-    });
-    return { error };
-  };
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
-  };
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
-
-  const updatePassword = async (newPassword: string) => {
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-    return { error };
-  };
-
-  const requestPasswordReset = async (userId: string, reason?: string) => {
-    const { error } = await supabase
-      .from('password_reset_requests')
-      .insert({
-        user_id: userId,
-        requested_by: user?.id || '',
-        reason: reason || null,
-      });
-    return { error };
-  };
-
-  const checkIsAdmin = async (): Promise<boolean> => {
+  const checkIsAdmin = useCallback(async (): Promise<boolean> => {
     // No user = no admin access
     if (!user?.id) return false;
 
@@ -109,44 +76,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const now = Date.now();
     const cached = adminCacheByUser[userId];
-    if (cached?.isAdmin !== null && (now - cached.timestamp) < ADMIN_CACHE_TTL) {
+    
+    // Safe cache check with proper guards
+    if (cached && cached.isAdmin !== null && (now - cached.timestamp) < ADMIN_CACHE_TTL) {
+      console.debug('Using cached admin status:', cached.isAdmin);
       return cached.isAdmin;
     }
 
     // Start new check and store promise for deduplication
     adminPromiseByUser[userId] = (async () => {
       try {
-        // First check if regular admin
-        const { data: isAdminData } = await supabase.rpc('is_admin');
-        let result = !!isAdminData;
+        // is_admin already includes super_admin in the database
+        const { data, error } = await supabase.rpc('is_admin');
         
-        // If not admin, check if super admin (super admins are also admins)
-        if (!result) {
-          const { data: isSuperAdminData } = await supabase.rpc('is_super_admin');
-          result = !!isSuperAdminData;
-        }
+        if (error) throw error;
+        
+        const result = !!data;
+        console.debug('Admin check result:', result);
         
         // Update cache for this user
         adminCacheByUser[userId] = {
           isAdmin: result,
           isSuperAdmin: adminCacheByUser[userId]?.isSuperAdmin ?? null,
-          timestamp: now
+          timestamp: Date.now()
         };
         
         return result;
       } catch (error) {
-        console.error('Error checking admin status:', error);
-        // Return cached value if available, even if expired
-        return cached?.isAdmin ?? false;
+        console.error('Admin check failed; preserving cache if available:', error);
+        // On error, return cached value if available (don't demote to false)
+        if (cached && cached.isAdmin !== null) {
+          return cached.isAdmin;
+        }
+        return false;
       } finally {
         adminPromiseByUser[userId] = null;
       }
     })();
 
     return adminPromiseByUser[userId]!;
-  };
+  }, [user?.id]);
 
-  const checkIsSuperAdmin = async (): Promise<boolean> => {
+  const checkIsSuperAdmin = useCallback(async (): Promise<boolean> => {
     // No user = no super admin access
     if (!user?.id) return false;
 
@@ -157,37 +128,90 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const now = Date.now();
     const cached = adminCacheByUser[userId];
-    if (cached?.isSuperAdmin !== null && (now - cached.timestamp) < ADMIN_CACHE_TTL) {
+    
+    // Safe cache check with proper guards
+    if (cached && cached.isSuperAdmin !== null && (now - cached.timestamp) < ADMIN_CACHE_TTL) {
+      console.debug('Using cached super admin status:', cached.isSuperAdmin);
       return cached.isSuperAdmin;
     }
 
     // Start new check and store promise for deduplication
     superAdminPromiseByUser[userId] = (async () => {
       try {
-        const { data } = await supabase.rpc('is_super_admin');
+        const { data, error } = await supabase.rpc('is_super_admin');
+        
+        if (error) throw error;
+        
         const result = !!data;
+        console.debug('Super admin check result:', result);
         
         // Update cache for this user
         adminCacheByUser[userId] = {
           isAdmin: adminCacheByUser[userId]?.isAdmin ?? null,
           isSuperAdmin: result,
-          timestamp: now
+          timestamp: Date.now()
         };
         
         return result;
       } catch (error) {
-        console.error('Error checking super admin status:', error);
-        // Return cached value if available, even if expired
-        return cached?.isSuperAdmin ?? false;
+        console.error('Super admin check failed; preserving cache if available:', error);
+        // On error, return cached value if available (don't demote to false)
+        if (cached && cached.isSuperAdmin !== null) {
+          return cached.isSuperAdmin;
+        }
+        return false;
       } finally {
         superAdminPromiseByUser[userId] = null;
       }
     })();
 
     return superAdminPromiseByUser[userId]!;
-  };
+  }, [user?.id]);
 
-  const value = {
+  const signUp = useCallback(async (email: string, password: string) => {
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl
+      }
+    });
+    return { error };
+  }, []);
+
+  const signIn = useCallback(async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { error };
+  }, []);
+
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+  }, []);
+
+  const updatePassword = useCallback(async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    return { error };
+  }, []);
+
+  const requestPasswordReset = useCallback(async (userId: string, reason?: string) => {
+    const { error } = await supabase
+      .from('password_reset_requests')
+      .insert({
+        user_id: userId,
+        requested_by: user?.id || '',
+        reason: reason || null,
+      });
+    return { error };
+  }, [user?.id]);
+
+  const value = useMemo(() => ({
     user,
     session,
     loading,
@@ -198,7 +222,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     requestPasswordReset,
     checkIsAdmin,
     checkIsSuperAdmin,
-  };
+  }), [user, session, loading, signUp, signIn, signOut, updatePassword, requestPasswordReset, checkIsAdmin, checkIsSuperAdmin]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
