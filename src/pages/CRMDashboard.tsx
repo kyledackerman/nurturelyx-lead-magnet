@@ -14,7 +14,7 @@ import { CRMRealtimeProvider } from "@/contexts/CRMRealtimeContext";
 import { CRMErrorBoundary } from "@/components/crm/CRMErrorBoundary";
 
 export default function CRMDashboard() {
-  const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review">("needs-review");
+  const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested">("needs-review");
   const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
   const [pipelineStatusFilter, setPipelineStatusFilter] = useState<string | null>(null);
 
@@ -31,7 +31,7 @@ export default function CRMDashboard() {
       
       <div className="container mx-auto px-4 py-6 max-w-[2000px]">
         <Tabs value={selectedView} onValueChange={(v) => setSelectedView(v as any)} className="w-full">
-          <TabsList className="grid w-full max-w-5xl grid-cols-7 mb-6">
+          <TabsList className="grid w-full max-w-5xl grid-cols-8 mb-6">
             <TabsTrigger value="warm-inbound" className="flex items-center gap-2">
               🔥 Warm Inbound
             </TabsTrigger>
@@ -50,6 +50,10 @@ export default function CRMDashboard() {
             <TabsTrigger value="ready-outreach" className="flex items-center gap-2">
               <Target className="h-4 w-4" />
               Ready for Outreach
+            </TabsTrigger>
+            <TabsTrigger value="interested" className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              Interested
             </TabsTrigger>
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
@@ -99,6 +103,14 @@ export default function CRMDashboard() {
               onSelectProspect={setSelectedProspectId}
               compact={false}
               view="ready-outreach"
+            />
+          </TabsContent>
+
+          <TabsContent value="interested">
+            <CRMTableView 
+              onSelectProspect={setSelectedProspectId}
+              compact={false}
+              view="interested"
             />
           </TabsContent>
 
