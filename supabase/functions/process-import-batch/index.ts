@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
+import { rateLimiter, RATE_LIMITS } from "../_shared/rateLimiter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -243,13 +244,39 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const { jobId } = await req.json();
+
+    // Rate limiting by job ID to prevent runaway retries
+    const rateLimitKey = `import-batch:${jobId}`;
+    if (rateLimiter.isRateLimited(rateLimitKey, RATE_LIMITS.WRITE.limit, RATE_LIMITS.WRITE.windowMs)) {
+      const remaining = rateLimiter.getRemaining(rateLimitKey, RATE_LIMITS.WRITE.limit);
+      const resetAt = rateLimiter.getResetAt(rateLimitKey);
+      
+      console.warn(`[RATE_LIMIT] Import batch rate limited for job ${jobId}`);
+      
+      return new Response(
+        JSON.stringify({ 
+          error: "Rate limit exceeded. Please wait before retrying this import.",
+          remaining,
+          resetAt: resetAt ? new Date(resetAt).toISOString() : null
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': Math.ceil(RATE_LIMITS.WRITE.windowMs / 1000).toString()
+          } 
+        }
+      );
+    }
+
     console.log(`[STARTUP] Initializing Supabase client...`);
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    const { jobId } = await req.json();
     console.log(`[STARTUP] Processing batch for job ${jobId} at ${new Date().toISOString()}`);
 
     // Fetch job
@@ -296,6 +323,7 @@ Deno.serve(async (req) => {
     const errorLog = Array.isArray(job.error_log) ? job.error_log : [];
     let successCount = 0;
     let failCount = 0;
+    let lastUpdateRow = startIdx; // Track last DB update to batch progress writes
     const processingStartTime = Date.now();
 
     console.log(`[BATCH] Processing batch: rows ${startIdx} to ${endIdx - 1} (total: ${dataRows.length})`);
@@ -376,16 +404,19 @@ Deno.serve(async (req) => {
           error: 'Missing required fields (domain or avg_transaction_value)' 
         });
         
-        // Immediately update progress even for failures
-        await supabaseClient
-          .from('import_jobs')
-          .update({
-            processed_rows: i + 1,
-            failed_rows: job.failed_rows + failCount,
-            error_log: errorLog,
-            last_updated_at: new Date().toISOString(),
-          })
-          .eq('id', jobId);
+        // Batch progress updates: only update every 5 rows or at end of batch
+        if ((i - lastUpdateRow >= 5) || (i === endIdx - 1)) {
+          await supabaseClient
+            .from('import_jobs')
+            .update({
+              processed_rows: i + 1,
+              failed_rows: job.failed_rows + failCount,
+              error_log: errorLog,
+              last_updated_at: new Date().toISOString(),
+            })
+            .eq('id', jobId);
+          lastUpdateRow = i;
+        }
         continue;
       }
 
@@ -514,15 +545,18 @@ Deno.serve(async (req) => {
         successCount++;
         console.log(`[ROW ${rowNum}] ✓ Success: ${cleanedDomain} (${successCount}/${i - startIdx + 1})`);
         
-        // Immediately checkpoint progress after each successful row
-        await supabaseClient
-          .from('import_jobs')
-          .update({
-            processed_rows: i + 1,
-            successful_rows: job.successful_rows + successCount,
-            last_updated_at: new Date().toISOString(),
-          })
-          .eq('id', jobId);
+        // Batch progress updates: only update every 5 rows or at end of batch
+        if ((i - lastUpdateRow >= 5) || (i === endIdx - 1)) {
+          await supabaseClient
+            .from('import_jobs')
+            .update({
+              processed_rows: i + 1,
+              successful_rows: job.successful_rows + successCount,
+              last_updated_at: new Date().toISOString(),
+            })
+            .eq('id', jobId);
+          lastUpdateRow = i;
+        }
 
         // Small delay to avoid overwhelming SpyFu API
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -539,16 +573,19 @@ Deno.serve(async (req) => {
           error: errorMsg 
         });
         
-        // Checkpoint progress even for failures - don't lose progress!
-        await supabaseClient
-          .from('import_jobs')
-          .update({
-            processed_rows: i + 1,
-            failed_rows: job.failed_rows + failCount,
-            error_log: errorLog,
-            last_updated_at: new Date().toISOString(),
-          })
-          .eq('id', jobId);
+        // Batch progress updates: only update every 5 rows or at end of batch
+        if ((i - lastUpdateRow >= 5) || (i === endIdx - 1)) {
+          await supabaseClient
+            .from('import_jobs')
+            .update({
+              processed_rows: i + 1,
+              failed_rows: job.failed_rows + failCount,
+              error_log: errorLog,
+              last_updated_at: new Date().toISOString(),
+            })
+            .eq('id', jobId);
+          lastUpdateRow = i;
+        }
           
         // Continue processing next row instead of halting
       }

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
+import { rateLimiter, RATE_LIMITS } from "../_shared/rateLimiter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,6 +23,29 @@ serve(async (req) => {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
         const { prospect_ids } = await req.json();
+
+        // Rate limiting by user session or IP
+        const authHeader = req.headers.get('authorization');
+        const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'anonymous';
+        const rateLimitKey = authHeader ? `bulk-enrich:${authHeader.substring(0, 20)}` : `bulk-enrich:${clientIp}`;
+        
+        if (rateLimiter.isRateLimited(rateLimitKey, RATE_LIMITS.WRITE.limit, RATE_LIMITS.WRITE.windowMs)) {
+          const remaining = rateLimiter.getRemaining(rateLimitKey, RATE_LIMITS.WRITE.limit);
+          const resetAt = rateLimiter.getResetAt(rateLimitKey);
+          
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ 
+                type: "error", 
+                error: "Rate limit exceeded. Please wait before retrying.",
+                remaining,
+                resetAt: resetAt ? new Date(resetAt).toISOString() : null
+              })}\n\n`
+            )
+          );
+          controller.close();
+          return;
+        }
 
         if (!Array.isArray(prospect_ids) || prospect_ids.length === 0) {
           controller.enqueue(
