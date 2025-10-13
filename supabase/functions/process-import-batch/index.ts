@@ -259,10 +259,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Update to processing
+    // Update to processing with heartbeat
     await supabaseClient
       .from('import_jobs')
-      .update({ status: 'processing', started_at: new Date().toISOString() })
+      .update({ 
+        status: 'processing', 
+        started_at: new Date().toISOString(),
+        last_updated_at: new Date().toISOString()
+      })
       .eq('id', jobId);
 
     // Parse CSV
@@ -495,7 +499,21 @@ Deno.serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ jobId }),
-        }).catch(err => console.error('Next batch failed:', err))
+        }).catch(async (err) => {
+          console.error('Next batch failed:', err);
+          // Mark job as failed if recursive call fails
+          await supabaseClient
+            .from('import_jobs')
+            .update({
+              status: 'failed',
+              completed_at: new Date().toISOString(),
+              error_log: [
+                ...(Array.isArray(job.error_log) ? job.error_log : []),
+                { row: 'system', domain: 'system', error: `Batch processing failed: ${err.message}` }
+              ]
+            })
+            .eq('id', jobId);
+        })
       );
     }
 

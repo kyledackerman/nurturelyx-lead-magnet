@@ -193,6 +193,39 @@ export const ProspectImporter = () => {
     }
   };
 
+  const handleForceComplete = async (jobId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('cleanup-stuck-jobs', {
+        body: { jobId }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: data.action === 'marked_failed' ? "Job marked as failed" : "No action needed",
+        description: data.message,
+      });
+
+      fetchRunningJobs();
+      fetchRecentJobs();
+    } catch (error) {
+      console.error('Force complete error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to force complete job",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const isJobFrozen = (job: ImportJob): boolean => {
+    if (job.status !== 'processing') return false;
+    const lastUpdate = new Date(job.last_updated_at);
+    const now = new Date();
+    const minutesSinceUpdate = (now.getTime() - lastUpdate.getTime()) / (1000 * 60);
+    return minutesSinceUpdate > 10;
+  };
+
   const calculateTimeRemaining = (job: ImportJob): string => {
     if (job.processed_rows === 0) return 'Calculating...';
     
@@ -297,22 +330,42 @@ bestplumbing.com,6200`;
         </CardContent>
       </Card>
 
-      {runningJobs.map(job => (
-        <Card key={job.id}>
+      {runningJobs.map(job => {
+        const isFrozen = isJobFrozen(job);
+        return (
+        <Card key={job.id} className={isFrozen ? "border-destructive" : ""}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Import in Progress</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  Import in Progress
+                  {isFrozen && (
+                    <Badge variant="destructive" className="text-xs">
+                      Frozen
+                    </Badge>
+                  )}
+                </CardTitle>
                 <CardDescription>{job.file_name}</CardDescription>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => handleCancelJob(job.id)}
-                disabled={job.status === 'completed'}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-2">
+                {isFrozen && (
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={() => handleForceComplete(job.id)}
+                  >
+                    Force Fail
+                  </Button>
+                )}
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => handleCancelJob(job.id)}
+                  disabled={job.status === 'completed'}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -402,7 +455,8 @@ bestplumbing.com,6200`;
             )}
           </CardContent>
         </Card>
-      ))}
+      );
+      })}
 
       {/* Recent Imports */}
       {recentJobs.length > 0 && (
