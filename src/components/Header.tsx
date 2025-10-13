@@ -11,31 +11,24 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { User, LogOut, BarChart3, Shield } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 
 const Header = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, checkIsAdmin } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (user) {
-        try {
-          const { data, error } = await supabase.rpc('is_admin');
-          if (error) throw error;
-          setIsAdmin(data || false);
-        } catch (error) {
-          console.error('Error checking admin status:', error);
-          setIsAdmin(false);
-        }
+        const adminStatus = await checkIsAdmin();
+        setIsAdmin(adminStatus);
       } else {
         setIsAdmin(false);
       }
     };
 
     checkAdminStatus();
-  }, [user]);
+  }, [user, checkIsAdmin]);
 
   const handleSignOut = async () => {
     await signOut();

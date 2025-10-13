@@ -17,18 +17,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Module-level admin cache (singleton) to prevent duplicate checks across components
-const adminCache = {
-  isAdmin: null as boolean | null,
-  isSuperAdmin: null as boolean | null,
-  timestamp: 0
-};
+// Per-user admin cache to prevent cross-user cache poisoning
+const adminCacheByUser: Record<string, {
+  isAdmin: boolean | null;
+  isSuperAdmin: boolean | null;
+  timestamp: number;
+}> = {};
 
-// Track in-flight admin check promises to deduplicate concurrent calls
-let adminCheckPromise: Promise<boolean> | null = null;
-let superAdminCheckPromise: Promise<boolean> | null = null;
+// Track in-flight admin check promises per user to deduplicate concurrent calls
+const adminPromiseByUser: Record<string, Promise<boolean> | null> = {};
+const superAdminPromiseByUser: Record<string, Promise<boolean> | null> = {};
 
-const ADMIN_CACHE_TTL = 30 * 60 * 1000; // 30 minutes (single-user app, safe to cache longer)
+const ADMIN_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -99,59 +99,92 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const checkIsAdmin = async (): Promise<boolean> => {
-    // If already checking, return the same promise to deduplicate concurrent calls
-    if (adminCheckPromise) return adminCheckPromise;
+    // No user = no admin access
+    if (!user?.id) return false;
+
+    const userId = user.id;
+    
+    // If already checking for this user, return the same promise
+    if (adminPromiseByUser[userId]) return adminPromiseByUser[userId]!;
 
     const now = Date.now();
-    if (adminCache.isAdmin !== null && (now - adminCache.timestamp) < ADMIN_CACHE_TTL) {
-      return adminCache.isAdmin;
+    const cached = adminCacheByUser[userId];
+    if (cached?.isAdmin !== null && (now - cached.timestamp) < ADMIN_CACHE_TTL) {
+      return cached.isAdmin;
     }
 
     // Start new check and store promise for deduplication
-    adminCheckPromise = (async () => {
+    adminPromiseByUser[userId] = (async () => {
       try {
-        const { data } = await supabase.rpc('is_admin');
-        adminCache.isAdmin = !!data;
-        adminCache.timestamp = now;
-        return !!data;
+        // First check if regular admin
+        const { data: isAdminData } = await supabase.rpc('is_admin');
+        let result = !!isAdminData;
+        
+        // If not admin, check if super admin (super admins are also admins)
+        if (!result) {
+          const { data: isSuperAdminData } = await supabase.rpc('is_super_admin');
+          result = !!isSuperAdminData;
+        }
+        
+        // Update cache for this user
+        adminCacheByUser[userId] = {
+          isAdmin: result,
+          isSuperAdmin: adminCacheByUser[userId]?.isSuperAdmin ?? null,
+          timestamp: now
+        };
+        
+        return result;
       } catch (error) {
         console.error('Error checking admin status:', error);
         // Return cached value if available, even if expired
-        return adminCache.isAdmin ?? false;
+        return cached?.isAdmin ?? false;
       } finally {
-        adminCheckPromise = null;
+        adminPromiseByUser[userId] = null;
       }
     })();
 
-    return adminCheckPromise;
+    return adminPromiseByUser[userId]!;
   };
 
   const checkIsSuperAdmin = async (): Promise<boolean> => {
-    // If already checking, return the same promise to deduplicate concurrent calls
-    if (superAdminCheckPromise) return superAdminCheckPromise;
+    // No user = no super admin access
+    if (!user?.id) return false;
+
+    const userId = user.id;
+    
+    // If already checking for this user, return the same promise
+    if (superAdminPromiseByUser[userId]) return superAdminPromiseByUser[userId]!;
 
     const now = Date.now();
-    if (adminCache.isSuperAdmin !== null && (now - adminCache.timestamp) < ADMIN_CACHE_TTL) {
-      return adminCache.isSuperAdmin;
+    const cached = adminCacheByUser[userId];
+    if (cached?.isSuperAdmin !== null && (now - cached.timestamp) < ADMIN_CACHE_TTL) {
+      return cached.isSuperAdmin;
     }
 
     // Start new check and store promise for deduplication
-    superAdminCheckPromise = (async () => {
+    superAdminPromiseByUser[userId] = (async () => {
       try {
         const { data } = await supabase.rpc('is_super_admin');
-        adminCache.isSuperAdmin = !!data;
-        adminCache.timestamp = now;
-        return !!data;
+        const result = !!data;
+        
+        // Update cache for this user
+        adminCacheByUser[userId] = {
+          isAdmin: adminCacheByUser[userId]?.isAdmin ?? null,
+          isSuperAdmin: result,
+          timestamp: now
+        };
+        
+        return result;
       } catch (error) {
         console.error('Error checking super admin status:', error);
         // Return cached value if available, even if expired
-        return adminCache.isSuperAdmin ?? false;
+        return cached?.isSuperAdmin ?? false;
       } finally {
-        superAdminCheckPromise = null;
+        superAdminPromiseByUser[userId] = null;
       }
     })();
 
-    return superAdminCheckPromise;
+    return superAdminPromiseByUser[userId]!;
   };
 
   const value = {
