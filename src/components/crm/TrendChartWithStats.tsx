@@ -58,18 +58,19 @@ export default function TrendChartWithStats({
 
         if (error) throw error;
 
-        // Group by local date
+        // Group by UTC date
         const recordsMap = new Map<string, number>();
         contactsData?.forEach((contact) => {
-          const localDate = format(parseISO(contact.created_at), "yyyy-MM-dd");
+          const localDate = new Date(contact.created_at).toISOString().split('T')[0];
           recordsMap.set(localDate, (recordsMap.get(localDate) || 0) + 1);
         });
 
-        // Fill in missing dates with zeros
+        // Fill in missing dates with zeros (using UTC)
         const chartData: TrendData[] = [];
         for (let i = 29; i >= 0; i--) {
-          const dateObj = subDays(new Date(), i);
-          const dateKey = format(dateObj, "yyyy-MM-dd");
+          const dateObj = new Date();
+          dateObj.setUTCDate(dateObj.getUTCDate() - i);
+          const dateKey = dateObj.toISOString().split('T')[0];
           chartData.push({
             date: format(dateObj, "MMM dd"),
             count: recordsMap.get(dateKey) || 0,
@@ -90,21 +91,22 @@ export default function TrendChartWithStats({
 
         if (error) throw error;
 
-        // Group by local date
+        // Group by UTC date
         const recordsMap = new Map<string, Set<string>>();
         logsData?.forEach((log) => {
-          const localDate = format(parseISO(log.changed_at), "yyyy-MM-dd");
+          const localDate = new Date(log.changed_at).toISOString().split('T')[0];
           if (!recordsMap.has(localDate)) {
             recordsMap.set(localDate, new Set());
           }
           recordsMap.get(localDate)!.add(log.record_id);
         });
 
-        // Fill in missing dates with zeros
+        // Fill in missing dates with zeros (using UTC)
         const chartData: TrendData[] = [];
         for (let i = 29; i >= 0; i--) {
-          const dateObj = subDays(new Date(), i);
-          const dateKey = format(dateObj, "yyyy-MM-dd");
+          const dateObj = new Date();
+          dateObj.setUTCDate(dateObj.getUTCDate() - i);
+          const dateKey = dateObj.toISOString().split('T')[0];
           chartData.push({
             date: format(dateObj, "MMM dd"),
             count: recordsMap.get(dateKey)?.size || 0,
@@ -124,9 +126,10 @@ export default function TrendChartWithStats({
   const fetchComparisonStats = async () => {
     try {
       const now = new Date();
-      const todayStart = startOfDay(now).toISOString();
-      const yesterdayStart = startOfDay(subDays(now, 1)).toISOString();
-      const yesterdayEnd = startOfDay(now).toISOString();
+      // Use UTC dates for consistent comparison
+      const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString();
+      const yesterdayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1)).toISOString();
+      const yesterdayEnd = todayStart;
       
       const thisWeekStart = startOfWeek(now, { weekStartsOn: 1 }).toISOString();
       const lastWeekStart = startOfWeek(subWeeks(now, 1), { weekStartsOn: 1 }).toISOString();
