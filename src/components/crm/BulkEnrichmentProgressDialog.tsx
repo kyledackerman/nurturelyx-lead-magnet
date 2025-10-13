@@ -48,7 +48,11 @@ export default function BulkEnrichmentProgressDialog({
   const getStatusBadge = (item: EnrichmentProgress) => {
     switch (item.status) {
       case 'success':
-        return <Badge className="bg-green-500 text-white">{item.contactsFound || 0} contacts</Badge>;
+        const contactCount = item.contactsFound || 0;
+        if (contactCount === 0) {
+          return <Badge className="bg-orange-500 text-white">No contacts found</Badge>;
+        }
+        return <Badge className="bg-green-500 text-white">{contactCount} contacts</Badge>;
       case 'failed':
         return <Badge variant="destructive">Failed</Badge>;
       case 'rate_limited':

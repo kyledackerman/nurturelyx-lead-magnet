@@ -358,6 +358,8 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
               if (!insertError) {
                 contactsInserted = contacts.length;
               }
+            } else {
+              console.log(`⚠️ No contacts extracted for ${domain} - will be set to review status`);
             }
 
             // Update company name, Facebook URL, and industry
