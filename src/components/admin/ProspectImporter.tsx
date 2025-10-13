@@ -220,28 +220,17 @@ export const ProspectImporter = () => {
 
   const handleRestartJob = async (jobId: string) => {
     try {
-      // Reset job to queued status and clear lock
-      const { error: updateError } = await supabase
-        .from('import_jobs')
-        .update({ 
-          status: 'queued',
-          enrichment_locked_at: null,
-          last_updated_at: new Date().toISOString()
-        })
-        .eq('id', jobId);
-
-      if (updateError) throw updateError;
-
-      // Manually invoke process-import-batch
-      const { error: invokeError } = await supabase.functions.invoke('process-import-batch', {
+      setImporting(true);
+      
+      const { data, error } = await supabase.functions.invoke('restart-import-job', {
         body: { jobId }
       });
 
-      if (invokeError) throw invokeError;
+      if (error) throw error;
 
       toast({
-        title: "Import restarted",
-        description: "The import will resume from where it left off",
+        title: "Job restarted",
+        description: data.message || "Import processing has been restarted",
       });
 
       fetchRunningJobs();
@@ -253,6 +242,8 @@ export const ProspectImporter = () => {
         description: error.message || "Failed to restart job",
         variant: "destructive",
       });
+    } finally {
+      setImporting(false);
     }
   };
 

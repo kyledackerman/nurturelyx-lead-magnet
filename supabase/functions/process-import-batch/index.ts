@@ -191,6 +191,17 @@ function calculateReportMetrics(apiData: ApiData, avgTransactionValue: number) {
   const visitorIdentificationRate = 0.2;
   const salesConversionRate = 0.01;
 
+  // Handle empty monthlyRevenueData
+  if (!apiData.monthlyRevenueData || apiData.monthlyRevenueData.length === 0) {
+    return {
+      missedLeads: 0,
+      estimatedSalesLost: 0,
+      monthlyRevenueLost: 0,
+      yearlyRevenueLost: 0,
+      monthlyRevenueData: []
+    };
+  }
+
   const monthlyRevenueData = apiData.monthlyRevenueData.map(row => {
     const totalVisitors = row.visitors;
     const leads = Math.floor(totalVisitors * visitorIdentificationRate);
@@ -282,6 +293,8 @@ Deno.serve(async (req) => {
     const startIdx = job.processed_rows;
     const endIdx = Math.min(startIdx + BATCH_SIZE, dataRows.length);
     const errorLog = Array.isArray(job.error_log) ? job.error_log : [];
+    let successCount = 0;
+    let failCount = 0;
 
     // Process batch
     for (let i = startIdx; i < endIdx; i++) {
@@ -446,11 +459,11 @@ Deno.serve(async (req) => {
             });
         }
 
+        successCount++;
         await supabaseClient
           .from('import_jobs')
           .update({
             processed_rows: i + 1,
-            successful_rows: job.successful_rows + 1,
             last_updated_at: new Date().toISOString(),
           })
           .eq('id', jobId);
@@ -458,18 +471,28 @@ Deno.serve(async (req) => {
         await new Promise(resolve => setTimeout(resolve, 1500));
       } catch (error) {
         console.error(`Error processing ${domain}:`, error);
+        failCount++;
         errorLog.push({ row: rowNum, domain, error: error.message });
         await supabaseClient
           .from('import_jobs')
           .update({
             processed_rows: i + 1,
-            failed_rows: job.failed_rows + 1,
             error_log: errorLog,
             last_updated_at: new Date().toISOString(),
           })
           .eq('id', jobId);
       }
     }
+
+    // Update final counts
+    await supabaseClient
+      .from('import_jobs')
+      .update({
+        successful_rows: job.successful_rows + successCount,
+        failed_rows: job.failed_rows + failCount,
+        last_updated_at: new Date().toISOString(),
+      })
+      .eq('id', jobId);
 
     // Check if complete
     const { data: updatedJob } = await supabaseClient
@@ -484,42 +507,25 @@ Deno.serve(async (req) => {
         .update({
           status: 'completed',
           completed_at: new Date().toISOString(),
-          current_batch: job.total_batches,
         })
         .eq('id', jobId);
       console.log(`Job ${jobId} completed`);
     } else {
-      // Continue processing next batch
-      await supabaseClient
-        .from('import_jobs')
-        .update({ current_batch: job.current_batch + 1 })
-        .eq('id', jobId);
-
-      const processUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/process-import-batch`;
-      EdgeRuntime.waitUntil(
-        fetch(processUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ jobId }),
-        }).catch(async (err) => {
-          console.error('Next batch failed:', err);
-          // Mark job as failed if recursive call fails
-          await supabaseClient
-            .from('import_jobs')
-            .update({
-              status: 'failed',
-              completed_at: new Date().toISOString(),
-              error_log: [
-                ...(Array.isArray(job.error_log) ? job.error_log : []),
-                { row: 'system', domain: 'system', error: `Batch processing failed: ${err.message}` }
-              ]
-            })
-            .eq('id', jobId);
-        })
-      );
+      // Schedule next batch
+      try {
+        await supabaseClient.functions.invoke('process-import-batch', {
+          body: { jobId }
+        });
+      } catch (err) {
+        console.error('Failed to schedule next batch:', err);
+        await supabaseClient
+          .from('import_jobs')
+          .update({
+            status: 'failed',
+            error_log: [...errorLog, { row: 'system', domain: 'system', error: `Failed to schedule next batch: ${err.message}` }]
+          })
+          .eq('id', jobId);
+      }
     }
 
     return new Response(

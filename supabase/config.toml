@@ -84,3 +84,6 @@ verify_jwt = false
 [functions.cleanup-stuck-jobs]
 verify_jwt = true
 
+[functions.restart-import-job]
+verify_jwt = true
+
