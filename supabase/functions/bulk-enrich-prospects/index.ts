@@ -59,67 +59,76 @@ serve(async (req) => {
 
         console.log(`Starting bulk enrichment for ${prospect_ids.length} prospects...`);
 
-        let successCount = 0;
-        let failureCount = 0;
+        // PHASE 3: Batch-fetch all prospect details in ONE query
+        const { data: allProspects, error: fetchAllError } = await supabase
+          .from("prospect_activities")
+          .select(`
+            id,
+            report_id,
+            status,
+            enrichment_locked_at,
+            reports!inner(domain, extracted_company_name, facebook_url, industry)
+          `)
+          .in("id", prospect_ids);
 
-        // Process each prospect sequentially with delays
-        for (let i = 0; i < prospect_ids.length; i++) {
-          const prospectId = prospect_ids[i];
-          
-          try {
-            // Fetch prospect details
-            const { data: prospect, error: fetchError } = await supabase
-              .from("prospect_activities")
-              .select(`
-                id,
-                report_id,
-                status,
-                reports!inner(domain, extracted_company_name, facebook_url, industry)
-              `)
-              .eq("id", prospectId)
-              .single();
+        if (fetchAllError || !allProspects) {
+          console.error(`Failed to fetch prospects:`, fetchAllError);
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ type: "error", error: "Failed to fetch prospects" })}\n\n`
+            )
+          );
+          controller.close();
+          return;
+        }
 
-            if (fetchError || !prospect) {
-              console.error(`Prospect ${prospectId} not found:`, fetchError);
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ 
-                    type: "error", 
-                    prospectId, 
-                    domain: "unknown",
-                    status: "failed",
-                    error: "Prospect not found" 
-                  })}\n\n`
-                )
-              );
-              failureCount++;
-              continue;
-            }
-
-            const domain = prospect.reports.domain;
-            const currentCompanyName = prospect.reports.extracted_company_name || domain;
-
-            // Acquire enrichment lock to prevent concurrent processing
-            const { data: lockAcquired } = await supabase.rpc('acquire_enrichment_lock', {
-              p_prospect_id: prospectId,
+        // PHASE 3: Batch-acquire locks for all prospects in parallel
+        console.log(`🔒 Acquiring locks for ${allProspects.length} prospects in parallel...`);
+        const lockResults = await Promise.all(
+          allProspects.map(async (p) => {
+            const { data: locked } = await supabase.rpc('acquire_enrichment_lock', {
+              p_prospect_id: p.id,
               p_source: 'bulk_enrichment'
             });
+            return { prospectId: p.id, locked: !!locked, domain: p.reports.domain };
+          })
+        );
 
-            if (!lockAcquired) {
-              console.log(`🔒 Prospect ${prospectId} is already being enriched`);
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ 
-                    type: "error", 
-                    prospectId, 
-                    domain,
-                    status: "skipped",
-                    error: "Already being enriched" 
-                  })}\n\n`
-                )
-              );
-              continue;
-            }
+        // Filter to only process successfully locked prospects
+        const lockedProspectIds = lockResults
+          .filter(r => r.locked)
+          .map(r => r.prospectId);
+
+        // Send skipped events for already-locked prospects
+        const skippedProspects = lockResults.filter(r => !r.locked);
+        for (const skipped of skippedProspects) {
+          console.log(`🔒 Prospect ${skipped.prospectId} (${skipped.domain}) already being enriched - skipping`);
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ 
+                type: "error", 
+                prospectId: skipped.prospectId, 
+                domain: skipped.domain,
+                status: "skipped",
+                error: "Already being enriched" 
+              })}\n\n`
+            )
+          );
+        }
+
+        console.log(`✅ Successfully locked ${lockedProspectIds.length}/${allProspects.length} prospects`);
+
+        let successCount = 0;
+        let failureCount = skippedProspects.length; // Count skipped as failures
+
+        // Process only successfully locked prospects
+        for (let i = 0; i < lockedProspectIds.length; i++) {
+          const prospectId = lockedProspectIds[i];
+          const prospect = allProspects.find(p => p.id === prospectId)!;
+          
+          try {
+            const domain = prospect.reports.domain;
+            const currentCompanyName = prospect.reports.extracted_company_name || domain;
 
             // Send processing update
             controller.enqueue(
