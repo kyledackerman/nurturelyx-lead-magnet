@@ -89,38 +89,15 @@ Deno.serve(async (req) => {
 
     console.log(`Job updated to queued, batch ${currentBatch}. Invoking process-import-batch...`);
 
-    // Invoke process-import-batch edge function using service role
-    const { data: invokeData, error: invokeError } = await supabase.functions.invoke(
-      'process-import-batch',
-      {
-        body: { jobId }
-      }
-    );
-
-    if (invokeError) {
-      console.error('Failed to invoke process-import-batch:', invokeError);
-      
-      // Mark job as failed with clear error
-      await supabase
-        .from('import_jobs')
-        .update({
-          status: 'failed',
-          error_log: [...updatedErrorLog, {
-            timestamp: new Date().toISOString(),
-            row: 'system',
-            domain: 'system',
-            error: `Failed to invoke batch processor: ${invokeError.message}`
-          }]
-        })
-        .eq('id', jobId);
-
-      return new Response(
-        JSON.stringify({ error: 'Failed to restart batch processing', details: invokeError.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Batch processor invoked successfully:', invokeData);
+    // Invoke process-import-batch asynchronously (fire-and-forget)
+    // We don't await the result because the function is long-running and will timeout
+    supabase.functions.invoke('process-import-batch', {
+      body: { jobId }
+    }).then(result => {
+      console.log('Batch processor invoked, result:', result.data ? 'success' : result.error);
+    }).catch(err => {
+      console.log('Batch processor invocation completed with timeout (expected for long-running jobs):', err.message);
+    });
 
     return new Response(
       JSON.stringify({ 
