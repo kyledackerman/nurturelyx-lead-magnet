@@ -60,6 +60,7 @@ serve(async (req) => {
         reports!inner(domain, extracted_company_name, facebook_url, industry)
       `)
       .in("status", ["new", "enriching"])
+      .neq("status", "review") // Explicitly exclude manually reviewed prospects
       .lt("enrichment_retry_count", 3)
       .is("enrichment_locked_at", null) // Not currently locked
       .order("last_enrichment_attempt", { ascending: true, nullsFirst: true })
