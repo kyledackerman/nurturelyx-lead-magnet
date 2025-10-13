@@ -218,6 +218,59 @@ export const ProspectImporter = () => {
     }
   };
 
+  const handleRestartJob = async (jobId: string) => {
+    try {
+      // Reset job to queued status and clear lock
+      const { error: updateError } = await supabase
+        .from('import_jobs')
+        .update({ 
+          status: 'queued',
+          enrichment_locked_at: null,
+          last_updated_at: new Date().toISOString()
+        })
+        .eq('id', jobId);
+
+      if (updateError) throw updateError;
+
+      // Manually invoke process-import-batch
+      const { error: invokeError } = await supabase.functions.invoke('process-import-batch', {
+        body: { jobId }
+      });
+
+      if (invokeError) throw invokeError;
+
+      toast({
+        title: "Import restarted",
+        description: "The import will resume from where it left off",
+      });
+
+      fetchRunningJobs();
+      fetchRecentJobs();
+    } catch (error) {
+      console.error('Restart error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to restart job",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const isJobRestartable = (job: ImportJob): boolean => {
+    const isFrozen = isJobFrozen(job);
+    const isFailed = job.status === 'failed';
+    const hasMoreRows = job.processed_rows < job.total_rows;
+    return (isFrozen || isFailed) && hasMoreRows;
+  };
+
+  const getLastError = (job: ImportJob): string | null => {
+    if (!job.error_log || !Array.isArray(job.error_log) || job.error_log.length === 0) {
+      return null;
+    }
+    const lastError = job.error_log[job.error_log.length - 1];
+    return lastError?.error || null;
+  };
+
   const isJobFrozen = (job: ImportJob): boolean => {
     if (job.status !== 'processing') return false;
     const lastUpdate = new Date(job.last_updated_at);
@@ -332,11 +385,12 @@ bestplumbing.com,6200`;
 
       {runningJobs.map(job => {
         const isFrozen = isJobFrozen(job);
+        const lastError = getLastError(job);
         return (
         <Card key={job.id} className={isFrozen ? "border-destructive" : ""}>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <div>
+              <div className="space-y-1">
                 <CardTitle className="flex items-center gap-2">
                   Import in Progress
                   {isFrozen && (
@@ -346,16 +400,30 @@ bestplumbing.com,6200`;
                   )}
                 </CardTitle>
                 <CardDescription>{job.file_name}</CardDescription>
+                {lastError && (
+                  <div className="text-xs text-destructive">
+                    Last error: {lastError}
+                  </div>
+                )}
               </div>
               <div className="flex gap-2">
                 {isFrozen && (
-                  <Button 
-                    variant="destructive" 
-                    size="sm"
-                    onClick={() => handleForceComplete(job.id)}
-                  >
-                    Force Fail
-                  </Button>
+                  <>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleRestartJob(job.id)}
+                    >
+                      Restart
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => handleForceComplete(job.id)}
+                    >
+                      Force Fail
+                    </Button>
+                  </>
                 )}
                 <Button 
                   variant="ghost" 
@@ -466,23 +534,44 @@ bestplumbing.com,6200`;
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {recentJobs.map((job) => (
+              {recentJobs.map((job) => {
+                const lastError = getLastError(job);
+                const isRestartable = isJobRestartable(job);
+                return (
                 <div key={job.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                  <div>
+                  <div className="flex-1">
                     <div className="font-medium text-sm">{job.file_name}</div>
                     <div className="text-xs text-muted-foreground">
                       {job.successful_rows} succeeded, {job.failed_rows} failed
+                      {job.status === 'failed' && ` (${job.processed_rows}/${job.total_rows} rows processed)`}
                     </div>
+                    {lastError && (
+                      <div className="text-xs text-destructive mt-1">
+                        Last error: {lastError}
+                      </div>
+                    )}
                   </div>
-                  <Badge variant={
-                    job.status === 'completed' ? 'default' :
-                    job.status === 'failed' ? 'destructive' :
-                    'secondary'
-                  }>
-                    {job.status}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    {isRestartable && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleRestartJob(job.id)}
+                      >
+                        Restart
+                      </Button>
+                    )}
+                    <Badge variant={
+                      job.status === 'completed' ? 'default' :
+                      job.status === 'failed' ? 'destructive' :
+                      'secondary'
+                    }>
+                      {job.status}
+                    </Badge>
+                  </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           </CardContent>
         </Card>

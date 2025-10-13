@@ -224,25 +224,30 @@ function calculateReportMetrics(apiData: ApiData, avgTransactionValue: number) {
 }
 
 Deno.serve(async (req) => {
+  console.log(`[STARTUP] process-import-batch invoked at ${new Date().toISOString()}`);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log(`[STARTUP] Initializing Supabase client...`);
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
     const { jobId } = await req.json();
-    console.log(`Processing batch for job ${jobId}`);
+    console.log(`[STARTUP] Processing batch for job ${jobId} at ${new Date().toISOString()}`);
 
     // Fetch job
+    console.log(`[DB] Fetching job ${jobId}...`);
     const { data: job, error: jobError } = await supabaseClient
       .from('import_jobs')
       .select('*')
       .eq('id', jobId)
       .single();
+    console.log(`[DB] Job fetched. Status: ${job?.status}, Processed: ${job?.processed_rows}/${job?.total_rows}`);
 
     if (jobError || !job) {
       return new Response(
