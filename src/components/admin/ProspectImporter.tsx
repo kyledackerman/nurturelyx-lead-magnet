@@ -12,7 +12,7 @@ import type { ImportJob } from "@/types/import";
 export const ProspectImporter = () => {
   const [file, setFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
-  const [activeJob, setActiveJob] = useState<ImportJob | null>(null);
+  const [runningJobs, setRunningJobs] = useState<ImportJob[]>([]);
   const [recentJobs, setRecentJobs] = useState<ImportJob[]>([]);
   const { toast } = useToast();
 
@@ -39,42 +39,43 @@ export const ProspectImporter = () => {
     }
   };
 
-  // Fetch recent jobs
+  // Fetch running and recent jobs on mount
   useEffect(() => {
+    fetchRunningJobs();
     fetchRecentJobs();
   }, []);
 
-  // Real-time subscription to active job
+  // Real-time subscription to all running jobs
   useEffect(() => {
-    if (!activeJob) return;
-
     const channel = supabase
-      .channel('import-job-updates')
+      .channel('import-jobs-updates')
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'import_jobs',
-          filter: `id=eq.${activeJob.id}`
+          table: 'import_jobs'
         },
         (payload) => {
           const updated = payload.new as ImportJob;
-          setActiveJob(updated);
           
-          if (updated.status === 'completed') {
+          if (updated.status === 'completed' || updated.status === 'failed' || updated.status === 'cancelled') {
             toast({
-              title: "Import completed!",
-              description: `${updated.successful_rows} succeeded, ${updated.failed_rows} failed`,
+              title: updated.status === 'completed' ? "Import completed!" : 
+                     updated.status === 'cancelled' ? "Import cancelled" : "Import failed",
+              description: updated.status === 'completed' 
+                ? `${updated.successful_rows} succeeded, ${updated.failed_rows} failed`
+                : updated.file_name,
+              variant: updated.status === 'failed' ? 'destructive' : 'default',
             });
-            setFile(null);
+            fetchRunningJobs();
             fetchRecentJobs();
-          } else if (updated.status === 'failed') {
-            toast({
-              title: "Import failed",
-              description: "An error occurred during processing",
-              variant: "destructive",
-            });
+            setFile(null);
+          } else {
+            // Update running jobs list
+            setRunningJobs(prev => 
+              prev.map(job => job.id === updated.id ? updated : job)
+            );
           }
         }
       )
@@ -83,31 +84,36 @@ export const ProspectImporter = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [activeJob, toast]);
+  }, [toast]);
 
-  // Fallback polling
+  // Polling for running jobs
   useEffect(() => {
-    if (!activeJob || activeJob.status === 'completed' || activeJob.status === 'failed') return;
+    if (runningJobs.length === 0) return;
 
-    const pollInterval = setInterval(async () => {
-      const { data } = await supabase
-        .from('import_jobs')
-        .select('*')
-        .eq('id', activeJob.id)
-        .single();
-
-      if (data) {
-        setActiveJob(data as ImportJob);
-      }
-    }, 2000);
+    const pollInterval = setInterval(() => {
+      fetchRunningJobs();
+    }, 3000);
 
     return () => clearInterval(pollInterval);
-  }, [activeJob]);
+  }, [runningJobs]);
+
+  const fetchRunningJobs = async () => {
+    const { data } = await supabase
+      .from('import_jobs')
+      .select('*')
+      .in('status', ['queued', 'processing'])
+      .order('created_at', { ascending: false });
+
+    if (data) {
+      setRunningJobs(data as ImportJob[]);
+    }
+  };
 
   const fetchRecentJobs = async () => {
     const { data } = await supabase
       .from('import_jobs')
       .select('*')
+      .in('status', ['completed', 'failed', 'cancelled'])
       .order('created_at', { ascending: false })
       .limit(5);
 
@@ -151,16 +157,8 @@ export const ProspectImporter = () => {
 
       if (error) throw error;
 
-      // Set active job for tracking
-      const { data: jobData } = await supabase
-        .from('import_jobs')
-        .select('*')
-        .eq('id', data.jobId)
-        .single();
-
-      if (jobData) {
-        setActiveJob(jobData as ImportJob);
-      }
+      // Refresh running jobs
+      fetchRunningJobs();
 
       toast({
         title: "Import queued",
@@ -178,21 +176,19 @@ export const ProspectImporter = () => {
     }
   };
 
-  const handleCancelJob = async () => {
-    if (!activeJob) return;
-
+  const handleCancelJob = async (jobId: string) => {
     const { error } = await supabase
       .from('import_jobs')
       .update({ status: 'cancelled' })
-      .eq('id', activeJob.id);
+      .eq('id', jobId);
 
     if (!error) {
       toast({
         title: "Import cancelled",
         description: "The import has been stopped",
       });
-      setActiveJob(null);
       setFile(null);
+      fetchRunningJobs();
       fetchRecentJobs();
     }
   };
@@ -259,7 +255,7 @@ bestplumbing.com,6200`;
                 type="file"
                 accept=".csv"
                 onChange={handleFileChange}
-                disabled={importing || !!activeJob}
+                disabled={importing || runningJobs.length > 0}
                 className="block w-full text-sm text-muted-foreground
                   file:mr-4 file:py-2 file:px-4
                   file:rounded-md file:border-0
@@ -271,14 +267,24 @@ bestplumbing.com,6200`;
               />
             </div>
 
-            {file && !importing && !activeJob && (
+            {file && !importing && (
               <Button 
                 onClick={handleImport} 
                 className="w-full"
+                disabled={runningJobs.length > 0}
               >
                 <Upload className="h-4 w-4 mr-2" />
                 Import {file.name}
               </Button>
+            )}
+            
+            {runningJobs.length > 0 && (
+              <Alert>
+                <AlertDescription>
+                  {runningJobs.length} import{runningJobs.length > 1 ? 's' : ''} currently running. 
+                  Please wait for them to complete before starting a new import.
+                </AlertDescription>
+              </Alert>
             )}
           </div>
 
@@ -291,19 +297,19 @@ bestplumbing.com,6200`;
         </CardContent>
       </Card>
 
-      {activeJob && (
-        <Card>
+      {runningJobs.map(job => (
+        <Card key={job.id}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Import in Progress</CardTitle>
-                <CardDescription>{activeJob.file_name}</CardDescription>
+                <CardDescription>{job.file_name}</CardDescription>
               </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                onClick={handleCancelJob}
-                disabled={activeJob.status === 'completed'}
+                onClick={() => handleCancelJob(job.id)}
+                disabled={job.status === 'completed'}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -315,11 +321,11 @@ bestplumbing.com,6200`;
               <div className="flex justify-between text-sm">
                 <span className="font-medium">Processing domains...</span>
                 <span className="text-muted-foreground">
-                  {activeJob.processed_rows} / {activeJob.total_rows}
+                  {job.processed_rows} / {job.total_rows}
                 </span>
               </div>
               <Progress 
-                value={(activeJob.processed_rows / activeJob.total_rows) * 100} 
+                value={(job.processed_rows / job.total_rows) * 100} 
                 className="h-3"
               />
             </div>
@@ -329,11 +335,11 @@ bestplumbing.com,6200`;
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Batch Progress</span>
                 <span className="text-muted-foreground">
-                  Batch {activeJob.current_batch} of {activeJob.total_batches}
+                  Batch {job.current_batch} of {job.total_batches}
                 </span>
               </div>
               <Progress 
-                value={(activeJob.current_batch / activeJob.total_batches) * 100} 
+                value={(job.current_batch / job.total_batches) * 100} 
                 className="h-2"
               />
             </div>
@@ -343,23 +349,23 @@ bestplumbing.com,6200`;
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
                 <div>
-                  <div className="text-sm font-medium">{activeJob.successful_rows}</div>
+                  <div className="text-sm font-medium">{job.successful_rows}</div>
                   <div className="text-xs text-muted-foreground">Successful</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-red-600" />
                 <div>
-                  <div className="text-sm font-medium">{activeJob.failed_rows}</div>
+                  <div className="text-sm font-medium">{job.failed_rows}</div>
                   <div className="text-xs text-muted-foreground">Failed</div>
                 </div>
               </div>
             </div>
 
             {/* Time Estimate */}
-            {activeJob.status === 'processing' && (
+            {job.status === 'processing' && (
               <div className="text-xs text-muted-foreground">
-                Estimated time remaining: {calculateTimeRemaining(activeJob)}
+                Estimated time remaining: {calculateTimeRemaining(job)}
               </div>
             )}
 
@@ -367,28 +373,28 @@ bestplumbing.com,6200`;
             <div className="flex items-center gap-2">
               <span className="text-sm">Status:</span>
               <Badge variant={
-                activeJob.status === 'completed' ? 'default' :
-                activeJob.status === 'failed' ? 'destructive' :
-                activeJob.status === 'cancelled' ? 'secondary' :
+                job.status === 'completed' ? 'default' :
+                job.status === 'failed' ? 'destructive' :
+                job.status === 'cancelled' ? 'secondary' :
                 'outline'
               }>
-                {activeJob.status}
+                {job.status}
               </Badge>
             </div>
 
             {/* Error Log */}
-            {activeJob.error_log && activeJob.error_log.length > 0 && (
+            {job.error_log && job.error_log.length > 0 && (
               <div className="space-y-2">
-                <h4 className="font-semibold text-sm">Errors ({activeJob.error_log.length}):</h4>
+                <h4 className="font-semibold text-sm">Errors ({job.error_log.length}):</h4>
                 <div className="max-h-40 overflow-y-auto space-y-1">
-                  {activeJob.error_log.slice(0, 10).map((err, idx) => (
+                  {job.error_log.slice(0, 10).map((err, idx) => (
                     <div key={idx} className="text-xs text-red-600 bg-red-50 p-2 rounded">
                       <strong>Row {err.row} ({err.domain}):</strong> {err.error}
                     </div>
                   ))}
-                  {activeJob.error_log.length > 10 && (
+                  {job.error_log.length > 10 && (
                     <div className="text-xs text-muted-foreground p-2">
-                      ... and {activeJob.error_log.length - 10} more errors
+                      ... and {job.error_log.length - 10} more errors
                     </div>
                   )}
                 </div>
@@ -396,7 +402,7 @@ bestplumbing.com,6200`;
             )}
           </CardContent>
         </Card>
-      )}
+      ))}
 
       {/* Recent Imports */}
       {recentJobs.length > 0 && (

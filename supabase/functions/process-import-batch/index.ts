@@ -276,6 +276,21 @@ Deno.serve(async (req) => {
 
     // Process batch
     for (let i = startIdx; i < endIdx; i++) {
+      // Check if job was cancelled before processing each row
+      const { data: currentJob } = await supabaseClient
+        .from('import_jobs')
+        .select('status')
+        .eq('id', jobId)
+        .single();
+      
+      if (currentJob?.status === 'cancelled') {
+        console.log(`Job ${jobId} was cancelled, stopping processing`);
+        return new Response(
+          JSON.stringify({ status: 'cancelled' }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       const rowNum = i + 2;
       const values = dataRows[i].split(',').map((v: string) => v.trim());
       
