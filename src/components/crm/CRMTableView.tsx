@@ -70,7 +70,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const [assignedFilter, setAssignedFilter] = useState("all");
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const PAGE_SIZE = 500; // Increased from 50 to allow bulk selection
+  const PAGE_SIZE = 50; // Optimized for performance
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortKey>('priority');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -131,11 +131,15 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  // Fetch admin users only once on mount
+  useEffect(() => {
+    fetchAdminUsers();
+  }, []);
+
   useEffect(() => {
     // Only fetch on initial load, view change, or search change
     // Do NOT fetch on page change (that's handled by loadMore)
     fetchProspects();
-    fetchAdminUsers();
   }, [view, debouncedSearchTerm]);
 
   useEffect(() => {
@@ -144,11 +148,15 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     setProspects([]);
   }, [view]);
 
-  // Listen to real-time updates from CRMRealtimeContext
+  // Listen to real-time updates from CRMRealtimeContext with debouncing
   useEffect(() => {
-    // Clear cache and refetch when real-time changes detected
-    cacheRef.current.timestamp = 0; // Force cache miss
-    fetchProspects();
+    const timer = setTimeout(() => {
+      // Clear cache and refetch when real-time changes detected
+      cacheRef.current.timestamp = 0; // Force cache miss
+      fetchProspects();
+    }, 2000); // 2 second debounce to prevent cascading refetches
+
+    return () => clearTimeout(timer);
   }, [triggerRealtimeRefresh]);
 
   const fetchAdminUsers = async () => {
