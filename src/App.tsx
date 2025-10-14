@@ -2,10 +2,11 @@
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { HelmetProvider } from "react-helmet-async";
 import { ScrollToTopOnRouteChange } from "@/components/ScrollToTopOnRouteChange";
+import { AnalyticsLoader } from "@/components/AnalyticsLoader";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
@@ -32,6 +33,14 @@ import TopCompaniesPage from "./pages/TopCompaniesPage";
 
 const queryClient = new QueryClient();
 
+// Component to conditionally render analytics
+const ConditionalAnalytics = () => {
+  const location = useLocation();
+  const isAuthPage = location.pathname === '/auth' || location.pathname === '/auth/callback';
+  
+  return isAuthPage ? null : <AnalyticsLoader />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -39,6 +48,7 @@ const App = () => (
         <TooltipProvider>
           <Sonner />
           <BrowserRouter>
+            <ConditionalAnalytics />
             <ScrollToTopOnRouteChange />
             <Routes>
             <Route path="/" element={<Index />} />

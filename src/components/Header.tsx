@@ -26,6 +26,11 @@ const Header = () => {
         return;
       }
       
+      // Don't check admin on auth pages to avoid blocking
+      if (window.location.pathname === '/auth' || window.location.pathname === '/auth/callback') {
+        return;
+      }
+      
       try {
         const adminStatus = await checkIsAdmin();
         if (mounted) setIsAdmin(adminStatus);

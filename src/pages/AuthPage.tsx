@@ -19,7 +19,7 @@ const AuthPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, resetSession } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -66,6 +66,8 @@ const AuthPage = () => {
           setError('An account with this email already exists');
         } else if (error.message.includes('Email not confirmed')) {
           setError('Please check your email to confirm your account');
+        } else if (error.message.includes('Failed to fetch') || error.message.includes('fetch')) {
+          setError('Connection issue. Please check your network or try resetting your session below.');
         } else {
           setError('Authentication failed. Please try again.');
         }
@@ -163,7 +165,7 @@ const AuthPage = () => {
               </Button>
             </form>
             
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center space-y-2">
               <button
                 type="button"
                 onClick={() => {
@@ -179,6 +181,18 @@ const AuthPage = () => {
                   : 'Already have an account? Sign in'
                 }
               </button>
+              
+              {error && error.includes('fetch') && (
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={resetSession}
+                    className="text-xs text-muted-foreground hover:text-foreground underline"
+                  >
+                    Having trouble? Reset session
+                  </button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -9,6 +9,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  resetSession: () => Promise<void>;
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
   requestPasswordReset: (userId: string, reason?: string) => Promise<{ error: any }>;
   checkIsAdmin: () => Promise<boolean>;
@@ -54,20 +55,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // THEN check for existing session with retry logic
+    const initSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session init error:', error);
+          
+          // If we get a network/fetch error, try once more after delay
+          if (error.message?.includes('Failed to fetch') || error.message?.includes('fetch')) {
+            console.warn('Supabase fetch failed, retrying in 500ms...');
+            setTimeout(async () => {
+              try {
+                const { data: { session: retrySession } } = await supabase.auth.getSession();
+                setSession(retrySession);
+                setUser(retrySession?.user ?? null);
+              } catch (retryError) {
+                console.error('Retry failed, continuing without session:', retryError);
+              } finally {
+                setLoading(false);
+              }
+            }, 500);
+            return;
+          }
+        }
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      } catch (err) {
+        console.error('Unexpected session init error:', err);
+        setLoading(false);
+      }
+    };
+
+    initSession();
 
     return () => subscription.unsubscribe();
   }, []);
 
 
   const checkIsAdmin = useCallback(async (): Promise<boolean> => {
-    // No user = no admin access
-    if (!user?.id) return false;
+    // No user or no session = no admin access
+    if (!user?.id || !session?.access_token) return false;
 
     const userId = user.id;
     
@@ -86,12 +117,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Start new check and store promise for deduplication
     adminPromiseByUser[userId] = (async () => {
       try {
-        // is_admin already includes super_admin in the database
-        const { data, error } = await supabase.rpc('is_admin');
+        // Call the new is-admin edge function with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+        const response = await fetch(
+          'https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/is-admin',
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            signal: controller.signal,
+          }
+        );
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(`Admin check failed: ${response.status}`);
+        }
+
+        const { isAdmin } = await response.json();
+        const result = !!isAdmin;
         
-        if (error) throw error;
-        
-        const result = !!data;
         console.debug('Admin check result:', result);
         
         // Update cache for this user
@@ -115,7 +165,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     })();
 
     return adminPromiseByUser[userId]!;
-  }, [user?.id]);
+  }, [user?.id, session?.access_token]);
 
   const checkIsSuperAdmin = useCallback(async (): Promise<boolean> => {
     // No user = no super admin access
@@ -193,6 +243,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut();
   }, []);
 
+  const resetSession = useCallback(async () => {
+    try {
+      await supabase.auth.signOut();
+      // Clear local storage auth token
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') && key.includes('-auth-token')) {
+          localStorage.removeItem(key);
+        }
+      });
+      // Reload page to reinitialize
+      window.location.reload();
+    } catch (error) {
+      console.error('Reset session error:', error);
+      // Force reload anyway
+      window.location.reload();
+    }
+  }, []);
+
   const updatePassword = useCallback(async (newPassword: string) => {
     const { error } = await supabase.auth.updateUser({
       password: newPassword,
@@ -218,11 +286,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signUp,
     signIn,
     signOut,
+    resetSession,
     updatePassword,
     requestPasswordReset,
     checkIsAdmin,
     checkIsSuperAdmin,
-  }), [user, session, loading, signUp, signIn, signOut, updatePassword, requestPasswordReset, checkIsAdmin, checkIsSuperAdmin]);
+  }), [user, session, loading, signUp, signIn, signOut, resetSession, updatePassword, requestPasswordReset, checkIsAdmin, checkIsSuperAdmin]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
