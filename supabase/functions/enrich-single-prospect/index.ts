@@ -357,10 +357,14 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
       }
     }
 
-    // Update prospect status to "enriched" immediately (don't wait for icebreaker)
-    const newStatus = ["new", "needs_review", "enriching"].includes(prospect.status)
+    // Check if we found any contacts with email addresses
+    const contactsWithEmail = contacts.filter((c: any) => c.email && c.email.trim() !== '');
+    const hasValidContacts = contactsWithEmail.length > 0;
+
+    // Only mark as "enriched" if we have email contacts, otherwise "review"
+    const newStatus = hasValidContacts && ["new", "needs_review", "enriching"].includes(prospect.status)
       ? "enriched"
-      : prospect.status;
+      : "review";
     
     await supabase
       .from("prospect_activities")
@@ -371,7 +375,7 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
       .eq("id", prospect_id);
 
     // Log to audit trail
-    const contextParts = [`Manual enrichment: extracted ${contactsInserted} contacts`];
+    const contextParts = [`Manual enrichment: extracted ${contactsInserted} contacts (${contactsWithEmail.length} with email)`];
     if (companyNameUpdated) contextParts.push(`updated company name to "${companyName}"`);
     if (facebookUrlAdded) contextParts.push(`added Facebook URL`);
     if (industryUpdated) contextParts.push(`set industry to "${detectedIndustry}"`);

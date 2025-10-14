@@ -628,8 +628,12 @@ Now search the web and write the icebreaker:
               // Silent fail - enrichment still succeeds
             }
 
-            // Determine final status: enriched ONLY if we have BOTH contacts AND icebreaker
-            const finalStatus = (contactsInserted > 0 && icebreakerGenerated) ? "enriched" : "review";
+            // Check if we found any contacts with email addresses
+            const contactsWithEmail = contacts.filter((c: any) => c.email && c.email.trim() !== '');
+            const hasValidContacts = contactsWithEmail.length > 0;
+
+            // Determine final status: enriched ONLY if we have email contacts AND icebreaker, otherwise review
+            const finalStatus = (hasValidContacts && icebreakerGenerated) ? "enriched" : "review";
 
             // Update prospect status and release lock
             await supabase
@@ -643,7 +647,7 @@ Now search the web and write the icebreaker:
               .eq("id", prospectId);
 
             // Log to audit trail
-            const contextParts = [`Bulk enrichment: extracted ${contactsInserted} contacts`];
+            const contextParts = [`Bulk enrichment: extracted ${contactsInserted} contacts (${contactsWithEmail.length} with email)`];
             if (icebreakerGenerated) contextParts.push('generated icebreaker');
             if (companyNameUpdated) contextParts.push(`updated company name to "${companyName}"`);
             if (industryUpdated) contextParts.push(`set industry to "${detectedIndustry}"`);

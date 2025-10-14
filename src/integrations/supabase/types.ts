@@ -861,6 +861,13 @@ export type Database = {
         Args: { p_prospect_id: string }
         Returns: undefined
       }
+      validate_prospect_email_contacts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          moved_count: number
+          moved_prospect_ids: string[]
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "user" | "super_admin"

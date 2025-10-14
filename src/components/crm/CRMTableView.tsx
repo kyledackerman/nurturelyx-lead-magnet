@@ -159,6 +159,36 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     return () => clearTimeout(timer);
   }, [triggerRealtimeRefresh]);
 
+  // Validate email contacts when viewing "ready-outreach"
+  useEffect(() => {
+    if (view === 'ready-outreach') {
+      validateEmailContacts();
+    }
+  }, [view]);
+
+  const validateEmailContacts = async () => {
+    try {
+      const { data, error } = await supabase.rpc('validate_prospect_email_contacts');
+      
+      if (error) {
+        console.error('Error validating email contacts:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const movedCount = data[0].moved_count;
+        if (movedCount > 0) {
+          toast.warning(`Moved ${movedCount} prospect${movedCount > 1 ? 's' : ''} without emails to Needs Review`);
+          // Refresh the prospect list
+          cacheRef.current.timestamp = 0;
+          fetchProspects();
+        }
+      }
+    } catch (error) {
+      console.error('Error in validateEmailContacts:', error);
+    }
+  };
+
   const fetchAdminUsers = async () => {
     try {
       const { data, error } = await supabase.functions.invoke('get-admins');
