@@ -65,6 +65,99 @@ export type Database = {
         }
         Relationships: []
       }
+      enrichment_job_items: {
+        Row: {
+          completed_at: string | null
+          contacts_found: number | null
+          domain: string
+          error_message: string | null
+          id: string
+          job_id: string | null
+          prospect_id: string | null
+          started_at: string | null
+          status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          contacts_found?: number | null
+          domain: string
+          error_message?: string | null
+          id?: string
+          job_id?: string | null
+          prospect_id?: string | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          contacts_found?: number | null
+          domain?: string
+          error_message?: string | null
+          id?: string
+          job_id?: string | null
+          prospect_id?: string | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrichment_job_items_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "enrichment_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrichment_job_items_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "prospect_activities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enrichment_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          failed_count: number | null
+          id: string
+          job_type: string | null
+          processed_count: number | null
+          started_at: string | null
+          status: string | null
+          success_count: number | null
+          total_count: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          failed_count?: number | null
+          id?: string
+          job_type?: string | null
+          processed_count?: number | null
+          started_at?: string | null
+          status?: string | null
+          success_count?: number | null
+          total_count: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          failed_count?: number | null
+          id?: string
+          job_type?: string | null
+          processed_count?: number | null
+          started_at?: string | null
+          status?: string | null
+          success_count?: number | null
+          total_count?: number
+        }
+        Relationships: []
+      }
       enrichment_settings: {
         Row: {
           auto_enrichment_enabled: boolean
@@ -714,6 +807,7 @@ export type Database = {
           domain: string
           icebreaker_text: string
           id: string
+          lead_source: string
           lost_notes: string
           lost_reason: string
           missed_leads: number

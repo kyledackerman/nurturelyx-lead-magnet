@@ -11,6 +11,8 @@ interface EnrichmentStats {
   enabled: boolean;
   facebook_scraping_enabled: boolean;
   last_run: string | null;
+  last_auto_job_count: number;
+  last_auto_job_success: number;
   queue_count: number;
   needs_review_count: number;
   last_24h_attempts: number;
@@ -261,9 +263,14 @@ export function AutoEnrichmentBar() {
         {/* Right: Last Run + Actions */}
         <div className="flex items-center gap-3">
           {stats?.last_run && (
-            <span className="text-xs text-muted-foreground">
-              Last: {formatDistanceToNow(new Date(stats.last_run), { addSuffix: true })}
-            </span>
+            <div className="text-xs text-muted-foreground flex flex-col items-end">
+              <span>Last auto-run: {formatDistanceToNow(new Date(stats.last_run), { addSuffix: true })}</span>
+              {stats.last_auto_job_count > 0 && (
+                <span className="text-[10px]">
+                  Processed {stats.last_auto_job_success}/{stats.last_auto_job_count} prospects
+                </span>
+              )}
+            </div>
           )}
           
           <Button

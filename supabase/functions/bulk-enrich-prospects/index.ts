@@ -22,7 +22,7 @@ serve(async (req) => {
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        const { prospect_ids } = await req.json();
+        const { prospect_ids, job_id, processing_mode = 'parallel' } = await req.json();
 
         // Rate limiting by user session or IP
         const authHeader = req.headers.get('authorization');
@@ -57,7 +57,27 @@ serve(async (req) => {
           return;
         }
 
-        console.log(`Starting bulk enrichment for ${prospect_ids.length} prospects...`);
+        console.log(`Starting bulk enrichment for ${prospect_ids.length} prospects (mode: ${processing_mode})...`);
+
+        // Create or update enrichment job
+        let enrichmentJobId = job_id;
+        if (!enrichmentJobId) {
+          const { data: jobData, error: jobError } = await supabase
+            .from('enrichment_jobs')
+            .insert({
+              total_count: prospect_ids.length,
+              job_type: 'manual'
+            })
+            .select('id')
+            .single();
+          
+          if (jobError) {
+            console.error('Failed to create job:', jobError);
+          } else {
+            enrichmentJobId = jobData.id;
+            console.log(`Created enrichment job: ${enrichmentJobId}`);
+          }
+        }
 
         // PHASE 3: Batch-fetch all prospect details in ONE query
         const { data: allProspects, error: fetchAllError } = await supabase
@@ -83,16 +103,43 @@ serve(async (req) => {
         }
 
         // PHASE 3: Batch-acquire locks for all prospects in parallel
-        console.log(`🔒 Acquiring locks for ${allProspects.length} prospects in parallel...`);
-        const lockResults = await Promise.all(
-          allProspects.map(async (p) => {
+        // Create job items for all prospects
+        if (enrichmentJobId) {
+          const jobItems = allProspects.map(p => ({
+            job_id: enrichmentJobId,
+            prospect_id: p.id,
+            domain: p.reports.domain,
+            status: 'pending'
+          }));
+          
+          await supabase.from('enrichment_job_items').insert(jobItems);
+        }
+
+        console.log(`🔒 Acquiring locks for ${allProspects.length} prospects (${processing_mode} mode)...`);
+        
+        let lockResults;
+        if (processing_mode === 'sequential') {
+          // Sequential processing - one at a time
+          lockResults = [];
+          for (const p of allProspects) {
             const { data: locked } = await supabase.rpc('acquire_enrichment_lock', {
               p_prospect_id: p.id,
               p_source: 'bulk_enrichment'
             });
-            return { prospectId: p.id, locked: !!locked, domain: p.reports.domain };
-          })
-        );
+            lockResults.push({ prospectId: p.id, locked: !!locked, domain: p.reports.domain });
+          }
+        } else {
+          // Parallel processing - all at once (default)
+          lockResults = await Promise.all(
+            allProspects.map(async (p) => {
+              const { data: locked } = await supabase.rpc('acquire_enrichment_lock', {
+                p_prospect_id: p.id,
+                p_source: 'bulk_enrichment'
+              });
+              return { prospectId: p.id, locked: !!locked, domain: p.reports.domain };
+            })
+          );
+        }
 
         // Filter to only process successfully locked prospects
         const lockedProspectIds = lockResults
@@ -130,6 +177,18 @@ serve(async (req) => {
             const domain = prospect.reports.domain;
             const currentCompanyName = prospect.reports.extracted_company_name || domain;
 
+            // Update job item status to processing
+            if (enrichmentJobId) {
+              await supabase
+                .from('enrichment_job_items')
+                .update({ 
+                  status: 'processing',
+                  started_at: new Date().toISOString()
+                })
+                .eq('job_id', enrichmentJobId)
+                .eq('prospect_id', prospectId);
+            }
+
             // Send processing update
             controller.enqueue(
               encoder.encode(
@@ -146,6 +205,18 @@ serve(async (req) => {
             const { content: scrapedData, socialLinks } = await scrapeWebsite(domain);
 
             if (!scrapedData || scrapedData.length === 0) {
+              if (enrichmentJobId) {
+                await supabase
+                  .from('enrichment_job_items')
+                  .update({ 
+                    status: 'failed',
+                    error_message: 'Could not access website',
+                    completed_at: new Date().toISOString()
+                  })
+                  .eq('job_id', enrichmentJobId)
+                  .eq('prospect_id', prospectId);
+              }
+              
               controller.enqueue(
                 encoder.encode(
                   `data: ${JSON.stringify({ 
@@ -305,6 +376,18 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
                 : aiResponse.status === 402
                 ? "Payment required"
                 : "AI service error";
+              
+              if (enrichmentJobId) {
+                await supabase
+                  .from('enrichment_job_items')
+                  .update({ 
+                    status: aiResponse.status === 429 ? 'rate_limited' : 'failed',
+                    error_message: errorMessage,
+                    completed_at: new Date().toISOString()
+                  })
+                  .eq('job_id', enrichmentJobId)
+                  .eq('prospect_id', prospectId);
+              }
               
               controller.enqueue(
                 encoder.encode(
@@ -574,6 +657,21 @@ Now search the web and write the icebreaker:
             });
 
             // Send success update
+            successCount++;
+            
+            // Update job item status to success
+            if (enrichmentJobId) {
+              await supabase
+                .from('enrichment_job_items')
+                .update({ 
+                  status: 'success',
+                  contacts_found: contactsInserted,
+                  completed_at: new Date().toISOString()
+                })
+                .eq('job_id', enrichmentJobId)
+                .eq('prospect_id', prospectId);
+            }
+            
             controller.enqueue(
               encoder.encode(
                 `data: ${JSON.stringify({ 
@@ -588,10 +686,21 @@ Now search the web and write the icebreaker:
               )
             );
 
-            successCount++;
-
           } catch (error) {
             console.error(`Error enriching prospect ${prospectId}:`, error);
+            
+            // Update job item status to failed
+            if (enrichmentJobId) {
+              await supabase
+                .from('enrichment_job_items')
+                .update({ 
+                  status: 'failed',
+                  error_message: error instanceof Error ? error.message : 'Unknown error',
+                  completed_at: new Date().toISOString()
+                })
+                .eq('job_id', enrichmentJobId)
+                .eq('prospect_id', prospectId);
+            }
             
             // Release lock on error
             await supabase.rpc('release_enrichment_lock', {
@@ -619,6 +728,20 @@ Now search the web and write the icebreaker:
         }
 
         // Send completion summary
+        // Mark job as completed
+        if (enrichmentJobId) {
+          await supabase
+            .from('enrichment_jobs')
+            .update({
+              status: 'completed',
+              completed_at: new Date().toISOString(),
+              processed_count: successCount + failureCount,
+              success_count: successCount,
+              failed_count: failureCount
+            })
+            .eq('id', enrichmentJobId);
+        }
+        
         controller.enqueue(
           encoder.encode(
             `data: ${JSON.stringify({ 

@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Clock, Loader2, AlertTriangle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 
 export interface EnrichmentProgress {
   prospectId: string;
@@ -16,14 +18,59 @@ interface BulkEnrichmentProgressDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   progress: Map<string, EnrichmentProgress>;
+  jobId?: string | null;
 }
 
 export default function BulkEnrichmentProgressDialog({
   open,
   onOpenChange,
   progress,
+  jobId,
 }: BulkEnrichmentProgressDialogProps) {
-  const progressArray = Array.from(progress.values());
+  const [dbProgress, setDbProgress] = useState<Map<string, EnrichmentProgress>>(progress);
+  
+  // Subscribe to realtime updates if jobId is provided
+  useEffect(() => {
+    if (!jobId) {
+      setDbProgress(progress);
+      return;
+    }
+
+    const channel = supabase
+      .channel(`enrichment-job-${jobId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'enrichment_job_items',
+          filter: `job_id=eq.${jobId}`
+        },
+        (payload) => {
+          const item = payload.new as any;
+          if (item) {
+            setDbProgress(prev => {
+              const newMap = new Map(prev);
+              newMap.set(item.prospect_id, {
+                prospectId: item.prospect_id,
+                domain: item.domain,
+                status: item.status,
+                contactsFound: item.contacts_found,
+                error: item.error_message,
+              });
+              return newMap;
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [jobId]);
+  
+  const progressArray = Array.from(jobId ? dbProgress.values() : progress.values());
   const total = progressArray.length;
   const completed = progressArray.filter(p => ['success', 'failed', 'rate_limited'].includes(p.status)).length;
   const succeeded = progressArray.filter(p => p.status === 'success').length;

@@ -70,7 +70,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const [assignedFilter, setAssignedFilter] = useState("all");
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const PAGE_SIZE = 50;
+  const PAGE_SIZE = 500; // Increased from 50 to allow bulk selection
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortKey>('priority');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -87,6 +87,8 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const [bulkEnriching, setBulkEnriching] = useState(false);
   const [showEnrichmentProgress, setShowEnrichmentProgress] = useState(false);
   const [enrichmentProgress, setEnrichmentProgress] = useState<Map<string, any>>(new Map());
+  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [processingMode, setProcessingMode] = useState<'parallel' | 'sequential'>('parallel');
 
   // Performance optimization: Query caching (10 seconds)
   const cacheRef = useRef<{
@@ -732,91 +734,107 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       return;
     }
 
+    const selectedCount = selectedProspectIds.size;
+    const estimatedTime = Math.ceil(selectedCount / 25) * 5; // Rough estimate: 25 concurrent, 5 min per batch
+    
     const confirmed = window.confirm(
-      `Enrich ${selectedProspectIds.size} prospect(s) with AI? This will scrape their websites and extract contact information.`
+      `Enrich ${selectedCount} prospect${selectedCount > 1 ? 's' : ''}?\n\n` +
+      `Estimated time: ${estimatedTime}-${estimatedTime * 2} minutes\n\n` +
+      `You can close the progress dialog and continue working - ` +
+      `progress is tracked in the background and you can reopen it anytime.\n\n` +
+      `Processing mode: ${processingMode === 'sequential' ? 'Sequential (predictable order)' : 'Parallel (faster)'}`
     );
+    
     if (!confirmed) return;
 
-    setBulkEnriching(true);
-    setShowEnrichmentProgress(true);
-    
-    // Initialize progress tracking
-    const progressMap = new Map<string, EnrichmentProgress>();
-    selectedProspectIds.forEach(id => {
-      const prospect = displayedProspects.find(p => p.id === id);
-      if (prospect) {
-        progressMap.set(id, {
-          prospectId: id,
-          domain: prospect.domain,
-          status: 'pending'
-        });
-      }
-    });
-    setEnrichmentProgress(progressMap);
-
     try {
-      const response = await fetch(
-        `https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/bulk-enrich-prospects`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwamxhdXVpZGNidnVwbGZjc2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc5NjA1NjMsImV4cCI6MjA3MzUzNjU2M30.1Lv6xs2zAbg24V-7f0nzC8OxoZUVw03_ZD2QIkS_hDU`,
-          },
-          body: JSON.stringify({
-            prospect_ids: Array.from(selectedProspectIds),
-          }),
+      setBulkEnriching(true);
+      
+      // Create enrichment job in database
+      const { data: jobData, error: jobError } = await supabase
+        .from('enrichment_jobs')
+        .insert({
+          created_by: user?.id,
+          total_count: selectedCount,
+          job_type: 'manual'
+        })
+        .select('id')
+        .single();
+      
+      if (jobError || !jobData) {
+        throw new Error('Failed to create enrichment job');
+      }
+      
+      const jobId = jobData.id;
+      setCurrentJobId(jobId);
+      setShowEnrichmentProgress(true);
+      
+      // Initialize progress map
+      const initialProgress = new Map();
+      Array.from(selectedProspectIds).forEach(id => {
+        const prospect = prospects.find(p => p.id === id);
+        if (prospect) {
+          initialProgress.set(id, {
+            prospectId: id,
+            domain: prospect.domain,
+            status: 'pending',
+          });
         }
-      );
+      });
+      setEnrichmentProgress(initialProgress);
 
-      if (!response.ok || !response.body) {
-        const errorText = await response.text();
-        console.error('Bulk enrichment failed:', response.status, errorText);
-        throw new Error(`Failed to start bulk enrichment: ${response.status} ${errorText}`);
+      const response = await supabase.functions.invoke('bulk-enrich-prospects', {
+        body: { 
+          prospect_ids: Array.from(selectedProspectIds),
+          job_id: jobId,
+          processing_mode: processingMode
+        }
+      });
+
+      if (response.error) {
+        throw response.error;
       }
 
-      // Parse SSE stream
-      const reader = response.body.getReader();
+      // Read the stream
+      const reader = response.data.getReader();
       const decoder = new TextDecoder();
-      let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
 
         for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          
-          try {
-            const data = JSON.parse(line.slice(6));
-            
-            if (data.type === 'progress' || data.type === 'success' || data.type === 'error') {
-              setEnrichmentProgress(prev => {
-                const newMap = new Map(prev);
-                const existing = newMap.get(data.prospectId);
-                if (existing) {
-                  newMap.set(data.prospectId, {
-                    ...existing,
-                    status: data.status || (data.type === 'success' ? 'success' : data.type === 'error' ? 'failed' : 'processing'),
-                    contactsFound: data.contactsFound,
-                    error: data.error,
-                  });
-                }
-                return newMap;
-              });
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.prospectId) {
+                setEnrichmentProgress(prev => {
+                  const newMap = new Map(prev);
+                  const existing = newMap.get(data.prospectId);
+                  if (existing) {
+                    newMap.set(data.prospectId, {
+                      ...existing,
+                      status: data.status || (data.type === 'success' ? 'success' : data.type === 'error' ? 'failed' : 'processing'),
+                      contactsFound: data.contactsFound,
+                      error: data.error,
+                    });
+                  }
+                  return newMap;
+                });
+              }
+              
+              if (data.type === 'complete') {
+                toast.success(
+                  `Enrichment complete: ${data.summary.succeeded}/${data.summary.total} successful`
+                );
+              }
+            } catch (e) {
+              console.error('Failed to parse SSE message:', e);
             }
-            
-            if (data.type === 'complete') {
-              toast.success(
-                `Enrichment complete: ${data.summary.succeeded}/${data.summary.total} successful`
-              );
-            }
-          } catch (e) {
-            console.error('Failed to parse SSE message:', e);
           }
         }
       }
@@ -862,17 +880,26 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
             <div>
               <h3 className="font-semibold text-lg">Enrich Your Prospects</h3>
               <p className="text-sm text-muted-foreground">
-                Import enriched data via CSV or paste raw contact info for AI processing
+                Select prospects below and use "Enrich Selected" to process hundreds at once
               </p>
             </div>
             <div className="flex gap-2">
+              <Select value={processingMode} onValueChange={(v: 'parallel' | 'sequential') => setProcessingMode(v)}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="parallel">Parallel (Faster)</SelectItem>
+                  <SelectItem value="sequential">Sequential (In Order)</SelectItem>
+                </SelectContent>
+              </Select>
               <Button onClick={() => navigate('/admin?tab=import')} variant="outline">
                 <Upload className="h-4 w-4 mr-2" />
                 Bulk Import CSV
               </Button>
               <Button onClick={() => setShowBulkEnrichment(true)} variant="secondary">
                 <Sparkles className="h-4 w-4 mr-2" />
-                Smart Paste Enrichment
+                Smart Paste
               </Button>
             </div>
           </div>
@@ -1234,6 +1261,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         open={showEnrichmentProgress}
         onOpenChange={setShowEnrichmentProgress}
         progress={enrichmentProgress}
+        jobId={currentJobId}
       />
     </div>
   );

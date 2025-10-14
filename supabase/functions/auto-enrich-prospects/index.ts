@@ -64,7 +64,7 @@ serve(async (req) => {
       .lt("enrichment_retry_count", 3)
       .is("enrichment_locked_at", null) // Not currently locked
       .order("last_enrichment_attempt", { ascending: true, nullsFirst: true })
-      .limit(12);
+      .limit(50);
 
     if (fetchError) {
       console.error("Error fetching prospects:", fetchError);
@@ -82,6 +82,18 @@ serve(async (req) => {
     }
 
     console.log(`Found ${prospects.length} prospects to enrich`);
+
+    // Create enrichment job for tracking
+    const { data: jobData } = await supabase
+      .from('enrichment_jobs')
+      .insert({
+        total_count: prospects.length,
+        job_type: 'auto'
+      })
+      .select('id')
+      .single();
+    
+    const jobId = jobData?.id;
 
     const results = {
       total: prospects.length,
@@ -665,6 +677,20 @@ Now search the web and write the icebreaker:
           newStatus,
         });
       }
+    }
+
+    // Update enrichment job
+    if (jobId) {
+      await supabase
+        .from('enrichment_jobs')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          processed_count: results.successful + results.failed,
+          success_count: results.successful,
+          failed_count: results.failed
+        })
+        .eq('id', jobId);
     }
 
     console.log("Auto-enrichment complete:", results);

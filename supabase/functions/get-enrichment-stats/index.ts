@@ -73,12 +73,24 @@ serve(async (req) => {
     const failed = recentLogs?.filter(log => 
       log.business_context.includes('failed') || log.business_context.includes('moved to review')
     ).length || 0;
+    
+    // Get last auto-enrichment job stats
+    const { data: lastAutoJob } = await supabase
+      .from('enrichment_jobs')
+      .select('total_count, success_count, completed_at')
+      .eq('job_type', 'auto')
+      .eq('status', 'completed')
+      .order('completed_at', { ascending: false })
+      .limit(1)
+      .single();
 
     return new Response(
       JSON.stringify({
         enabled: settings.auto_enrichment_enabled,
         facebook_scraping_enabled: settings.facebook_scraping_enabled || false,
         last_run: settings.last_run_at,
+        last_auto_job_count: lastAutoJob?.total_count || 0,
+        last_auto_job_success: lastAutoJob?.success_count || 0,
         queue_count: queueCount || 0,
         needs_review_count: reviewCount || 0,
         last_24h_attempts: processed,
