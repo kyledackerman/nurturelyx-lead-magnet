@@ -6,8 +6,6 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  supabaseReachable: boolean;
-  checkReachability: () => Promise<boolean>;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -46,7 +44,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [supabaseReachable, setSupabaseReachable] = useState(true);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -98,25 +95,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkReachability = useCallback(async (): Promise<boolean> => {
-    try {
-      // Simply try the Supabase client - it's already configured correctly
-      const { error } = await supabase.auth.getSession();
-      
-      // If no error, Supabase is reachable
-      const isReachable = !error;
-      setSupabaseReachable(isReachable);
-      return isReachable;
-    } catch (error) {
-      console.warn('Supabase reachability check failed:', error);
-      setSupabaseReachable(false);
-      return false;
-    }
-  }, []);
 
   const checkIsAdmin = useCallback(async (): Promise<boolean> => {
-    // No user or no session or Supabase unreachable = no admin access
-    if (!user?.id || !session?.access_token || !supabaseReachable) return false;
+    // No user or no session = no admin access
+    if (!user?.id || !session?.access_token) return false;
 
     const userId = user.id;
     
@@ -301,8 +283,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user,
     session,
     loading,
-    supabaseReachable,
-    checkReachability,
     signUp,
     signIn,
     signOut,
@@ -311,7 +291,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     requestPasswordReset,
     checkIsAdmin,
     checkIsSuperAdmin,
-  }), [user, session, loading, supabaseReachable, checkReachability, signUp, signIn, signOut, resetSession, updatePassword, requestPasswordReset, checkIsAdmin, checkIsSuperAdmin]);
+  }), [user, session, loading, signUp, signIn, signOut, resetSession, updatePassword, requestPasswordReset, checkIsAdmin, checkIsSuperAdmin]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -19,7 +19,7 @@ const AuthPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { signIn, signUp, user, resetSession, checkReachability, supabaseReachable } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -35,14 +35,6 @@ const AuthPage = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
-    // Check Supabase reachability first
-    const isReachable = await checkReachability();
-    if (!isReachable) {
-      setError('Cannot reach authentication service. Please check your connection or try again later.');
-      setLoading(false);
-      return;
-    }
 
     try {
       // Sanitize inputs
@@ -74,8 +66,6 @@ const AuthPage = () => {
           setError('An account with this email already exists');
         } else if (error.message.includes('Email not confirmed')) {
           setError('Please check your email to confirm your account');
-        } else if (error.message.includes('Failed to fetch') || error.message.includes('fetch')) {
-          setError('Connection issue. Please check your network or try resetting your session below.');
         } else {
           setError('Authentication failed. Please try again.');
         }
@@ -158,15 +148,6 @@ const AuthPage = () => {
                 </div>
               )}
               
-              {!supabaseReachable && (
-                <Alert>
-                  <AlertDescription>
-                    The authentication service is temporarily unreachable. 
-                    Please check your connection and try again.
-                  </AlertDescription>
-                </Alert>
-              )}
-              
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
@@ -176,13 +157,13 @@ const AuthPage = () => {
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={loading || !supabaseReachable}
+                disabled={loading}
               >
                 {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Create Account')}
               </Button>
             </form>
             
-            <div className="mt-6 text-center space-y-2">
+            <div className="mt-6 text-center">
               <button
                 type="button"
                 onClick={() => {
@@ -198,35 +179,6 @@ const AuthPage = () => {
                   : 'Already have an account? Sign in'
                 }
               </button>
-              
-              <div className="pt-2 space-y-1">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const isReachable = await checkReachability();
-                    if (isReachable) {
-                      toast.success('Connection restored!');
-                      setError('');
-                    } else {
-                      toast.error('Still unable to reach authentication service');
-                    }
-                  }}
-                  className="text-xs text-muted-foreground hover:text-foreground underline"
-                >
-                  Test connection
-                </button>
-                {error && error.includes('fetch') && (
-                  <div>
-                    <button
-                      type="button"
-                      onClick={resetSession}
-                      className="text-xs text-muted-foreground hover:text-foreground underline"
-                    >
-                      Having trouble? Reset session
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
           </CardContent>
         </Card>
