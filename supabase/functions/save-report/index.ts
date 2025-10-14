@@ -215,17 +215,22 @@ serve(async (req) => {
 
     // Auto-assign prospect to CRM if report shows lead potential
     try {
-      // Check if user is an admin (only if userId exists)
+      // Check if user is an admin by querying user_roles directly
       let isAdmin = false;
       if (userId) {
-        const { data: adminCheck, error: adminCheckError } = await supabase.rpc('is_admin', { user_uuid: userId });
+        const { data: userRoles, error: rolesError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId)
+          .in('role', ['admin', 'super_admin'])
+          .maybeSingle();
         
-        console.log(`Admin check for user ${userId}: isAdmin=${adminCheck}, error=${adminCheckError?.message || 'none'}`);
+        console.log(`Admin check for user ${userId}: hasAdminRole=${!!userRoles}, error=${rolesError?.message || 'none'}`);
         
-        if (adminCheckError) {
-          console.error('Error checking admin status:', adminCheckError);
+        if (rolesError) {
+          console.error('Error checking admin status:', rolesError);
         } else {
-          isAdmin = adminCheck || false;
+          isAdmin = !!userRoles;
         }
       }
       
