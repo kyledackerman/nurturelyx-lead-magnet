@@ -19,7 +19,7 @@ const AuthPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { signIn, signUp, user, resetSession } = useAuth();
+  const { signIn, signUp, user, resetSession, checkReachability, supabaseReachable } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -35,6 +35,14 @@ const AuthPage = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    // Check Supabase reachability first
+    const isReachable = await checkReachability();
+    if (!isReachable) {
+      setError('Cannot reach authentication service. Please check your connection or try again later.');
+      setLoading(false);
+      return;
+    }
 
     try {
       // Sanitize inputs
@@ -150,6 +158,15 @@ const AuthPage = () => {
                 </div>
               )}
               
+              {!supabaseReachable && (
+                <Alert>
+                  <AlertDescription>
+                    The authentication service is temporarily unreachable. 
+                    Please check your connection and try again.
+                  </AlertDescription>
+                </Alert>
+              )}
+              
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
@@ -159,7 +176,7 @@ const AuthPage = () => {
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={loading}
+                disabled={loading || !supabaseReachable}
               >
                 {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Create Account')}
               </Button>
@@ -182,17 +199,34 @@ const AuthPage = () => {
                 }
               </button>
               
-              {error && error.includes('fetch') && (
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={resetSession}
-                    className="text-xs text-muted-foreground hover:text-foreground underline"
-                  >
-                    Having trouble? Reset session
-                  </button>
-                </div>
-              )}
+              <div className="pt-2 space-y-1">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const isReachable = await checkReachability();
+                    if (isReachable) {
+                      toast.success('Connection restored!');
+                      setError('');
+                    } else {
+                      toast.error('Still unable to reach authentication service');
+                    }
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground underline"
+                >
+                  Test connection
+                </button>
+                {error && error.includes('fetch') && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={resetSession}
+                      className="text-xs text-muted-foreground hover:text-foreground underline"
+                    >
+                      Having trouble? Reset session
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -23,32 +23,42 @@ Deno.serve(async (req) => {
     // Extract JWT token
     const token = authHeader.replace('Bearer ', '');
 
-    // Create anon client to verify user
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const anonClient = createClient(supabaseUrl, supabaseAnonKey);
-
-    // Verify and get user from JWT
-    const { data: { user }, error: userError } = await anonClient.auth.getUser(token);
-
-    if (userError || !user) {
-      console.error('User verification failed:', userError?.message);
+    // Decode JWT payload to get user ID (JWT already verified by Deno Deploy)
+    let userId: string;
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        throw new Error('Invalid token format');
+      }
+      
+      const payload = parts[1];
+      const decoded = JSON.parse(
+        atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+      );
+      
+      userId = decoded.sub;
+      if (!userId) {
+        throw new Error('No user ID in token');
+      }
+    } catch (error) {
+      console.error('JWT decode error:', error);
       return new Response(
         JSON.stringify({ isAdmin: false, error: 'Invalid token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Checking admin status for user: ${user.id}`);
+    console.log(`Checking admin status for user: ${userId}`);
 
     // Use service role client to query user_roles
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: userRole, error: roleError } = await serviceClient
       .from('user_roles')
       .select('role')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .in('role', ['admin', 'super_admin'])
       .maybeSingle();
 
@@ -61,7 +71,7 @@ Deno.serve(async (req) => {
     }
 
     const isAdmin = !!userRole;
-    console.log(`Admin check result for ${user.id}: ${isAdmin}`);
+    console.log(`Admin check result for ${userId}: ${isAdmin}`);
 
     return new Response(
       JSON.stringify({ isAdmin }),
