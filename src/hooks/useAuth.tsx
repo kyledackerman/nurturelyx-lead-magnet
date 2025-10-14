@@ -100,16 +100,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkReachability = useCallback(async (): Promise<boolean> => {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      // Simply try the Supabase client - it's already configured correctly
+      const { error } = await supabase.auth.getSession();
       
-      const response = await fetch(
-        'https://apjlauuidcbvuplfcshg.supabase.co/auth/v1/health',
-        { method: 'HEAD', signal: controller.signal }
-      );
-      
-      clearTimeout(timeoutId);
-      const isReachable = response.ok;
+      // If no error, Supabase is reachable
+      const isReachable = !error;
       setSupabaseReachable(isReachable);
       return isReachable;
     } catch (error) {
