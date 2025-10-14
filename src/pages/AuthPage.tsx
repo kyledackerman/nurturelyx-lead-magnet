@@ -19,7 +19,7 @@ const AuthPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { signIn, signUp, user, resetSession } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -53,40 +53,30 @@ const AuthPage = () => {
         signUpSchema.parse({ email: sanitizedEmail, password: sanitizedPassword });
       }
 
-      // Proceed with authentication - add timeout guard to avoid UI freeze
-      const authPromise = isLogin
-        ? signIn(sanitizedEmail, sanitizedPassword)
-        : signUp(sanitizedEmail, sanitizedPassword);
-
-      const timeout = new Promise<{ error: any }>((resolve) =>
-        setTimeout(() => resolve({ error: new Error('Request timed out') }), 8000)
-      );
-
-      const { error } = await Promise.race([authPromise, timeout]);
+      // Proceed with authentication
+      const { error } = isLogin 
+        ? await signIn(sanitizedEmail, sanitizedPassword)
+        : await signUp(sanitizedEmail, sanitizedPassword);
 
       if (error) {
-        const msg = (typeof error?.message === 'string' && error.message) ? error.message : String(error || '');
-        if (msg.includes('Invalid login credentials')) {
+        // Generic error messages to avoid information disclosure
+        if (error.message.includes('Invalid login credentials')) {
           setError('Invalid email or password');
-        } else if (msg.includes('User already registered')) {
+        } else if (error.message.includes('User already registered')) {
           setError('An account with this email already exists');
-        } else if (msg.includes('Email not confirmed')) {
+        } else if (error.message.includes('Email not confirmed')) {
           setError('Please check your email to confirm your account');
-        } else if (msg.toLowerCase().includes('timeout') || msg.toLowerCase().includes('fetch')) {
-          setError('Cannot reach the authentication server. Please try again or click “Reset auth and retry” below.');
         } else {
-          // Surface actual error to aid debugging instead of a generic message
-          setError(msg);
+          setError('Authentication failed. Please try again.');
         }
-        return;
-      }
-
-      if (isLogin) {
-        toast.success('Welcome back!');
-        const redirectTo = searchParams.get('redirect') || '/dashboard';
-        navigate(redirectTo);
       } else {
-        toast.success('Account created! Please check your email to confirm your account.');
+        if (isLogin) {
+          toast.success('Welcome back!');
+          const redirectTo = searchParams.get('redirect') || '/dashboard';
+          navigate(redirectTo);
+        } else {
+          toast.success('Account created! Please check your email to confirm your account.');
+        }
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -171,26 +161,6 @@ const AuthPage = () => {
               >
                 {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Create Account')}
               </Button>
-
-              <button
-                type="button"
-                className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                disabled={loading}
-                onClick={async () => {
-                  try {
-                    setError('');
-                    setLoading(true);
-                    await resetSession();
-                    toast.success('Authentication reset. Please try again.');
-                  } catch (e) {
-                    setError('Could not reset authentication. Please refresh and try again.');
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-              >
-                Reset auth and retry
-              </button>
             </form>
             
             <div className="mt-6 text-center">
