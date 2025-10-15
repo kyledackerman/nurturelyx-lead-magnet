@@ -160,7 +160,6 @@ export type Database = {
       }
       enrichment_settings: {
         Row: {
-          auto_enrichment_enabled: boolean
           created_at: string
           facebook_scraping_enabled: boolean | null
           id: string
@@ -170,7 +169,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          auto_enrichment_enabled?: boolean
           created_at?: string
           facebook_scraping_enabled?: boolean | null
           id?: string
@@ -180,7 +178,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          auto_enrichment_enabled?: boolean
           created_at?: string
           facebook_scraping_enabled?: boolean | null
           id?: string

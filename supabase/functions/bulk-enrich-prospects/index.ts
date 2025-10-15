@@ -314,29 +314,34 @@ serve(async (req) => {
                 continue;
               }
               
-              // BOTH methods failed - increment retry count and possibly move to review (3 strikes)
+              // BOTH methods failed - increment retry count and move to not_viable after 3 strikes
               const currentRetryCount = prospect.enrichment_retry_count || 0;
               const newRetryCount = currentRetryCount + 1;
-              const shouldMoveToReview = newRetryCount >= 3;
+              const shouldMarkNotViable = newRetryCount >= 3;
               
-              const newStatus = shouldMoveToReview ? 'review' : 'enriching';
-              const errorNote = shouldMoveToReview 
-                ? `⚠️ Moved to review after 3 failed enrichment attempts. Website access or contact extraction failed repeatedly. Manual research recommended.`
+              const newStatus = shouldMarkNotViable ? 'not_viable' : 'enriching';
+              const lostReason = shouldMarkNotViable ? 'enrichment_failed' : null;
+              const errorNote = shouldMarkNotViable 
+                ? `Auto-archived after 3 failed enrichment attempts. Website access or contact extraction failed repeatedly.`
                 : `⚠️ Enrichment attempt ${newRetryCount}/3 failed. Will retry later.`;
               
-              console.log(`${shouldMoveToReview ? '🚫' : '⚠️'} ${domain} - Attempt ${newRetryCount}/3 failed${shouldMoveToReview ? ', moved to review' : ', will retry'}`);
+              console.log(`${shouldMarkNotViable ? '🚫' : '⚠️'} ${domain} - Attempt ${newRetryCount}/3 failed${shouldMarkNotViable ? ', marked not viable' : ', will retry'}`);
               
               await supabase.from("prospect_activities").update({
                 status: newStatus,
                 enrichment_retry_count: newRetryCount,
                 last_enrichment_attempt: new Date().toISOString(),
-                ...(shouldMoveToReview && { notes: errorNote })
+                ...(shouldMarkNotViable && { 
+                  lost_reason: lostReason,
+                  lost_notes: errorNote 
+                }),
+                ...(!shouldMarkNotViable && { notes: errorNote })
               }).eq("id", prospectId);
               
               if (enrichmentJobId) {
                 await supabase.from('enrichment_job_items').update({ 
                   status: 'failed',
-                  error_message: `Could not access website (attempt ${newRetryCount})${shouldMoveToReview ? ' - Moved to review' : ''}`,
+                  error_message: `Could not access website (attempt ${newRetryCount})${shouldMarkNotViable ? ' - Marked not viable' : ''}`,
                   completed_at: new Date().toISOString()
                 }).eq('job_id', enrichmentJobId).eq('prospect_id', prospectId);
               }
@@ -344,13 +349,13 @@ serve(async (req) => {
               controller.enqueue(
                 encoder.encode(
                   `data: ${JSON.stringify({ 
-                    type: shouldMoveToReview ? "moved_to_review" : "error", 
+                    type: shouldMarkNotViable ? "marked_not_viable" : "error", 
                     prospectId, 
                     domain,
                     status: newStatus,
                     retryCount: newRetryCount,
-                    error: shouldMoveToReview 
-                      ? `Moved to review after ${newRetryCount} failures` 
+                    error: shouldMarkNotViable 
+                      ? `Marked not viable after ${newRetryCount} failures` 
                       : `Could not access website (attempt ${newRetryCount})`
                   })}\n\n`
                 )

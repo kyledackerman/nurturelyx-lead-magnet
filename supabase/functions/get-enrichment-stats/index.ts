@@ -51,7 +51,7 @@ serve(async (req) => {
       console.error('Error fetching review count:', reviewError);
     }
 
-    // Get last 24h stats from audit logs
+    // Get last 24h stats from audit logs for manual enrichment
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     
     const { data: recentLogs, error: logsError } = await supabase
@@ -59,7 +59,7 @@ serve(async (req) => {
       .select('business_context, changed_at')
       .eq('table_name', 'prospect_activities')
       .gte('changed_at', twentyFourHoursAgo)
-      .like('business_context', '%auto-enrichment%');
+      .or('business_context.ilike.%enriched successfully%,business_context.ilike.%enrichment%');
 
     if (logsError) {
       console.error('Error fetching recent logs:', logsError);
@@ -74,11 +74,11 @@ serve(async (req) => {
       log.business_context.includes('failed') || log.business_context.includes('moved to review')
     ).length || 0;
     
-    // Get last auto-enrichment job stats
-    const { data: lastAutoJob } = await supabase
+    // Get last manual enrichment job stats
+    const { data: lastManualJob } = await supabase
       .from('enrichment_jobs')
       .select('total_count, success_count, completed_at')
-      .eq('job_type', 'auto')
+      .eq('job_type', 'manual')
       .eq('status', 'completed')
       .order('completed_at', { ascending: false })
       .limit(1)
@@ -86,17 +86,15 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        enabled: settings.auto_enrichment_enabled,
         facebook_scraping_enabled: settings.facebook_scraping_enabled || false,
         last_run: settings.last_run_at,
-        last_auto_job_count: lastAutoJob?.total_count || 0,
-        last_auto_job_success: lastAutoJob?.success_count || 0,
+        last_manual_job_count: lastManualJob?.total_count || 0,
+        last_manual_job_success: lastManualJob?.success_count || 0,
         queue_count: queueCount || 0,
         needs_review_count: reviewCount || 0,
         last_24h_attempts: processed,
         last_24h_successful: succeeded,
-        total_enriched: settings.total_enriched,
-        total_failed: settings.total_failed
+        total_enriched: settings.total_enriched
       }),
       { 
         status: 200,

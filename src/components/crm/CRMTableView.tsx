@@ -453,7 +453,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         "Manual re-enrichment initiated - reset retry count and status to enriching"
       );
 
-      toast.success("Re-enrichment initiated - will be processed in next auto-enrichment run");
+      toast.success("Re-enrichment initiated - prospect moved back to queue");
       fetchProspects();
     } catch (error) {
       console.error("Error retrying enrichment:", error);

@@ -3,7 +3,6 @@ import CRMHeader from "@/components/crm/CRMHeader";
 import CRMTableView from "@/components/crm/CRMTableView";
 import TasksWidget from "@/components/crm/TasksWidget";
 import ProspectDetailPanel from "@/components/crm/ProspectDetailPanel";
-import { AutoEnrichmentBar } from "@/components/crm/AutoEnrichmentBar";
 import PipelineStatusCards from "@/components/crm/PipelineStatusCards";
 import { ContactTrendChart } from "@/components/crm/ContactTrendChart";
 import { ProspectTrendChart } from "@/components/crm/ProspectTrendChart";
@@ -76,16 +75,13 @@ export default function CRMDashboard() {
                 )}
 
                 {selectedView === "needs-enrichment" && (
-                  <>
-                    <AutoEnrichmentBar />
-                    <CRMTableView 
-                      onSelectProspect={setSelectedProspectId}
-                      compact={false}
-                      view="needs-enrichment"
-                      resumeJobId={resumedJobId}
-                      onJobResumed={() => setResumedJobId(null)}
-                    />
-                  </>
+                  <CRMTableView 
+                    onSelectProspect={setSelectedProspectId}
+                    compact={false}
+                    view="needs-enrichment"
+                    resumeJobId={resumedJobId}
+                    onJobResumed={() => setResumedJobId(null)}
+                  />
                 )}
 
                 {selectedView === "ready-outreach" && (
