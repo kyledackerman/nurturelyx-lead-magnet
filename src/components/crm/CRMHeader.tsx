@@ -120,7 +120,19 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
         body: { regenerate_all: true }
       });
       
-      if (error) throw error;
+      if (error) {
+        toast.dismiss(loadingToast);
+        if (error.message?.includes("402") || error.message?.includes("credits")) {
+          toast.error("Out of AI Credits", {
+            description: "Please add credits to your Lovable workspace (Settings → Usage) before regenerating company names.",
+          });
+        } else {
+          toast.error("Failed to fix company names", {
+            description: error.message,
+          });
+        }
+        return;
+      }
       
       toast.dismiss(loadingToast);
       setRegenerationResults(data);
@@ -129,11 +141,19 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
       if (data.updated?.length > 0) {
         toast.success(`Updated ${data.updated.length} company names`);
         setTimeout(() => window.location.reload(), 2000);
+      } else {
+        toast.info("No company names needed fixing");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fixing company names:', error);
       toast.dismiss(loadingToast);
-      toast.error("Failed to fix company names");
+      if (error.message?.includes("402") || error.message?.includes("credits")) {
+        toast.error("Out of AI Credits", {
+          description: "Please add credits to your Lovable workspace (Settings → Usage) before regenerating company names.",
+        });
+      } else {
+        toast.error("Failed to fix company names");
+      }
     }
   };
 

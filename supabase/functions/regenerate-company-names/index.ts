@@ -49,7 +49,50 @@ serve(async (req) => {
 
     console.log(`Starting company name regeneration. All: ${regenerate_all}, IDs: ${prospect_ids?.length || 0}`);
 
+    // Test AI credits before processing
+    try {
+      const testResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${lovableApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [{ role: "user", content: "test" }],
+          max_tokens: 5,
+        }),
+      });
+
+      if (testResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ 
+            error: "Out of AI credits",
+            message: "Please add credits to your Lovable workspace before regenerating company names"
+          }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } catch (e) {
+      console.warn("Could not verify AI credits, proceeding anyway");
+    }
+
     let prospectsToProcess: any[] = [];
+
+    // Helper function to detect if a company name needs fixing
+    const needsCompanyNameFix = (name: string | null, domain: string): boolean => {
+      if (!name) return true; // Null/empty needs fixing
+      if (name === domain) return true; // Exact domain match needs fixing
+      if (name.startsWith("Unknown")) return true; // Unknown prefix needs fixing
+      
+      // Check if it looks like a domain (no spaces, all lowercase-ish)
+      const noSpaces = !name.includes(" ");
+      const allLowercase = name.toLowerCase() === name;
+      const matchesDomainPattern = name.toLowerCase().replace(/[^a-z0-9]/g, "") === 
+                                   domain.toLowerCase().replace(/[^a-z0-9]/g, "");
+      
+      return noSpaces || allLowercase || matchesDomainPattern;
+    };
 
     if (regenerate_all) {
       // Find all enriched prospects with domain-like company names
@@ -69,14 +112,10 @@ serve(async (req) => {
 
       if (error) throw error;
 
-      // Filter for domain-like names (no spaces, all lowercase-ish, or starts with "Unknown")
-      prospectsToProcess = (data || []).filter((p: any) => {
-        const name = p.reports.extracted_company_name;
-        if (!name) return true; // Include null/empty names
-        if (name.startsWith("Unknown")) return true;
-        // Check if looks like domain (no spaces or all lowercase)
-        return !name.includes(" ") || name.toLowerCase() === name;
-      });
+      // ONLY process names that actually need fixing
+      prospectsToProcess = (data || []).filter((p: any) => 
+        needsCompanyNameFix(p.reports.extracted_company_name, p.reports.domain)
+      );
     } else if (prospect_ids && Array.isArray(prospect_ids)) {
       const { data, error } = await supabase
         .from("prospect_activities")
@@ -92,7 +131,11 @@ serve(async (req) => {
         .in("id", prospect_ids);
 
       if (error) throw error;
-      prospectsToProcess = data || [];
+      
+      // STILL filter even when specific IDs provided
+      prospectsToProcess = (data || []).filter((p: any) => 
+        needsCompanyNameFix(p.reports.extracted_company_name, p.reports.domain)
+      );
     } else {
       return new Response(
         JSON.stringify({ error: "Must provide prospect_ids or set regenerate_all=true" }),
@@ -100,11 +143,12 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Processing ${prospectsToProcess.length} prospects for company name regeneration`);
+    console.log(`Found ${prospectsToProcess.length} prospects that need company name fixes`);
 
     const results = {
       updated: [] as Array<{ domain: string; oldName: string; newName: string }>,
       failed: [] as Array<{ domain: string; reason: string }>,
+      skipped: [] as Array<{ domain: string; reason: string }>,
     };
 
     for (const prospect of prospectsToProcess) {
@@ -174,6 +218,27 @@ Extract the proper company name. Return ONLY the company name string.`,
         if (!aiResponse.ok) {
           const errorText = await aiResponse.text();
           console.error(`AI API error for ${domain}:`, aiResponse.status, errorText);
+          
+          // If we're out of credits, stop processing entirely
+          if (aiResponse.status === 402) {
+            console.error("❌ OUT OF CREDITS - Stopping regeneration");
+            results.failed.push({
+              domain,
+              reason: "Out of AI credits - Please add credits and try again",
+            });
+            
+            // Mark all remaining domains as skipped
+            const remainingIndex = prospectsToProcess.findIndex(p => p.reports.domain === domain);
+            for (let i = remainingIndex + 1; i < prospectsToProcess.length; i++) {
+              results.skipped.push({
+                domain: prospectsToProcess[i].reports.domain,
+                reason: "Skipped due to credit exhaustion",
+              });
+            }
+            
+            break; // Exit the loop immediately
+          }
+          
           results.failed.push({
             domain,
             reason: `AI extraction failed: ${aiResponse.status}`,
@@ -226,13 +291,14 @@ Extract the proper company name. Return ONLY the company name string.`,
       }
     }
 
-    console.log(`✅ Company name regeneration complete: ${results.updated.length} updated, ${results.failed.length} failed`);
+    console.log(`✅ Company name regeneration complete: ${results.updated.length} updated, ${results.failed.length} failed, ${results.skipped.length} skipped`);
 
     return new Response(
       JSON.stringify({
         success: true,
         updated: results.updated,
         failed: results.failed,
+        skipped: results.skipped,
         total: prospectsToProcess.length,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
