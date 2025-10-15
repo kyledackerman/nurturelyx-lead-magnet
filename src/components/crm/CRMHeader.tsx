@@ -100,9 +100,11 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
       
       // Refresh the page after 1 second
       setTimeout(() => window.location.reload(), 1000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error cleaning up zero leads:', error);
-      toast.error("Failed to clean up zero leads");
+      toast.error("Failed to clean up zero leads", {
+        description: error?.message || error?.error || "Unknown error occurred"
+      });
     }
   };
 
