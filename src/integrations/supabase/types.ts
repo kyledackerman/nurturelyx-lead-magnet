@@ -817,6 +817,7 @@ export type Database = {
           contact_count: number
           created_at: string
           domain: string
+          enrichment_retry_count: number
           icebreaker_text: string
           id: string
           lead_source: string

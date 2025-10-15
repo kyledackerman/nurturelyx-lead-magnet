@@ -198,11 +198,13 @@ serve(async (req) => {
           await supabase
             .from("prospect_activities")
             .update({
-              status: "review",
               enrichment_retry_count: (retryCount + 1),
               last_enrichment_attempt: new Date().toISOString(),
+              status: (retryCount + 1) >= 3 ? "review" : "enriching",
               enrichment_source: 'failed_all_methods',
-              notes: `⚠️ Auto-enrichment could not scrape website after ${retryCount + 1} attempts. Needs manual review.`
+              ...((retryCount + 1) >= 3 && {
+                notes: `⚠️ Moved to review after 3 failed enrichment attempts. Website access or contact extraction failed repeatedly. Manual research recommended.`
+              })
             })
             .eq("id", prospect.id);
 

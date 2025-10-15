@@ -97,16 +97,44 @@ serve(async (req) => {
         }
 
         // PHASE 3: Batch-fetch all prospect details in ONE query
-        const { data: allProspects, error: fetchAllError } = await supabase
-          .from("prospect_activities")
-          .select(`
-            id,
-            report_id,
-            status,
-            enrichment_locked_at,
-            reports!inner(domain, extracted_company_name, facebook_url, industry)
-          `)
-          .in("id", prospect_ids);
+    const { data: allProspects, error: fetchAllError } = await supabase
+      .from("prospect_activities")
+      .select(`
+        id,
+        report_id,
+        status,
+        enrichment_locked_at,
+        enrichment_retry_count,
+        reports!inner(domain, extracted_company_name, facebook_url, industry)
+      `)
+      .in("id", prospect_ids);
+    
+    // Filter out prospects that have exhausted retries (3 strikes)
+    const eligibleProspects = (allProspects || []).filter(p => {
+      const retryCount = p.enrichment_retry_count || 0;
+      if (retryCount >= 3) {
+        console.log(`⏭️ Skipping ${p.reports.domain} - already used all 3 attempts`);
+        return false;
+      }
+      return true;
+    });
+
+    if (eligibleProspects.length === 0) {
+      controller.enqueue(
+        encoder.encode(
+          `data: ${JSON.stringify({ 
+            type: "error", 
+            error: "All selected prospects have already exhausted their 3 enrichment attempts. Please select different prospects or manually review failed ones." 
+          })}\n\n`
+        )
+      );
+      controller.close();
+      return new Response(stream.readable, {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      });
+    }
+    
+    const allProspectsFiltered = eligibleProspects;
 
         if (fetchAllError || !allProspects) {
           console.error(`Failed to fetch prospects:`, fetchAllError);
@@ -275,20 +303,23 @@ serve(async (req) => {
                 continue;
               }
               
-              // BOTH methods failed - increment retry count and possibly move to review
+              // BOTH methods failed - increment retry count and possibly move to review (3 strikes)
               const currentRetryCount = prospect.enrichment_retry_count || 0;
               const newRetryCount = currentRetryCount + 1;
-              const shouldMoveToReview = newRetryCount >= 2;
+              const shouldMoveToReview = newRetryCount >= 3;
               
-              const newStatus = shouldMoveToReview ? "review" : prospect.status;
+              const newStatus = shouldMoveToReview ? 'review' : 'enriching';
               const errorNote = shouldMoveToReview 
-                ? `⚠️ Enrichment failed after ${newRetryCount} attempts. Moved to review queue - website may be blocked or inaccessible.`
-                : `⚠️ Enrichment attempt ${newRetryCount} failed. Will retry later.`;
+                ? `⚠️ Moved to review after 3 failed enrichment attempts. Website access or contact extraction failed repeatedly. Manual research recommended.`
+                : `⚠️ Enrichment attempt ${newRetryCount}/3 failed. Will retry later.`;
+              
+              console.log(`${shouldMoveToReview ? '🚫' : '⚠️'} ${domain} - Attempt ${newRetryCount}/3 failed${shouldMoveToReview ? ', moved to review' : ', will retry'}`);
               
               await supabase.from("prospect_activities").update({
                 status: newStatus,
                 enrichment_retry_count: newRetryCount,
-                last_enrichment_attempt: new Date().toISOString()
+                last_enrichment_attempt: new Date().toISOString(),
+                ...(shouldMoveToReview && { notes: errorNote })
               }).eq("id", prospectId);
               
               if (enrichmentJobId) {

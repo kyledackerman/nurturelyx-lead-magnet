@@ -43,6 +43,7 @@ interface ProspectRow {
   companyName: string | null;
   icebreakerText: string | null;
   leadSource: string;
+  enrichmentRetryCount: number;
   enrichmentStatus: {
     has_company_info: boolean;
     has_contacts: boolean;
@@ -261,6 +262,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         companyName: p.company_name,
         icebreakerText: p.icebreaker_text,
         leadSource: p.lead_source || 'cold_outbound',
+        enrichmentRetryCount: p.enrichment_retry_count || 0,
         enrichmentStatus: p.enrichment_status || null,
       })) || [];
 
@@ -1098,6 +1100,25 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                           <Badge className="bg-orange-500 hover:bg-orange-600 text-white shrink-0">
                             🔥 Warm
                           </Badge>
+                        )}
+                        {prospect.enrichmentRetryCount > 0 && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge 
+                                  variant={prospect.enrichmentRetryCount === 2 ? "destructive" : "secondary"}
+                                  className="text-xs shrink-0"
+                                >
+                                  🔄 Attempt {prospect.enrichmentRetryCount + 1}/3
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {prospect.enrichmentRetryCount === 1 
+                                  ? "1st retry attempt - 2 attempts remaining" 
+                                  : "2nd retry attempt - Last attempt before review"}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                         {prospect.enrichmentStatus && 
                          prospect.enrichmentStatus.has_company_info && 
