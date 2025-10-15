@@ -176,22 +176,6 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
               <ActiveEnrichmentJobsIndicator onResumeJob={onResumeEnrichment} />
             )}
             <Button
-              variant="default"
-              size="sm"
-              onClick={handleFixCompanyNames}
-              className="gap-2"
-            >
-              ✨ Fix Company Names
-            </Button>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={handleRegenerateIcebreakers}
-              className="gap-2"
-            >
-              🧊 Generate Icebreakers
-            </Button>
-            <Button
               variant="outline"
               size="sm"
               onClick={handleCleanupZeroLeads}

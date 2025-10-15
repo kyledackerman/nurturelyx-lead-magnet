@@ -82,16 +82,22 @@ serve(async (req) => {
     // Helper function to detect if a company name needs fixing
     const needsCompanyNameFix = (name: string | null, domain: string): boolean => {
       if (!name) return true; // Null/empty needs fixing
-      if (name === domain) return true; // Exact domain match needs fixing
       if (name.startsWith("Unknown")) return true; // Unknown prefix needs fixing
       
-      // Check if it looks like a domain (no spaces, all lowercase-ish)
-      const noSpaces = !name.includes(" ");
-      const allLowercase = name.toLowerCase() === name;
-      const matchesDomainPattern = name.toLowerCase().replace(/[^a-z0-9]/g, "") === 
-                                   domain.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const hasSpaces = name.includes(" ");
+      const hasMultipleWords = name.split(" ").length >= 2;
       
-      return noSpaces || allLowercase || matchesDomainPattern;
+      // If it has proper spacing (2+ words), it's probably good
+      if (hasMultipleWords) return false;
+      
+      // Single word or no spaces = likely needs fixing
+      if (!hasSpaces) return true;
+      
+      // Check if it's just the domain with capital first letter
+      const nameNormalized = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const domainNormalized = domain.toLowerCase().replace(/[^a-z0-9]/g, "");
+      
+      return nameNormalized === domainNormalized;
     };
 
     if (regenerate_all) {
@@ -143,7 +149,25 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Found ${prospectsToProcess.length} prospects that need company name fixes`);
+    // Get total queried before filtering
+    const totalQueriedCount = regenerate_all 
+      ? (await supabase.from("prospect_activities").select("id", { count: "exact", head: true }).eq("status", "enriched")).count || 0
+      : prospect_ids?.length || 0;
+
+    const filteredOutCount = totalQueriedCount - prospectsToProcess.length;
+
+    console.log(`[FILTER RESULTS]`);
+    console.log(`  Total prospects queried: ${totalQueriedCount}`);
+    console.log(`  Prospects needing fixes: ${prospectsToProcess.length}`);
+    console.log(`  Skipped (already good names): ${filteredOutCount}`);
+
+    // Log first 5 that need fixing
+    if (prospectsToProcess.length > 0) {
+      const sampleDomains = prospectsToProcess.slice(0, 5).map(p => 
+        `${p.reports.domain} ("${p.reports.extracted_company_name}")`
+      );
+      console.log(`  Sample domains to fix: ${sampleDomains.join(", ")}`);
+    }
 
     const results = {
       updated: [] as Array<{ domain: string; oldName: string; newName: string }>,
@@ -300,6 +324,8 @@ Extract the proper company name. Return ONLY the company name string.`,
         failed: results.failed,
         skipped: results.skipped,
         total: prospectsToProcess.length,
+        totalQueried: totalQueriedCount,
+        filteredOut: filteredOutCount,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

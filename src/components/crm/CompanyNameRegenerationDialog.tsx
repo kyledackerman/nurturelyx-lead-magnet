@@ -8,6 +8,8 @@ interface RegenerationResult {
   failed: Array<{ domain: string; reason: string }>;
   skipped?: Array<{ domain: string; reason: string }>;
   total: number;
+  totalQueried?: number;
+  filteredOut?: number;
 }
 
 interface CompanyNameRegenerationDialogProps {
@@ -49,26 +51,33 @@ export const CompanyNameRegenerationDialog = ({
 
         <div className="space-y-4">
           {/* Summary Stats */}
-          <div className="grid grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-success/10 rounded-lg">
-              <CheckCircle2 className="w-6 h-6 mx-auto mb-2 text-success" />
-              <div className="text-2xl font-bold text-success">{results.updated.length}</div>
-              <div className="text-sm text-muted-foreground">Updated</div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {results.totalQueried !== undefined && (
+              <div className="text-center p-3 bg-muted rounded-lg">
+                <div className="text-xl font-bold">{results.totalQueried}</div>
+                <div className="text-xs text-muted-foreground">Queried</div>
+              </div>
+            )}
+            {results.filteredOut !== undefined && (
+              <div className="text-center p-3 bg-blue-500/10 rounded-lg">
+                <div className="text-xl font-bold text-blue-600 dark:text-blue-400">{results.filteredOut}</div>
+                <div className="text-xs text-muted-foreground">Filtered Out</div>
+              </div>
+            )}
+            <div className="text-center p-3 bg-success/10 rounded-lg">
+              <CheckCircle2 className="w-5 h-5 mx-auto mb-1 text-success" />
+              <div className="text-xl font-bold text-success">{results.updated.length}</div>
+              <div className="text-xs text-muted-foreground">Updated</div>
             </div>
-            <div className="text-center p-4 bg-destructive/10 rounded-lg">
-              <XCircle className="w-6 h-6 mx-auto mb-2 text-destructive" />
-              <div className="text-2xl font-bold text-destructive">{results.failed.length}</div>
-              <div className="text-sm text-muted-foreground">Failed</div>
+            <div className="text-center p-3 bg-destructive/10 rounded-lg">
+              <XCircle className="w-5 h-5 mx-auto mb-1 text-destructive" />
+              <div className="text-xl font-bold text-destructive">{results.failed.length}</div>
+              <div className="text-xs text-muted-foreground">Failed</div>
             </div>
-            <div className="text-center p-4 bg-yellow-500/10 rounded-lg">
-              <AlertCircle className="w-6 h-6 mx-auto mb-2 text-yellow-600 dark:text-yellow-400" />
-              <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{results.skipped?.length || 0}</div>
-              <div className="text-sm text-muted-foreground">Skipped</div>
-            </div>
-            <div className="text-center p-4 bg-muted rounded-lg">
-              <AlertCircle className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
-              <div className="text-2xl font-bold">{totalProcessed}</div>
-              <div className="text-sm text-muted-foreground">Total</div>
+            <div className="text-center p-3 bg-yellow-500/10 rounded-lg">
+              <AlertCircle className="w-5 h-5 mx-auto mb-1 text-yellow-600 dark:text-yellow-400" />
+              <div className="text-xl font-bold text-yellow-600 dark:text-yellow-400">{results.skipped?.length || 0}</div>
+              <div className="text-xs text-muted-foreground">Skipped</div>
             </div>
           </div>
 
