@@ -102,3 +102,6 @@ verify_jwt = true
 [functions.force-clear-enrichments]
 verify_jwt = true
 
+[functions.regenerate-company-names]
+verify_jwt = true
+

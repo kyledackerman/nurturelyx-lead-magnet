@@ -1,4 +1,4 @@
-import { Flame, AlertCircle, Sparkles, Search, Target, Heart, LayoutDashboard, CheckCircle, Mail } from "lucide-react";
+import { Flame, AlertCircle, Sparkles, Search, Target, Heart, LayoutDashboard, CheckCircle, Mail, Building2 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,14 +12,15 @@ import {
 } from "@/components/ui/sidebar";
 
 interface CRMSidebarProps {
-  selectedView: "warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails";
-  onViewChange: (view: "warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails") => void;
+  selectedView: "warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails" | "bad-company-names";
+  onViewChange: (view: "warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails" | "bad-company-names") => void;
 }
 
 const navItems = [
   { title: "Warm Inbound", view: "warm-inbound" as const, icon: Flame },
   { title: "Needs Review", view: "needs-review" as const, icon: AlertCircle },
   { title: "Missing Emails Only", view: "missing-emails" as const, icon: Mail },
+  { title: "Bad Company Names", view: "bad-company-names" as const, icon: Building2 },
   { title: "New Prospects", view: "new-prospects" as const, icon: Sparkles },
   { title: "Needs Enrichment", view: "needs-enrichment" as const, icon: Search },
   { title: "Ready for Outreach", view: "ready-outreach" as const, icon: Target },

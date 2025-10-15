@@ -43,6 +43,9 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
   const [icebreakerInput, setIcebreakerInput] = useState("");
   const [isRegeneratingIcebreaker, setIsRegeneratingIcebreaker] = useState(false);
   const [isSavingIcebreaker, setIsSavingIcebreaker] = useState(false);
+  const [isEditingCompanyName, setIsEditingCompanyName] = useState(false);
+  const [companyNameInput, setCompanyNameInput] = useState("");
+  const [isSavingCompanyName, setIsSavingCompanyName] = useState(false);
 
   useEffect(() => {
     if (prospectId) {
@@ -572,6 +575,49 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
     }
   };
 
+  const saveCompanyName = async () => {
+    const trimmedName = companyNameInput.trim();
+    
+    if (trimmedName.length < 2) {
+      toast.error("Company name must be at least 2 characters");
+      return;
+    }
+
+    // Validate it's not a URL
+    if (trimmedName.includes('http://') || trimmedName.includes('https://') || trimmedName.includes('www.')) {
+      toast.error("Company name cannot be a URL");
+      return;
+    }
+
+    setIsSavingCompanyName(true);
+    try {
+      const oldName = prospect?.report?.extracted_company_name || prospect?.report?.domain;
+      
+      const { error } = await supabase
+        .from('reports')
+        .update({ extracted_company_name: trimmedName })
+        .eq('id', prospect.report.id);
+      
+      if (error) throw error;
+      
+      await auditService.logBusinessContext(
+        'reports',
+        prospect.report.id,
+        `Company name manually updated from "${oldName}" to "${trimmedName}"`
+      );
+      
+      toast.success("Company name updated");
+      setIsEditingCompanyName(false);
+      setCompanyNameInput("");
+      await fetchProspectDetails();
+    } catch (error: any) {
+      console.error("Error saving company name:", error);
+      toast.error(error.message || "Failed to save company name");
+    } finally {
+      setIsSavingCompanyName(false);
+    }
+  };
+
   const nextAction = pendingTasks.length > 0
     ? { type: 'task', date: pendingTasks[0].due_date, title: pendingTasks[0].title }
     : prospect?.next_follow_up
@@ -591,10 +637,54 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <SheetTitle className="text-xl truncate">{prospect.report?.domain}</SheetTitle>
-                  {prospect.report?.extracted_company_name && (
-                    <p className="text-xs text-muted-foreground truncate mt-1">
-                      {prospect.report.extracted_company_name}
-                    </p>
+                  {!isEditingCompanyName ? (
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-muted-foreground truncate">
+                        {prospect.report?.extracted_company_name || "No company name"}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setCompanyNameInput(prospect.report?.extracted_company_name || "");
+                          setIsEditingCompanyName(true);
+                        }}
+                        className="h-6 px-2"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 mt-1">
+                      <input
+                        type="text"
+                        value={companyNameInput}
+                        onChange={(e) => setCompanyNameInput(e.target.value)}
+                        className="text-xs px-2 py-1 border rounded flex-1"
+                        placeholder="Enter company name"
+                        autoFocus
+                      />
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={saveCompanyName}
+                        disabled={isSavingCompanyName}
+                        className="h-6 px-2"
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setIsEditingCompanyName(false);
+                          setCompanyNameInput("");
+                        }}
+                        className="h-6 px-2"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   )}
                 </div>
                 <div className="flex gap-2 shrink-0">

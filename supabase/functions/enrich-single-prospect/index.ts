@@ -138,12 +138,25 @@ serve(async (req) => {
   ]
 }
 
-**COMPANY NAME RULES:**
-- Use proper capitalization (Title Case for most words)
-- Keep acronyms uppercase (LLC, Inc., Corp., USA, HVAC, etc.)
-- Preserve brand-specific capitalization (e.g., "iPhone", "eBay", "YouTube")
-- Remove "www." or domain suffixes
-- If company name not found, use domain name with proper capitalization
+**COMPANY NAME RULES (CRITICAL - READ CAREFULLY):**
+- Extract the REAL business name as it appears on their website, signage, or marketing materials
+- Look in these places (in order of priority):
+  1. Page titles (<title> tag)
+  2. Logo text / header branding
+  3. "About Us" page (company description)
+  4. Footer copyright notice (© 2024 Company Name LLC)
+  5. Contact page business name
+  6. Meta description tags
+- Use proper capitalization:
+  * Title Case for most words (Smith Plumbing Company)
+  * Keep acronyms uppercase (HVAC, LLC, Inc., USA, etc.)
+  * Preserve brand capitalization (e.g., "eBay", "iPhone")
+- DO NOT just capitalize the domain name
+- If the business name is truly not found anywhere on the website, return "Unknown - [Domain]" (e.g., "Unknown - q1mechservices.com")
+- Common patterns to recognize:
+  * "Welcome to ABC Company" → "ABC Company"
+  * "© 2024 Smith Services LLC" → "Smith Services LLC"
+  * Domain "abchvac.com" + Footer "ABC Heating & Cooling" → "ABC Heating & Cooling"
 
 **FACEBOOK URL RULES:**
 - Extract the company's official Facebook page URL at the top level (e.g., https://www.facebook.com/CompanyName)
@@ -208,7 +221,7 @@ Domain: ${domain}
 ${socialLinks || 'None found'}
 
 **WEBSITE CONTENT:**
-${scrapedData.substring(0, 8000)}
+${scrapedData.substring(0, 15000)}
 
 ${facebookData ? `\n**FACEBOOK PAGE CONTENT:**\n${facebookData.substring(0, 2000)}\n` : ''}
 
@@ -320,11 +333,20 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
     
     const updateData: any = {};
     
-    // Only update company name if changed
-    if (companyName && companyName !== currentCompanyName) {
+    // Detect if current name looks like a domain (no spaces, all lowercase-ish)
+    const currentLooksLikeDomain = currentCompanyName && 
+      (!currentCompanyName.includes(' ') || 
+       currentCompanyName.toLowerCase().replace(/\s/g, '') === currentCompanyName.replace(/\s/g, ''));
+
+    // Force update if new name is better OR current name looks like domain
+    if (companyName && (
+      companyName !== currentCompanyName || 
+      currentLooksLikeDomain ||
+      currentCompanyName?.startsWith('Unknown')
+    )) {
       updateData.extracted_company_name = companyName;
       companyNameUpdated = true;
-      console.log(`✅ Updating company name to "${companyName}"`);
+      console.log(`✅ Updating company name from "${currentCompanyName}" to "${companyName}"`);
     }
     
     // Only update facebook_url if currently empty
