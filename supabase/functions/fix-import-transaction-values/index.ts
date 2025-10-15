@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
       .select('id, domain, report_data, created_at')
       .gte('created_at', timeWindowStart.toISOString())
       .lte('created_at', timeWindowEnd.toISOString())
-      .eq('lead_source', 'import');
+      .eq('lead_source', 'csv_import');
 
     if (reportsError) {
       console.error('[Fix Transaction Values] Error fetching reports:', reportsError);
