@@ -12,24 +12,99 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { CheckCircle2 } from "lucide-react";
+import { MetaTags } from "@/components/seo/MetaTags";
+import { ProductSchema } from "@/components/seo/ProductSchema";
+import { FAQSchema } from "@/components/seo/FAQSchema";
+import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { Breadcrumb } from "@/components/report/Breadcrumb";
 
 const PricingPage = () => {
   usePageViewTracking('marketing');
   
+  const faqItems = [
+    {
+      question: "How does the pricing work?",
+      answer: "You pay $100/month for platform access, plus $1 for each visitor we successfully identify. For example, if we identify 500 visitors in a month, your total would be $600 ($100 + $500)."
+    },
+    {
+      question: "What happens if you identify more visitors than expected?",
+      answer: "That's great news! You only pay for successful identifications. If your traffic grows, so does your lead generation. Most clients see this as a positive ROI since each identified visitor is a potential customer."
+    },
+    {
+      question: "Is there a contract or can I cancel anytime?",
+      answer: "No long-term contracts required. You can cancel anytime with 30 days notice. We believe in earning your business every month through great results."
+    },
+    {
+      question: "What information do I get for each identified visitor?",
+      answer: "Each identified visitor includes: Full name, email, phone number, physical address, age, income level, education, household composition, credit score range, buying power, and property ownership status."
+    },
+    {
+      question: "How accurate is the visitor identification?",
+      answer: "We use multiple data sources and validation methods to ensure high accuracy. Our identification rate averages 15-25% of your website visitors, with a data accuracy rate of over 90%."
+    },
+    {
+      question: "Do you offer volume discounts?",
+      answer: "Yes! For businesses identifying over 1,000 visitors per month, we offer custom enterprise pricing. Contact our sales team to discuss volume pricing options."
+    },
+    {
+      question: "How do I integrate NurturelyX with my website?",
+      answer: "Integration is simple - just add our tracking pixel to your website (similar to Google Analytics). Most clients complete setup in under 10 minutes. We provide detailed documentation and support."
+    },
+    {
+      question: "Is my data secure and compliant?",
+      answer: "Absolutely. We're fully GDPR, CCPA, and TCPA compliant. All data is encrypted at rest and in transit. We follow SOC 2 security standards and never sell your data to third parties."
+    }
+  ];
+  
   return (
     <>
-      <Helmet>
-        <title>Pricing - NurturelyX Identity Resolution Platform</title>
-        <meta
-          name="description"
-          content="Simple, transparent pricing for identity resolution. Start at $100/month + $1 per identified lead. No hidden fees, cancel anytime."
-        />
-      </Helmet>
+      <MetaTags
+        title="Pricing - Transparent Identity Resolution Platform | NurturelyX"
+        description="Simple, transparent pricing for visitor identification. $100/month + $1 per identified lead. No hidden fees, no contracts. Calculate your ROI and start identifying website visitors today."
+        canonical="https://x1.nurturely.io/pricing"
+        keywords="visitor identification pricing, lead generation cost, identity resolution pricing, B2B lead pricing, website visitor tracking cost"
+        ogType="website"
+      />
+      
+      <ProductSchema
+        name="NurturelyX Visitor Identification Platform"
+        description="Turn anonymous website visitors into qualified leads with our visitor identification platform"
+        offers={[
+          {
+            price: "100",
+            priceCurrency: "USD",
+            name: "Platform Access",
+            description: "Monthly platform access fee",
+            url: "https://x1.nurturely.io/pricing"
+          },
+          {
+            price: "1",
+            priceCurrency: "USD",
+            name: "Per Identified Lead",
+            description: "Cost per successfully identified website visitor",
+            url: "https://x1.nurturely.io/pricing"
+          }
+        ]}
+      />
+      
+      <WebPageSchema
+        name="Pricing - NurturelyX Visitor Identification"
+        description="Transparent pricing for turning anonymous website visitors into qualified leads"
+        url="https://x1.nurturely.io/pricing"
+        breadcrumbs={[{ name: "Pricing", url: "/pricing" }]}
+        keywords={["pricing", "visitor identification", "lead generation cost"]}
+      />
+      
+      <FAQSchema questions={faqItems} />
 
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
+        
+        <nav className="container mx-auto px-4 pt-6">
+          <Breadcrumb items={[{ label: "Pricing", href: "/pricing" }]} />
+        </nav>
 
-        <main className="flex-1">
+        <main role="main" className="flex-1" itemScope itemType="https://schema.org/WebPage">
           {/* Hero Section */}
           <section className="container mx-auto px-4 py-16 text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-4">
@@ -113,68 +188,16 @@ const PricingPage = () => {
               </h2>
               
               <Accordion type="single" collapsible className="space-y-4">
-                <AccordionItem value="item-1" className="border border-border rounded-lg px-6">
-                  <AccordionTrigger className="text-left">
-                    What's included in the $100/month platform fee?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    The platform fee includes your tracking pixel, dashboard access, anonymous visitor analytics, 
-                    database storage, email verification, and all platform features. You only pay per-lead costs 
-                    when you actually identify a visitor.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-2" className="border border-border rounded-lg px-6">
-                  <AccordionTrigger className="text-left">
-                    How does the $1 per lead pricing work?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    You load credits into your account (no minimum purchase). Each time we successfully identify 
-                    a visitor with full contact information, $1 is deducted from your credit balance. You only 
-                    pay for successful identifications.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-3" className="border border-border rounded-lg px-6">
-                  <AccordionTrigger className="text-left">
-                    Is there a minimum credit purchase?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    No minimum! Load $50, $500, or $5,000 - whatever makes sense for your business. 
-                    Credits never expire and you can add more anytime.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-4" className="border border-border rounded-lg px-6">
-                  <AccordionTrigger className="text-left">
-                    What if I want to cancel?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    Cancel anytime, no questions asked. Your pixel will stop tracking at the end of your billing 
-                    period, and you'll keep access to all previously identified leads. Any remaining credits 
-                    can be used until they're depleted.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-5" className="border border-border rounded-lg px-6">
-                  <AccordionTrigger className="text-left">
-                    Do you offer volume discounts?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    Yes! For businesses identifying 1,000+ leads per month, we offer custom enterprise pricing 
-                    with volume discounts, dedicated support, and white-glove onboarding. Email us to discuss.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-6" className="border border-border rounded-lg px-6">
-                  <AccordionTrigger className="text-left">
-                    What's your money-back guarantee?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    If you have 1,000+ monthly visitors and don't get at least 100 identified leads in your first 
-                    30 days, we'll refund 100% of your platform fee and let you keep all the data. No risk.
-                  </AccordionContent>
-                </AccordionItem>
+                {faqItems.map((faq, index) => (
+                  <AccordionItem key={index} value={`item-${index}`} className="border border-border rounded-lg px-6">
+                    <AccordionTrigger className="text-left">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
               </Accordion>
             </div>
           </section>

@@ -17,6 +17,11 @@ import HeroWithForm from "@/components/calculator/HeroWithForm";
 import IdentityResolutionExplainer from "@/components/calculator/IdentityResolutionExplainer";
 import CallToActionSection from "@/components/CallToActionSection";
 import { OrganizationSchema } from "@/components/seo/OrganizationSchema";
+import { MetaTags } from "@/components/seo/MetaTags";
+import { ServiceSchema } from "@/components/seo/ServiceSchema";
+import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { Breadcrumb } from "@/components/report/Breadcrumb";
+import { Helmet } from "react-helmet-async";
 
 const Index = () => {
   usePageViewTracking('marketing');
@@ -205,10 +210,54 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <MetaTags
+        title="Identify Anonymous Website Visitors | Lost Revenue Calculator - NurturelyX"
+        description="Calculate how much revenue you're losing from anonymous website traffic. Identify visitors, capture leads, and convert them into customers with NurturelyX visitor identification."
+        canonical="https://x1.nurturely.io/"
+        keywords="website visitor identification, anonymous traffic tracking, lead generation, B2B lead generation, visitor identification software, lost revenue calculator, website analytics, identity resolution"
+        ogType="website"
+        ogImage="https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png"
+      />
+      
+      <ServiceSchema
+        name="Website Visitor Identification"
+        description="Identify anonymous website visitors and convert them into qualified B2B leads. NurturelyX provides comprehensive visitor identification technology to help businesses recover lost revenue from anonymous traffic."
+        serviceType="Business Service"
+        areaServed={["United States", "Canada", "United Kingdom"]}
+      />
+      
+      <WebPageSchema
+        name="Lost Revenue Calculator - Identify Anonymous Website Visitors"
+        description="Calculate how much revenue you're losing from anonymous website traffic and learn how to identify these visitors."
+        url="https://x1.nurturely.io/"
+        keywords={["visitor identification", "lead generation", "anonymous traffic", "revenue calculator"]}
+      />
+      
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "url": "https://x1.nurturely.io",
+            "name": "NurturelyX",
+            "description": "Identify anonymous website visitors and turn them into qualified B2B leads",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://x1.nurturely.io/?domain={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          })}
+        </script>
+      </Helmet>
+      
       <OrganizationSchema />
       <Header />
 
-      <main className="flex-1 bg-background ">
+      <main role="main" className="flex-1 bg-background"
+        itemScope itemType="https://schema.org/WebPage">
         {isCalculating ? (
           <LoadingState
             calculationProgress={calculationProgress}

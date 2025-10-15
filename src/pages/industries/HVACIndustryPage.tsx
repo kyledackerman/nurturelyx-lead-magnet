@@ -5,6 +5,13 @@ import { IndustryFAQ } from "@/components/industry/IndustryFAQ";
 import CallToActionSection from "@/components/CallToActionSection";
 import { getIndustryData } from "@/data/industryData";
 import { FAQSchema } from "@/components/seo/FAQSchema";
+import { MetaTags } from "@/components/seo/MetaTags";
+import { ServiceSchema } from "@/components/seo/ServiceSchema";
+import { LocalBusinessSchema } from "@/components/seo/LocalBusinessSchema";
+import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { Breadcrumb } from "@/components/report/Breadcrumb";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { AlertCircle } from "lucide-react";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 
@@ -22,12 +29,56 @@ export default function HVACIndustryPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <IndustryHero
-        name={industry.name}
-        headline={industry.headline}
-        subheadline={industry.subheadline}
+    <>
+      <MetaTags
+        title="HVAC Lead Generation & Visitor Identification | NurturelyX"
+        description="Identify anonymous website visitors for HVAC businesses. Turn lost traffic into qualified HVAC leads with industry-specific visitor identification technology."
+        canonical="https://x1.nurturely.io/industries/hvac"
+        keywords="HVAC lead generation, HVAC visitor identification, HVAC marketing, HVAC sales leads, B2B HVAC"
+        ogType="website"
       />
+      
+      <ServiceSchema
+        name="HVAC Visitor Identification Service"
+        description="Specialized visitor identification and lead generation service for HVAC contractors and businesses"
+        serviceType="HVAC Lead Generation"
+        areaServed="United States"
+      />
+      
+      <LocalBusinessSchema
+        name="NurturelyX HVAC Solutions"
+        description="Visitor identification and lead generation for HVAC businesses"
+        businessType="ProfessionalService"
+      />
+      
+      <WebPageSchema
+        name="HVAC Lead Generation & Visitor Identification"
+        description="Turn anonymous HVAC website visitors into qualified leads"
+        url="https://x1.nurturely.io/industries/hvac"
+        breadcrumbs={[
+          { name: "Industries", url: "/industries" },
+          { name: "HVAC", url: "/industries/hvac" }
+        ]}
+        keywords={["HVAC leads", "visitor identification", "HVAC marketing"]}
+      />
+      
+      <FAQSchema questions={industry.faqs} />
+      
+      <Header />
+      
+      <div className="min-h-screen">
+        <nav className="container max-w-6xl pt-6">
+          <Breadcrumb items={[
+            { label: "Industries", href: "/industries" },
+            { label: "HVAC", href: "/industries/hvac" }
+          ]} />
+        </nav>
+        
+        <IndustryHero
+          name={industry.name}
+          headline={industry.headline}
+          subheadline={industry.subheadline}
+        />
 
       <section className="py-16 bg-muted/30">
         <div className="container max-w-6xl">
@@ -100,6 +151,9 @@ export default function HVACIndustryPage() {
       <FAQSchema questions={industry.faqs} />
 
       <CallToActionSection />
-    </div>
+      </div>
+      
+      <Footer />
+    </>
   );
 }
