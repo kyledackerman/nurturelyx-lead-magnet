@@ -131,10 +131,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Fetch admin users only once on mount
-  useEffect(() => {
-    fetchAdminUsers();
-  }, []);
+  // Admin users are fetched via useAdminUsers hook - no need for duplicate call
 
   useEffect(() => {
     // Only fetch on initial load, view change, or search change
@@ -189,16 +186,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     }
   };
 
-  const fetchAdminUsers = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('get-admins');
-      if (error) throw error;
-      setAdminUsers(data?.admins || []);
-    } catch (error) {
-      console.error("Error fetching admin users:", error);
-      setAdminUsers([]);
-    }
-  };
+  // Removed duplicate fetchAdminUsers - using useAdminUsers hook instead
 
   const fetchProspects = async (append = false) => {
     // Check cache first (skip for append/pagination)

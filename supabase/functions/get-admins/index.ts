@@ -73,8 +73,27 @@ Deno.serve(async (req) => {
     );
 
     // Verify the user is authenticated and is an admin
-    const { data: userData, error: userError } = await supabase.auth.getUser(jwt);
-    if (userError || !userData.user) {
+    // Add 5-second timeout to prevent infinite hanging
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Auth timeout')), 5000)
+    );
+
+    const authPromise = supabase.auth.getUser(jwt);
+
+    let userData, userError;
+    try {
+      const result = await Promise.race([authPromise, timeoutPromise]);
+      userData = result.data;
+      userError = result.error;
+    } catch (error) {
+      console.error('Authentication timeout:', error);
+      return new Response(
+        JSON.stringify({ error: 'Authentication service timeout - please refresh the page' }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (userError || !userData?.user) {
       console.error('Authentication error:', userError);
       return new Response(
         JSON.stringify({ error: 'Invalid authentication' }),

@@ -37,7 +37,7 @@ export function useAdminUsers() {
     fetchAdmins();
   }, []);
 
-  const fetchAdmins = async () => {
+  const fetchAdmins = async (retryCount = 0) => {
     try {
       const { data, error } = await supabase.functions.invoke('get-admins');
       
@@ -45,9 +45,33 @@ export function useAdminUsers() {
         adminUsersCache.users = data.admins;
         adminUsersCache.timestamp = Date.now();
         setAdmins(data.admins);
+        setLoading(false);
+        return;
+      }
+      
+      // If error and we have retries left, try again with exponential backoff
+      if (error && retryCount < 3) {
+        const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+        console.warn(`Admin fetch failed, retrying in ${delay}ms (attempt ${retryCount + 1}/3)`, error);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return fetchAdmins(retryCount + 1);
+      }
+      
+      // All retries failed - use cached data if available
+      if (adminUsersCache.users && adminUsersCache.users.length > 0) {
+        console.warn('Using cached admin users after failed fetches');
+        setAdmins(adminUsersCache.users);
+      } else {
+        console.error('Failed to fetch admins and no cache available');
       }
     } catch (error) {
       console.error("Error fetching admins:", error);
+      
+      // Use cached data as fallback
+      if (adminUsersCache.users && adminUsersCache.users.length > 0) {
+        console.warn('Using cached admin users after exception');
+        setAdmins(adminUsersCache.users);
+      }
     } finally {
       setLoading(false);
     }
