@@ -3,8 +3,10 @@ import { ArrowLeft, Trash2, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import ActiveEnrichmentJobsIndicator from "./ActiveEnrichmentJobsIndicator";
+import { CompanyNameRegenerationDialog } from "./CompanyNameRegenerationDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useState } from "react";
 
 interface CRMHeaderProps {
   onResumeEnrichment?: (jobId: string) => void;
@@ -12,6 +14,8 @@ interface CRMHeaderProps {
 
 export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
   const navigate = useNavigate();
+  const [regenerationResults, setRegenerationResults] = useState<any>(null);
+  const [showResultsDialog, setShowResultsDialog] = useState(false);
 
   const handleCleanupStuckJobs = async () => {
     try {
@@ -104,32 +108,31 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
 
   const handleFixCompanyNames = async () => {
     const confirmed = window.confirm(
-      "Regenerate proper company names for all enriched prospects with domain-like names?"
+      "Regenerate proper company names for all enriched prospects with domain-like names? This will use AI credits."
     );
     
     if (!confirmed) return;
     
+    const loadingToast = toast.loading("Regenerating company names...");
+    
     try {
-      toast.loading("Regenerating company names... This may take a few minutes");
       const { data, error } = await supabase.functions.invoke('regenerate-company-names', {
         body: { regenerate_all: true }
       });
       
       if (error) throw error;
       
-      if (data.updated === 0) {
-        toast.success("No domain-like company names found");
-      } else {
-        toast.success(`✅ Updated ${data.updated} company names`);
-        if (data.failed > 0) {
-          toast.warning(`⚠️ ${data.failed} failed`);
-        }
-      }
+      toast.dismiss(loadingToast);
+      setRegenerationResults(data);
+      setShowResultsDialog(true);
       
-      // Refresh after 2 seconds
-      setTimeout(() => window.location.reload(), 2000);
+      if (data.updated?.length > 0) {
+        toast.success(`Updated ${data.updated.length} company names`);
+        setTimeout(() => window.location.reload(), 2000);
+      }
     } catch (error) {
       console.error('Error fixing company names:', error);
+      toast.dismiss(loadingToast);
       toast.error("Failed to fix company names");
     }
   };
@@ -207,6 +210,12 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
           </div>
         </div>
       </div>
+
+      <CompanyNameRegenerationDialog
+        open={showResultsDialog}
+        onOpenChange={setShowResultsDialog}
+        results={regenerationResults}
+      />
     </div>
   );
 }

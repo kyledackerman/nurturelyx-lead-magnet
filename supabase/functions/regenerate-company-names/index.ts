@@ -102,9 +102,10 @@ serve(async (req) => {
 
     console.log(`Processing ${prospectsToProcess.length} prospects for company name regeneration`);
 
-    let updated = 0;
-    let failed = 0;
-    const details: any[] = [];
+    const results = {
+      updated: [] as Array<{ domain: string; oldName: string; newName: string }>,
+      failed: [] as Array<{ domain: string; reason: string }>,
+    };
 
     for (const prospect of prospectsToProcess) {
       const domain = prospect.reports.domain;
@@ -113,20 +114,19 @@ serve(async (req) => {
       try {
         console.log(`Regenerating company name for ${domain} (currently: "${oldName}")`);
 
-        // Scrape website
-        const { content } = await scrapeWebsite(domain);
+        // Scrape website with fallback strategies
+        const { content, method } = await scrapeWebsite(domain);
 
         if (!content || content.length === 0) {
           console.log(`⚠️ Could not scrape ${domain}, skipping`);
-          failed++;
-          details.push({
+          results.failed.push({
             domain,
-            success: false,
-            error: "Could not access website",
-            oldName,
+            reason: "Could not access website (tried HTTP/HTTPS with/without www)",
           });
           continue;
         }
+
+        console.log(`Scraped ${domain} using: ${method}`);
 
         // Ask AI to extract proper company name
         const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -174,12 +174,9 @@ Extract the proper company name. Return ONLY the company name string.`,
         if (!aiResponse.ok) {
           const errorText = await aiResponse.text();
           console.error(`AI API error for ${domain}:`, aiResponse.status, errorText);
-          failed++;
-          details.push({
+          results.failed.push({
             domain,
-            success: false,
-            error: "AI service error",
-            oldName,
+            reason: `AI extraction failed: ${aiResponse.status}`,
           });
           continue;
         }
@@ -189,12 +186,9 @@ Extract the proper company name. Return ONLY the company name string.`,
 
         if (!newName || newName === oldName) {
           console.log(`No new name found for ${domain}`);
-          failed++;
-          details.push({
+          results.failed.push({
             domain,
-            success: false,
-            error: "No better name found",
-            oldName,
+            reason: "AI could not extract valid business name from content",
           });
           continue;
         }
@@ -207,12 +201,9 @@ Extract the proper company name. Return ONLY the company name string.`,
 
         if (updateError) {
           console.error(`Error updating ${domain}:`, updateError);
-          failed++;
-          details.push({
+          results.failed.push({
             domain,
-            success: false,
-            error: updateError.message,
-            oldName,
+            reason: `Database update failed: ${updateError.message}`,
           });
           continue;
         }
@@ -221,38 +212,28 @@ Extract the proper company name. Return ONLY the company name string.`,
         await supabase.rpc("log_business_context", {
           p_table_name: "reports",
           p_record_id: prospect.report_id,
-          p_context: `Regenerated company name from "${oldName}" to "${newName}"`,
+          p_context: `Regenerated company name from "${oldName}" to "${newName}" (Method: ${method})`,
         });
 
         console.log(`✅ Updated ${domain}: "${oldName}" → "${newName}"`);
-        updated++;
-        details.push({
-          domain,
-          success: true,
-          oldName,
-          newName,
-        });
+        results.updated.push({ domain, oldName, newName });
       } catch (error: any) {
         console.error(`Error processing ${domain}:`, error);
-        failed++;
-        details.push({
+        results.failed.push({
           domain,
-          success: false,
-          error: error.message,
-          oldName,
+          reason: error.message || "Unknown error",
         });
       }
     }
 
-    console.log(`✅ Company name regeneration complete: ${updated} updated, ${failed} failed`);
+    console.log(`✅ Company name regeneration complete: ${results.updated.length} updated, ${results.failed.length} failed`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        updated,
-        failed,
+        updated: results.updated,
+        failed: results.failed,
         total: prospectsToProcess.length,
-        details,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
@@ -265,43 +246,48 @@ Extract the proper company name. Return ONLY the company name string.`,
   }
 });
 
-// Helper function to scrape website
-async function scrapeWebsite(domain: string): Promise<{ content: string }> {
-  const urls = [
-    `https://${domain}`,
-    `https://www.${domain}`,
-    `https://${domain}/about`,
-    `https://www.${domain}/about`,
-    `https://${domain}/contact`,
-    `https://www.${domain}/contact`,
+// Helper function to scrape website with fallback strategies
+async function scrapeWebsite(domain: string): Promise<{ content: string; method: string }> {
+  // Try multiple strategies in order
+  const strategies = [
+    { urls: [`https://${domain}`, `https://${domain}/about`], name: 'HTTPS' },
+    { urls: [`https://www.${domain}`, `https://www.${domain}/about`], name: 'HTTPS with www' },
+    { urls: [`http://${domain}`, `http://${domain}/about`], name: 'HTTP' },
+    { urls: [`http://www.${domain}`, `http://www.${domain}/about`], name: 'HTTP with www' },
   ];
 
-  let combinedContent = "";
+  for (const strategy of strategies) {
+    let combinedContent = "";
+    
+    for (const url of strategy.urls) {
+      try {
+        const response = await fetch(url, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (compatible; LeadEnrichmentBot/1.0)",
+          },
+          signal: AbortSignal.timeout(8000),
+        });
 
-  for (const url of urls) {
-    try {
-      const response = await fetch(url, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; LeadEnrichmentBot/1.0)",
-        },
-        signal: AbortSignal.timeout(10000),
-      });
+        if (response.ok) {
+          const html = await response.text();
+          const textContent = html
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+            .replace(/<[^>]+>/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
 
-      if (response.ok) {
-        const html = await response.text();
-        const textContent = html
-          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-          .replace(/<[^>]+>/g, " ")
-          .replace(/\s+/g, " ")
-          .trim();
-
-        combinedContent += textContent + "\n\n";
+          combinedContent += textContent + "\n\n";
+        }
+      } catch (error) {
+        console.log(`Failed ${url}:`, error);
       }
-    } catch (error) {
-      console.log(`Failed to fetch ${url}:`, error);
+    }
+
+    if (combinedContent.length > 200) {
+      return { content: combinedContent, method: strategy.name };
     }
   }
 
-  return { content: combinedContent };
+  return { content: "", method: "none" };
 }
