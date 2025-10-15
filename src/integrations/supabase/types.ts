@@ -772,6 +772,10 @@ export type Database = {
         Args: { domain_name: string }
         Returns: string
       }
+      get_admin_dashboard_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_crm_metrics: {
         Args: Record<PropertyKey, never>
         Returns: Json

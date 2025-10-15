@@ -382,92 +382,23 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      // Get all reports with user_id
-      const {
-        data: allReports,
-        error: reportsError
-      } = await supabase.from('reports').select('domain, created_at, user_id, report_data');
-      if (reportsError) throw reportsError;
+      // Use optimized database function to calculate report stats
+      const { data: reportStats, error: statsError } = await supabase.rpc('get_admin_dashboard_stats');
+      
+      if (statsError) throw statsError;
 
-      // Get all user roles
-      const {
-        data: userRoles,
-        error: rolesError
-      } = await supabase.from('user_roles').select('user_id, role');
-      if (rolesError) throw rolesError;
+      // Type cast the response to access properties
+      const stats = reportStats as any;
 
-      // Create a map of user_id to role for quick lookup
-      const roleMap = new Map<string, string>();
-      userRoles?.forEach(ur => {
-        roleMap.set(ur.user_id, ur.role);
-      });
+      // Calculate total reports by summing admin and non-admin
+      const totalReports = (stats.adminReports || 0) + (stats.nonAdminReports || 0);
+      const reportsToday = (stats.adminReportsToday || 0) + (stats.nonAdminReportsToday || 0);
+
+      // Setup date boundaries for views calculation
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
-
-      // Filter reports by time period
-      const todayReports = allReports?.filter(r => {
-        const reportDate = new Date(r.created_at);
-        return reportDate >= today;
-      }) || [];
-      const yesterdayReports = allReports?.filter(r => {
-        const reportDate = new Date(r.created_at);
-        return reportDate >= yesterday && reportDate < today;
-      }) || [];
-
-      // Calculate unique domains
-      const uniqueDomains = new Set(allReports?.map(r => r.domain) || []).size;
-      const uniqueDomainsToday = new Set(todayReports.map(r => r.domain)).size;
-      const uniqueDomainsYesterday = new Set(yesterdayReports.map(r => r.domain)).size;
-
-      // Helper function to check if user is admin
-      const isAdminUser = (userId: string | null) => {
-        if (!userId) return false;
-        const userRole = roleMap.get(userId);
-        return userRole === 'admin' || userRole === 'super_admin';
-      };
-
-      // Calculate admin reports
-      let adminReports = 0;
-      let adminReportsToday = 0;
-      let adminReportsYesterday = 0;
-      let nonAdminReports = 0;
-      let nonAdminReportsToday = 0;
-      let nonAdminReportsYesterday = 0;
-      allReports?.forEach(report => {
-        if (isAdminUser(report.user_id)) {
-          adminReports++;
-        } else {
-          nonAdminReports++;
-        }
-      });
-      todayReports.forEach(report => {
-        if (isAdminUser(report.user_id)) {
-          adminReportsToday++;
-        } else {
-          nonAdminReportsToday++;
-        }
-      });
-      yesterdayReports.forEach(report => {
-        if (isAdminUser(report.user_id)) {
-          adminReportsYesterday++;
-        } else {
-          nonAdminReportsYesterday++;
-        }
-      });
-
-      // Helper function to check if high value prospect
-      const isHighValue = (r: any) => {
-        const reportData = r.report_data as any;
-        const monthlyRevenueLost = reportData?.monthlyRevenueLost || 0;
-        return monthlyRevenueLost > 5000;
-      };
-
-      // Count high-value prospects
-      const highValueProspects = allReports?.filter(isHighValue).length || 0;
-      const highValueProspectsToday = todayReports.filter(isHighValue).length;
-      const highValueProspectsYesterday = yesterdayReports.filter(isHighValue).length;
       // Get report views data
       const { data: allViews, error: viewsError } = await supabase
         .from('report_views')
@@ -491,20 +422,20 @@ const AdminDashboard = () => {
       const uniqueVisitorsYesterday = new Set(yesterdayViews.map(v => v.session_id)).size;
 
       setStats({
-        totalReports: allReports?.length || 0,
-        uniqueDomains,
-        uniqueDomainsToday,
-        uniqueDomainsYesterday,
-        reportsToday: todayReports.length,
-        adminReports,
-        adminReportsToday,
-        adminReportsYesterday,
-        nonAdminReports,
-        nonAdminReportsToday,
-        nonAdminReportsYesterday,
-        highValueProspects,
-        highValueProspectsToday,
-        highValueProspectsYesterday,
+        totalReports,
+        uniqueDomains: stats.uniqueDomains || 0,
+        uniqueDomainsToday: stats.uniqueDomainsToday || 0,
+        uniqueDomainsYesterday: stats.uniqueDomainsYesterday || 0,
+        reportsToday,
+        adminReports: stats.adminReports || 0,
+        adminReportsToday: stats.adminReportsToday || 0,
+        adminReportsYesterday: stats.adminReportsYesterday || 0,
+        nonAdminReports: stats.nonAdminReports || 0,
+        nonAdminReportsToday: stats.nonAdminReportsToday || 0,
+        nonAdminReportsYesterday: stats.nonAdminReportsYesterday || 0,
+        highValueProspects: stats.highValueProspects || 0,
+        highValueProspectsToday: stats.highValueProspectsToday || 0,
+        highValueProspectsYesterday: stats.highValueProspectsYesterday || 0,
         totalViewsToday,
         totalViewsYesterday,
         uniqueVisitorsToday,
