@@ -1045,19 +1045,21 @@ const AdminDashboard = () => {
 
   const fetchConversionRate = async () => {
     try {
-      const { data: allReports, error: reportsError } = await supabase
+      // Get total count of all reports (not limited to 1000)
+      const { count: totalReportsCount, error: reportsError } = await supabase
         .from('reports')
-        .select('id', { count: 'exact' });
+        .select('*', { count: 'exact', head: true });
       
       if (reportsError) throw reportsError;
 
+      // Get unique report_ids in CRM
       const { data: crmReports, error: crmError } = await supabase
         .from('prospect_activities')
-        .select('report_id', { count: 'exact' });
+        .select('report_id');
       
       if (crmError) throw crmError;
 
-      const totalReports = allReports?.length || 0;
+      const totalReports = totalReportsCount || 0;
       const reportsInCRM = new Set(crmReports?.map(p => p.report_id) || []).size;
       const conversionRate = totalReports > 0 ? (reportsInCRM / totalReports) * 100 : 0;
 
