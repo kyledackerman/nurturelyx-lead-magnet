@@ -6,6 +6,7 @@ import { PasswordManagement } from "@/components/admin/PasswordManagement";
 import LeaderboardTab from "@/components/admin/LeaderboardTab";
 import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
 import { ProspectImporter } from "@/components/admin/ProspectImporter";
+import { FixImportTransactionValues } from "@/components/admin/FixImportTransactionValues";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1824,6 +1825,7 @@ const AdminDashboard = () => {
             </TabsContent>
 
             <TabsContent value="import" className="space-y-6">
+              <FixImportTransactionValues />
               <ProspectImporter />
             </TabsContent>
 

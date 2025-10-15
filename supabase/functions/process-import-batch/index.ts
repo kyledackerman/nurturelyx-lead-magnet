@@ -383,7 +383,32 @@ Deno.serve(async (req) => {
       }
 
       const rowNum = i + 2;
-      const values = dataRows[i].split(',').map((v: string) => v.trim());
+      
+      // Parse CSV row properly to handle quoted fields with commas
+      const values: string[] = [];
+      let current = '';
+      let inQuotes = false;
+      const line = dataRows[i];
+      
+      for (let j = 0; j < line.length; j++) {
+        const char = line[j];
+        const nextChar = line[j + 1];
+        
+        if (char === '"') {
+          if (inQuotes && nextChar === '"') {
+            current += '"';
+            j++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          values.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      values.push(current.trim());
       
       const row: Record<string, string> = {};
       headers.forEach((header: string, index: number) => {

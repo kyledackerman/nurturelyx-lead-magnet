@@ -87,3 +87,6 @@ verify_jwt = true
 [functions.restart-import-job]
 verify_jwt = true
 
+[functions.fix-import-transaction-values]
+verify_jwt = true
+

@@ -289,9 +289,9 @@ export const ProspectImporter = () => {
 
   const downloadTemplate = () => {
     const template = `domain,avg_transaction_value
-example.com,5000
-acmehvac.com,8500
-bestplumbing.com,6200`;
+example.com,"5,000"
+acmehvac.com,"8,500"
+bestplumbing.com,"6,200"`;
     
     const blob = new Blob([template], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -324,6 +324,8 @@ bestplumbing.com,6200`;
             <AlertDescription>
               Upload a CSV file with columns: <strong>domain</strong> and <strong>avg_transaction_value</strong> (both required).
               All prospects will be automatically assigned to you and queued for AI enrichment.
+              <br />
+              <strong>Tip:</strong> Use quotes around numbers with commas: <code className="text-xs">"3,000"</code> or format without commas: <code className="text-xs">3000</code>
             </AlertDescription>
           </Alert>
 
