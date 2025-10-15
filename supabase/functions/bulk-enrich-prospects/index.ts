@@ -216,8 +216,11 @@ serve(async (req) => {
           const prospectId = lockedProspectIds[i];
           const prospect = allProspects.find(p => p.id === prospectId)!;
           
-          try {
-            const domain = prospect.reports.domain;
+          const maxProspectTime = 90000; // 90 seconds max per prospect
+          
+          const processProspect = async () => {
+            try {
+              const domain = prospect.reports.domain;
             const currentCompanyName = prospect.reports.extracted_company_name || domain;
 
             // Update job item status to processing
@@ -897,6 +900,63 @@ Now search the web and write the icebreaker:
                 .eq('id', enrichmentJobId);
             }
           }
+        };
+        
+        // Wrap in timeout to prevent hanging
+        const timeout = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Prospect processing timeout')), maxProspectTime)
+        );
+        
+        try {
+          await Promise.race([processProspect(), timeout]);
+        } catch (error) {
+          if (error instanceof Error && error.message === 'Prospect processing timeout') {
+            console.log(`⏱️ ${prospect.reports.domain} took too long (>90s) - moving to next prospect`);
+            
+            // Release lock and mark as needs review
+            await supabase.rpc('release_enrichment_lock', { p_prospect_id: prospectId });
+            await supabase.from("prospect_activities").update({
+              status: 'review',
+              notes: 'Enrichment timed out after 90 seconds - manual review needed'
+            }).eq("id", prospectId);
+            
+            // Update job item
+            if (enrichmentJobId) {
+              await supabase.from('enrichment_job_items').update({ 
+                status: 'failed',
+                error_message: 'Processing timeout (>90s) - moved to review',
+                completed_at: new Date().toISOString()
+              }).eq('job_id', enrichmentJobId).eq('prospect_id', prospectId);
+            }
+            
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ 
+                  type: "error", 
+                  prospectId, 
+                  domain: prospect.reports.domain,
+                  error: "Processing timeout - moved to review" 
+                })}\n\n`
+              )
+            );
+            
+            failureCount++;
+            
+            // Phase 2: Incremental progress update
+            if (enrichmentJobId) {
+              await supabase
+                .from('enrichment_jobs')
+                .update({
+                  processed_count: successCount + failureCount,
+                  success_count: successCount,
+                  failed_count: failureCount,
+                })
+                .eq('id', enrichmentJobId);
+            }
+          } else {
+            throw error; // Re-throw other errors
+          }
+        }
 
           // Add delay between requests (3-5 seconds) to avoid rate limits
           if (i < prospect_ids.length - 1) {
@@ -961,6 +1021,9 @@ Now search the web and write the icebreaker:
 });
 
 async function scrapeWebsite(domain: string): Promise<{ content: string; socialLinks: string }> {
+  const maxTotalTime = 30000; // 30 seconds max for ALL URLs combined
+  const startTime = Date.now();
+  
   const urlsToTry = [
     `https://${domain}`,
     `https://${domain}/contact`,
@@ -976,6 +1039,12 @@ async function scrapeWebsite(domain: string): Promise<{ content: string; socialL
   let allSocialLinks = "";
 
   for (const url of urlsToTry) {
+    // Check if we've exceeded total time budget
+    if (Date.now() - startTime > maxTotalTime) {
+      console.log(`⏱️ Scraping timeout reached for ${domain} - moving on with ${allContent.length} chars collected`);
+      break;
+    }
+    
     try {
       const response = await fetch(url, {
         headers: {
@@ -1041,7 +1110,7 @@ async function scrapeFacebookPage(facebookUrl: string): Promise<string> {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       },
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(15000), // Increased from 10s to 15s
     });
 
     if (response.ok) {
@@ -1057,7 +1126,11 @@ async function scrapeFacebookPage(facebookUrl: string): Promise<string> {
       return text;
     }
   } catch (error) {
-    console.log(`⚠️ Failed to scrape Facebook page:`, error instanceof Error ? error.message : String(error));
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.log(`⏱️ Facebook scraping timed out for ${facebookUrl}`);
+    } else {
+      console.log(`⚠️ Failed to scrape Facebook page:`, error instanceof Error ? error.message : String(error));
+    }
   }
   
   return "";
@@ -1068,10 +1141,15 @@ async function googleSearchEmails(domain: string, companyName: string, lovableAp
   try {
     console.log(`🔍 Searching for emails via Google Search for ${domain}...`);
     
+    // Create abort controller with 15 second timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds max
+    
     const searchQuery = `site:${domain} @${domain} OR contact OR email`;
     
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
+      signal: controller.signal, // Add abort signal
       headers: {
         Authorization: `Bearer ${lovableApiKey}`,
         "Content-Type": "application/json",
@@ -1093,6 +1171,8 @@ async function googleSearchEmails(domain: string, companyName: string, lovableAp
       }),
     });
 
+    clearTimeout(timeoutId); // Clear timeout if successful
+
     if (response.ok) {
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
@@ -1111,7 +1191,11 @@ async function googleSearchEmails(domain: string, companyName: string, lovableAp
       }
     }
   } catch (error) {
-    console.log(`⚠️ Google Search failed:`, error instanceof Error ? error.message : String(error));
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.log(`⏱️ Google Search timed out after 15s for ${domain} - moving on`);
+    } else {
+      console.log(`⚠️ Google Search failed:`, error instanceof Error ? error.message : String(error));
+    }
   }
   
   return [];
