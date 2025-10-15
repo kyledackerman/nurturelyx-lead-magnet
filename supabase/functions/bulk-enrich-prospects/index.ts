@@ -314,7 +314,7 @@ serve(async (req) => {
                     .eq('id', enrichmentJobId);
                 }
                 
-                continue;
+                return;
               }
               
               // BOTH methods failed - increment retry count and move to REVIEW for manual verification
@@ -362,15 +362,15 @@ serve(async (req) => {
                   .update({
                     processed_count: successCount + failureCount,
                     success_count: successCount,
-                    failed_count: failureCount,
-                  })
-                  .eq('id', enrichmentJobId);
-              }
-              
-              continue;
+                  failed_count: failureCount,
+                })
+                .eq('id', enrichmentJobId);
             }
             
-            // Phase 2: Facebook Scraping (check settings first)
+            return;
+          }
+          
+          // Phase 2: Facebook Scraping (check settings first)
             let facebookData = "";
             
             // Fetch Facebook scraping setting
@@ -547,15 +547,15 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
                   .update({
                     processed_count: successCount + failureCount,
                     success_count: successCount,
-                    failed_count: failureCount,
-                  })
-                  .eq('id', enrichmentJobId);
-              }
-              
-              continue;
+                  failed_count: failureCount,
+                })
+                .eq('id', enrichmentJobId);
             }
+            
+            return;
+          }
 
-            const aiData = await aiResponse.json();
+          const aiData = await aiResponse.json();
             const aiContent = aiData.choices?.[0]?.message?.content;
 
             if (!aiContent) {

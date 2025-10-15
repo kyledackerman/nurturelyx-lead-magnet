@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import ActiveEnrichmentJobsIndicator from "./ActiveEnrichmentJobsIndicator";
@@ -26,6 +26,29 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
     }
   };
 
+  const handleForceClearAll = async () => {
+    const confirmed = window.confirm(
+      "⚠️ This will FORCE STOP all running enrichments and clear ALL locks. Are you sure?"
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      toast.loading("Force clearing all enrichments...");
+      const { data, error } = await supabase.functions.invoke('force-clear-enrichments');
+      
+      if (error) throw error;
+      
+      toast.success(`✅ Force cleared: ${data.jobsFailed} jobs, ${data.locksReleased} locks, ${data.prospectsMoved} prospects moved to review`);
+      
+      // Refresh the page after 1 second
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      console.error('Error force clearing enrichments:', error);
+      toast.error("Failed to force clear enrichments");
+    }
+  };
+
   return (
     <div className="sticky top-0 z-10 border-b bg-background">
       <div className="container mx-auto px-4 py-4">
@@ -44,6 +67,15 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
             {onResumeEnrichment && (
               <ActiveEnrichmentJobsIndicator onResumeJob={onResumeEnrichment} />
             )}
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleForceClearAll}
+              className="gap-2"
+            >
+              <AlertTriangle className="h-4 w-4" />
+              <span className="hidden sm:inline">Force Clear ALL</span>
+            </Button>
             <Button
               variant="outline"
               size="sm"
