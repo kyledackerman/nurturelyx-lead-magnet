@@ -129,9 +129,7 @@ serve(async (req) => {
         )
       );
       controller.close();
-      return new Response(stream.readable, {
-        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-      });
+      return;
     }
     
     const allProspectsFiltered = eligibleProspects;
