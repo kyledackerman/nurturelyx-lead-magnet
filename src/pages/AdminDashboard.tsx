@@ -1676,7 +1676,7 @@ const AdminDashboard = () => {
                       r: 4
                     }} activeDot={{
                       r: 6
-                    }} name="High-Value Domains" />
+                    }} name="High-Value Domains (>$500k/yr)" />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </CardContent>
