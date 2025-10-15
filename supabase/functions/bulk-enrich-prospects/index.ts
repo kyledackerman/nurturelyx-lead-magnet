@@ -12,6 +12,58 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Parse and validate request BEFORE creating stream
+  let requestBody;
+  try {
+    requestBody = await req.json();
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ 
+        error: "Invalid JSON in request body",
+        details: error instanceof Error ? error.message : String(error)
+      }), 
+      { 
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      }
+    );
+  }
+
+  const { prospect_ids, job_id, processing_mode = 'parallel' } = requestBody;
+
+  // Validate prospect_ids early
+  if (!Array.isArray(prospect_ids) || prospect_ids.length === 0) {
+    return new Response(
+      JSON.stringify({ error: "prospect_ids array is required and must not be empty" }), 
+      { 
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      }
+    );
+  }
+
+  // Rate limiting by user session or IP
+  const authHeader = req.headers.get('authorization');
+  const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'anonymous';
+  const rateLimitKey = authHeader ? `bulk-enrich:${authHeader.substring(0, 20)}` : `bulk-enrich:${clientIp}`;
+  
+  if (rateLimiter.isRateLimited(rateLimitKey, RATE_LIMITS.WRITE.limit, RATE_LIMITS.WRITE.windowMs)) {
+    const remaining = rateLimiter.getRemaining(rateLimitKey, RATE_LIMITS.WRITE.limit);
+    const resetAt = rateLimiter.getResetAt(rateLimitKey);
+    
+    return new Response(
+      JSON.stringify({ 
+        error: "Rate limit exceeded. Please wait before retrying.",
+        remaining,
+        resetAt: resetAt ? new Date(resetAt).toISOString() : null
+      }), 
+      { 
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      }
+    );
+  }
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -21,41 +73,6 @@ serve(async (req) => {
         const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-        const { prospect_ids, job_id, processing_mode = 'parallel' } = await req.json();
-
-        // Rate limiting by user session or IP
-        const authHeader = req.headers.get('authorization');
-        const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'anonymous';
-        const rateLimitKey = authHeader ? `bulk-enrich:${authHeader.substring(0, 20)}` : `bulk-enrich:${clientIp}`;
-        
-        if (rateLimiter.isRateLimited(rateLimitKey, RATE_LIMITS.WRITE.limit, RATE_LIMITS.WRITE.windowMs)) {
-          const remaining = rateLimiter.getRemaining(rateLimitKey, RATE_LIMITS.WRITE.limit);
-          const resetAt = rateLimiter.getResetAt(rateLimitKey);
-          
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ 
-                type: "error", 
-                error: "Rate limit exceeded. Please wait before retrying.",
-                remaining,
-                resetAt: resetAt ? new Date(resetAt).toISOString() : null
-              })}\n\n`
-            )
-          );
-          controller.close();
-          return;
-        }
-
-        if (!Array.isArray(prospect_ids) || prospect_ids.length === 0) {
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ type: "error", error: "prospect_ids array is required" })}\n\n`
-            )
-          );
-          controller.close();
-          return;
-        }
 
         console.log(`Starting bulk enrichment for ${prospect_ids.length} prospects (mode: ${processing_mode})...`);
 
