@@ -277,32 +277,34 @@ const AdminDashboard = () => {
       )
       .subscribe();
 
-    // Set up periodic refresh every 60 seconds
-    const refreshInterval = setInterval(() => {
-      fetchReports();
-      fetchStats();
-      fetchChartData(timePeriod);
-      fetchViewsChartData(viewsTimePeriod);
-      fetchTrafficStats();
-      fetchMostVisitedPages();
-      fetchShareDistribution();
-      fetchHourlyHeatmap();
-      fetchTopReports();
-      fetchRecentViews();
-      fetchPeakPerformanceDay();
-      fetchQualityScore();
-      fetchTopRevenueDomain();
-      fetchTopLeadsDomain();
-      fetchAverageDealSize();
-      fetchHotStreak();
-      fetchConversionRate();
-      fetchTotalMarketOpportunity();
-      setLastUpdated(new Date());
-    }, 60000);
+    // Auto-refresh disabled for performance optimization
+    // All data now fetched via optimized database functions
+    // Use manual refresh button or real-time subscriptions instead
+    // const refreshInterval = setInterval(() => {
+    //   fetchReports();
+    //   fetchStats();
+    //   fetchChartData(timePeriod);
+    //   fetchViewsChartData(viewsTimePeriod);
+    //   fetchTrafficStats();
+    //   fetchMostVisitedPages();
+    //   fetchShareDistribution();
+    //   fetchHourlyHeatmap();
+    //   fetchTopReports();
+    //   fetchRecentViews();
+    //   fetchPeakPerformanceDay();
+    //   fetchQualityScore();
+    //   fetchTopRevenueDomain();
+    //   fetchTopLeadsDomain();
+    //   fetchAverageDealSize();
+    //   fetchHotStreak();
+    //   fetchConversionRate();
+    //   fetchTotalMarketOpportunity();
+    //   setLastUpdated(new Date());
+    // }, 60000);
 
     return () => {
       supabase.removeChannel(channel);
-      clearInterval(refreshInterval);
+      // clearInterval(refreshInterval); // Commented out since auto-refresh is disabled
     };
   }, []);
 
@@ -448,111 +450,50 @@ const AdminDashboard = () => {
 
   const fetchViewsChartData = async (period: 'weekly' | 'monthly' | 'yearly') => {
     try {
-      const { data: allViews, error: viewsError } = await supabase
-        .from('report_views')
-        .select('viewed_at, session_id')
-        .order('viewed_at', { ascending: true });
+      const { data, error } = await supabase.rpc('get_views_chart_data', { period });
+      
+      if (error) {
+        console.error('RPC error:', error);
+        toast.error('Failed to fetch views chart data');
+        return;
+      }
 
-      if (viewsError) throw viewsError;
-
-      const now = new Date();
-      let startDate: Date;
+      // Data comes as JSONB array, need to format dates for display
       let dateFormat: (date: Date) => string;
-      let periods: number;
-      let incrementType: 'day' | 'month';
-
+      
       switch (period) {
         case 'weekly':
-          startDate = new Date(now);
-          startDate.setDate(startDate.getDate() - 7);
-          periods = 8;
-          incrementType = 'day';
           dateFormat = date => date.toLocaleDateString('en-US', {
             weekday: 'short',
             day: 'numeric'
           });
           break;
         case 'yearly':
-          startDate = new Date(now);
-          startDate.setMonth(startDate.getMonth() - 12);
-          periods = 13;
-          incrementType = 'month';
           dateFormat = date => date.toLocaleDateString('en-US', {
             month: 'short',
             year: '2-digit'
           });
           break;
         default:
-          // monthly
-          startDate = new Date(now);
-          startDate.setDate(startDate.getDate() - 30);
-          periods = 31;
-          incrementType = 'day';
           dateFormat = date => date.toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric'
           });
       }
 
-      if (incrementType === 'day') {
-        startDate.setHours(0, 0, 0, 0);
-      }
-
-      const dateMap = new Map<string, { uniqueSessions: Set<string>; totalViews: number }>();
-
-      // Initialize all periods
-      for (let i = 0; i < periods; i++) {
-        const date = new Date(startDate);
-        if (incrementType === 'day') {
-          date.setDate(date.getDate() + i);
-        } else {
-          date.setMonth(date.getMonth() + i);
-        }
-        const dateStr = period === 'yearly' 
-          ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` 
-          : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        dateMap.set(dateStr, { uniqueSessions: new Set(), totalViews: 0 });
-      }
-
-      // Count views and unique sessions for each period
-      allViews?.forEach(view => {
-        const viewDate = new Date(view.viewed_at);
-        let key: string;
-        if (period === 'yearly') {
-          key = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}`;
-        } else {
-          key = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}-${String(viewDate.getDate()).padStart(2, '0')}`;
-        }
-        if (dateMap.has(key)) {
-          const current = dateMap.get(key)!;
-          current.uniqueSessions.add(view.session_id);
-          current.totalViews += 1;
-          dateMap.set(key, current);
-        }
-      });
-
-      // Convert to chart format
-      const chartData: ViewsChartDataPoint[] = Array.from(dateMap.entries()).map(([dateKey, data]) => {
-        let displayDate: string;
-        if (period === 'yearly') {
-          const [year, month] = dateKey.split('-');
-          const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-          displayDate = dateFormat(date);
-        } else {
-          const [y, m, d] = dateKey.split('-').map(Number);
-          const localDate = new Date(y, m - 1, d);
-          displayDate = dateFormat(localDate);
-        }
+      const chartData: ViewsChartDataPoint[] = ((data as any) || []).map((item: any) => {
+        const date = new Date(item.date);
         return {
-          date: displayDate,
-          uniqueVisitors: data.uniqueSessions.size,
-          totalViews: data.totalViews
+          date: dateFormat(date),
+          uniqueVisitors: item.uniqueVisitors || 0,
+          totalViews: item.totalViews || 0
         };
       });
 
       setViewsChartData(chartData);
     } catch (error) {
       console.error('Error fetching views chart data:', error);
+      toast.error('Failed to fetch views chart data');
     }
   };
 
@@ -848,238 +789,185 @@ const AdminDashboard = () => {
   // Business Insights Fetch Functions
   const fetchPeakPerformanceDay = async () => {
     try {
-      const { data: allReports, error } = await supabase
-        .from('reports')
-        .select('created_at');
+      const { data, error } = await supabase.rpc('get_peak_performance_day');
       
-      if (error) throw error;
-
-      const dateCounts = new Map<string, number>();
-      allReports?.forEach(report => {
-        const date = new Date(report.created_at).toISOString().split('T')[0];
-        dateCounts.set(date, (dateCounts.get(date) || 0) + 1);
-      });
-
-      let maxCount = 0;
-      let peakDate = '';
-      dateCounts.forEach((count, date) => {
-        if (count > maxCount) {
-          maxCount = count;
-          peakDate = date;
-        }
-      });
-
-      const totalReports = allReports?.length || 1;
-      const percentageOfTotal = (maxCount / totalReports) * 100;
+      if (error) {
+        console.error('RPC error:', error);
+        toast.error('Failed to fetch peak performance day');
+        return;
+      }
 
       setPeakDay({
-        date: peakDate,
-        count: maxCount,
-        percentageOfTotal: Math.round(percentageOfTotal)
+        date: (data as any)?.date || '',
+        count: (data as any)?.count || 0,
+        percentageOfTotal: Math.round((data as any)?.percentageOfTotal || 0)
       });
     } catch (error) {
       console.error('Error fetching peak performance day:', error);
+      toast.error('Failed to fetch peak performance day');
     }
   };
 
   const fetchQualityScore = async () => {
     try {
-      const { data: allReports, error } = await supabase
-        .from('reports')
-        .select('report_data');
+      const { data, error } = await supabase.rpc('get_quality_score');
       
-      if (error) throw error;
-
-      let highImpactCount = 0;
-      const totalCount = allReports?.length || 0;
-
-      allReports?.forEach(report => {
-        const reportData = report.report_data as any;
-        const yearlyRevenueLost = reportData?.yearlyRevenueLost || 0;
-        const missedLeads = reportData?.missedLeads || 0;
-        
-        if (yearlyRevenueLost > 500000 || missedLeads > 1000) {
-          highImpactCount++;
-        }
-      });
-
-      const percentage = totalCount > 0 ? (highImpactCount / totalCount) * 100 : 0;
+      if (error) {
+        console.error('RPC error:', error);
+        toast.error('Failed to fetch quality score');
+        return;
+      }
 
       setQualityScore({
-        highImpactCount,
-        totalCount,
-        percentage: Math.round(percentage)
+        highImpactCount: (data as any)?.highImpactCount || 0,
+        totalCount: (data as any)?.totalCount || 0,
+        percentage: Math.round((data as any)?.percentage || 0)
       });
     } catch (error) {
       console.error('Error fetching quality score:', error);
+      toast.error('Failed to fetch quality score');
     }
   };
 
   const fetchTopRevenueDomain = async () => {
     try {
-      const { data: reports, error } = await supabase
-        .from('reports')
-        .select('domain, report_data, created_at')
-        .order('id', { ascending: false })
-        .limit(1000);
+      const { data, error } = await supabase.rpc('get_top_revenue_domain');
       
-      if (error) throw error;
+      if (error) {
+        console.error('RPC error:', error);
+        toast.error('Failed to fetch top revenue domain');
+        return;
+      }
 
-      let topDomain = { 
-        domain: '', 
-        yearlyRevenueLost: 0, 
-        monthlyRevenueLost: 0,
-        peakMonth: '',
-        peakYear: 0,
-        peakValue: 0,
-        recentMonth: '',
-        recentYear: 0,
-        recentValue: 0
-      };
+      if (!data || !data.domain) {
+        setTopRevenueDomain({ 
+          domain: '', 
+          yearlyRevenueLost: 0, 
+          monthlyRevenueLost: 0,
+          peakMonth: '',
+          peakYear: 0,
+          peakValue: 0,
+          recentMonth: '',
+          recentYear: 0,
+          recentValue: 0
+        });
+        return;
+      }
 
-      reports?.forEach(report => {
-        const reportData = report.report_data as any;
-        const yearlyRevenueLost = reportData?.yearlyRevenueLost || 0;
-        const monthlyRevenueLost = reportData?.monthlyRevenueLost || 0;
-        
-        if (yearlyRevenueLost > topDomain.yearlyRevenueLost) {
-          const monthlyData = reportData?.monthlyRevenueData || [];
-          
-          // Find peak month
-          let peakMonth = { month: '', year: 0, value: 0 };
-          monthlyData.forEach((data: any) => {
-            const revenueLost = data.revenueLost || data.lostRevenue || 0;
-            if (revenueLost > peakMonth.value) {
-              peakMonth = { month: data.month, year: data.year, value: revenueLost };
-            }
-          });
-          
-          // Use the report creation date for recent month
-          const reportDate = new Date(report.created_at);
-          const recentMonth = {
-            month: reportDate.getMonth() + 1, // JavaScript months are 0-indexed
-            year: reportDate.getFullYear(),
-            value: monthlyRevenueLost // Use the monthly average
-          };
-          
-          topDomain = {
-            domain: report.domain,
-            yearlyRevenueLost,
-            monthlyRevenueLost,
-            peakMonth: getMonthName(peakMonth.month),
-            peakYear: peakMonth.year,
-            peakValue: peakMonth.value,
-            recentMonth: getMonthName(recentMonth.month),
-            recentYear: recentMonth.year,
-            recentValue: recentMonth.value
-          };
+      // Process monthly data on client side to find peak and recent months
+      const monthlyData = (data.monthlyData as any) || [];
+      let peakMonth = { month: '', year: 0, value: 0 };
+      
+      monthlyData.forEach((item: any) => {
+        const revenueLost = item.revenueLost || item.lostRevenue || 0;
+        if (revenueLost > peakMonth.value) {
+          peakMonth = { month: item.month, year: item.year, value: revenueLost };
         }
       });
 
-      setTopRevenueDomain(topDomain);
+      // Use creation date for recent month
+      const reportDate = new Date((data as any).createdAt);
+      const recentMonth = {
+        month: reportDate.getMonth() + 1,
+        year: reportDate.getFullYear(),
+        value: (data as any).monthlyRevenueLost || 0
+      };
+
+      setTopRevenueDomain({
+        domain: (data as any).domain,
+        yearlyRevenueLost: (data as any).yearlyRevenueLost || 0,
+        monthlyRevenueLost: (data as any).monthlyRevenueLost || 0,
+        peakMonth: getMonthName(peakMonth.month),
+        peakYear: peakMonth.year,
+        peakValue: peakMonth.value,
+        recentMonth: getMonthName(recentMonth.month),
+        recentYear: recentMonth.year,
+        recentValue: recentMonth.value
+      });
     } catch (error) {
       console.error('Error fetching top revenue domain:', error);
+      toast.error('Failed to fetch top revenue domain');
     }
   };
 
   const fetchTopLeadsDomain = async () => {
     try {
-      const { data: reports, error } = await supabase
-        .from('reports')
-        .select('domain, report_data, created_at')
-        .order('id', { ascending: false })
-        .limit(1000);
+      const { data, error } = await supabase.rpc('get_top_leads_domain');
       
-      if (error) throw error;
+      if (error) {
+        console.error('RPC error:', error);
+        toast.error('Failed to fetch top leads domain');
+        return;
+      }
 
-      let topDomain = { 
-        domain: '', 
-        missedLeads: 0,
-        peakMonth: '',
-        peakYear: 0,
-        peakValue: 0,
-        recentMonth: '',
-        recentYear: 0,
-        recentValue: 0
-      };
+      if (!data || !data.domain) {
+        setTopLeadsDomain({ 
+          domain: '', 
+          missedLeads: 0,
+          peakMonth: '',
+          peakYear: 0,
+          peakValue: 0,
+          recentMonth: '',
+          recentYear: 0,
+          recentValue: 0
+        });
+        return;
+      }
 
-      reports?.forEach(report => {
-        const reportData = report.report_data as any;
-        const missedLeads = reportData?.missedLeads || 0;
-        
-        if (missedLeads > topDomain.missedLeads) {
-          const monthlyData = reportData?.monthlyRevenueData || [];
-          
-          // Find peak month
-          let peakMonth = { month: '', year: 0, value: 0 };
-          monthlyData.forEach((data: any) => {
-            const leads = data.missedLeads || 0;
-            if (leads > peakMonth.value) {
-              peakMonth = { month: data.month, year: data.year, value: leads };
-            }
-          });
-          
-          // Use the report creation date for recent month
-          const reportDate = new Date(report.created_at);
-          const avgMonthlyLeads = Math.round(missedLeads / 12); // Average monthly leads
-          const recentMonth = {
-            month: reportDate.getMonth() + 1, // JavaScript months are 0-indexed
-            year: reportDate.getFullYear(),
-            value: avgMonthlyLeads
-          };
-          
-          topDomain = {
-            domain: report.domain,
-            missedLeads,
-            peakMonth: getMonthName(peakMonth.month),
-            peakYear: peakMonth.year,
-            peakValue: peakMonth.value,
-            recentMonth: getMonthName(recentMonth.month),
-            recentYear: recentMonth.year,
-            recentValue: recentMonth.value
-          };
+      // Process monthly data on client side to find peak and recent months
+      const monthlyData = (data.monthlyData as any) || [];
+      let peakMonth = { month: '', year: 0, value: 0 };
+      
+      monthlyData.forEach((item: any) => {
+        const leads = item.missedLeads || 0;
+        if (leads > peakMonth.value) {
+          peakMonth = { month: item.month, year: item.year, value: leads };
         }
       });
 
-      setTopLeadsDomain(topDomain);
+      // Use creation date for recent month
+      const reportDate = new Date((data as any).createdAt);
+      const avgMonthlyLeads = Math.round(((data as any).missedLeads || 0) / 12);
+      const recentMonth = {
+        month: reportDate.getMonth() + 1,
+        year: reportDate.getFullYear(),
+        value: avgMonthlyLeads
+      };
+
+      setTopLeadsDomain({
+        domain: (data as any).domain,
+        missedLeads: (data as any).missedLeads || 0,
+        peakMonth: getMonthName(peakMonth.month),
+        peakYear: peakMonth.year,
+        peakValue: peakMonth.value,
+        recentMonth: getMonthName(recentMonth.month),
+        recentYear: recentMonth.year,
+        recentValue: recentMonth.value
+      });
     } catch (error) {
       console.error('Error fetching top leads domain:', error);
+      toast.error('Failed to fetch top leads domain');
     }
   };
 
 
   const fetchAverageDealSize = async () => {
     try {
-      const { data: reports, error } = await supabase
-        .from('reports')
-        .select('report_data');
+      const { data, error } = await supabase.rpc('get_average_deal_size');
       
-      if (error) throw error;
-
-      const revenues: number[] = [];
-      reports?.forEach(report => {
-        const reportData = report.report_data as any;
-        const yearlyRevenueLost = reportData?.yearlyRevenueLost || 0;
-        if (yearlyRevenueLost > 0) {
-          revenues.push(yearlyRevenueLost);
-        }
-      });
-
-      const avgDealSize = revenues.length > 0 
-        ? revenues.reduce((sum, val) => sum + val, 0) / revenues.length 
-        : 0;
-
-      const sortedRevenues = [...revenues].sort((a, b) => a - b);
-      const medianDealSize = sortedRevenues.length > 0
-        ? sortedRevenues[Math.floor(sortedRevenues.length / 2)]
-        : 0;
+      if (error) {
+        console.error('RPC error:', error);
+        toast.error('Failed to fetch average deal size');
+        return;
+      }
 
       setAvgDealSize({
-        avgDealSize: Math.round(avgDealSize),
-        medianDealSize: Math.round(medianDealSize)
+        avgDealSize: Math.round((data as any)?.avgDealSize || 0),
+        medianDealSize: Math.round((data as any)?.medianDealSize || 0)
       });
     } catch (error) {
       console.error('Error fetching average deal size:', error);
+      toast.error('Failed to fetch average deal size');
     }
   };
 
@@ -1181,189 +1069,74 @@ const AdminDashboard = () => {
 
   const fetchTotalMarketOpportunity = async () => {
     try {
-      const { data: allReports, error } = await supabase
-        .from('reports')
-        .select('report_data');
+      const { data, error } = await supabase.rpc('get_total_market_opportunity');
       
-      if (error) throw error;
-
-      let totalOpportunity = 0;
-      let activeProspects = 0;
-
-      allReports?.forEach(report => {
-        const reportData = report.report_data as any;
-        const yearlyRevenueLost = reportData?.yearlyRevenueLost || 0;
-        if (yearlyRevenueLost > 0) {
-          totalOpportunity += yearlyRevenueLost;
-          activeProspects++;
-        }
-      });
-
-      const avgPerProspect = activeProspects > 0 ? totalOpportunity / activeProspects : 0;
+      if (error) {
+        console.error('RPC error:', error);
+        toast.error('Failed to fetch total market opportunity');
+        return;
+      }
 
       setMarketOpportunity({
-        totalOpportunity: Math.round(totalOpportunity),
-        activeProspects,
-        avgPerProspect: Math.round(avgPerProspect)
+        totalOpportunity: Math.round((data as any)?.totalOpportunity || 0),
+        activeProspects: (data as any)?.activeProspects || 0,
+        avgPerProspect: Math.round((data as any)?.avgPerProspect || 0)
       });
     } catch (error) {
       console.error('Error fetching total market opportunity:', error);
+      toast.error('Failed to fetch total market opportunity');
     }
   };
 
   const fetchChartData = async (period: 'weekly' | 'monthly' | 'yearly') => {
     try {
-      // First, get all reports with report_data
-      const {
-        data: allReports,
-        error: reportsError
-      } = await supabase.from('reports').select('created_at, user_id, report_data').order('created_at', {
-        ascending: true
-      });
-      if (reportsError) throw reportsError;
+      const { data, error } = await supabase.rpc('get_chart_data', { period });
+      
+      if (error) {
+        console.error('RPC error:', error);
+        toast.error('Failed to fetch chart data');
+        return;
+      }
 
-      // Then, get all user roles
-      const {
-        data: userRoles,
-        error: rolesError
-      } = await supabase.from('user_roles').select('user_id, role');
-      if (rolesError) throw rolesError;
-
-      // Create a map of user_id to role for quick lookup
-      const roleMap = new Map<string, string>();
-      userRoles?.forEach(ur => {
-        roleMap.set(ur.user_id, ur.role);
-      });
-      const now = new Date();
-      let startDate: Date;
+      // Data comes as JSONB array, need to format dates for display
       let dateFormat: (date: Date) => string;
-      let periods: number;
-      let incrementType: 'day' | 'month';
-
-      // Configure based on time period
+      
       switch (period) {
         case 'weekly':
-          startDate = new Date(now);
-          startDate.setDate(startDate.getDate() - 7);
-          periods = 8;
-          incrementType = 'day';
           dateFormat = date => date.toLocaleDateString('en-US', {
             weekday: 'short',
             day: 'numeric'
           });
           break;
         case 'yearly':
-          startDate = new Date(now);
-          startDate.setMonth(startDate.getMonth() - 12);
-          periods = 13;
-          incrementType = 'month';
           dateFormat = date => date.toLocaleDateString('en-US', {
             month: 'short',
             year: '2-digit'
           });
           break;
         default:
-          // monthly
-          startDate = new Date(now);
-          startDate.setDate(startDate.getDate() - 30);
-          periods = 31;
-          incrementType = 'day';
           dateFormat = date => date.toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric'
           });
       }
-      
-      // Normalize to local midnight for daily/weekly/monthly periods
-      if (incrementType === 'day') {
-        startDate.setHours(0, 0, 0, 0);
-      }
-      
-      const dateMap = new Map<string, {
-        admin: number;
-        nonAdmin: number;
-        revenueLoss: number;
-      }>();
 
-      // Initialize all periods with 0
-      for (let i = 0; i < periods; i++) {
-        const date = new Date(startDate);
-        if (incrementType === 'day') {
-          date.setDate(date.getDate() + i);
-        } else {
-          date.setMonth(date.getMonth() + i);
-        }
-        // Use local date components instead of UTC
-        const dateStr = period === 'yearly' 
-          ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` 
-          : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        dateMap.set(dateStr, {
-          admin: 0,
-          nonAdmin: 0,
-          revenueLoss: 0
-        });
-      }
-
-      // Count reports for each period, separating admin vs non-admin and revenue loss
-      allReports?.forEach(report => {
-        // Parse UTC timestamp - Date methods automatically return local timezone values
-        const reportDate = new Date(report.created_at);
-        
-        let key: string;
-        if (period === 'yearly') {
-          // Use local month/year
-          key = `${reportDate.getFullYear()}-${String(reportDate.getMonth() + 1).padStart(2, '0')}`;
-        } else {
-          // Use local date in YYYY-MM-DD format
-          key = `${reportDate.getFullYear()}-${String(reportDate.getMonth() + 1).padStart(2, '0')}-${String(reportDate.getDate()).padStart(2, '0')}`;
-        }
-        if (dateMap.has(key)) {
-          const current = dateMap.get(key)!;
-
-          // Check if user is admin or super_admin
-          const userRole = report.user_id ? roleMap.get(report.user_id) : null;
-          const isAdmin = userRole === 'admin' || userRole === 'super_admin';
-
-          // Check if report has revenue loss
-          const reportData = report.report_data as any;
-          const hasRevenueLoss = (reportData?.monthlyRevenueLost || 0) > 0 || (reportData?.yearlyRevenueLost || 0) > 0;
-          if (isAdmin) {
-            current.admin += 1;
-          } else {
-            current.nonAdmin += 1;
-          }
-          if (hasRevenueLoss) {
-            current.revenueLoss += 1;
-          }
-          dateMap.set(key, current);
-        }
-      });
-
-      // Convert to chart format
-      const chartData: ChartDataPoint[] = Array.from(dateMap.entries()).map(([dateKey, counts]) => {
-        let displayDate: string;
-        if (period === 'yearly') {
-          const [year, month] = dateKey.split('-');
-          const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-          displayDate = dateFormat(date);
-        } else {
-          // Parse dateKey as local date components (not UTC)
-          const [y, m, d] = dateKey.split('-').map(Number);
-          const localDate = new Date(y, m - 1, d);
-          displayDate = dateFormat(localDate);
-        }
+      const chartData: ChartDataPoint[] = ((data as any) || []).map((item: any) => {
+        const date = new Date(item.date);
         return {
-          date: displayDate,
-          adminReports: counts.admin,
-          nonAdminReports: counts.nonAdmin,
-          revenueLineReports: counts.revenueLoss,
-          total: counts.admin + counts.nonAdmin
+          date: dateFormat(date),
+          adminReports: item.adminReports || 0,
+          nonAdminReports: item.nonAdminReports || 0,
+          revenueLineReports: item.revenueLineReports || 0,
+          total: (item.adminReports || 0) + (item.nonAdminReports || 0)
         };
       });
+
       setChartData(chartData);
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching chart data:', error);
+      toast.error('Failed to fetch chart data');
     }
   };
 

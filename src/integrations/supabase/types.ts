@@ -776,6 +776,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_average_deal_size: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_chart_data: {
+        Args: { period?: string }
+        Returns: Json
+      }
       get_crm_metrics: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -830,6 +838,30 @@ export type Database = {
           contact_count: number
           domain: string
         }[]
+      }
+      get_peak_performance_day: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_quality_score: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_top_leads_domain: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_top_revenue_domain: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_total_market_opportunity: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_views_chart_data: {
+        Args: { period?: string }
+        Returns: Json
       }
       is_admin: {
         Args: { user_uuid?: string }
