@@ -98,25 +98,38 @@ Deno.serve(async (req) => {
 
     // Release stale locks (older than 10 minutes)
     console.log('\n🔓 Releasing stale locks...');
+    
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+
+    // First, update status for enriching prospects
+    const { data: enrichingUpdated, error: enrichingError } = await supabase
+      .from('prospect_activities')
+      .update({ status: 'review' })
+      .eq('status', 'enriching')
+      .lt('enrichment_locked_at', tenMinutesAgo)
+      .select('id');
+
+    if (enrichingError) {
+      console.error('❌ Error updating enriching prospects:', enrichingError);
+    }
+
+    // Then, release ALL stale locks
     const { data: locksReleased, error: lockError } = await supabase
       .from('prospect_activities')
       .update({
         enrichment_locked_at: null,
         enrichment_locked_by: null,
-        status: supabase.raw(`
-          CASE 
-            WHEN status = 'enriching' THEN 'review'
-            ELSE status
-          END
-        `),
       })
-      .lt('enrichment_locked_at', new Date(Date.now() - 10 * 60 * 1000).toISOString())
+      .lt('enrichment_locked_at', tenMinutesAgo)
       .select('id');
 
     if (lockError) {
       console.error('❌ Error releasing locks:', lockError);
     } else {
       console.log(`✅ Released ${locksReleased?.length || 0} stale locks`);
+      if (enrichingUpdated) {
+        console.log(`✅ Moved ${enrichingUpdated.length} enriching prospects to review`);
+      }
     }
 
     return new Response(
