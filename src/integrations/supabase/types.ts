@@ -789,28 +789,14 @@ export type Database = {
         Returns: Json
       }
       get_crm_prospects_with_stats: {
-        Args:
-          | {
-              p_assigned_filter?: string
-              p_lead_source?: string
-              p_limit?: number
-              p_offset?: number
-              p_status_filter?: string[]
-              p_view?: string
-            }
-          | {
-              p_assigned_filter?: string
-              p_limit?: number
-              p_offset?: number
-              p_status_filter?: string[]
-            }
-          | {
-              p_assigned_filter?: string
-              p_limit?: number
-              p_offset?: number
-              p_status_filter?: string[]
-              p_view?: string
-            }
+        Args: {
+          p_assigned_filter?: string
+          p_lead_source?: string
+          p_limit?: number
+          p_offset?: number
+          p_status_filter?: string[]
+          p_view?: string
+        }
         Returns: {
           assigned_to: string
           company_name: string
