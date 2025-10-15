@@ -60,12 +60,14 @@ interface CRMTableViewProps {
   compact?: boolean;
   view?: 'warm-inbound' | 'new-prospects' | 'needs-enrichment' | 'ready-outreach' | 'active' | 'closed' | 'needs-review' | 'interested' | 'missing-emails';
   externalStatusFilter?: string | null;
+  resumeJobId?: string | null;
+  onJobResumed?: () => void;
 }
 
 type SortKey = 'domain' | 'monthlyRevenue' | 'trafficTier' | 'priority' | 'status';
 type SortDirection = 'asc' | 'desc';
 
-export default function CRMTableView({ onSelectProspect, compact = false, view = 'new-prospects', externalStatusFilter = null }: CRMTableViewProps) {
+export default function CRMTableView({ onSelectProspect, compact = false, view = 'new-prospects', externalStatusFilter = null, resumeJobId = null, onJobResumed }: CRMTableViewProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { refreshProspects: triggerRealtimeRefresh } = useCRMRealtime();
@@ -172,6 +174,14 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       validateEmailContacts();
     }
   }, [view]);
+
+  // Resume enrichment job when resumeJobId is provided
+  useEffect(() => {
+    if (resumeJobId) {
+      resumeEnrichmentJob(resumeJobId);
+      onJobResumed?.();
+    }
+  }, [resumeJobId]);
 
   const validateEmailContacts = async () => {
     try {
@@ -486,6 +496,60 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     } finally {
       setUpdatingId(null);
       setPendingStatusUpdate(null);
+    }
+  };
+
+  const resumeEnrichmentJob = async (jobId: string) => {
+    console.log('📋 Resuming enrichment job:', jobId);
+    
+    try {
+      // Load current job items from database
+      const { data: items, error: itemsError } = await supabase
+        .from('enrichment_job_items')
+        .select('*')
+        .eq('job_id', jobId);
+      
+      if (itemsError) {
+        console.error('Error loading job items:', itemsError);
+        toast.error('Failed to resume enrichment job');
+        return;
+      }
+
+      // Load job details
+      const { data: jobData, error: jobError } = await supabase
+        .from('enrichment_jobs')
+        .select('*')
+        .eq('id', jobId)
+        .single();
+      
+      if (jobError) {
+        console.error('Error loading job:', jobError);
+        return;
+      }
+
+      console.log('✅ Loaded job:', jobData, 'with', items?.length, 'items');
+      
+      // Populate progress map with current state
+      const progressMap = new Map();
+      items?.forEach(item => {
+        progressMap.set(item.prospect_id, {
+          prospectId: item.prospect_id,
+          domain: item.domain,
+          status: item.status,
+          contactsFound: item.contacts_found,
+          error: item.error_message,
+        });
+      });
+      
+      setEnrichmentProgress(progressMap);
+      setCurrentJobId(jobId);
+      setShowEnrichmentProgress(true);
+      
+      toast.success(`Resumed enrichment (${jobData.processed_count}/${jobData.total_count} complete)`);
+      
+    } catch (error) {
+      console.error('Error resuming job:', error);
+      toast.error('Failed to resume enrichment job');
     }
   };
 

@@ -16,10 +16,17 @@ export default function CRMDashboard() {
   const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails">("needs-review");
   const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
   const [pipelineStatusFilter, setPipelineStatusFilter] = useState<string | null>(null);
+  const [resumedJobId, setResumedJobId] = useState<string | null>(null);
 
   const handlePipelineClick = (status: string) => {
     // Toggle filter - click same status to clear
     setPipelineStatusFilter(prev => prev === status ? null : status);
+  };
+
+  const handleResumeEnrichment = (jobId: string) => {
+    setResumedJobId(jobId);
+    // Switch to needs-enrichment view to show the table with resume capability
+    setSelectedView("needs-enrichment");
   };
 
   return (
@@ -33,7 +40,7 @@ export default function CRMDashboard() {
             />
             
             <main className="flex-1 flex flex-col">
-              <CRMHeader />
+              <CRMHeader onResumeEnrichment={handleResumeEnrichment} />
               
               <div className="container mx-auto px-4 py-6 max-w-[2000px]">
                 {selectedView === "warm-inbound" && (
@@ -75,6 +82,8 @@ export default function CRMDashboard() {
                       onSelectProspect={setSelectedProspectId}
                       compact={false}
                       view="needs-enrichment"
+                      resumeJobId={resumedJobId}
+                      onJobResumed={() => setResumedJobId(null)}
                     />
                   </>
                 )}

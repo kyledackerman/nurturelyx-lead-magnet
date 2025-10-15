@@ -2,8 +2,13 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import ActiveEnrichmentJobsIndicator from "./ActiveEnrichmentJobsIndicator";
 
-export default function CRMHeader() {
+interface CRMHeaderProps {
+  onResumeEnrichment?: (jobId: string) => void;
+}
+
+export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
   const navigate = useNavigate();
 
   return (
@@ -19,15 +24,21 @@ export default function CRMHeader() {
               </p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/admin")}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Admin
-          </Button>
+          
+          <div className="flex items-center gap-2">
+            {onResumeEnrichment && (
+              <ActiveEnrichmentJobsIndicator onResumeJob={onResumeEnrichment} />
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/admin")}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Admin
+            </Button>
+          </div>
         </div>
       </div>
     </div>
