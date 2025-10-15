@@ -361,15 +361,16 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
     const contactsWithEmail = contacts.filter((c: any) => c.email && c.email.trim() !== '');
     const hasValidContacts = contactsWithEmail.length > 0;
 
-    // Only mark as "enriched" if we have email contacts, otherwise "review"
-    const newStatus = hasValidContacts && ["new", "needs_review", "enriching"].includes(prospect.status)
-      ? "enriched"
+    // DON'T mark as "enriched" yet - wait for icebreaker to complete
+    // Keep as "enriching" until icebreaker is generated
+    const tempStatus = hasValidContacts && ["new", "needs_review", "enriching"].includes(prospect.status)
+      ? "enriching"  // Keep enriching until icebreaker is done
       : "review";
     
     await supabase
       .from("prospect_activities")
       .update({
-        status: newStatus,
+        status: tempStatus,
         enrichment_source: "manual_ai",
       })
       .eq("id", prospect_id);
@@ -421,6 +422,17 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
 
           if (icebreakerError) {
             console.error('❌ Error generating icebreaker:', icebreakerError);
+            
+            // If icebreaker fails, move to review with note
+            await supabase
+              .from("prospect_activities")
+              .update({ 
+                status: "review",
+                notes: "Enrichment complete but icebreaker generation failed. Please review manually."
+              })
+              .eq("id", prospect_id);
+            
+            console.log('⚠️ Icebreaker failed - moved prospect to review');
           } else {
             console.log('✅ Icebreaker generated successfully in background');
             
@@ -434,11 +446,11 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
             
             const hasEmails = emailContacts && emailContacts.length > 0;
             
-            // Update status to review after icebreaker is done, and populate enrichment_status
+            // NOW mark as "enriched" - icebreaker is generated successfully
             await supabase
               .from("prospect_activities")
               .update({ 
-                status: "review",
+                status: "enriched",  // Only mark enriched when EVERYTHING is done
                 enrichment_status: {
                   has_company_info: companyNameUpdated,
                   has_contacts: contactsInserted > 0,
@@ -450,6 +462,8 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
                 }
               })
               .eq("id", prospect_id);
+            
+            console.log(`✅ Prospect fully enriched with icebreaker - status set to 'enriched'`);
           }
         } catch (error) {
           console.error('❌ Background icebreaker generation failed:', error);

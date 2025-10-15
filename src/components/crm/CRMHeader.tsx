@@ -49,6 +49,36 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
     }
   };
 
+  const handleRegenerateIcebreakers = async () => {
+    const confirmed = window.confirm(
+      "Generate icebreakers for all enriched prospects that are missing them?"
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      toast.loading("Regenerating icebreakers...");
+      const { data, error } = await supabase.functions.invoke('regenerate-icebreakers');
+      
+      if (error) throw error;
+      
+      if (data.count === 0) {
+        toast.success("No prospects need icebreaker generation");
+      } else {
+        toast.success(`✅ Generated ${data.successCount} of ${data.total} icebreakers`);
+        if (data.failedCount > 0) {
+          toast.warning(`⚠️ ${data.failedCount} failed`);
+        }
+      }
+      
+      // Refresh after 1 second
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      console.error('Error regenerating icebreakers:', error);
+      toast.error("Failed to regenerate icebreakers");
+    }
+  };
+
   return (
     <div className="sticky top-0 z-10 border-b bg-background">
       <div className="container mx-auto px-4 py-4">
@@ -67,6 +97,14 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
             {onResumeEnrichment && (
               <ActiveEnrichmentJobsIndicator onResumeJob={onResumeEnrichment} />
             )}
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleRegenerateIcebreakers}
+              className="gap-2"
+            >
+              🧊 Generate Icebreakers
+            </Button>
             <Button
               variant="destructive"
               size="sm"
