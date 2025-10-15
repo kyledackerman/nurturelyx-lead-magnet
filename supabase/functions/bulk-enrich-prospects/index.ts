@@ -205,34 +205,97 @@ serve(async (req) => {
             const { content: scrapedData, socialLinks } = await scrapeWebsite(domain);
 
             if (!scrapedData || scrapedData.length === 0) {
-              if (enrichmentJobId) {
-                await supabase
-                  .from('enrichment_job_items')
-                  .update({ 
-                    status: 'failed',
-                    error_message: 'Could not access website',
+              console.log(`⚠️ Scraping failed for ${domain}, attempting Google Search fallback...`);
+              
+              // Try Google Search for emails as fallback
+              const foundEmails = await googleSearchEmails(domain, currentCompanyName, lovableApiKey);
+              
+              if (foundEmails.length > 0) {
+                // SUCCESS with fallback - create contacts from emails
+                const contactsToInsert = foundEmails.map((email: string) => ({
+                  prospect_activity_id: prospectId,
+                  report_id: prospect.report_id,
+                  first_name: "Office",
+                  email: email,
+                  title: "Contact Found via Search",
+                  notes: "Email found via Google Search (website scraping blocked)",
+                  is_primary: false,
+                }));
+
+                await supabase.from("prospect_contacts").insert(contactsToInsert);
+                
+                // Update to enriched with fallback source
+                await supabase.from("prospect_activities").update({
+                  status: "enriched",
+                  enrichment_source: 'google_search_only',
+                  enrichment_retry_count: 0,
+                  last_enrichment_attempt: new Date().toISOString()
+                }).eq("id", prospectId);
+                
+                // Update job item
+                if (enrichmentJobId) {
+                  await supabase.from('enrichment_job_items').update({ 
+                    status: 'completed',
+                    contacts_found: foundEmails.length,
                     completed_at: new Date().toISOString()
-                  })
-                  .eq('job_id', enrichmentJobId)
-                  .eq('prospect_id', prospectId);
+                  }).eq('job_id', enrichmentJobId).eq('prospect_id', prospectId);
+                }
+                
+                controller.enqueue(
+                  encoder.encode(
+                    `data: ${JSON.stringify({ 
+                      type: "success", 
+                      prospectId, 
+                      domain,
+                      status: "enriched",
+                      contacts: foundEmails.length,
+                      message: `✅ Enriched via Google Search: Found ${foundEmails.length} email(s). Website scraping was blocked.`
+                    })}\n\n`
+                  )
+                );
+                
+                successCount++;
+                continue;
+              }
+              
+              // BOTH methods failed - increment retry count and possibly move to review
+              const currentRetryCount = prospect.enrichment_retry_count || 0;
+              const newRetryCount = currentRetryCount + 1;
+              const shouldMoveToReview = newRetryCount >= 2;
+              
+              const newStatus = shouldMoveToReview ? "review" : prospect.status;
+              const errorNote = shouldMoveToReview 
+                ? `⚠️ Enrichment failed after ${newRetryCount} attempts. Moved to review queue - website may be blocked or inaccessible.`
+                : `⚠️ Enrichment attempt ${newRetryCount} failed. Will retry later.`;
+              
+              await supabase.from("prospect_activities").update({
+                status: newStatus,
+                enrichment_retry_count: newRetryCount,
+                last_enrichment_attempt: new Date().toISOString()
+              }).eq("id", prospectId);
+              
+              if (enrichmentJobId) {
+                await supabase.from('enrichment_job_items').update({ 
+                  status: 'failed',
+                  error_message: `Could not access website (attempt ${newRetryCount})${shouldMoveToReview ? ' - Moved to review' : ''}`,
+                  completed_at: new Date().toISOString()
+                }).eq('job_id', enrichmentJobId).eq('prospect_id', prospectId);
               }
               
               controller.enqueue(
                 encoder.encode(
                   `data: ${JSON.stringify({ 
-                    type: "error", 
+                    type: shouldMoveToReview ? "moved_to_review" : "error", 
                     prospectId, 
                     domain,
-                    status: "failed",
-                    error: "Could not access website" 
+                    status: newStatus,
+                    retryCount: newRetryCount,
+                    error: shouldMoveToReview 
+                      ? `Moved to review after ${newRetryCount} failures` 
+                      : `Could not access website (attempt ${newRetryCount})`
                   })}\n\n`
                 )
               );
-              
-              await supabase
-                .from("prospect_activities")
-                .update({ status: prospect.status })
-                .eq("id", prospectId);
               
               failureCount++;
               continue;
