@@ -87,11 +87,39 @@ Deno.serve(async (req) => {
 
     console.log(`[Fix Transaction Values] Starting fix for job ${jobId} with multiplier ${multiplier}`);
 
-    // Get all reports from this import job
+    // Step 1: Get the import job to find its timestamp
+    const { data: importJob, error: jobError } = await supabase
+      .from('import_jobs')
+      .select('created_at, started_at, completed_at')
+      .eq('id', jobId)
+      .single();
+
+    if (jobError || !importJob) {
+      console.error('[Fix Transaction Values] Import job not found:', jobError);
+      return new Response(
+        JSON.stringify({ error: 'Import job not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Step 2: Find reports created during this import's time window
+    const jobStartTime = new Date(importJob.started_at || importJob.created_at);
+    const jobEndTime = importJob.completed_at 
+      ? new Date(importJob.completed_at)
+      : new Date(jobStartTime.getTime() + 3600000); // +1 hour if not completed
+
+    const timeWindowStart = new Date(jobStartTime.getTime() - 300000); // -5 min buffer
+    const timeWindowEnd = new Date(jobEndTime.getTime() + 300000); // +5 min buffer
+
+    console.log(`[Fix Transaction Values] Looking for reports between ${timeWindowStart.toISOString()} and ${timeWindowEnd.toISOString()}`);
+
+    // Step 3: Query reports by creation time and lead_source
     const { data: reports, error: reportsError } = await supabase
       .from('reports')
-      .select('id, domain, report_data, import_source')
-      .eq('import_source', jobId);
+      .select('id, domain, report_data, created_at')
+      .gte('created_at', timeWindowStart.toISOString())
+      .lte('created_at', timeWindowEnd.toISOString())
+      .eq('lead_source', 'import');
 
     if (reportsError) {
       console.error('[Fix Transaction Values] Error fetching reports:', reportsError);
@@ -100,7 +128,7 @@ Deno.serve(async (req) => {
 
     if (!reports || reports.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No reports found for this import job', fixed: 0 }),
+        JSON.stringify({ error: 'No reports found for this import job time window', fixed: 0 }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
