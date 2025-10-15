@@ -135,9 +135,8 @@ export default function ContactsSection({ prospectActivityId, reportId, companyN
     try {
       const { data: user } = await supabase.auth.getUser();
 
-      const contactData = {
-        prospect_activity_id: prospectActivityId,
-        report_id: reportId,
+      // Editable fields only (used for both insert and update)
+      const editableData = {
         first_name: firstName.trim(),
         last_name: lastName.trim() || null,
         email: email.trim() || null,
@@ -146,14 +145,13 @@ export default function ContactsSection({ prospectActivityId, reportId, companyN
         linkedin_url: linkedinUrl.trim() || null,
         notes: notes.trim() || null,
         is_primary: isPrimary,
-        created_by: user.user?.id,
       };
 
       if (editingContact) {
-        // Update existing contact
+        // Update existing contact - only editable fields
         const { error } = await supabase
           .from("prospect_contacts")
-          .update(contactData)
+          .update(editableData)
           .eq("id", editingContact.id);
 
         if (error) throw error;
@@ -166,10 +164,17 @@ export default function ContactsSection({ prospectActivityId, reportId, companyN
 
         toast.success("Contact updated");
       } else {
-        // Create new contact
+        // Create new contact - editable fields + immutable fields
+        const insertData = {
+          ...editableData,
+          prospect_activity_id: prospectActivityId,
+          report_id: reportId,
+          created_by: user.user?.id,
+        };
+
         const { error } = await supabase
           .from("prospect_contacts")
-          .insert(contactData);
+          .insert(insertData);
 
         if (error) throw error;
 
