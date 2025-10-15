@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import ActiveEnrichmentJobsIndicator from "./ActiveEnrichmentJobsIndicator";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface CRMHeaderProps {
   onResumeEnrichment?: (jobId: string) => void;
@@ -10,6 +12,19 @@ interface CRMHeaderProps {
 
 export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
   const navigate = useNavigate();
+
+  const handleCleanupStuckJobs = async () => {
+    try {
+      const { error } = await supabase.functions.invoke('cleanup-stuck-enrichment-jobs');
+      
+      if (error) throw error;
+      
+      toast.success("Stuck enrichment jobs cleaned up");
+    } catch (error) {
+      console.error('Error cleaning up stuck jobs:', error);
+      toast.error("Failed to clean up stuck jobs");
+    }
+  };
 
   return (
     <div className="sticky top-0 z-10 border-b bg-background">
@@ -29,6 +44,15 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
             {onResumeEnrichment && (
               <ActiveEnrichmentJobsIndicator onResumeJob={onResumeEnrichment} />
             )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCleanupStuckJobs}
+              className="gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Clean Up Stuck Jobs</span>
+            </Button>
             <Button
               variant="ghost"
               size="sm"

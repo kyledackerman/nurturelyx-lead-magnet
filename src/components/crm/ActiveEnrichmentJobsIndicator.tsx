@@ -55,7 +55,16 @@ export default function ActiveEnrichmentJobsIndicator({ onResumeJob }: ActiveEnr
         .order('started_at', { ascending: false });
 
       if (error) throw error;
-      setActiveJobs(data || []);
+      
+      // Filter out stuck jobs (older than 15 minutes with no progress)
+      const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+      const recentJobs = (data || []).filter(job => {
+        const hasRecentActivity = job.started_at > fifteenMinutesAgo;
+        const hasProgress = job.processed_count > 0;
+        return hasRecentActivity || hasProgress;
+      });
+      
+      setActiveJobs(recentJobs);
     } catch (error) {
       console.error('Error fetching active jobs:', error);
     } finally {
