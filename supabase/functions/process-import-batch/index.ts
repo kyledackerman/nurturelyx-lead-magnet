@@ -550,21 +550,25 @@ Deno.serve(async (req) => {
           .eq('report_id', report!.id)
           .maybeSingle();
 
-        if (!existingActivity) {
+        // Only create prospect_activity if there are missed leads (no zero-lead spam)
+        if (!existingActivity && metrics.missedLeads > 0) {
           await supabaseClient
             .from('prospect_activities')
             .insert({
               report_id: report!.id,
               status: 'new',
               activity_type: 'note',
-              notes: 'Bulk imported - awaiting AI enrichment',
-              priority: 'cold',
+              notes: `Bulk imported - ${metrics.missedLeads} leads/month detected`,
+              priority: metrics.missedLeads >= 1000 ? 'hot' : 
+                        metrics.missedLeads >= 500 ? 'warm' : 'cold',
               lead_source: 'import',
               created_by: job.created_by,
               assigned_to: job.created_by,
               assigned_by: job.created_by,
               assigned_at: new Date().toISOString(),
             });
+        } else if (!existingActivity && metrics.missedLeads === 0) {
+          console.log(`[ROW ${rowNum}] ⊘ Skipping CRM entry for ${cleanedDomain}: 0 missed leads (report saved for SEO only)`);
         }
 
         successCount++;

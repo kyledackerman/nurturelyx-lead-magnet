@@ -109,6 +109,18 @@ serve(async (req) => {
     const missedLeads = Number(reportData?.missedLeads) || 0;
     const monthlyRevenue = reportData?.monthlyRevenueLost || 0;
     
+    // Prevent adding prospects with zero lead potential
+    if (missedLeads === 0) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Cannot add to CRM: This domain has 0 missed leads',
+          leadPotential: false,
+          missedLeads: 0
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     let priority = 'cold';
     if (missedLeads >= 1000) {
       priority = 'hot';
