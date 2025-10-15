@@ -839,7 +839,9 @@ const AdminDashboard = () => {
         return;
       }
 
-      if (!data || !data.domain) {
+      const result = data as any;
+
+      if (!result || !result.domain) {
         setTopRevenueDomain({ 
           domain: '', 
           yearlyRevenueLost: 0, 
@@ -855,7 +857,7 @@ const AdminDashboard = () => {
       }
 
       // Process monthly data on client side to find peak and recent months
-      const monthlyData = (data.monthlyData as any) || [];
+      const monthlyData = result.monthlyData || [];
       let peakMonth = { month: '', year: 0, value: 0 };
       
       monthlyData.forEach((item: any) => {
@@ -866,17 +868,17 @@ const AdminDashboard = () => {
       });
 
       // Use creation date for recent month
-      const reportDate = new Date((data as any).createdAt);
+      const reportDate = new Date(result.createdAt);
       const recentMonth = {
         month: reportDate.getMonth() + 1,
         year: reportDate.getFullYear(),
-        value: (data as any).monthlyRevenueLost || 0
+        value: result.monthlyRevenueLost || 0
       };
 
       setTopRevenueDomain({
-        domain: (data as any).domain,
-        yearlyRevenueLost: (data as any).yearlyRevenueLost || 0,
-        monthlyRevenueLost: (data as any).monthlyRevenueLost || 0,
+        domain: result.domain,
+        yearlyRevenueLost: result.yearlyRevenueLost || 0,
+        monthlyRevenueLost: result.monthlyRevenueLost || 0,
         peakMonth: getMonthName(peakMonth.month),
         peakYear: peakMonth.year,
         peakValue: peakMonth.value,
@@ -900,7 +902,9 @@ const AdminDashboard = () => {
         return;
       }
 
-      if (!data || !data.domain) {
+      const result = data as any;
+
+      if (!result || !result.domain) {
         setTopLeadsDomain({ 
           domain: '', 
           missedLeads: 0,
@@ -915,7 +919,7 @@ const AdminDashboard = () => {
       }
 
       // Process monthly data on client side to find peak and recent months
-      const monthlyData = (data.monthlyData as any) || [];
+      const monthlyData = result.monthlyData || [];
       let peakMonth = { month: '', year: 0, value: 0 };
       
       monthlyData.forEach((item: any) => {
@@ -926,8 +930,8 @@ const AdminDashboard = () => {
       });
 
       // Use creation date for recent month
-      const reportDate = new Date((data as any).createdAt);
-      const avgMonthlyLeads = Math.round(((data as any).missedLeads || 0) / 12);
+      const reportDate = new Date(result.createdAt);
+      const avgMonthlyLeads = Math.round((result.missedLeads || 0) / 12);
       const recentMonth = {
         month: reportDate.getMonth() + 1,
         year: reportDate.getFullYear(),
@@ -935,8 +939,8 @@ const AdminDashboard = () => {
       };
 
       setTopLeadsDomain({
-        domain: (data as any).domain,
-        missedLeads: (data as any).missedLeads || 0,
+        domain: result.domain,
+        missedLeads: result.missedLeads || 0,
         peakMonth: getMonthName(peakMonth.month),
         peakYear: peakMonth.year,
         peakValue: peakMonth.value,
