@@ -298,6 +298,19 @@ serve(async (req) => {
                 );
                 
                 successCount++;
+                
+                // Phase 2: Incremental progress update
+                if (enrichmentJobId) {
+                  await supabase
+                    .from('enrichment_jobs')
+                    .update({
+                      processed_count: successCount + failureCount,
+                      success_count: successCount,
+                      failed_count: failureCount,
+                    })
+                    .eq('id', enrichmentJobId);
+                }
+                
                 continue;
               }
               
@@ -344,6 +357,19 @@ serve(async (req) => {
               );
               
               failureCount++;
+              
+              // Phase 2: Incremental progress update
+              if (enrichmentJobId) {
+                await supabase
+                  .from('enrichment_jobs')
+                  .update({
+                    processed_count: successCount + failureCount,
+                    success_count: successCount,
+                    failed_count: failureCount,
+                  })
+                  .eq('id', enrichmentJobId);
+              }
+              
               continue;
             }
             
@@ -516,6 +542,19 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
                 .eq("id", prospectId);
               
               failureCount++;
+              
+              // Phase 2: Incremental progress update
+              if (enrichmentJobId) {
+                await supabase
+                  .from('enrichment_jobs')
+                  .update({
+                    processed_count: successCount + failureCount,
+                    success_count: successCount,
+                    failed_count: failureCount,
+                  })
+                  .eq('id', enrichmentJobId);
+              }
+              
               continue;
             }
 
@@ -792,6 +831,16 @@ Now search the web and write the icebreaker:
                 })
                 .eq('job_id', enrichmentJobId)
                 .eq('prospect_id', prospectId);
+              
+              // Phase 2: Incremental progress update
+              await supabase
+                .from('enrichment_jobs')
+                .update({
+                  processed_count: successCount + failureCount,
+                  success_count: successCount,
+                  failed_count: failureCount,
+                })
+                .eq('id', enrichmentJobId);
             }
             
             controller.enqueue(
@@ -841,6 +890,18 @@ Now search the web and write the icebreaker:
               )
             );
             failureCount++;
+            
+            // Phase 2: Incremental progress update
+            if (enrichmentJobId) {
+              await supabase
+                .from('enrichment_jobs')
+                .update({
+                  processed_count: successCount + failureCount,
+                  success_count: successCount,
+                  failed_count: failureCount,
+                })
+                .eq('id', enrichmentJobId);
+            }
           }
 
           // Add delay between requests (3-5 seconds) to avoid rate limits
