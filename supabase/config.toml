@@ -90,18 +90,6 @@ verify_jwt = true
 [functions.fix-import-transaction-values]
 verify_jwt = true
 
-[functions.cleanup-zero-leads]
-verify_jwt = true
-
-[functions.regenerate-icebreakers]
-verify_jwt = true
-
-[functions.cleanup-stuck-enrichment-jobs]
-verify_jwt = true
-
-[functions.force-clear-enrichments]
-verify_jwt = true
-
 [functions.regenerate-company-names]
 verify_jwt = true
 

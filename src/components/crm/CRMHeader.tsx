@@ -83,31 +83,6 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
     }
   };
 
-  const handleCleanupZeroLeads = async () => {
-    const confirmed = window.confirm(
-      "⚠️ This will DELETE all prospects with 0 missed leads. Are you sure?"
-    );
-    
-    if (!confirmed) return;
-    
-    try {
-      toast.loading("Cleaning up zero-lead prospects...");
-      const { data, error } = await supabase.functions.invoke('cleanup-zero-leads');
-      
-      if (error) throw error;
-      
-      toast.success(`✅ Cleaned up ${data.deletedCount} prospects with zero leads`);
-      
-      // Refresh the page after 1 second
-      setTimeout(() => window.location.reload(), 1000);
-    } catch (error: any) {
-      console.error('Error cleaning up zero leads:', error);
-      toast.error("Failed to clean up zero leads", {
-        description: error?.message || error?.error || "Unknown error occurred"
-      });
-    }
-  };
-
   const handleFixCompanyNames = async () => {
     const confirmed = window.confirm(
       "Regenerate proper company names for all enriched prospects with domain-like names? This will use AI credits."
@@ -177,15 +152,6 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
             {onResumeEnrichment && (
               <ActiveEnrichmentJobsIndicator onResumeJob={onResumeEnrichment} />
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCleanupZeroLeads}
-              className="gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Clean Zero Leads</span>
-            </Button>
             <Button
               variant="destructive"
               size="sm"
