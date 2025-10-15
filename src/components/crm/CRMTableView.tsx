@@ -43,12 +43,21 @@ interface ProspectRow {
   companyName: string | null;
   icebreakerText: string | null;
   leadSource: string;
+  enrichmentStatus: {
+    has_company_info: boolean;
+    has_contacts: boolean;
+    has_emails: boolean;
+    has_phones: boolean;
+    has_icebreaker: boolean;
+    facebook_found: boolean;
+    industry_found: boolean;
+  } | null;
 }
 
 interface CRMTableViewProps {
   onSelectProspect: (id: string) => void;
   compact?: boolean;
-  view?: 'warm-inbound' | 'new-prospects' | 'needs-enrichment' | 'ready-outreach' | 'active' | 'closed' | 'needs-review' | 'interested';
+  view?: 'warm-inbound' | 'new-prospects' | 'needs-enrichment' | 'ready-outreach' | 'active' | 'closed' | 'needs-review' | 'interested' | 'missing-emails';
   externalStatusFilter?: string | null;
 }
 
@@ -252,6 +261,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         companyName: p.company_name,
         icebreakerText: p.icebreaker_text,
         leadSource: p.lead_source || 'cold_outbound',
+        enrichmentStatus: p.enrichment_status || null,
       })) || [];
 
       setHasMore(mapped.length === PAGE_SIZE);
@@ -1088,6 +1098,23 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                           <Badge className="bg-orange-500 hover:bg-orange-600 text-white shrink-0">
                             🔥 Warm
                           </Badge>
+                        )}
+                        {prospect.enrichmentStatus && 
+                         prospect.enrichmentStatus.has_company_info && 
+                         !prospect.enrichmentStatus.has_emails && 
+                         prospect.status === 'review' && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800 shrink-0">
+                                  📧 Missing Email
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>All data enriched except email - quick manual search may find it</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                         <span>{prospect.companyName || prospect.domain}</span>
                       </div>

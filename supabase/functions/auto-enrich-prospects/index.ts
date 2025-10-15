@@ -603,7 +603,17 @@ Now search the web and write the icebreaker:
         const hasIcebreaker = hasExistingIcebreaker || icebreakerGenerated;
         const finalStatus = (contactsInserted > 0 && hasIcebreaker) ? "enriched" : "review";
 
-        // Update prospect status and release lock
+        // Check if we have email contacts (not just any contacts)
+        const { data: emailContacts } = await supabase
+          .from('prospect_contacts')
+          .select('email')
+          .eq('prospect_activity_id', prospect.id)
+          .not('email', 'is', null)
+          .neq('email', '');
+        
+        const hasEmails = emailContacts && emailContacts.length > 0;
+
+        // Update prospect status, enrichment_status, and release lock
         await supabase
           .from("prospect_activities")
           .update({
@@ -612,6 +622,15 @@ Now search the web and write the icebreaker:
             enrichment_source: "auto_scrape_ai",
             enrichment_locked_at: null,
             enrichment_locked_by: null,
+            enrichment_status: {
+              has_company_info: !!companyName,
+              has_contacts: contactsInserted > 0,
+              has_emails: hasEmails,
+              has_phones: contactsInserted > 0,
+              has_icebreaker: hasIcebreaker,
+              facebook_found: !!companyFacebookUrl,
+              industry_found: !!detectedIndustry
+            }
           })
           .eq("id", prospect.id);
 

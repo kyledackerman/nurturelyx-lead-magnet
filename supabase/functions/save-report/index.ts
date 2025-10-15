@@ -281,6 +281,20 @@ serve(async (req) => {
           
           if (activityError) {
             console.error('Error creating prospect activity:', activityError);
+            
+            // Log to audit trail for visibility
+            try {
+              await supabase.rpc('log_business_context', {
+                p_table_name: 'reports',
+                p_record_id: reportId,
+                p_context: `Failed to auto-create prospect_activity: ${activityError.message}. Report with ${missedLeads} missed leads was created but not added to CRM.`,
+                p_ip_address: null,
+                p_user_agent: null,
+                p_session_id: null
+              });
+            } catch (auditError) {
+              console.error('Failed to log prospect creation failure:', auditError);
+            }
             // Non-blocking: continue even if assignment fails
           } else {
             console.log(`✅ Created prospect for ${sanitizedDomain}: ${missedLeads} leads/month (${priority} priority, source: ${leadSource})`);

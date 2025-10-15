@@ -715,7 +715,7 @@ Now search the web and write the icebreaker:
             // Determine final status: enriched ONLY if we have email contacts AND icebreaker, otherwise review
             const finalStatus = (hasValidContacts && icebreakerGenerated) ? "enriched" : "review";
 
-            // Update prospect status and release lock
+            // Update prospect status, enrichment_status, and release lock
             await supabase
               .from("prospect_activities")
               .update({
@@ -723,6 +723,15 @@ Now search the web and write the icebreaker:
                 enrichment_source: "bulk_ai",
                 enrichment_locked_at: null,
                 enrichment_locked_by: null,
+                enrichment_status: {
+                  has_company_info: !!companyName,
+                  has_contacts: contactsInserted > 0,
+                  has_emails: hasValidContacts,
+                  has_phones: contactsInserted > 0,
+                  has_icebreaker: icebreakerGenerated,
+                  facebook_found: !!companyFacebookUrl,
+                  industry_found: !!detectedIndustry
+                },
               })
               .eq("id", prospectId);
 

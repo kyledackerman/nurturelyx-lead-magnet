@@ -423,10 +423,32 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
             console.error('❌ Error generating icebreaker:', icebreakerError);
           } else {
             console.log('✅ Icebreaker generated successfully in background');
-            // Update status to review after icebreaker is done
+            
+            // Check if we have email contacts
+            const { data: emailContacts } = await supabase
+              .from('prospect_contacts')
+              .select('email')
+              .eq('prospect_activity_id', prospect_id)
+              .not('email', 'is', null)
+              .neq('email', '');
+            
+            const hasEmails = emailContacts && emailContacts.length > 0;
+            
+            // Update status to review after icebreaker is done, and populate enrichment_status
             await supabase
               .from("prospect_activities")
-              .update({ status: "review" })
+              .update({ 
+                status: "review",
+                enrichment_status: {
+                  has_company_info: companyNameUpdated,
+                  has_contacts: contactsInserted > 0,
+                  has_emails: hasEmails,
+                  has_phones: contactsInserted > 0,
+                  has_icebreaker: true,
+                  facebook_found: false,
+                  industry_found: false
+                }
+              })
               .eq("id", prospect_id);
           }
         } catch (error) {

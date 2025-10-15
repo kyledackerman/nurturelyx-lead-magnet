@@ -13,7 +13,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { CRMSidebar } from "@/components/crm/CRMSidebar";
 
 export default function CRMDashboard() {
-  const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested">("needs-review");
+  const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails">("needs-review");
   const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
   const [pipelineStatusFilter, setPipelineStatusFilter] = useState<string | null>(null);
 
@@ -49,6 +49,14 @@ export default function CRMDashboard() {
                     onSelectProspect={setSelectedProspectId}
                     compact={false}
                     view="needs-review"
+                  />
+                )}
+
+                {selectedView === "missing-emails" && (
+                  <CRMTableView 
+                    onSelectProspect={setSelectedProspectId}
+                    compact={false}
+                    view="missing-emails"
                   />
                 )}
 
