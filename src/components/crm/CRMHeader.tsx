@@ -3,10 +3,8 @@ import { ArrowLeft, Trash2, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import ActiveEnrichmentJobsIndicator from "./ActiveEnrichmentJobsIndicator";
-import { CompanyNameRegenerationDialog } from "./CompanyNameRegenerationDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useState } from "react";
 
 interface CRMHeaderProps {
   onResumeEnrichment?: (jobId: string) => void;
@@ -14,8 +12,6 @@ interface CRMHeaderProps {
 
 export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
   const navigate = useNavigate();
-  const [regenerationResults, setRegenerationResults] = useState<any>(null);
-  const [showResultsDialog, setShowResultsDialog] = useState(false);
 
   const handleCleanupStuckJobs = async () => {
     try {
@@ -83,57 +79,6 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
     }
   };
 
-  const handleFixCompanyNames = async () => {
-    const confirmed = window.confirm(
-      "Regenerate proper company names for all enriched prospects with domain-like names? This will use AI credits."
-    );
-    
-    if (!confirmed) return;
-    
-    const loadingToast = toast.loading("Regenerating company names...");
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('regenerate-company-names', {
-        body: { regenerate_all: true }
-      });
-      
-      if (error) {
-        toast.dismiss(loadingToast);
-        if (error.message?.includes("402") || error.message?.includes("credits")) {
-          toast.error("Out of AI Credits", {
-            description: "Please add credits to your Lovable workspace (Settings → Usage) before regenerating company names.",
-          });
-        } else {
-          toast.error("Failed to fix company names", {
-            description: error.message,
-          });
-        }
-        return;
-      }
-      
-      toast.dismiss(loadingToast);
-      setRegenerationResults(data);
-      setShowResultsDialog(true);
-      
-      if (data.updated?.length > 0) {
-        toast.success(`Updated ${data.updated.length} company names`);
-        setTimeout(() => window.location.reload(), 2000);
-      } else {
-        toast.info("No company names needed fixing");
-      }
-    } catch (error: any) {
-      console.error('Error fixing company names:', error);
-      toast.dismiss(loadingToast);
-      if (error.message?.includes("402") || error.message?.includes("credits")) {
-        toast.error("Out of AI Credits", {
-          description: "Please add credits to your Lovable workspace (Settings → Usage) before regenerating company names.",
-        });
-      } else {
-        toast.error("Failed to fix company names");
-      }
-    }
-  };
-
   return (
     <div className="sticky top-0 z-10 border-b bg-background">
       <div className="container mx-auto px-4 py-4">
@@ -182,12 +127,6 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
           </div>
         </div>
       </div>
-
-      <CompanyNameRegenerationDialog
-        open={showResultsDialog}
-        onOpenChange={setShowResultsDialog}
-        results={regenerationResults}
-      />
     </div>
   );
 }

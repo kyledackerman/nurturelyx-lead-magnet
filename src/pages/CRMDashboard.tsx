@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export default function CRMDashboard() {
-  const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails" | "bad-company-names">("needs-review");
+  const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails">("needs-review");
   const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
   const [pipelineStatusFilter, setPipelineStatusFilter] = useState<string | null>(null);
   const [resumedJobId, setResumedJobId] = useState<string | null>(null);
@@ -138,23 +138,6 @@ export default function CRMDashboard() {
                     compact={false}
                     view="closed"
                   />
-                )}
-
-                {selectedView === "bad-company-names" && (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                      <h3 className="text-sm font-semibold text-orange-900 mb-2">⚠️ Company Names Need Fixing</h3>
-                      <p className="text-sm text-orange-800">
-                        These prospects have domain-like company names or missing names. 
-                        Use "✨ Fix Company Names" button in header to regenerate all, or manually edit each one.
-                      </p>
-                    </div>
-                    <CRMTableView 
-                      onSelectProspect={setSelectedProspectId}
-                      compact={false}
-                      view="bad-company-names"
-                    />
-                  </div>
                 )}
               </div>
 
