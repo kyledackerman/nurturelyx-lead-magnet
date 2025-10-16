@@ -10,12 +10,14 @@ import { CRMRealtimeProvider } from "@/contexts/CRMRealtimeContext";
 import { CRMErrorBoundary } from "@/components/crm/CRMErrorBoundary";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { CRMSidebar } from "@/components/crm/CRMSidebar";
+import { toast } from "sonner";
 
 export default function CRMDashboard() {
   const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails">("needs-review");
   const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
   const [pipelineStatusFilter, setPipelineStatusFilter] = useState<string | null>(null);
   const [resumedJobId, setResumedJobId] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handlePipelineClick = (status: string) => {
     // Toggle filter - click same status to clear
@@ -26,6 +28,11 @@ export default function CRMDashboard() {
     setResumedJobId(jobId);
     // Switch to needs-enrichment view to show the table with resume capability
     setSelectedView("needs-enrichment");
+  };
+
+  const handleRefreshData = () => {
+    setRefreshTrigger(prev => prev + 1);
+    toast.success("Refreshing data...");
   };
 
   return (
@@ -41,6 +48,8 @@ export default function CRMDashboard() {
             <main className="flex-1 flex flex-col">
       <CRMHeader 
         onResumeEnrichment={handleResumeEnrichment}
+        currentView={selectedView}
+        onRefreshData={handleRefreshData}
       />
               
               <div className="container mx-auto px-4 py-6 max-w-[2000px]">
@@ -49,6 +58,7 @@ export default function CRMDashboard() {
                     onSelectProspect={setSelectedProspectId}
                     compact={false}
                     view="warm-inbound"
+                    refreshTrigger={refreshTrigger}
                   />
                 )}
 
@@ -57,6 +67,7 @@ export default function CRMDashboard() {
                     onSelectProspect={setSelectedProspectId}
                     compact={false}
                     view="needs-review"
+                    refreshTrigger={refreshTrigger}
                   />
                 )}
 
@@ -65,6 +76,7 @@ export default function CRMDashboard() {
                     onSelectProspect={setSelectedProspectId}
                     compact={false}
                     view="missing-emails"
+                    refreshTrigger={refreshTrigger}
                   />
                 )}
 
@@ -73,6 +85,7 @@ export default function CRMDashboard() {
                     onSelectProspect={setSelectedProspectId}
                     compact={false}
                     view="new-prospects"
+                    refreshTrigger={refreshTrigger}
                   />
                 )}
 
@@ -83,6 +96,7 @@ export default function CRMDashboard() {
                     view="needs-enrichment"
                     resumeJobId={resumedJobId}
                     onJobResumed={() => setResumedJobId(null)}
+                    refreshTrigger={refreshTrigger}
                   />
                 )}
 
@@ -91,6 +105,7 @@ export default function CRMDashboard() {
                     onSelectProspect={setSelectedProspectId}
                     compact={false}
                     view="ready-outreach"
+                    refreshTrigger={refreshTrigger}
                   />
                 )}
 
@@ -99,6 +114,7 @@ export default function CRMDashboard() {
                     onSelectProspect={setSelectedProspectId}
                     compact={false}
                     view="interested"
+                    refreshTrigger={refreshTrigger}
                   />
                 )}
 
@@ -128,6 +144,7 @@ export default function CRMDashboard() {
                       compact={false}
                       view="active"
                       externalStatusFilter={pipelineStatusFilter}
+                      refreshTrigger={refreshTrigger}
                     />
                   </div>
                 )}
@@ -137,6 +154,7 @@ export default function CRMDashboard() {
                     onSelectProspect={setSelectedProspectId}
                     compact={false}
                     view="closed"
+                    refreshTrigger={refreshTrigger}
                   />
                 )}
               </div>

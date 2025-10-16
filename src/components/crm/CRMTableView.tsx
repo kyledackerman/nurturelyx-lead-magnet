@@ -62,12 +62,13 @@ interface CRMTableViewProps {
   externalStatusFilter?: string | null;
   resumeJobId?: string | null;
   onJobResumed?: () => void;
+  refreshTrigger?: number;
 }
 
 type SortKey = 'domain' | 'monthlyRevenue' | 'trafficTier' | 'priority' | 'status';
 type SortDirection = 'asc' | 'desc';
 
-export default function CRMTableView({ onSelectProspect, compact = false, view = 'new-prospects', externalStatusFilter = null, resumeJobId = null, onJobResumed }: CRMTableViewProps) {
+export default function CRMTableView({ onSelectProspect, compact = false, view = 'new-prospects', externalStatusFilter = null, resumeJobId = null, onJobResumed, refreshTrigger }: CRMTableViewProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { refreshProspects: triggerRealtimeRefresh } = useCRMRealtime();
@@ -144,6 +145,17 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   }, [searchTerm]);
 
   // Admin users are fetched via useAdminUsers hook - no need for duplicate call
+
+  // Handle refresh trigger from parent
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0) {
+      // Force cache miss
+      cacheRef.current.timestamp = 0;
+      setPage(0);
+      setProspects([]);
+      fetchProspects();
+    }
+  }, [refreshTrigger]);
 
   useEffect(() => {
     // Only fetch on initial load, view change, or search change

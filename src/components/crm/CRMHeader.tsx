@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Trash2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import ActiveEnrichmentJobsIndicator from "./ActiveEnrichmentJobsIndicator";
@@ -8,10 +8,15 @@ import { toast } from "sonner";
 
 interface CRMHeaderProps {
   onResumeEnrichment?: (jobId: string) => void;
+  currentView: string;
+  onRefreshData: () => void;
 }
 
-export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
+export default function CRMHeader({ onResumeEnrichment, currentView, onRefreshData }: CRMHeaderProps) {
   const navigate = useNavigate();
+  
+  // Show enrichment buttons only on needs-enrichment and needs-review tabs
+  const showEnrichmentButtons = currentView === 'needs-enrichment' || currentView === 'needs-review';
 
   const handleCleanupStuckJobs = async () => {
     try {
@@ -97,24 +102,42 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
             {onResumeEnrichment && (
               <ActiveEnrichmentJobsIndicator onResumeJob={onResumeEnrichment} />
             )}
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleForceClearAll}
-              className="gap-2"
-            >
-              <AlertTriangle className="h-4 w-4" />
-              <span className="hidden sm:inline">Force Clear ALL</span>
-            </Button>
+            
+            {/* Enrichment-specific buttons - only show on needs-enrichment and needs-review */}
+            {showEnrichmentButtons && (
+              <>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleForceClearAll}
+                  className="gap-2"
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  <span className="hidden sm:inline">Force Clear ALL</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCleanupStuckJobs}
+                  className="gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Clean Up Stuck Jobs</span>
+                </Button>
+              </>
+            )}
+            
+            {/* Universal refresh button - always visible */}
             <Button
               variant="outline"
               size="sm"
-              onClick={handleCleanupStuckJobs}
+              onClick={onRefreshData}
               className="gap-2"
             >
-              <Trash2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Clean Up Stuck Jobs</span>
+              <RefreshCw className="h-4 w-4" />
+              <span className="hidden sm:inline">Refresh Data</span>
             </Button>
+            
             <Button
               variant="ghost"
               size="sm"
