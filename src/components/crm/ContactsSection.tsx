@@ -9,12 +9,13 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Mail, Phone, Linkedin, Edit, Trash2, User, CheckCircle2, AlertCircle } from "lucide-react";
+import { Plus, Mail, Phone, Linkedin, Edit, Trash2, User, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { auditService } from "@/services/auditService";
 import { validateSalesEmail, getEmailTypeLabel, getEmailTypeBadgeVariant } from "@/lib/emailValidation";
 import { updateProspectStatus } from "@/services/prospectService";
 import { getDisplayName } from "@/lib/crmHelpers";
+import BulkEnrichmentDialog from "./BulkEnrichmentDialog";
 
 interface Contact {
   id: string;
@@ -33,15 +34,17 @@ interface ContactsSectionProps {
   prospectActivityId: string;
   reportId: string;
   companyName?: string | null;
+  domain?: string;
 }
 
-export default function ContactsSection({ prospectActivityId, reportId, companyName }: ContactsSectionProps) {
+export default function ContactsSection({ prospectActivityId, reportId, companyName, domain }: ContactsSectionProps) {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [prospectStatus, setProspectStatus] = useState<string>("");
   const [markingEnriched, setMarkingEnriched] = useState(false);
+  const [showSmartPaste, setShowSmartPaste] = useState(false);
   
   // Form state
   const [firstName, setFirstName] = useState("");
@@ -287,6 +290,16 @@ export default function ContactsSection({ prospectActivityId, reportId, companyN
               Mark as Enriched
             </Button>
           )}
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => setShowSmartPaste(true)}
+            disabled={!domain}
+            className="border-blue-200 hover:bg-blue-50"
+          >
+            <Sparkles className="h-4 w-4 mr-2 text-blue-600" />
+            Smart Paste
+          </Button>
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
               <Button size="sm" onClick={openAddDialog}>
@@ -535,6 +548,23 @@ export default function ContactsSection({ prospectActivityId, reportId, companyN
             </div>
           ))}
         </div>
+      )}
+      
+      {/* Smart Paste Dialog */}
+      {domain && (
+        <BulkEnrichmentDialog
+          open={showSmartPaste}
+          onOpenChange={setShowSmartPaste}
+          knownDomains={[domain]}
+          domainActivityMap={new Map([[domain, { activityId: prospectActivityId, reportId }]])}
+          onSuccess={() => {
+            setShowSmartPaste(false);
+            fetchContacts();
+            fetchProspectStatus();
+            toast.success("Contacts imported successfully");
+          }}
+          initialBusinessName={companyName || undefined}
+        />
       )}
     </div>
   );

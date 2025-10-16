@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,6 +40,7 @@ interface BulkEnrichmentDialogProps {
   knownDomains: string[];
   onSuccess: () => void;
   domainActivityMap?: Map<string, { activityId: string; reportId: string }>;
+  initialBusinessName?: string;
 }
 
 export default function BulkEnrichmentDialog({
@@ -48,13 +49,20 @@ export default function BulkEnrichmentDialog({
   knownDomains,
   onSuccess,
   domainActivityMap,
+  initialBusinessName = "",
 }: BulkEnrichmentDialogProps) {
   const [rawText, setRawText] = useState("");
-  const [businessName, setBusinessName] = useState("");
+  const [businessName, setBusinessName] = useState(initialBusinessName);
   const [parsing, setParsing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [parsedResult, setParsedResult] = useState<ParsedResult | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (open && initialBusinessName) {
+      setBusinessName(initialBusinessName);
+    }
+  }, [open, initialBusinessName]);
 
   const handleParse = async () => {
     if (!rawText.trim() || !businessName.trim()) {

@@ -977,6 +977,7 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
               prospectActivityId={prospectId}
               reportId={prospect.report_id}
               companyName={prospect.report?.extracted_company_name}
+              domain={prospect.report?.domain}
             />
 
             {/* Task Panel - COLLAPSIBLE */}
