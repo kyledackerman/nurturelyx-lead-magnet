@@ -21,27 +21,27 @@ export const IndustryHero = ({ name, headline, subheadline }: IndustryHeroProps)
             Stop Losing 95% of Your {name} Website Traffic
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-            Identify anonymous visitors by name, email, and phone. 
-            This is YOUR data from YOUR website—we just help you see it.
+            Get a free custom report showing exactly how many qualified leads are slipping through the cracks every month. 
+            This is YOUR visitor data—see what you're missing.
           </p>
           <div className="flex gap-6 justify-center text-sm pt-2">
             <div className="flex items-center gap-2">
               <span className="text-accent">✓</span>
-              <span>Identify 35% of anonymous traffic</span>
+              <span>See exactly how many leads you're missing</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-accent">✓</span>
-              <span>Full contact details included</span>
+              <span>Calculate your lost revenue opportunity</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-accent">✓</span>
-              <span>Your data, your leads</span>
+              <span>Free custom report for YOUR domain</span>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
             <Button asChild size="lg" className="gradient-bg" onClick={scrollToTopIfHomeLink}>
               <Link to="/">
-                See Who's Visiting My Site (Free)
+                See How Many Leads You're Missing (Free)
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>

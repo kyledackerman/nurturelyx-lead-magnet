@@ -42,11 +42,11 @@ export const IndustryROICalculator = ({
           and you have no idea who they are.
         </p>
         <p className="text-foreground font-semibold">
-          But this is YOUR data.
+          You can't follow up with people you can't see.
         </p>
         <p className="text-muted-foreground">
-          They visited YOUR website. Identity resolution unlocks the names, emails, and phone numbers 
-          behind ~35% of that anonymous traffic.
+          Our free report shows you EXACTLY how many qualified leads visited your site last month—
+          and how much revenue you're leaving on the table.
         </p>
       </div>
 
@@ -151,10 +151,10 @@ export const IndustryROICalculator = ({
         </div>
 
         <Button asChild className="w-full gradient-bg" onClick={scrollToTopIfHomeLink}>
-          <Link to="/">Get My Free Visitor Report</Link>
+          <Link to="/">Get My Custom Lead Loss Report</Link>
         </Button>
         <p className="text-xs text-center text-muted-foreground mt-2">
-          See exactly who's been visiting your site
+          Calculate exactly how many leads you're missing every month
         </p>
       </CardContent>
     </Card>

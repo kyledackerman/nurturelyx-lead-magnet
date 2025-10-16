@@ -42,16 +42,16 @@ export const StickyIndustryCTA = ({ industryName }: StickyIndustryCTAProps) => {
       <div className="container max-w-6xl flex items-center justify-between gap-4">
         <div className="flex-1">
           <div className="text-sm font-semibold">
-            🔓 Stop losing {industryName} leads to anonymity
+            🔓 Find out how many {industryName} leads you're losing every month
           </div>
           <div className="text-xs text-muted-foreground">
-            See who's visiting your site right now • Free report
+            Free custom report • See your missed opportunity
           </div>
         </div>
         
         <Button asChild size="lg" className="gradient-bg" onClick={scrollToTopIfHomeLink}>
           <Link to="/">
-            Identify My Visitors (Free)
+            See How Many Leads You're Missing
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
