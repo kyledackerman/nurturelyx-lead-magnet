@@ -984,6 +984,7 @@ const AdminDashboard = () => {
       
       if (error) throw error;
 
+      // Get unique dates
       const dates = new Set<string>();
       allReports?.forEach(report => {
         const date = new Date(report.created_at).toISOString().split('T')[0];
@@ -992,7 +993,7 @@ const AdminDashboard = () => {
 
       const sortedDates = Array.from(dates).sort();
       
-      let currentStreak = 0;
+      // Calculate longest streak
       let longestStreak = 0;
       let tempStreak = 0;
       let prevDate: Date | null = null;
@@ -1021,16 +1022,33 @@ const AdminDashboard = () => {
         longestStreak = tempStreak;
       }
 
-      // Check if streak is still active (last report was today or yesterday)
-      const today = new Date().toISOString().split('T')[0];
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-      const lastDate = sortedDates[sortedDates.length - 1];
-      const isActive = lastDate === today || lastDate === yesterday;
+      // Calculate CURRENT streak by working backwards from today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayStr = today.toISOString().split('T')[0];
       
-      if (isActive) {
-        currentStreak = tempStreak;
-      } else {
-        currentStreak = 0;
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      let currentStreak = 0;
+      let isActive = false;
+
+      // Check if there's a report today or yesterday to consider streak active
+      if (dates.has(todayStr) || dates.has(yesterdayStr)) {
+        isActive = true;
+        
+        // Work backwards from today to count consecutive days
+        let checkDate = new Date(today);
+        while (true) {
+          const checkDateStr = checkDate.toISOString().split('T')[0];
+          if (dates.has(checkDateStr)) {
+            currentStreak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+          } else {
+            break;
+          }
+        }
       }
 
       setHotStreak({
