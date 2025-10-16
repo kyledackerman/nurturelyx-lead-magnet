@@ -50,16 +50,30 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to fetch job items: ${itemsError.message}`);
     }
 
-    // Find prospects that need reprocessing (pending or failed, not already successful)
+    // Find prospects that need reprocessing, BUT skip enriched prospects
     const itemsToReprocess = items.filter(
       item => item.status === 'pending' || item.status === 'failed'
     );
 
+    // Check which of these are already enriched (skip them)
+    const prospectIds = itemsToReprocess.map(i => i.prospect_id).filter(Boolean);
+    const { data: enrichedProspects } = await supabase
+      .from('prospect_activities')
+      .select('id')
+      .in('id', prospectIds)
+      .eq('status', 'enriched');
+
+    const enrichedIds = new Set(enrichedProspects?.map(p => p.id) || []);
+    
+    const safeToReprocess = itemsToReprocess.filter(item => 
+      !enrichedIds.has(item.prospect_id)
+    );
+
     const alreadySuccessful = items.filter(item => item.status === 'success').length;
 
-    console.log(`📊 Job ${jobId}: ${alreadySuccessful} already successful, ${itemsToReprocess.length} need reprocessing`);
+    console.log(`📊 Job ${jobId}: ${alreadySuccessful} already successful, ${safeToReprocess.length} need reprocessing (${enrichedIds.size} already enriched, skipped)`);
 
-    if (itemsToReprocess.length === 0) {
+    if (safeToReprocess.length === 0) {
       // All items already processed successfully
       await supabase
         .from('enrichment_jobs')
@@ -80,14 +94,15 @@ Deno.serve(async (req) => {
     }
 
     // Release locks on prospects that need reprocessing
-    for (const item of itemsToReprocess) {
+    for (const item of safeToReprocess) {
       if (item.prospect_id) {
         await supabase
           .from('prospect_activities')
           .update({
             enrichment_locked_at: null,
             enrichment_locked_by: null,
-            status: 'new', // Reset to new for retry
+            status: 'enriching', // Keep trying (not 'new')
+            updated_at: new Date().toISOString(),
           })
           .eq('id', item.prospect_id);
 
@@ -132,7 +147,7 @@ Deno.serve(async (req) => {
         message: `Job recovered successfully`,
         jobId,
         alreadySuccessful,
-        needsReprocessing: itemsToReprocess.length,
+        needsReprocessing: safeToReprocess.length,
         resumed: !resumeError,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

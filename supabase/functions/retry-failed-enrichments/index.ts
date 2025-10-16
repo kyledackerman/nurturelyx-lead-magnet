@@ -18,8 +18,9 @@ serve(async (req) => {
 
     console.log("Resetting prospects that need review after failed enrichments...");
 
-    // Reset prospects with high retry counts back to enriching status
-    // These are prospects that went to "review" after multiple failed attempts
+    // Reset prospects from review status BUT:
+    // 1. Only if retry count < 3 (haven't exhausted attempts)
+    // 2. NEVER touch enriched prospects
     const { data: resetProspects, error: resetError } = await supabase
       .from("prospect_activities")
       .update({
@@ -28,15 +29,15 @@ serve(async (req) => {
         last_enrichment_attempt: null,
         enrichment_locked_at: null,
         enrichment_locked_by: null,
-        notes: "🔄 Reset from review status - ready for retry with improved enrichment"
+        notes: "🔄 Reset from review status - ready for retry"
       })
       .eq("status", "review")
-      .gte("enrichment_retry_count", 2)
+      .lt("enrichment_retry_count", 3)
+      .neq("status", "enriched") // Safety check
       .select("id, reports!inner(domain)");
 
     if (resetError) {
-      console.error("Error resetting prospects:", resetError);
-      throw resetError;
+      throw new Error(`Failed to reset prospects: ${resetError.message}`);
     }
 
     const resetCount = resetProspects?.length || 0;

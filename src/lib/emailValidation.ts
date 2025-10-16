@@ -1,10 +1,9 @@
 // Email validation utility for sales-focused contact enrichment
 
+// ONLY reject legal/compliance and technical bounces for sales outreach
 const AVOID_PREFIXES = [
-  'legal', 'privacy', 'supplier', 'billing', 'accounts', 'finance',
-  'hr', 'jobs', 'careers', 'noreply', 'no-reply',
-  'webmaster', 'postmaster', 'abuse', 'security',
-  'devnull', 'bounce', 'unsubscribe'
+  'legal', 'privacy', 'compliance', 'counsel', 'attorney', 'law', 'dmca',
+  'noreply', 'no-reply', 'devnull', 'bounce', 'unsubscribe'
 ];
 
 const PERSONAL_DOMAINS = [
@@ -23,10 +22,24 @@ export interface EmailValidationResult {
 }
 
 /**
+ * Check if email is legal/privacy/compliance related
+ */
+export function isLegalEmail(email: string): boolean {
+  const localPart = email.split('@')[0]?.toLowerCase() || '';
+  const legalPrefixes = ['legal', 'privacy', 'compliance', 'counsel', 'attorney', 'law', 'dmca'];
+  
+  return legalPrefixes.some(prefix => 
+    localPart === prefix || 
+    localPart.startsWith(`${prefix}.`) || 
+    localPart.startsWith(`${prefix}-`) ||
+    localPart.includes(prefix)
+  );
+}
+
+/**
  * Validates email for sales/marketing focus
- * Accepts: Personal emails (Gmail, Yahoo, etc.), person-specific work emails,
- *          AND sales-friendly contact emails (info@, contact@, sales@, support@)
- * Rejects: Non-sales departments (legal@, privacy@, supplier@, billing@, hr@, etc.)
+ * Accepts: Personal emails, work emails, sales/marketing/support/billing/admin contacts
+ * Rejects: ONLY legal/compliance/privacy and technical bounces
  */
 export function validateSalesEmail(email: string): EmailValidationResult {
   // Basic format validation
@@ -78,11 +91,13 @@ export function validateSalesEmail(email: string): EmailValidationResult {
 
   if (isGeneric) {
     return {
-      isValid: false, // We reject generic emails for sales focus
+      isValid: false,
       isPersonal,
       isGeneric: true,
       emailType: 'generic',
-      warning: `Non-sales department email detected (${localPart}@). We avoid emails like legal@, privacy@, supplier@, hr@ for sales outreach.`
+      warning: isLegalEmail(trimmedEmail)
+        ? `Legal/compliance email detected (${localPart}@). We avoid legal@, privacy@, compliance@, attorney@ for sales outreach.`
+        : `Technical bounce email detected (${localPart}@). Cannot send to noreply@, bounce@, unsubscribe@.`
     };
   }
 

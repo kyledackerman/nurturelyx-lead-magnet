@@ -211,10 +211,32 @@ serve(async (req) => {
         let successCount = 0;
         let failureCount = skippedProspects.length; // Count skipped as failures
 
-        // Process only successfully locked prospects
-        for (let i = 0; i < lockedProspectIds.length; i++) {
-          const prospectId = lockedProspectIds[i];
-          const prospect = allProspects.find(p => p.id === prospectId)!;
+        // HARD GUARDRAIL: Filter out already enriched prospects
+        const prospectsToEnrich = allProspects.filter(p => lockedProspectIds.includes(p.id));
+        const safeProspects = [];
+        
+        for (const p of prospectsToEnrich) {
+          if (p.status === 'enriched') {
+            console.log(`⚠️ SKIP: ${p.reports.domain} - already enriched (status='enriched')`);
+            // Release the lock
+            await supabase
+              .from('prospect_activities')
+              .update({
+                enrichment_locked_at: null,
+                enrichment_locked_by: null
+              })
+              .eq('id', p.id);
+            continue;
+          }
+          safeProspects.push(p);
+        }
+        
+        console.log(`✅ Enriching ${safeProspects.length} prospects (skipped ${prospectsToEnrich.length - safeProspects.length} already enriched)`);
+
+        // Process only safe prospects
+        for (let i = 0; i < safeProspects.length; i++) {
+          const prospect = safeProspects[i];
+          const prospectId = prospect.id;
           
           const maxProspectTime = 90000; // 90 seconds max per prospect
           
@@ -773,47 +795,88 @@ Now search the web and write the icebreaker:
               // Silent fail - enrichment still succeeds
             }
 
-            // Check if we found any contacts with email addresses
-            const contactsWithEmail = contacts.filter((c: any) => c.email && c.email.trim() !== '');
-            const hasValidContacts = contactsWithEmail.length > 0;
+            // Check if we found any contacts with ACCEPTED email addresses (not legal/compliance)
+            const contactsWithEmail = contacts.filter((c: any) => {
+              if (!c.email || c.email.trim() === '') return false;
+              const localPart = c.email.split('@')[0]?.toLowerCase();
+              const isLegal = ['legal', 'privacy', 'compliance', 'counsel', 'attorney', 'law', 'dmca']
+                .some(prefix => localPart === prefix || localPart.includes(prefix));
+              return !isLegal;
+            });
+            const hasAcceptedEmails = contactsWithEmail.length > 0;
+            
+            // Get current retry count
+            const currentRetryCount = prospect.enrichment_retry_count || 0;
+            const notesArray = [];
 
-            // Determine final status based on what we found:
-            // - Has emails = enriched (ready for outreach, even without icebreaker)
-            // - Has contacts but no emails = review (will show in "Missing Emails" tab)
-            // - No contacts = review
-            let finalStatus = 'review';
-            if (hasValidContacts) {
-              finalStatus = 'enriched'; // Has emails, ready to go
-            } else if (contactsInserted > 0) {
-              finalStatus = 'review'; // Has contacts but missing emails
+            // Determine final status with 3-attempt retry policy:
+            // - Has accepted email + icebreaker = enriched
+            // - Has contacts but no accepted emails after 3 attempts (retry_count >= 2) = review (shows in "missing-emails")
+            // - Has contacts but no accepted emails, retry < 3 = enriching (keep trying)
+            // - No contacts after 3 attempts = review
+            // - No contacts, retry < 3 = enriching
+            let finalStatus = 'enriching';
+            let retryCount = currentRetryCount;
+
+            if (hasAcceptedEmails && icebreakerGenerated) {
+              // SUCCESS: Email + icebreaker = ready for outreach
+              finalStatus = 'enriched';
+              console.log(`✅ ${domain} - ENRICHED (${contactsWithEmail.length} accepted emails + icebreaker)`);
+            } else if (contactsInserted > 0 && !hasAcceptedEmails && retryCount >= 2) {
+              // PARTIAL: Contacts found but no accepted emails after 3 attempts (0,1,2)
+              finalStatus = 'review';
+              notesArray.push(`AI enrichment: No accepted email found after ${retryCount + 1} attempts. Found ${contactsInserted} contacts without valid sales emails.`);
+              console.log(`⚠️ ${domain} - REVIEW (${contactsInserted} contacts, 0 accepted emails, attempt ${retryCount + 1}/3)`);
+            } else if (contactsInserted > 0 && !hasAcceptedEmails) {
+              // RETRY: Contacts found but no accepted emails, still under retry limit
+              finalStatus = 'enriching';
+              retryCount++;
+              console.log(`🔄 ${domain} - RETRY (${contactsInserted} contacts, 0 accepted emails, attempt ${retryCount + 1}/3)`);
+            } else if (contactsInserted === 0 && retryCount >= 2) {
+              // FAILED: No contacts after 3 attempts
+              finalStatus = 'review';
+              notesArray.push(`AI enrichment: No contacts found after ${retryCount + 1} attempts.`);
+              console.log(`❌ ${domain} - REVIEW (no contacts after ${retryCount + 1} attempts)`);
+            } else {
+              // RETRY: No contacts, increment retry
+              finalStatus = 'enriching';
+              retryCount++;
+              console.log(`🔄 ${domain} - RETRY (no contacts, attempt ${retryCount + 1}/3)`);
             }
 
-            // Update prospect status, enrichment_status, and release lock
+            // Update prospect status, enrichment_status, retry count, and release lock
             await supabase
               .from("prospect_activities")
               .update({
                 status: finalStatus,
                 enrichment_source: "bulk_ai",
+                enrichment_retry_count: retryCount,
+                last_enrichment_attempt: new Date().toISOString(),
+                contact_count: contactsInserted,
                 enrichment_locked_at: null,
                 enrichment_locked_by: null,
+                notes: notesArray.length > 0 ? notesArray.join('; ') : null,
                 enrichment_status: {
                   has_company_info: !!companyName,
                   has_contacts: contactsInserted > 0,
-                  has_emails: hasValidContacts,
+                  has_emails: hasAcceptedEmails,
                   has_phones: contactsInserted > 0,
                   has_icebreaker: icebreakerGenerated,
                   facebook_found: !!companyFacebookUrl,
-                  industry_found: !!detectedIndustry
+                  industry_found: !!detectedIndustry,
+                  retry_count: retryCount,
+                  final_status: finalStatus
                 },
               })
               .eq("id", prospectId);
 
             // Log to audit trail
-            const contextParts = [`Bulk enrichment: extracted ${contactsInserted} contacts (${contactsWithEmail.length} with email)`];
+            const contextParts = [`Bulk enrichment: extracted ${contactsInserted} contacts (${contactsWithEmail.length} accepted emails)`];
             if (icebreakerGenerated) contextParts.push('generated icebreaker');
             if (companyNameUpdated) contextParts.push(`updated company name to "${companyName}"`);
             if (industryUpdated) contextParts.push(`set industry to "${detectedIndustry}"`);
             contextParts.push(`from ${domain}`);
+            contextParts.push(`retry ${retryCount}/3`);
             contextParts.push(`final status: ${finalStatus}`);
             
             await supabase.rpc("log_business_context", {
@@ -832,7 +895,7 @@ Now search the web and write the icebreaker:
                 .update({ 
                   status: 'success',
                   contacts_found: contactsInserted,
-                  has_emails: hasValidContacts, // Track if emails were found
+                  has_emails: hasAcceptedEmails, // Track if accepted emails were found
                   completed_at: new Date().toISOString()
                 })
                 .eq('job_id', enrichmentJobId)

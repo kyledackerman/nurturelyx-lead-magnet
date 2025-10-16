@@ -10,6 +10,8 @@ import { CRMRealtimeProvider } from "@/contexts/CRMRealtimeContext";
 import { CRMErrorBoundary } from "@/components/crm/CRMErrorBoundary";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { CRMSidebar } from "@/components/crm/CRMSidebar";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export default function CRMDashboard() {
   const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails" | "bad-company-names">("needs-review");
@@ -39,7 +41,45 @@ export default function CRMDashboard() {
             />
             
             <main className="flex-1 flex flex-col">
-              <CRMHeader onResumeEnrichment={handleResumeEnrichment} />
+      <CRMHeader 
+        onResumeEnrichment={handleResumeEnrichment}
+        onReconcileStatus={async () => {
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+              toast.error("Not authenticated");
+              return;
+            }
+
+            toast.loading("Reconciling prospect statuses...", { id: "reconcile" });
+
+            const response = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reconcile-prospect-status`,
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+              toast.success(
+                `✅ Reconciliation complete! ${result.fixed_to_enriched} promoted to enriched, ${result.moved_to_review} moved to review, ${result.reset_to_enriching} reset to enriching`,
+                { id: "reconcile", duration: 6000 }
+              );
+            } else {
+              toast.error(result.error || "Reconciliation failed", { id: "reconcile" });
+            }
+          } catch (error) {
+            console.error("Reconciliation error:", error);
+            toast.error("Failed to reconcile statuses", { id: "reconcile" });
+          }
+        }}
+      />
               
               <div className="container mx-auto px-4 py-6 max-w-[2000px]">
                 {selectedView === "warm-inbound" && (

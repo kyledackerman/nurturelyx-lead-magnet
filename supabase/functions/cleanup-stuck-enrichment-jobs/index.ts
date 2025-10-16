@@ -75,34 +75,61 @@ Deno.serve(async (req) => {
       for (const item of items) {
         if (!item.prospect_id) continue;
 
-        let targetStatus = 'review';
+        // HARD GUARDRAIL: Never downgrade enriched prospects
+        const { data: prospect } = await supabase
+          .from('prospect_activities')
+          .select('status, enrichment_retry_count, icebreaker_text')
+          .eq('id', item.prospect_id)
+          .single();
+        
+        if (prospect?.status === 'enriched') {
+          console.log(`⚠️ SKIP: Prospect ${item.prospect_id} already enriched`);
+          continue;
+        }
 
+        let targetStatus = 'review';
+        
         if (item.status === 'success' && item.contacts_found > 0) {
-          // Check if contacts have emails
+          // Check if contacts have accepted emails (not legal/compliance)
           const { data: contacts } = await supabase
             .from('prospect_contacts')
             .select('email')
             .eq('prospect_activity_id', item.prospect_id);
           
-          const hasEmails = contacts?.some(c => c.email && c.email.trim() !== '');
+          const hasAcceptedEmails = contacts?.some(c => {
+            if (!c.email || c.email.trim() === '') return false;
+            const localPart = c.email.split('@')[0]?.toLowerCase();
+            return !['legal','privacy','compliance','counsel','attorney','law','dmca']
+              .some(prefix => localPart === prefix || localPart.includes(prefix));
+          });
           
-          if (hasEmails) {
+          const hasIcebreaker = prospect?.icebreaker_text != null;
+          
+          if (hasAcceptedEmails && hasIcebreaker) {
             targetStatus = 'enriched';
             enrichedCount++;
-          } else {
-            targetStatus = 'review'; // Will appear in "Missing Emails" tab
+          } else if (hasAcceptedEmails && !hasIcebreaker) {
+            targetStatus = 'enriching'; // Need icebreaker
+            resetCount++;
+          } else if ((prospect?.enrichment_retry_count || 0) >= 2) {
+            targetStatus = 'review'; // Failed after 3 attempts
             reviewCount++;
+          } else {
+            targetStatus = 'enriching'; // Keep trying
+            resetCount++;
           }
         } else if (item.status === 'pending') {
-          // Not processed yet - reset to new for retry
-          targetStatus = 'new';
+          targetStatus = 'enriching';
           resetCount++;
-        } else {
-          // Failed or no contacts
+        } else if ((prospect?.enrichment_retry_count || 0) >= 2) {
+          targetStatus = 'review';
           reviewCount++;
+        } else {
+          targetStatus = 'enriching';
+          resetCount++;
         }
 
-        // Update prospect status
+        // Update prospect status (with safety check to never overwrite enriched)
         const { error: prospectError } = await supabase
           .from('prospect_activities')
           .update({
@@ -110,7 +137,8 @@ Deno.serve(async (req) => {
             enrichment_locked_at: null,
             enrichment_locked_by: null,
           })
-          .eq('id', item.prospect_id);
+          .eq('id', item.prospect_id)
+          .neq('status', 'enriched'); // Extra safety
 
         if (prospectError) {
           console.error(`❌ Error updating prospect ${item.prospect_id}:`, prospectError);

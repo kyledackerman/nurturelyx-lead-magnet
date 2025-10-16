@@ -10,9 +10,10 @@ import { useState } from "react";
 
 interface CRMHeaderProps {
   onResumeEnrichment?: (jobId: string) => void;
+  onReconcileStatus?: () => Promise<void>;
 }
 
-export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
+export default function CRMHeader({ onResumeEnrichment, onReconcileStatus }: CRMHeaderProps) {
   const navigate = useNavigate();
   const [regenerationResults, setRegenerationResults] = useState<any>(null);
   const [showResultsDialog, setShowResultsDialog] = useState(false);
@@ -151,6 +152,17 @@ export default function CRMHeader({ onResumeEnrichment }: CRMHeaderProps) {
           <div className="flex items-center gap-2">
             {onResumeEnrichment && (
               <ActiveEnrichmentJobsIndicator onResumeJob={onResumeEnrichment} />
+            )}
+            {onReconcileStatus && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={onReconcileStatus}
+                className="gap-2"
+              >
+                <AlertTriangle className="h-4 w-4" />
+                <span className="hidden sm:inline">Reconcile Status</span>
+              </Button>
             )}
             <Button
               variant="destructive"
