@@ -52,6 +52,20 @@ serve(async (req) => {
     const domain = prospect.reports.domain;
     const currentCompanyName = prospect.reports.extracted_company_name || domain;
 
+    // Block .edu/.gov/.mil domains immediately
+    const domainLower = domain.toLowerCase();
+    if (domainLower.endsWith('.edu') || domainLower.endsWith('.gov') || domainLower.endsWith('.mil')) {
+      console.log(`⊘ Rejected ${domain}: government/educational domain not viable for B2B`);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Cannot enrich government/educational domains (.edu, .gov, .mil)',
+          notViable: true 
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     console.log(`Enriching ${domain}...`);
 
     // Update status to enriching
@@ -318,7 +332,7 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
     if (Array.isArray(contacts) && contacts.length > 0) {
       // Filter out .gov, .edu, .mil emails and legal/compliance emails
       const filteredContacts = contacts.filter((contact: any) => {
-        if (!contact.email) return true; // Keep contacts without email (phone-only)
+        if (!contact.email) return false; // Reject contacts without email - we need emails for outreach
         
         const domain = contact.email.split('@')[1]?.toLowerCase() || '';
         const isExcluded = domain.endsWith('.gov') || 

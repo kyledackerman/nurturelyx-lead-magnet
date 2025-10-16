@@ -211,8 +211,18 @@ serve(async (req) => {
         let successCount = 0;
         let failureCount = skippedProspects.length; // Count skipped as failures
 
-        // HARD GUARDRAIL: Filter out already enriched prospects
-        const prospectsToEnrich = allProspects.filter(p => lockedProspectIds.includes(p.id));
+        // HARD GUARDRAIL: Filter out already enriched prospects and .edu/.gov/.mil domains
+        const prospectsToEnrich = allProspects.filter(p => {
+          if (!lockedProspectIds.includes(p.id)) return false;
+          
+          const domain = p.reports.domain.toLowerCase();
+          if (domain.endsWith('.edu') || domain.endsWith('.gov') || domain.endsWith('.mil')) {
+            console.log(`⊘ Skipping ${p.reports.domain}: government/educational domain not viable for B2B`);
+            return false;
+          }
+          
+          return true;
+        });
         const safeProspects = [];
         
         for (const p of prospectsToEnrich) {
@@ -643,7 +653,7 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
         if (Array.isArray(contacts) && contacts.length > 0) {
           // Filter out .gov, .edu, .mil emails and legal/compliance emails
           const filteredContacts = contacts.filter((contact: any) => {
-            if (!contact.email) return true; // Keep contacts without email (phone-only)
+            if (!contact.email) return false; // Reject contacts without email - we need emails for outreach
             
             const domain = contact.email.split('@')[1]?.toLowerCase() || '';
             const isExcluded = domain.endsWith('.gov') || 
