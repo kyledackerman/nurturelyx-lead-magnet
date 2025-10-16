@@ -10,6 +10,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
+import { useCRMSidebarCounts } from "@/hooks/useCRMSidebarCounts";
 
 interface CRMSidebarProps {
   selectedView: "warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails";
@@ -30,6 +32,7 @@ const navItems = [
 
 export function CRMSidebar({ selectedView, onViewChange }: CRMSidebarProps) {
   const { state } = useSidebar();
+  const { counts, loading } = useCRMSidebarCounts();
 
   return (
     <Sidebar collapsible="icon">
@@ -50,6 +53,18 @@ export function CRMSidebar({ selectedView, onViewChange }: CRMSidebarProps) {
                     >
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
+                      {!loading && state === "expanded" && counts[item.view] !== undefined && (
+                        <Badge 
+                          variant={
+                            item.view === 'warm-inbound' || item.view === 'needs-review' 
+                              ? 'default' 
+                              : 'secondary'
+                          }
+                          className="ml-auto"
+                        >
+                          {counts[item.view]}
+                        </Badge>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );

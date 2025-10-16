@@ -823,6 +823,10 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_crm_sidebar_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_daily_unique_domains_contacted: {
         Args: { days?: number }
         Returns: Json
