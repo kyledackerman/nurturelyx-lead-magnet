@@ -18,9 +18,54 @@ serve(async (req) => {
 
     console.log("Resetting prospects that need review after failed enrichments...");
 
-    // Reset prospects from review status BUT:
-    // 1. Only if retry count < 3 (haven't exhausted attempts)
-    // 2. NEVER touch enriched prospects
+    // First, get prospects that are in review but DON'T have accepted emails
+    // (accepted = not legal/privacy/compliance/counsel/attorney/law/dmca)
+    const { data: prospectsWithoutAcceptedEmails, error: fetchError } = await supabase
+      .from("prospect_activities")
+      .select(`
+        id,
+        enrichment_retry_count,
+        prospect_contacts!inner(
+          email
+        )
+      `)
+      .eq("status", "review")
+      .lt("enrichment_retry_count", 3);
+
+    if (fetchError) {
+      throw new Error(`Failed to fetch review prospects: ${fetchError.message}`);
+    }
+
+    // Filter to only prospects without accepted emails
+    const prospectsToReset = prospectsWithoutAcceptedEmails?.filter(pa => {
+      const contacts = (pa as any).prospect_contacts || [];
+      const hasAcceptedEmail = contacts.some((pc: any) => {
+        if (!pc.email || pc.email.trim() === '') return false;
+        const localPart = pc.email.split('@')[0].toLowerCase();
+        const isRejected = /legal|privacy|compliance|counsel|attorney|law|dmca/.test(localPart);
+        return !isRejected;
+      });
+      return !hasAcceptedEmail;
+    }) || [];
+
+    console.log(`Found ${prospectsToReset.length} prospects in review without accepted emails`);
+
+    if (prospectsToReset.length === 0) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          reset_count: 0,
+          message: "No prospects need resetting"
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200
+        }
+      );
+    }
+
+    // Reset only those prospects
+    const prospectIds = prospectsToReset.map(p => p.id);
     const { data: resetProspects, error: resetError } = await supabase
       .from("prospect_activities")
       .update({
@@ -29,11 +74,9 @@ serve(async (req) => {
         last_enrichment_attempt: null,
         enrichment_locked_at: null,
         enrichment_locked_by: null,
-        notes: "🔄 Reset from review status - ready for retry"
+        notes: "🔄 Reset from review status - ready for retry (no accepted email found)"
       })
-      .eq("status", "review")
-      .lt("enrichment_retry_count", 3)
-      .neq("status", "enriched") // Safety check
+      .in("id", prospectIds)
       .select("id, reports!inner(domain)");
 
     if (resetError) {
