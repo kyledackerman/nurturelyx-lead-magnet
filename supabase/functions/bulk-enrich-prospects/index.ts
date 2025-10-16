@@ -1279,8 +1279,9 @@ async function whoisLookup(domain: string): Promise<string[]> {
       signal: AbortSignal.timeout(5000) // 5 second timeout
     });
     
+    // Handle 403 or other HTTP errors gracefully
     if (!response.ok) {
-      console.log(`⚠️ WHOIS lookup failed: ${response.status}`);
+      console.log(`⚠️ WHOIS lookup unavailable (${response.status}) - skipping`);
       return [];
     }
     
