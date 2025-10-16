@@ -598,13 +598,33 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
             const companyName = extractedData.company_name || currentCompanyName;
             let contacts = extractedData.contacts || [];
 
-            // Phase 5: Stage 3: If no contacts found, try Google Search for emails
+            // Phase 5: Stage 3: If no contacts found, try WHOIS lookup first (fast & free)
             if (contacts.length === 0) {
-              console.log(`⚠️ No contacts found for ${domain}, attempting Google Search for emails...`);
+              console.log(`⚠️ No contacts found for ${domain}, trying WHOIS lookup...`);
+              const whoisEmails = await whoisLookup(domain);
+              
+              if (whoisEmails.length > 0) {
+                console.log(`✅ WHOIS found ${whoisEmails.length} email(s) for ${domain}`);
+                contacts = whoisEmails.map(email => ({
+                  first_name: "Domain Owner",
+                  last_name: null,
+                  email: email,
+                  phone: null,
+                  title: "Registrant Contact",
+                  linkedin_url: null,
+                  facebook_url: null,
+                  notes: "Email found via WHOIS lookup"
+                }));
+              }
+            }
+
+            // Phase 5: Stage 4: If still no contacts, try multi-source Google Search
+            if (contacts.length === 0) {
+              console.log(`⚠️ Still no contacts for ${domain}, attempting multi-source Google Search...`);
               const foundEmails = await googleSearchEmails(domain, companyName, lovableApiKey);
               
               if (foundEmails.length > 0) {
-                console.log(`✅ Google Search found ${foundEmails.length} emails for ${domain}`);
+                console.log(`✅ Multi-source search found ${foundEmails.length} emails for ${domain}`);
                 contacts = foundEmails.map(email => ({
                   first_name: "Office",
                   last_name: null,
@@ -613,7 +633,7 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
                   title: "Contact Found via Search",
                   linkedin_url: null,
                   facebook_url: null,
-                  notes: "Email found via Google Search"
+                  notes: "Email found via multi-source Google Search"
                 }));
               }
             }
@@ -1250,15 +1270,60 @@ async function scrapeFacebookPage(facebookUrl: string): Promise<string> {
   return "";
 }
 
-// Phase 4: Use Google Search to find email addresses
-async function googleSearchEmails(domain: string, companyName: string, lovableApiKey: string): Promise<string[]> {
+// WHOIS lookup for domain registration contacts
+async function whoisLookup(domain: string): Promise<string[]> {
   try {
-    console.log(`🔍 Searching for emails via Google Search for ${domain}...`);
+    console.log(`📇 Checking WHOIS data for ${domain}...`);
     
-    // Phase 1: NO TIMEOUT - Let Google Search complete (typically 20-30s)
-    // AI Gateway has 120s timeout which is sufficient
-    const searchQuery = `site:${domain} (contact OR email OR phone OR team OR about) @${domain}`;
+    const response = await fetch(`https://who-dat.as93.net/${domain}`, {
+      signal: AbortSignal.timeout(5000) // 5 second timeout
+    });
     
+    if (!response.ok) {
+      console.log(`⚠️ WHOIS lookup failed: ${response.status}`);
+      return [];
+    }
+    
+    const data = await response.json();
+    const emails: string[] = [];
+    
+    // Extract registrant email
+    if (data.registrant_email && !data.registrant_email.includes('REDACTED') && !data.registrant_email.includes('privacy')) {
+      emails.push(data.registrant_email);
+      console.log(`📇 Found registrant email: ${data.registrant_email}`);
+    }
+    
+    // Extract admin contact
+    if (data.admin_email && !data.admin_email.includes('REDACTED') && !data.admin_email.includes('privacy')) {
+      emails.push(data.admin_email);
+      console.log(`📇 Found admin email: ${data.admin_email}`);
+    }
+    
+    // Extract tech contact
+    if (data.tech_email && !data.tech_email.includes('REDACTED') && !data.tech_email.includes('privacy')) {
+      emails.push(data.tech_email);
+      console.log(`📇 Found tech email: ${data.tech_email}`);
+    }
+    
+    // Deduplicate
+    const uniqueEmails = [...new Set(emails)];
+    
+    if (uniqueEmails.length > 0) {
+      console.log(`✅ WHOIS found ${uniqueEmails.length} contact(s) for ${domain}`);
+    } else {
+      console.log(`⚠️ WHOIS data is privacy-protected for ${domain}`);
+    }
+    
+    return uniqueEmails;
+  } catch (error) {
+    console.log(`⚠️ WHOIS lookup error for ${domain}:`, error instanceof Error ? error.message : String(error));
+    return [];
+  }
+}
+
+// Helper to run a single search query
+async function runSingleSearch(query: string, lovableApiKey: string): Promise<string[]> {
+  try {
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -1270,35 +1335,16 @@ async function googleSearchEmails(domain: string, companyName: string, lovableAp
         messages: [
           {
             role: "system",
-            content: "You are a contact extraction specialist. Extract ALL contact information from Google Search results including emails, phone numbers, names, and titles. Look for emails on Facebook pages in search results - they often appear there!"
+            content: "You are a contact extraction specialist. Extract ALL email addresses from the search results. Return them as a simple JSON array."
           },
           {
             role: "user",
-            content: `Search query: ${searchQuery}
+            content: `Search query: ${query}
 
-Extract ALL contact information you find in the search results:
-- Email addresses (any format, including info@, contact@, sales@)
-- Phone numbers (any format)
-- Names associated with emails if available
-- Job titles if mentioned
+Extract ALL email addresses you find. Return ONLY a JSON array like:
+["email1@company.com", "email2@company.com"]
 
-**CRITICAL**: Look for emails on Facebook pages in search results - they often appear there!
-
-Return ONLY this JSON structure:
-{
-  "contacts": [
-    {
-      "email": "john@company.com",
-      "phone": "+1-555-0123",
-      "name": "John Smith",
-      "title": "Owner"
-    }
-  ]
-}
-
-If you only find emails without names, use name: "Office".
-If you only find phone numbers, include them anyway.
-Extract EVERYTHING - we need any contact method we can get.`
+If no emails found, return empty array: []`
           }
         ],
         tools: [{ type: "google_search_retrieval" }],
@@ -1313,27 +1359,78 @@ Extract EVERYTHING - we need any contact method we can get.`
       if (content) {
         try {
           const cleanedContent = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-          const result = JSON.parse(cleanedContent);
-          
-          // Handle both old format (array of emails) and new format (contacts object)
-          if (Array.isArray(result)) {
-            console.log(`✅ Found ${result.length} emails via Google Search`);
-            return result;
-          } else if (result.contacts && Array.isArray(result.contacts)) {
-            const emails = result.contacts
-              .map((c: any) => c.email)
-              .filter((e: string) => e && e.trim() !== '');
-            console.log(`✅ Found ${emails.length} emails via Google Search (from ${result.contacts.length} contacts)`);
-            return emails;
-          }
+          const emails = JSON.parse(cleanedContent);
+          return Array.isArray(emails) ? emails : [];
         } catch (e) {
-          console.log(`⚠️ Failed to parse email search results`);
+          return [];
         }
       }
     }
   } catch (error) {
-    console.log(`⚠️ Google Search failed:`, error instanceof Error ? error.message : String(error));
+    // Silent fail for individual queries
   }
   
   return [];
+}
+
+// Phase 4: Multi-source Google Search across the entire public internet
+async function googleSearchEmails(domain: string, companyName: string, lovableApiKey: string): Promise<string[]> {
+  try {
+    console.log(`🔍 Multi-source search for ${domain} (${companyName})...`);
+    
+    // Define search queries - searching the ENTIRE public internet
+    const searchQueries = [
+      // Query 1: Original domain search (keep for website emails)
+      `site:${domain} (contact OR email OR phone OR team OR about)`,
+      
+      // Query 2: LinkedIn company page search
+      `site:linkedin.com/company "${companyName}" OR "${domain}"`,
+      
+      // Query 3: Business directory search
+      `site:yelp.com OR site:bbb.org OR site:yellowpages.com "${companyName}" contact`,
+      
+      // Query 4: General web search for company + contact
+      `"${companyName}" owner email OR contact email -linkedin.com -facebook.com`,
+      
+      // Query 5: Review sites (owner responses often have emails)
+      `site:google.com/maps "${companyName}" owner response contact`,
+      
+      // Query 6: Forum/discussion mentions
+      `"${companyName}" OR "${domain}" email site:reddit.com OR site:quora.com`,
+    ];
+    
+    const allEmails: string[] = [];
+    
+    // Run searches with 1-second delays between queries to avoid rate limits
+    for (let i = 0; i < searchQueries.length; i++) {
+      const query = searchQueries[i];
+      console.log(`🔍 Query ${i + 1}/${searchQueries.length}: ${query.substring(0, 60)}...`);
+      
+      const emails = await runSingleSearch(query, lovableApiKey);
+      
+      if (emails.length > 0) {
+        console.log(`  ✅ Found ${emails.length} email(s) from query ${i + 1}`);
+        allEmails.push(...emails);
+      }
+      
+      // Add 1-second delay between queries (except after last query)
+      if (i < searchQueries.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    // Deduplicate emails
+    const uniqueEmails = [...new Set(allEmails)];
+    
+    if (uniqueEmails.length > 0) {
+      console.log(`✅ Multi-source search found ${uniqueEmails.length} unique email(s) from ${allEmails.length} total results`);
+    } else {
+      console.log(`⚠️ No emails found across all sources`);
+    }
+    
+    return uniqueEmails;
+  } catch (error) {
+    console.log(`⚠️ Multi-source search failed:`, error instanceof Error ? error.message : String(error));
+    return [];
+  }
 }
