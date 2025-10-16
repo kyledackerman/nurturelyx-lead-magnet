@@ -653,8 +653,6 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
             } else {
               console.error(`Insert error for ${domain}:`, insertError);
             }
-          } else {
-            console.log(`⚠️ All contacts filtered out (gov/edu or legal emails)`);
           }
         }
         
