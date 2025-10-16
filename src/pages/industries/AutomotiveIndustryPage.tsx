@@ -2,6 +2,10 @@ import { IndustryHero } from "@/components/industry/IndustryHero";
 import { IndustryReportGrid } from "@/components/industry/IndustryReportGrid";
 import { IndustryROICalculator } from "@/components/industry/IndustryROICalculator";
 import { IndustryFAQ } from "@/components/industry/IndustryFAQ";
+import { IndustrySocialProof } from "@/components/industry/IndustrySocialProof";
+import { IndustryDataOwnership } from "@/components/industry/IndustryDataOwnership";
+import { IndustryTestimonial } from "@/components/industry/IndustryTestimonial";
+import { StickyIndustryCTA } from "@/components/industry/StickyIndustryCTA";
 import CallToActionSection from "@/components/CallToActionSection";
 import { getIndustryData } from "@/data/industryData";
 import { AlertCircle } from "lucide-react";
@@ -31,34 +35,34 @@ export default function AutomotiveIndustryPage() {
   return (
     <>
       <MetaTags
-        title="Automotive Visitor Identification | Dealership Lead Tracking - NurturelyX"
-        description="Identify anonymous website visitors for automotive dealerships. Track fleet buyers and service customers researching vehicles and automotive services."
+        title="Automotive Visitor Identification | Dealership Lead Generation - NurturelyX"
+        description="Identify anonymous website visitors for automotive dealerships. Track fleet managers and car buyers researching vehicles."
         canonical="https://x1.nurturely.io/industries/automotive"
-        keywords="automotive lead generation, dealership visitor tracking, fleet buyer identification, car dealer marketing"
+        keywords="automotive lead generation, dealership visitor tracking, fleet sales leads, automotive marketing"
       />
       
       <ServiceSchema
         name="Automotive Visitor Identification Service"
-        description="Identify anonymous website visitors for automotive dealerships and service centers. Track potential fleet buyers and service customers."
+        description="Identify anonymous website visitors for automotive dealerships and vehicle sales businesses."
         serviceType="Professional Service"
       />
       
       <LocalBusinessSchema
         name="NurturelyX Automotive Visitor Identification"
-        description="Visitor identification technology for automotive dealerships and service centers"
+        description="Visitor identification technology for automotive dealerships and vehicle sales"
         businessType="ProfessionalService"
         areaServed={["United States"]}
       />
       
       <WebPageSchema
-        name="Automotive Visitor Identification & Dealership Lead Generation"
-        description="Track anonymous website visitors for automotive dealerships and identify potential fleet buyers and service customers"
+        name="Automotive Visitor Identification & Lead Generation"
+        description="Track anonymous website visitors for automotive dealerships and identify potential buyers researching vehicles"
         url="https://x1.nurturely.io/industries/automotive"
         breadcrumbs={[
           { name: "Industries", url: "/industries" },
           { name: "Automotive", url: "/industries/automotive" }
         ]}
-        keywords={["automotive leads", "dealership visitor tracking", "fleet buyer identification", "car dealer marketing"]}
+        keywords={["automotive leads", "dealership visitor tracking", "fleet sales lead generation", "automotive marketing"]}
       />
 
       <Header />
@@ -77,14 +81,16 @@ export default function AutomotiveIndustryPage() {
           subheadline={industry.subheadline}
         />
 
+        <IndustrySocialProof industry="automotive" industryName={industry.name} />
+
         <section className="py-16 bg-muted/30">
           <div className="container max-w-6xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Automotive Industry Challenges
+                Automotive Marketing Challenges
               </h2>
               <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                Identify fleet buyers and service customers before competitors do
+                Common issues facing automotive dealerships
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -104,15 +110,23 @@ export default function AutomotiveIndustryPage() {
           <div className="container max-w-6xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Automotive Businesses Tracking Website Visitors
+                Automotive Businesses Losing Revenue
               </h2>
               <p className="text-lg text-muted-foreground">
-                Fleet sales and service opportunities being missed
+                Real examples of missed opportunities
               </p>
             </div>
             <IndustryReportGrid industry="automotive" />
           </div>
         </section>
+
+        {industry.testimonials && industry.testimonials[0] && (
+          <section className="py-12">
+            <div className="container max-w-6xl">
+              <IndustryTestimonial {...industry.testimonials[0]} />
+            </div>
+          </section>
+        )}
 
         <section className="py-16 bg-muted/30">
           <div className="container max-w-4xl">
@@ -128,7 +142,7 @@ export default function AutomotiveIndustryPage() {
           <div className="container max-w-6xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Automotive Visitor Intelligence Benefits
+                How Visitor Identification Helps Automotive Dealerships
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -144,10 +158,14 @@ export default function AutomotiveIndustryPage() {
           </div>
         </section>
 
+        <IndustryDataOwnership />
+
         <IndustryFAQ faqs={industry.faqs} />
         <FAQSchema questions={industry.faqs} />
 
         <CallToActionSection />
+        
+        <StickyIndustryCTA industryName={industry.name} />
       </main>
       
       <Footer />

@@ -2,6 +2,10 @@ import { IndustryHero } from "@/components/industry/IndustryHero";
 import { IndustryReportGrid } from "@/components/industry/IndustryReportGrid";
 import { IndustryROICalculator } from "@/components/industry/IndustryROICalculator";
 import { IndustryFAQ } from "@/components/industry/IndustryFAQ";
+import { IndustrySocialProof } from "@/components/industry/IndustrySocialProof";
+import { IndustryDataOwnership } from "@/components/industry/IndustryDataOwnership";
+import { IndustryTestimonial } from "@/components/industry/IndustryTestimonial";
+import { StickyIndustryCTA } from "@/components/industry/StickyIndustryCTA";
 import CallToActionSection from "@/components/CallToActionSection";
 import { getIndustryData } from "@/data/industryData";
 import { AlertCircle } from "lucide-react";
@@ -31,34 +35,34 @@ export default function RealEstateIndustryPage() {
   return (
     <>
       <MetaTags
-        title="Real Estate Visitor Identification | Property Lead Tracking - NurturelyX"
-        description="Identify anonymous property browsers and real estate website visitors. Track potential buyers and sellers researching properties and convert more leads."
+        title="Real Estate Visitor Identification | Property Lead Generation - NurturelyX"
+        description="Identify anonymous website visitors for real estate businesses. Track potential buyers and investors viewing property listings."
         canonical="https://x1.nurturely.io/industries/real-estate"
-        keywords="real estate lead generation, property visitor tracking, real estate website leads, buyer identification"
+        keywords="real estate lead generation, property visitor tracking, real estate marketing, commercial real estate leads"
       />
       
       <ServiceSchema
         name="Real Estate Visitor Identification Service"
-        description="Identify anonymous website visitors for real estate companies. Track potential buyers and sellers researching properties and capture high-value leads."
+        description="Identify anonymous website visitors for real estate businesses and property listings."
         serviceType="Professional Service"
       />
       
       <LocalBusinessSchema
         name="NurturelyX Real Estate Visitor Identification"
-        description="Visitor identification technology for real estate companies and property professionals"
+        description="Visitor identification technology for real estate businesses and property brokers"
         businessType="ProfessionalService"
         areaServed={["United States"]}
       />
       
       <WebPageSchema
-        name="Real Estate Visitor Identification & Property Lead Generation"
-        description="Track anonymous website visitors at real estate companies and identify potential buyers researching properties"
+        name="Real Estate Visitor Identification & Lead Generation"
+        description="Track anonymous website visitors for real estate businesses and identify potential buyers viewing properties"
         url="https://x1.nurturely.io/industries/real-estate"
         breadcrumbs={[
           { name: "Industries", url: "/industries" },
           { name: "Real Estate", url: "/industries/real-estate" }
         ]}
-        keywords={["real estate leads", "property visitor tracking", "buyer identification", "real estate marketing"]}
+        keywords={["real estate leads", "property visitor tracking", "real estate lead generation", "commercial real estate marketing"]}
       />
 
       <Header />
@@ -72,19 +76,21 @@ export default function RealEstateIndustryPage() {
         </div>
 
         <IndustryHero
-        name={industry.name}
-        headline={industry.headline}
-        subheadline={industry.subheadline}
-      />
+          name={industry.name}
+          headline={industry.headline}
+          subheadline={industry.subheadline}
+        />
+
+        <IndustrySocialProof industry="real-estate" industryName={industry.name} />
 
         <section className="py-16 bg-muted/30">
           <div className="container max-w-6xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Real Estate Lead Generation Challenges
+                Real Estate Marketing Challenges
               </h2>
               <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                Convert property browsers into qualified buyers
+                Common issues facing real estate businesses
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -104,15 +110,23 @@ export default function RealEstateIndustryPage() {
           <div className="container max-w-6xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Real Estate Companies Tracking Visitors
+                Real Estate Companies Losing Revenue
               </h2>
               <p className="text-lg text-muted-foreground">
-                See how much potential commission is being lost
+                Real examples of missed opportunities
               </p>
             </div>
             <IndustryReportGrid industry="real-estate" />
           </div>
         </section>
+
+        {industry.testimonials && industry.testimonials[0] && (
+          <section className="py-12">
+            <div className="container max-w-6xl">
+              <IndustryTestimonial {...industry.testimonials[0]} />
+            </div>
+          </section>
+        )}
 
         <section className="py-16 bg-muted/30">
           <div className="container max-w-4xl">
@@ -128,7 +142,7 @@ export default function RealEstateIndustryPage() {
           <div className="container max-w-6xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                What NurturelyX Provides Real Estate Professionals
+                How Visitor Identification Helps Real Estate
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -144,10 +158,14 @@ export default function RealEstateIndustryPage() {
           </div>
         </section>
 
+        <IndustryDataOwnership />
+
         <IndustryFAQ faqs={industry.faqs} />
         <FAQSchema questions={industry.faqs} />
 
         <CallToActionSection />
+        
+        <StickyIndustryCTA industryName={industry.name} />
       </main>
       
       <Footer />

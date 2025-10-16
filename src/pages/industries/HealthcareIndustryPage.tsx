@@ -2,6 +2,10 @@ import { IndustryHero } from "@/components/industry/IndustryHero";
 import { IndustryReportGrid } from "@/components/industry/IndustryReportGrid";
 import { IndustryROICalculator } from "@/components/industry/IndustryROICalculator";
 import { IndustryFAQ } from "@/components/industry/IndustryFAQ";
+import { IndustrySocialProof } from "@/components/industry/IndustrySocialProof";
+import { IndustryDataOwnership } from "@/components/industry/IndustryDataOwnership";
+import { IndustryTestimonial } from "@/components/industry/IndustryTestimonial";
+import { StickyIndustryCTA } from "@/components/industry/StickyIndustryCTA";
 import CallToActionSection from "@/components/CallToActionSection";
 import { getIndustryData } from "@/data/industryData";
 import { AlertCircle } from "lucide-react";
@@ -31,34 +35,34 @@ export default function HealthcareIndustryPage() {
   return (
     <>
       <MetaTags
-        title="Healthcare B2B Visitor Identification | Medical Lead Generation - NurturelyX"
-        description="Identify anonymous website visitors for B2B healthcare companies. Track hospitals, clinics, and medical organizations researching your healthcare solutions."
+        title="Healthcare B2B Visitor Identification | Medical Device Lead Generation - NurturelyX"
+        description="Identify anonymous website visitors for healthcare B2B businesses. Track hospitals and clinics researching medical equipment and services."
         canonical="https://x1.nurturely.io/industries/healthcare"
-        keywords="healthcare B2B lead generation, medical visitor tracking, healthcare sales intelligence, hospital lead identification"
+        keywords="healthcare lead generation, medical device leads, hospital visitor tracking, B2B healthcare marketing"
       />
       
       <ServiceSchema
         name="Healthcare B2B Visitor Identification Service"
-        description="Identify anonymous website visitors for B2B healthcare companies. Track hospitals, clinics, and medical organizations researching healthcare solutions."
+        description="Identify anonymous website visitors for healthcare B2B businesses, medical device companies, and healthcare IT providers."
         serviceType="Professional Service"
       />
       
       <LocalBusinessSchema
         name="NurturelyX Healthcare Visitor Identification"
-        description="Visitor identification technology for B2B healthcare companies and medical solution providers"
+        description="Visitor identification technology for B2B healthcare businesses and medical device companies"
         businessType="ProfessionalService"
         areaServed={["United States"]}
       />
       
       <WebPageSchema
-        name="Healthcare B2B Visitor Identification & Medical Lead Generation"
-        description="Track anonymous website visitors for B2B healthcare companies and identify organizations researching medical solutions"
+        name="Healthcare B2B Visitor Identification & Lead Generation"
+        description="Track anonymous website visitors for healthcare B2B businesses and identify healthcare facilities researching medical solutions"
         url="https://x1.nurturely.io/industries/healthcare"
         breadcrumbs={[
           { name: "Industries", url: "/industries" },
           { name: "Healthcare", url: "/industries/healthcare" }
         ]}
-        keywords={["healthcare B2B leads", "medical visitor tracking", "hospital lead generation", "healthcare sales intelligence"]}
+        keywords={["healthcare B2B leads", "medical device visitor tracking", "hospital lead generation", "healthcare IT marketing"]}
       />
 
       <Header />
@@ -77,14 +81,16 @@ export default function HealthcareIndustryPage() {
           subheadline={industry.subheadline}
         />
 
+        <IndustrySocialProof industry="healthcare" industryName={industry.name} />
+
         <section className="py-16 bg-muted/30">
           <div className="container max-w-6xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                B2B Healthcare Marketing Challenges
+                Healthcare B2B Marketing Challenges
               </h2>
               <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                Long sales cycles require knowing who's researching your solutions
+                Common issues facing healthcare B2B businesses
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -104,15 +110,23 @@ export default function HealthcareIndustryPage() {
           <div className="container max-w-6xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Healthcare Organizations Using Visitor Intelligence
+                Healthcare Businesses Losing Revenue
               </h2>
               <p className="text-lg text-muted-foreground">
-                B2B healthcare sales opportunities
+                Real examples of missed opportunities
               </p>
             </div>
             <IndustryReportGrid industry="healthcare" />
           </div>
         </section>
+
+        {industry.testimonials && industry.testimonials[0] && (
+          <section className="py-12">
+            <div className="container max-w-6xl">
+              <IndustryTestimonial {...industry.testimonials[0]} />
+            </div>
+          </section>
+        )}
 
         <section className="py-16 bg-muted/30">
           <div className="container max-w-4xl">
@@ -128,7 +142,7 @@ export default function HealthcareIndustryPage() {
           <div className="container max-w-6xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Healthcare B2B Sales Intelligence
+                How Visitor Identification Helps Healthcare B2B
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -144,10 +158,14 @@ export default function HealthcareIndustryPage() {
           </div>
         </section>
 
+        <IndustryDataOwnership />
+
         <IndustryFAQ faqs={industry.faqs} />
         <FAQSchema questions={industry.faqs} />
 
         <CallToActionSection />
+        
+        <StickyIndustryCTA industryName={industry.name} />
       </main>
       
       <Footer />
