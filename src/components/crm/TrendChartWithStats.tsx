@@ -79,6 +79,37 @@ export default function TrendChartWithStats({
 
         setData(chartData);
         await fetchComparisonStats();
+      } else if (tableName === 'prospect_activities') {
+        // Query prospect_activities directly for accurate counts
+        const { data: prospectsData, error } = await supabase
+          .from("prospect_activities")
+          .select("id, created_at")
+          .gte("created_at", thirtyDaysAgo)
+          .order("created_at", { ascending: true });
+
+        if (error) throw error;
+
+        // Group by UTC date
+        const recordsMap = new Map<string, number>();
+        prospectsData?.forEach((prospect) => {
+          const localDate = new Date(prospect.created_at).toISOString().split('T')[0];
+          recordsMap.set(localDate, (recordsMap.get(localDate) || 0) + 1);
+        });
+
+        // Fill in missing dates with zeros (using UTC)
+        const chartData: TrendData[] = [];
+        for (let i = 29; i >= 0; i--) {
+          const dateObj = new Date();
+          dateObj.setUTCDate(dateObj.getUTCDate() - i);
+          const dateKey = dateObj.toISOString().split('T')[0];
+          chartData.push({
+            date: format(dateObj, "MMM dd"),
+            count: recordsMap.get(dateKey) || 0,
+          });
+        }
+
+        setData(chartData);
+        await fetchComparisonStats();
       } else {
         // Use audit_logs for other tables
         const { data: logsData, error } = await supabase
@@ -147,6 +178,32 @@ export default function TrendChartWithStats({
             .select("id", { count: 'exact', head: true })
             .not('email', 'is', null)
             .neq('email', '')
+            .gte("created_at", start);
+          
+          if (end) {
+            query = query.lt("created_at", end);
+          }
+          
+          const { count } = await query;
+          return count || 0;
+        };
+
+        const [today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth] = await Promise.all([
+          countPeriod(todayStart),
+          countPeriod(yesterdayStart, yesterdayEnd),
+          countPeriod(thisWeekStart),
+          countPeriod(lastWeekStart, lastWeekEnd),
+          countPeriod(thisMonthStart),
+          countPeriod(lastMonthStart, lastMonthEnd),
+        ]);
+
+        setStats({ today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth });
+      } else if (tableName === 'prospect_activities') {
+        // Count prospect_activities directly for accurate stats
+        const countPeriod = async (start: string, end?: string) => {
+          let query = supabase
+            .from("prospect_activities")
+            .select("id", { count: 'exact', head: true })
             .gte("created_at", start);
           
           if (end) {
