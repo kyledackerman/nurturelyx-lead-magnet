@@ -32,8 +32,7 @@ export default function ActiveEnrichmentJobsIndicator({ onResumeJob }: ActiveEnr
         {
           event: '*',
           schema: 'public',
-          table: 'enrichment_jobs',
-          filter: 'status=eq.running'
+          table: 'enrichment_jobs'
         },
         () => {
           fetchActiveJobs();
@@ -41,8 +40,14 @@ export default function ActiveEnrichmentJobsIndicator({ onResumeJob }: ActiveEnr
       )
       .subscribe();
 
+    // Polling fallback every 10 seconds
+    const pollInterval = setInterval(() => {
+      fetchActiveJobs();
+    }, 10000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(pollInterval);
     };
   }, []);
 
