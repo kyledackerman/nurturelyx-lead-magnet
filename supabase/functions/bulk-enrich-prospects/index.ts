@@ -514,7 +514,7 @@ ${socialLinks || 'None found'}
 **WEBSITE CONTENT:**
 ${scrapedData.substring(0, 8000)}
 
-${facebookData ? `\n**FACEBOOK PAGE CONTENT:**\n${facebookData.substring(0, 2000)}\n` : ''}
+${facebookData ? `\n**🔥 FACEBOOK PAGE CONTENT (HIGH PRIORITY - EXTRACT ALL EMAILS/PHONES):**\n${facebookData.substring(0, 2000)}\n\n⚠️ Facebook often has emails not on the website - be aggressive extracting from Facebook data!\n` : ''}
 
 Extract the proper company name and all contact information. BE AGGRESSIVE in finding contacts - include phone numbers, emails, and addresses even if no specific person is named. Return ONLY the JSON object.`,
                   },
@@ -1133,18 +1133,20 @@ Now search the web and write the icebreaker:
 });
 
 async function scrapeWebsite(domain: string): Promise<{ content: string; socialLinks: string }> {
-  const maxTotalTime = 30000; // 30 seconds max for ALL URLs combined
+  const maxTotalTime = 60000; // 60 seconds max for ALL URLs combined (increased from 30s)
   const startTime = Date.now();
   
+  // Phase 4: Prioritize contact pages first (highest value)
   const urlsToTry = [
-    `https://${domain}`,
-    `https://${domain}/contact`,
+    `https://${domain}/contact`,        // 🎯 HIGHEST VALUE
     `https://${domain}/contact-us`,
+    `https://www.${domain}/contact`,
     `https://${domain}/about`,
     `https://${domain}/about-us`,
     `https://${domain}/team`,
+    `https://${domain}/get-in-touch`,
+    `https://${domain}`,                // Homepage last (lowest value)
     `https://www.${domain}`,
-    `https://www.${domain}/contact`,
   ];
 
   let allContent = "";
@@ -1162,7 +1164,7 @@ async function scrapeWebsite(domain: string): Promise<{ content: string; socialL
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         },
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(15000), // Increased from 10s to 15s per URL
       });
 
       if (response.ok) {
@@ -1253,15 +1255,12 @@ async function googleSearchEmails(domain: string, companyName: string, lovableAp
   try {
     console.log(`🔍 Searching for emails via Google Search for ${domain}...`);
     
-    // Create abort controller with 15 second timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds max
-    
-    const searchQuery = `site:${domain} @${domain} OR contact OR email`;
+    // Phase 1: NO TIMEOUT - Let Google Search complete (typically 20-30s)
+    // AI Gateway has 120s timeout which is sufficient
+    const searchQuery = `site:${domain} (contact OR email OR phone OR team OR about) @${domain}`;
     
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      signal: controller.signal, // Add abort signal
       headers: {
         Authorization: `Bearer ${lovableApiKey}`,
         "Content-Type": "application/json",
@@ -1271,19 +1270,41 @@ async function googleSearchEmails(domain: string, companyName: string, lovableAp
         messages: [
           {
             role: "system",
-            content: "You are an email extraction specialist. Extract ALL email addresses from the search results."
+            content: "You are a contact extraction specialist. Extract ALL contact information from Google Search results including emails, phone numbers, names, and titles. Look for emails on Facebook pages in search results - they often appear there!"
           },
           {
             role: "user",
-            content: `Search query: ${searchQuery}\n\nExtract all email addresses found. Return ONLY a JSON array of email strings: ["email1@domain.com", "email2@domain.com"]`
+            content: `Search query: ${searchQuery}
+
+Extract ALL contact information you find in the search results:
+- Email addresses (any format, including info@, contact@, sales@)
+- Phone numbers (any format)
+- Names associated with emails if available
+- Job titles if mentioned
+
+**CRITICAL**: Look for emails on Facebook pages in search results - they often appear there!
+
+Return ONLY this JSON structure:
+{
+  "contacts": [
+    {
+      "email": "john@company.com",
+      "phone": "+1-555-0123",
+      "name": "John Smith",
+      "title": "Owner"
+    }
+  ]
+}
+
+If you only find emails without names, use name: "Office".
+If you only find phone numbers, include them anyway.
+Extract EVERYTHING - we need any contact method we can get.`
           }
         ],
         tools: [{ type: "google_search_retrieval" }],
         temperature: 0.1,
       }),
     });
-
-    clearTimeout(timeoutId); // Clear timeout if successful
 
     if (response.ok) {
       const data = await response.json();
@@ -1292,9 +1313,17 @@ async function googleSearchEmails(domain: string, companyName: string, lovableAp
       if (content) {
         try {
           const cleanedContent = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-          const emails = JSON.parse(cleanedContent);
-          if (Array.isArray(emails)) {
-            console.log(`✅ Found ${emails.length} emails via Google Search`);
+          const result = JSON.parse(cleanedContent);
+          
+          // Handle both old format (array of emails) and new format (contacts object)
+          if (Array.isArray(result)) {
+            console.log(`✅ Found ${result.length} emails via Google Search`);
+            return result;
+          } else if (result.contacts && Array.isArray(result.contacts)) {
+            const emails = result.contacts
+              .map((c: any) => c.email)
+              .filter((e: string) => e && e.trim() !== '');
+            console.log(`✅ Found ${emails.length} emails via Google Search (from ${result.contacts.length} contacts)`);
             return emails;
           }
         } catch (e) {
@@ -1303,11 +1332,7 @@ async function googleSearchEmails(domain: string, companyName: string, lovableAp
       }
     }
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      console.log(`⏱️ Google Search timed out after 15s for ${domain} - moving on`);
-    } else {
-      console.log(`⚠️ Google Search failed:`, error instanceof Error ? error.message : String(error));
-    }
+    console.log(`⚠️ Google Search failed:`, error instanceof Error ? error.message : String(error));
   }
   
   return [];
