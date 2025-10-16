@@ -6,6 +6,7 @@ import { IndustrySocialProof } from "@/components/industry/IndustrySocialProof";
 import { IndustryDataOwnership } from "@/components/industry/IndustryDataOwnership";
 import { IndustryTestimonial } from "@/components/industry/IndustryTestimonial";
 import { StickyIndustryCTA } from "@/components/industry/StickyIndustryCTA";
+import { IndustryCompetitorComparison } from "@/components/industry/IndustryCompetitorComparison";
 import CallToActionSection from "@/components/CallToActionSection";
 import { getIndustryData } from "@/data/industryData";
 import { AlertCircle } from "lucide-react";
@@ -105,6 +106,8 @@ export default function LegalIndustryPage() {
             </div>
           </div>
         </section>
+
+        <IndustryCompetitorComparison industryName={industry.name} />
 
         <section className="py-16">
           <div className="container max-w-6xl">

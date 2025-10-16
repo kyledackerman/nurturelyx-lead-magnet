@@ -41,6 +41,10 @@ export const industryData: Record<string, IndustryData> = {
     ],
     faqs: [
       {
+        question: 'How is this different from LeadFeeder, Clearbit, or other visitor tracking tools?',
+        answer: 'Completely different. IP-based tools like LeadFeeder, Leadfeeder, Clearbit, and LeadForensics identify COMPANIES by reverse-looking up IP addresses. They\'re built for B2B SaaS tracking business visitors. You get results like "Acme Corp visited your site"—but no contact info. NurturelyX uses identity resolution to identify individual PEOPLE with full contact details: name, email, phone, address. We\'re built for industries that sell to consumers (home services, real estate, automotive), not companies. You get "Sarah Johnson wants HVAC service, here\'s her phone number"—that\'s an actual lead you can call.'
+      },
+      {
         question: 'Is this my data, or am I buying leads from you?',
         answer: 'This is 100% YOUR first-party data. When businesses visit YOUR website, that\'s YOUR visitor data. We don\'t sell leads—we identify YOUR anonymous visitors. Under legitimate business interest (GDPR Article 6(1)(f)), you have the legal right to know who\'s engaging with your HVAC business. These leads belong to you, not us.'
       },
@@ -90,6 +94,10 @@ export const industryData: Record<string, IndustryData> = {
       'Measure true marketing ROI by client acquisition'
     ],
     faqs: [
+      {
+        question: 'How is this different from LeadFeeder, Clearbit, or other visitor tracking tools?',
+        answer: 'Completely different. IP-based tools like LeadFeeder, Leadfeeder, Clearbit, and LeadForensics identify COMPANIES by reverse-looking up IP addresses. They\'re built for B2B SaaS tracking business visitors. You get results like "Acme Corp visited your site"—but no contact info. NurturelyX uses identity resolution to identify individual PEOPLE with full contact details: name, email, phone, address. We\'re built for industries that sell to consumers (home services, real estate, automotive, legal services), not companies. You get "Sarah Johnson needs legal help, here\'s her phone number"—that\'s an actual lead you can call.'
+      },
       {
         question: 'Is this my data, or am I buying leads from you?',
         answer: 'This is 100% YOUR first-party data. When businesses visit YOUR website, that\'s YOUR visitor data. We don\'t sell leads—we identify YOUR anonymous visitors. Under legitimate business interest (GDPR Article 6(1)(f)), you have the legal right to know who\'s engaging with your legal services business. These leads belong to you, not us.'
@@ -141,6 +149,10 @@ export const industryData: Record<string, IndustryData> = {
     ],
     faqs: [
       {
+        question: 'How is this different from LeadFeeder, Clearbit, or other visitor tracking tools?',
+        answer: 'Completely different. IP-based tools like LeadFeeder, Leadfeeder, Clearbit, and LeadForensics identify COMPANIES by reverse-looking up IP addresses. They\'re built for B2B SaaS tracking business visitors. You get results like "Acme Corp visited your site"—but no contact info. NurturelyX uses identity resolution to identify individual PEOPLE with full contact details: name, email, phone, address. We\'re built for industries that sell to consumers (home services, real estate, automotive), not companies. You get "Sarah Johnson is looking at properties, here\'s her phone number"—that\'s an actual lead you can call.'
+      },
+      {
         question: 'Is this my data, or am I buying leads from you?',
         answer: 'This is 100% YOUR first-party data. When businesses visit YOUR website, that\'s YOUR visitor data. We don\'t sell leads—we identify YOUR anonymous visitors. Under legitimate business interest (GDPR Article 6(1)(f)), you have the legal right to know who\'s engaging with your real estate business. These leads belong to you, not us.'
       },
@@ -190,6 +202,10 @@ export const industryData: Record<string, IndustryData> = {
       'Seasonal campaign ROI tracking'
     ],
     faqs: [
+      {
+        question: 'How is this different from LeadFeeder, Clearbit, or other visitor tracking tools?',
+        answer: 'Completely different. IP-based tools like LeadFeeder, Leadfeeder, Clearbit, and LeadForensics identify COMPANIES by reverse-looking up IP addresses. They\'re built for B2B SaaS tracking business visitors. You get results like "Acme Corp visited your site"—but no contact info. NurturelyX uses identity resolution to identify individual PEOPLE with full contact details: name, email, phone, address. We\'re built for industries that sell to consumers (home services, real estate, automotive), not companies. You get "Sarah Johnson needs plumbing help, here\'s her phone number"—that\'s an actual lead you can call.'
+      },
       {
         question: 'Is this my data, or am I buying leads from you?',
         answer: 'This is 100% YOUR first-party data. When businesses visit YOUR website, that\'s YOUR visitor data. We don\'t sell leads—we identify YOUR anonymous visitors. Under legitimate business interest (GDPR Article 6(1)(f)), you have the legal right to know who\'s engaging with your home services business. These leads belong to you, not us.'
@@ -241,6 +257,10 @@ export const industryData: Record<string, IndustryData> = {
     ],
     faqs: [
       {
+        question: 'How is this different from LeadFeeder, Clearbit, or other visitor tracking tools?',
+        answer: 'Completely different. IP-based tools like LeadFeeder, Leadfeeder, Clearbit, and LeadForensics identify COMPANIES by reverse-looking up IP addresses. They\'re built for B2B SaaS tracking business visitors. You get results like "Acme Corp visited your site"—but no contact info. NurturelyX uses identity resolution to identify individual PEOPLE with full contact details: name, email, phone, address. We\'re built for industries that sell to consumers (home services, real estate, automotive), not companies. You get "Sarah Johnson is shopping for a vehicle, here\'s her phone number"—that\'s an actual lead you can call.'
+      },
+      {
         question: 'Is this my data, or am I buying leads from you?',
         answer: 'This is 100% YOUR first-party data. When businesses visit YOUR website, that\'s YOUR visitor data. We don\'t sell leads—we identify YOUR anonymous visitors. Under legitimate business interest (GDPR Article 6(1)(f)), you have the legal right to know who\'s engaging with your automotive business. These leads belong to you, not us.'
       },
@@ -290,6 +310,10 @@ export const industryData: Record<string, IndustryData> = {
       'Healthcare IT and software buyer identification'
     ],
     faqs: [
+      {
+        question: 'How is this different from LeadFeeder, Clearbit, or other visitor tracking tools?',
+        answer: 'Completely different. IP-based tools like LeadFeeder, Leadfeeder, Clearbit, and LeadForensics identify COMPANIES by reverse-looking up IP addresses. They\'re built for B2B SaaS tracking business visitors. You get results like "Acme Corp visited your site"—but no contact info. NurturelyX uses identity resolution to identify individual PEOPLE with full contact details: name, email, phone, address. We\'re built for industries that sell to consumers and individual healthcare professionals, not just companies. You get "Sarah Johnson is researching healthcare products, here\'s her phone number"—that\'s an actual lead you can call.'
+      },
       {
         question: 'Is this my data, or am I buying leads from you?',
         answer: 'This is 100% YOUR first-party data. When businesses visit YOUR website, that\'s YOUR visitor data. We don\'t sell leads—we identify YOUR anonymous visitors. Under legitimate business interest (GDPR Article 6(1)(f)), you have the legal right to know who\'s engaging with your healthcare business. These leads belong to you, not us.'
