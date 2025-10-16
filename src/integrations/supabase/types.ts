@@ -826,6 +826,10 @@ export type Database = {
           domain: string
         }[]
       }
+      get_hot_streak: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_peak_performance_day: {
         Args: Record<PropertyKey, never>
         Returns: Json
