@@ -43,22 +43,23 @@ export default function PipelineStatusCards({ onStatusClick, activeStatus }: Pip
     try {
       const { data: activities, error } = await supabase
         .from("prospect_activities")
-        .select("status, report_id, reports(report_data)")
+        .select("status, report_id, reports(report_data, domain)")
         .not("status", "in", '("new","proposal","not_viable","on_hold")');
 
       if (error) throw error;
 
-      const statusMap: Record<string, { count: number; value: number }> = {};
+      const statusMap: Record<string, { domains: Set<string>; value: number }> = {};
 
       // Initialize all 6 statuses
       Object.keys(STATUS_LABELS).forEach((status) => {
-        statusMap[status] = { count: 0, value: 0 };
+        statusMap[status] = { domains: new Set(), value: 0 };
       });
 
       activities?.forEach((activity: any) => {
         const status = activity.status;
-        if (statusMap[status] !== undefined) {
-          statusMap[status].count++;
+        const domain = activity.reports?.domain;
+        if (statusMap[status] !== undefined && domain) {
+          statusMap[status].domains.add(domain);
           const reportData = activity.reports?.report_data;
           if (reportData?.transactionValue) {
             statusMap[status].value += parseFloat(reportData.transactionValue);
@@ -66,9 +67,9 @@ export default function PipelineStatusCards({ onStatusClick, activeStatus }: Pip
         }
       });
 
-      const formattedData = Object.entries(statusMap).map(([status, { count, value }]) => ({
+      const formattedData = Object.entries(statusMap).map(([status, { domains, value }]) => ({
         status,
-        count,
+        count: domains.size,
         value,
       }));
 

@@ -1,17 +1,15 @@
 import { useState } from "react";
 import CRMHeader from "@/components/crm/CRMHeader";
 import CRMTableView from "@/components/crm/CRMTableView";
-import TasksWidget from "@/components/crm/TasksWidget";
 import ProspectDetailPanel from "@/components/crm/ProspectDetailPanel";
 import PipelineStatusCards from "@/components/crm/PipelineStatusCards";
-import { ContactTrendChart } from "@/components/crm/ContactTrendChart";
-import { ProspectTrendChart } from "@/components/crm/ProspectTrendChart";
+import { UniqueDomainsTrendChart } from "@/components/crm/UniqueDomainsTrendChart";
+import { OutreachVelocityChart } from "@/components/crm/OutreachVelocityChart";
+import { ConversionFunnelCard } from "@/components/crm/ConversionFunnelCard";
 import { CRMRealtimeProvider } from "@/contexts/CRMRealtimeContext";
 import { CRMErrorBoundary } from "@/components/crm/CRMErrorBoundary";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { CRMSidebar } from "@/components/crm/CRMSidebar";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 export default function CRMDashboard() {
   const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails">("needs-review");
@@ -105,24 +103,26 @@ export default function CRMDashboard() {
                 )}
 
                 {selectedView === "dashboard" && (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
+                    {/* Conversion Funnel */}
+                    <ConversionFunnelCard />
+                    
+                    {/* Trend Charts */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <ProspectTrendChart />
-                      <ContactTrendChart />
+                      <UniqueDomainsTrendChart />
+                      <OutreachVelocityChart />
                     </div>
                     
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                      <div className="lg:col-span-1">
-                        <TasksWidget />
-                      </div>
-                      <div className="lg:col-span-2">
-                        <PipelineStatusCards 
-                          onStatusClick={handlePipelineClick}
-                          activeStatus={pipelineStatusFilter}
-                        />
-                      </div>
+                    {/* Pipeline Status Cards */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Pipeline by Status</h3>
+                      <PipelineStatusCards 
+                        onStatusClick={handlePipelineClick}
+                        activeStatus={pipelineStatusFilter}
+                      />
                     </div>
 
+                    {/* Active Prospects Table */}
                     <CRMTableView 
                       onSelectProspect={setSelectedProspectId}
                       compact={false}
