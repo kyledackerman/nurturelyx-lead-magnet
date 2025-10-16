@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
       // Get actual progress from enrichment_job_items
       const { data: items, error: itemsError } = await supabase
         .from('enrichment_job_items')
-        .select('status, contacts_found')
+        .select('prospect_id, status, contacts_found')
         .eq('job_id', job.id);
 
       if (itemsError) {
@@ -65,12 +65,64 @@ Deno.serve(async (req) => {
       const processedCount = successCount + failedCount;
       const totalCount = items.length;
 
+      console.log(`📊 Job ${job.id} progress: ${processedCount}/${totalCount} (${successCount} success, ${failedCount} failed, ${pendingCount} pending)`);
+
+      // Intelligently categorize each prospect based on what was found
+      let enrichedCount = 0;
+      let reviewCount = 0;
+      let resetCount = 0;
+
+      for (const item of items) {
+        if (!item.prospect_id) continue;
+
+        let targetStatus = 'review';
+
+        if (item.status === 'success' && item.contacts_found > 0) {
+          // Check if contacts have emails
+          const { data: contacts } = await supabase
+            .from('prospect_contacts')
+            .select('email')
+            .eq('prospect_activity_id', item.prospect_id);
+          
+          const hasEmails = contacts?.some(c => c.email && c.email.trim() !== '');
+          
+          if (hasEmails) {
+            targetStatus = 'enriched';
+            enrichedCount++;
+          } else {
+            targetStatus = 'review'; // Will appear in "Missing Emails" tab
+            reviewCount++;
+          }
+        } else if (item.status === 'pending') {
+          // Not processed yet - reset to new for retry
+          targetStatus = 'new';
+          resetCount++;
+        } else {
+          // Failed or no contacts
+          reviewCount++;
+        }
+
+        // Update prospect status
+        const { error: prospectError } = await supabase
+          .from('prospect_activities')
+          .update({
+            status: targetStatus,
+            enrichment_locked_at: null,
+            enrichment_locked_by: null,
+          })
+          .eq('id', item.prospect_id);
+
+        if (prospectError) {
+          console.error(`❌ Error updating prospect ${item.prospect_id}:`, prospectError);
+        }
+      }
+
+      console.log(`✅ Categorized prospects: ${enrichedCount} enriched, ${reviewCount} review, ${resetCount} reset to new`);
+
+      // Update the job with actual progress
       const isCompleted = pendingCount === 0;
       const newStatus = isCompleted ? 'completed' : 'running';
 
-      console.log(`📊 Job ${job.id} progress: ${processedCount}/${totalCount} (${successCount} success, ${failedCount} failed, ${pendingCount} pending)`);
-
-      // Update the job with actual progress
       const { error: updateError } = await supabase
         .from('enrichment_jobs')
         .update({
@@ -93,27 +145,18 @@ Deno.serve(async (req) => {
         processed: processedCount,
         total: totalCount,
         status: newStatus,
+        enriched: enrichedCount,
+        review: reviewCount,
+        reset: resetCount,
       });
     }
 
-    // Release stale locks (older than 10 minutes)
+    // Release stale locks (older than 10 minutes) without changing status
     console.log('\n🔓 Releasing stale locks...');
     
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
 
-    // First, update status for enriching prospects
-    const { data: enrichingUpdated, error: enrichingError } = await supabase
-      .from('prospect_activities')
-      .update({ status: 'review' })
-      .eq('status', 'enriching')
-      .lt('enrichment_locked_at', tenMinutesAgo)
-      .select('id');
-
-    if (enrichingError) {
-      console.error('❌ Error updating enriching prospects:', enrichingError);
-    }
-
-    // Then, release ALL stale locks
+    // Just release locks, don't change status (status was already handled above)
     const { data: locksReleased, error: lockError } = await supabase
       .from('prospect_activities')
       .update({
@@ -127,9 +170,6 @@ Deno.serve(async (req) => {
       console.error('❌ Error releasing locks:', lockError);
     } else {
       console.log(`✅ Released ${locksReleased?.length || 0} stale locks`);
-      if (enrichingUpdated) {
-        console.log(`✅ Moved ${enrichingUpdated.length} enriching prospects to review`);
-      }
     }
 
     return new Response(

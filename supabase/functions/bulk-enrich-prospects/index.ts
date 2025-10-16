@@ -777,8 +777,16 @@ Now search the web and write the icebreaker:
             const contactsWithEmail = contacts.filter((c: any) => c.email && c.email.trim() !== '');
             const hasValidContacts = contactsWithEmail.length > 0;
 
-            // Determine final status: enriched ONLY if we have email contacts AND icebreaker, otherwise review
-            const finalStatus = (hasValidContacts && icebreakerGenerated) ? "enriched" : "review";
+            // Determine final status based on what we found:
+            // - Has emails = enriched (ready for outreach, even without icebreaker)
+            // - Has contacts but no emails = review (will show in "Missing Emails" tab)
+            // - No contacts = review
+            let finalStatus = 'review';
+            if (hasValidContacts) {
+              finalStatus = 'enriched'; // Has emails, ready to go
+            } else if (contactsInserted > 0) {
+              finalStatus = 'review'; // Has contacts but missing emails
+            }
 
             // Update prospect status, enrichment_status, and release lock
             await supabase
@@ -824,6 +832,7 @@ Now search the web and write the icebreaker:
                 .update({ 
                   status: 'success',
                   contacts_found: contactsInserted,
+                  has_emails: hasValidContacts, // Track if emails were found
                   completed_at: new Date().toISOString()
                 })
                 .eq('job_id', enrichmentJobId)

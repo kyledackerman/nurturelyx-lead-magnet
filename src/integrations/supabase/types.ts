@@ -71,6 +71,7 @@ export type Database = {
           contacts_found: number | null
           domain: string
           error_message: string | null
+          has_emails: boolean | null
           id: string
           job_id: string | null
           prospect_id: string | null
@@ -82,6 +83,7 @@ export type Database = {
           contacts_found?: number | null
           domain: string
           error_message?: string | null
+          has_emails?: boolean | null
           id?: string
           job_id?: string | null
           prospect_id?: string | null
@@ -93,6 +95,7 @@ export type Database = {
           contacts_found?: number | null
           domain?: string
           error_message?: string | null
+          has_emails?: boolean | null
           id?: string
           job_id?: string | null
           prospect_id?: string | null
