@@ -2,6 +2,10 @@ import { IndustryHero } from "@/components/industry/IndustryHero";
 import { IndustryReportGrid } from "@/components/industry/IndustryReportGrid";
 import { IndustryROICalculator } from "@/components/industry/IndustryROICalculator";
 import { IndustryFAQ } from "@/components/industry/IndustryFAQ";
+import { IndustrySocialProof } from "@/components/industry/IndustrySocialProof";
+import { IndustryDataOwnership } from "@/components/industry/IndustryDataOwnership";
+import { IndustryTestimonial } from "@/components/industry/IndustryTestimonial";
+import { StickyIndustryCTA } from "@/components/industry/StickyIndustryCTA";
 import CallToActionSection from "@/components/CallToActionSection";
 import { getIndustryData } from "@/data/industryData";
 import { AlertCircle } from "lucide-react";
@@ -77,6 +81,8 @@ export default function HomeServicesIndustryPage() {
           subheadline={industry.subheadline}
         />
 
+        <IndustrySocialProof industry="home-services" industryName={industry.name} />
+
         <section className="py-16 bg-muted/30">
           <div className="container max-w-6xl">
             <div className="text-center mb-12">
@@ -114,6 +120,14 @@ export default function HomeServicesIndustryPage() {
           </div>
         </section>
 
+        {industry.testimonials && industry.testimonials[0] && (
+          <section className="py-12">
+            <div className="container max-w-6xl">
+              <IndustryTestimonial {...industry.testimonials[0]} />
+            </div>
+          </section>
+        )}
+
         <section className="py-16 bg-muted/30">
           <div className="container max-w-4xl">
             <IndustryROICalculator
@@ -144,10 +158,14 @@ export default function HomeServicesIndustryPage() {
           </div>
         </section>
 
+        <IndustryDataOwnership />
+
         <IndustryFAQ faqs={industry.faqs} />
         <FAQSchema questions={industry.faqs} />
 
         <CallToActionSection />
+        
+        <StickyIndustryCTA industryName={industry.name} />
       </main>
       
       <Footer />

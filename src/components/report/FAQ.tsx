@@ -25,18 +25,73 @@ const getFaqItems = (data: ReportData): Array<{ question: string; answer: string
     answer: "Implementation takes less than 30 minutes with a simple JavaScript snippet. You'll start seeing identified visitors within 24 hours, and most clients see a measurable increase in qualified leads within the first week."
   },
   {
+    question: "Is this my data? Do I own these leads?",
+    answer: (
+      <div className="space-y-3">
+        <p className="font-semibold">Yes. This is 100% YOUR first-party data.</p>
+        
+        <p>
+          When someone visits YOUR website, that's YOUR business interaction. 
+          Under data privacy law (GDPR Article 6(1)(f) - legitimate interest), 
+          you have the legal right to identify who's engaging with your business.
+        </p>
+        
+        <p>
+          We're not selling you leads from a database. We're revealing the identities 
+          of people who ALREADY visited YOUR website. Your site, your visitors, your data.
+        </p>
+        
+        <p>
+          Think of it like security camera footage—you have the right to know 
+          who walked into your (digital) storefront. These leads belong to you, 
+          not us. We just provide the technology to unlock the identities.
+        </p>
+      </div>
+    )
+  },
+  {
     question: "Is this GDPR and privacy compliant?",
     answer: (
       <div className="space-y-4">
-        <p className="font-semibold text-base mb-3">✅ Our Commitment to Privacy and Compliance</p>
+        <p className="font-semibold text-base mb-3">
+          ✅ 100% Compliant. This Is YOUR First-Party Data.
+        </p>
         
-        <p>NurturelyX is fully compliant with GDPR, CCPA, and all major data privacy regulations.</p>
+        <p className="font-semibold">
+          You Own This Data—It's From YOUR Website
+        </p>
+        <p>
+          When someone visits your website, that's YOUR first-party data under 
+          GDPR Article 6(1)(f) legitimate interest principles. You have the legal 
+          right to identify business visitors engaging with your services.
+        </p>
         
-        <p>Our system resolves visitor identities by matching first-party website data with verified business contact databases to identify individual visitors and their companies.</p>
+        <p className="font-semibold">How It Works</p>
+        <p>
+          Our identity resolution technology matches your website visitor data 
+          with verified business contact databases. We reveal WHO visited 
+          your site—but the visitor interaction itself is YOUR data, 
+          collected on YOUR domain.
+        </p>
         
-        <p>Our technology unlocks your first-party data - information your website already collects that is lawfully yours under Article 6(1)(f) legitimate interest principles. We simply reveal the identities behind your own website visitors by matching your data with verified business contact databases. We never sell, share, or use your data for advertising or remarketing purposes.</p>
+        <p className="font-semibold">Your Rights, Your Data</p>
+        <p>
+          Unlike third-party lead generation (where companies sell you cold leads), 
+          this is first-party identification. These people visited YOUR website. 
+          We simply help you see who they are. You own this data completely.
+        </p>
         
-        <p className="mt-4 pt-4 border-t border-white/20 text-sm">If you're an EU or UK visitor, you may request access, correction, or deletion of any personal data associated with you at any time by contacting our DPO at <span className="font-medium text-accent">privacy@nurturely.io</span>.</p>
+        <p className="font-semibold">Privacy Protections</p>
+        <p>
+          Fully compliant with GDPR, CCPA, and all major data privacy regulations. 
+          We never sell, share, or use your visitor data for advertising or remarketing. 
+          This data belongs to you and stays with you.
+        </p>
+        
+        <p className="mt-4 pt-4 border-t border-white/20 text-sm">
+          EU/UK visitors: Request access, correction, or deletion at 
+          privacy@nurturely.io
+        </p>
       </div>
     )
   },

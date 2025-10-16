@@ -2,6 +2,10 @@ import { IndustryHero } from "@/components/industry/IndustryHero";
 import { IndustryReportGrid } from "@/components/industry/IndustryReportGrid";
 import { IndustryROICalculator } from "@/components/industry/IndustryROICalculator";
 import { IndustryFAQ } from "@/components/industry/IndustryFAQ";
+import { IndustrySocialProof } from "@/components/industry/IndustrySocialProof";
+import { IndustryDataOwnership } from "@/components/industry/IndustryDataOwnership";
+import { IndustryTestimonial } from "@/components/industry/IndustryTestimonial";
+import { StickyIndustryCTA } from "@/components/industry/StickyIndustryCTA";
 import CallToActionSection from "@/components/CallToActionSection";
 import { getIndustryData } from "@/data/industryData";
 import { AlertCircle } from "lucide-react";
@@ -31,34 +35,34 @@ export default function LegalIndustryPage() {
   return (
     <>
       <MetaTags
-        title="Legal Visitor Identification | Law Firm Lead Generation - NurturelyX"
-        description="Identify anonymous website visitors at law firms. Track potential clients researching legal services and convert 35% more website traffic into qualified leads."
+        title="Legal Services Visitor Identification | Law Firm Lead Generation - NurturelyX"
+        description="Identify anonymous website visitors for law firms. Track potential clients researching legal services and practice areas."
         canonical="https://x1.nurturely.io/industries/legal"
-        keywords="law firm lead generation, legal visitor identification, attorney website tracking, legal services marketing"
+        keywords="legal lead generation, law firm marketing, legal visitor tracking, attorney marketing"
       />
       
       <ServiceSchema
-        name="Legal Visitor Identification Service"
-        description="Identify anonymous website visitors for law firms and legal practices. Track potential clients researching your legal services and capture high-value case opportunities."
+        name="Legal Services Visitor Identification"
+        description="Identify anonymous website visitors for law firms and legal service providers."
         serviceType="Professional Service"
       />
       
       <LocalBusinessSchema
         name="NurturelyX Legal Visitor Identification"
-        description="Visitor identification technology for law firms and legal practices"
+        description="Visitor identification technology for law firms and legal services"
         businessType="ProfessionalService"
         areaServed={["United States"]}
       />
       
       <WebPageSchema
-        name="Legal Visitor Identification & Law Firm Lead Generation"
-        description="Track anonymous website visitors at law firms and identify potential clients researching legal services"
+        name="Legal Services Visitor Identification & Lead Generation"
+        description="Track anonymous website visitors for law firms and identify potential clients researching legal services"
         url="https://x1.nurturely.io/industries/legal"
         breadcrumbs={[
           { name: "Industries", url: "/industries" },
-          { name: "Legal", url: "/industries/legal" }
+          { name: "Legal Services", url: "/industries/legal" }
         ]}
-        keywords={["law firm leads", "legal visitor identification", "attorney marketing", "legal services tracking"]}
+        keywords={["legal leads", "law firm visitor tracking", "attorney lead generation", "legal marketing"]}
       />
 
       <Header />
@@ -67,87 +71,101 @@ export default function LegalIndustryPage() {
         <div className="container max-w-6xl py-6">
           <Breadcrumb items={[
             { label: "Industries", href: "/industries" },
-            { label: "Legal", href: "/industries/legal" }
+            { label: "Legal Services", href: "/industries/legal" }
           ]} />
         </div>
 
         <IndustryHero
-        name={industry.name}
-        headline={industry.headline}
-        subheadline={industry.subheadline}
-      />
+          name={industry.name}
+          headline={industry.headline}
+          subheadline={industry.subheadline}
+        />
+
+        <IndustrySocialProof industry="legal" industryName={industry.name} />
 
         <section className="py-16 bg-muted/30">
           <div className="container max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Legal Marketing Challenges
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              High-value cases require immediate follow-up
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {industry.painPoints.map((point, index) => (
-              <div key={index} className="flex items-start gap-4 p-6 bg-background rounded-lg border">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center font-bold">
-                  {index + 1}
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Legal Marketing Challenges
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+                Common issues facing law firms
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {industry.painPoints.map((point, index) => (
+                <div key={index} className="flex items-start gap-4 p-6 bg-background rounded-lg border">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center font-bold">
+                    {index + 1}
+                  </div>
+                  <p className="text-lg">{point}</p>
                 </div>
-                <p className="text-lg">{point}</p>
-              </div>
-            ))}
+              ))}
             </div>
           </div>
         </section>
 
         <section className="py-16">
-        <div className="container max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Law Firms Using Visitor Intelligence
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              See potential revenue being left on the table
-            </p>
-          </div>
+          <div className="container max-w-6xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Law Firms Losing Revenue
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Real examples of missed opportunities
+              </p>
+            </div>
             <IndustryReportGrid industry="legal" />
           </div>
         </section>
 
+        {industry.testimonials && industry.testimonials[0] && (
+          <section className="py-12">
+            <div className="container max-w-6xl">
+              <IndustryTestimonial {...industry.testimonials[0]} />
+            </div>
+          </section>
+        )}
+
         <section className="py-16 bg-muted/30">
-        <div className="container max-w-4xl">
-          <IndustryROICalculator
-            industryName={industry.name}
-            avgConversionRate={industry.avgConversionRate}
-            avgTransactionValue={industry.avgTransactionValue}
+          <div className="container max-w-4xl">
+            <IndustryROICalculator
+              industryName={industry.name}
+              avgConversionRate={industry.avgConversionRate}
+              avgTransactionValue={industry.avgTransactionValue}
             />
           </div>
         </section>
 
         <section className="py-16">
-        <div className="container max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Benefits for Law Firms
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {industry.benefits.map((benefit, index) => (
-              <div key={index} className="flex items-start gap-4 p-6 bg-background rounded-lg border">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
-                  ✓
+          <div className="container max-w-6xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                How Visitor Identification Helps Law Firms
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {industry.benefits.map((benefit, index) => (
+                <div key={index} className="flex items-start gap-4 p-6 bg-background rounded-lg border">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
+                    ✓
+                  </div>
+                  <p className="text-lg">{benefit}</p>
                 </div>
-                <p className="text-lg">{benefit}</p>
-              </div>
-            ))}
+              ))}
             </div>
           </div>
         </section>
+
+        <IndustryDataOwnership />
 
         <IndustryFAQ faqs={industry.faqs} />
         <FAQSchema questions={industry.faqs} />
 
         <CallToActionSection />
+        
+        <StickyIndustryCTA industryName={industry.name} />
       </main>
       
       <Footer />

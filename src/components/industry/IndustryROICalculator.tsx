@@ -27,15 +27,37 @@ export const IndustryROICalculator = ({
   const newSales = Math.round(identifiedVisitors * (avgConversionRate / 100));
   const additionalRevenue = newSales * avgTxValue;
 
+  const formFills = Math.round(visitors * 0.02); // 2% typical form fill rate
+
   return (
-    <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
-      <CardHeader>
-        <CardTitle className="text-2xl">{industryName} ROI Calculator</CardTitle>
-        <p className="text-muted-foreground">
-          See how much additional revenue you could generate with visitor identification
+    <>
+      <div className="bg-accent/10 border border-accent/20 rounded-lg p-6 mb-8">
+        <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+          <span>💡</span>
+          <span>Here's What You're Missing</span>
+        </h3>
+        <p className="text-muted-foreground mb-3">
+          Right now, 95% of your website visitors are completely anonymous. 
+          They're browsing your services, checking your pricing, comparing you to competitors—
+          and you have no idea who they are.
         </p>
-      </CardHeader>
-      <CardContent className="space-y-6">
+        <p className="text-foreground font-semibold">
+          But this is YOUR data.
+        </p>
+        <p className="text-muted-foreground">
+          They visited YOUR website. Identity resolution unlocks the names, emails, and phone numbers 
+          behind ~35% of that anonymous traffic.
+        </p>
+      </div>
+
+      <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+        <CardHeader>
+          <CardTitle className="text-2xl">{industryName} ROI Calculator</CardTitle>
+          <p className="text-muted-foreground">
+            See how many additional leads you could identify with identity resolution
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="visitors">Monthly Website Visitors</Label>
           <Input
@@ -68,30 +90,51 @@ export const IndustryROICalculator = ({
           </p>
         </div>
 
+        <div className="bg-muted/30 p-4 rounded-lg mb-4">
+          <div className="flex justify-between items-center">
+            <div className="text-center flex-1">
+              <div className="text-sm text-muted-foreground mb-1">Without Identity Resolution</div>
+              <div className="text-2xl font-bold">{formFills}</div>
+              <div className="text-xs text-muted-foreground">form fills/month</div>
+            </div>
+            <div className="text-3xl text-muted-foreground px-4">→</div>
+            <div className="text-center flex-1">
+              <div className="text-sm text-accent mb-1">With Identity Resolution</div>
+              <div className="text-2xl font-bold text-accent">{identifiedVisitors}</div>
+              <div className="text-xs text-muted-foreground">identified leads/month</div>
+            </div>
+          </div>
+          <div className="text-center mt-3 pt-3 border-t border-border">
+            <p className="text-sm">
+              That's <strong className="text-accent">{identifiedVisitors} leads you didn't know existed</strong> — all with full contact information
+            </p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 bg-background rounded-lg border">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
               <TrendingUp className="h-4 w-4" />
-              New Sales Per Month
+              Potential New Sales
             </div>
             <div className="text-3xl font-bold text-primary">
               {newSales.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              <strong className="text-primary">We identify {identifiedVisitors.toLocaleString()} leads for you</strong> - your team converts them to sales
+              From {identifiedVisitors.toLocaleString()} identified leads
             </div>
           </div>
 
           <div className="p-4 bg-background rounded-lg border">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
               <DollarSign className="h-4 w-4" />
-              Additional <strong>Monthly</strong> Revenue
+              Additional Monthly Revenue
             </div>
             <div className="text-3xl font-bold text-primary">
               ${additionalRevenue.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              <strong>${(additionalRevenue * 12).toLocaleString()}</strong> annually
+              ${(additionalRevenue * 12).toLocaleString()} annually
             </div>
           </div>
         </div>
@@ -108,9 +151,13 @@ export const IndustryROICalculator = ({
         </div>
 
         <Button asChild className="w-full gradient-bg" onClick={scrollToTopIfHomeLink}>
-          <Link to="/">Get Your Detailed Report</Link>
+          <Link to="/">Get My Free Visitor Report</Link>
         </Button>
+        <p className="text-xs text-center text-muted-foreground mt-2">
+          See exactly who's been visiting your site
+        </p>
       </CardContent>
     </Card>
+    </>
   );
 };
