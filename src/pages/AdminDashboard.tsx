@@ -1022,29 +1022,41 @@ const AdminDashboard = () => {
         longestStreak = tempStreak;
       }
 
-      // Calculate CURRENT streak by working backwards from today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayStr = today.toISOString().split('T')[0];
-      
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      // Calculate CURRENT streak using UTC keys and the latest available day (today or yesterday)
+      const todayUTC = new Date();
+      const todayKey = todayUTC.toISOString().slice(0, 10);
+
+      const yesterdayUTC = new Date(todayUTC);
+      yesterdayUTC.setUTCDate(yesterdayUTC.getUTCDate() - 1);
+      const yesterdayKey = yesterdayUTC.toISOString().slice(0, 10);
 
       let currentStreak = 0;
       let isActive = false;
 
-      // Check if there's a report today or yesterday to consider streak active
-      if (dates.has(todayStr) || dates.has(yesterdayStr)) {
+      // Decide starting point: today if present, otherwise yesterday
+      let startDateUTC: Date | null = null;
+      if (dates.has(todayKey)) {
         isActive = true;
-        
-        // Work backwards from today to count consecutive days
-        let checkDate = new Date(today);
+        startDateUTC = todayUTC;
+      } else if (dates.has(yesterdayKey)) {
+        isActive = true;
+        startDateUTC = yesterdayUTC;
+      }
+
+      if (startDateUTC) {
+        // Normalize to UTC midnight to avoid timezone/DST issues
+        let check = new Date(Date.UTC(
+          startDateUTC.getUTCFullYear(),
+          startDateUTC.getUTCMonth(),
+          startDateUTC.getUTCDate()
+        ));
+
+        // Count consecutive days backwards
         while (true) {
-          const checkDateStr = checkDate.toISOString().split('T')[0];
-          if (dates.has(checkDateStr)) {
+          const key = check.toISOString().slice(0, 10);
+          if (dates.has(key)) {
             currentStreak++;
-            checkDate.setDate(checkDate.getDate() - 1);
+            check.setUTCDate(check.getUTCDate() - 1);
           } else {
             break;
           }
@@ -1056,6 +1068,9 @@ const AdminDashboard = () => {
         longestStreak,
         isActive
       });
+
+      // Debug output to verify calculation in the console
+      console.info('HotStreak debug', { todayKey, yesterdayKey, currentStreak, longestStreak, isActive });
     } catch (error) {
       console.error('Error fetching hot streak:', error);
     }
