@@ -41,41 +41,22 @@ export default function PipelineStatusCards({ onStatusClick, activeStatus }: Pip
 
   const fetchStatusData = async () => {
     try {
-      const { data: activities, error } = await supabase
-        .from("prospect_activities")
-        .select("status, report_id, reports(report_data, domain)")
-        .not("status", "in", '("new","proposal","not_viable","on_hold")');
+      const { data, error } = await supabase.rpc('get_pipeline_status_domain_counts');
 
       if (error) throw error;
 
-      const statusMap: Record<string, { domains: Set<string>; value: number }> = {};
+      // Convert to array format, filtering to only statuses we want to display
+      const statusArray: StatusData[] = (data || [])
+        .filter((item: any) => STATUS_LABELS[item.status as keyof typeof STATUS_LABELS])
+        .map((item: any) => ({
+          status: item.status,
+          count: item.domain_count,
+          value: item.total_value
+        }));
 
-      // Initialize all 6 statuses
-      Object.keys(STATUS_LABELS).forEach((status) => {
-        statusMap[status] = { domains: new Set(), value: 0 };
-      });
-
-      activities?.forEach((activity: any) => {
-        const status = activity.status;
-        const domain = activity.reports?.domain;
-        if (statusMap[status] !== undefined && domain) {
-          statusMap[status].domains.add(domain);
-          const reportData = activity.reports?.report_data;
-          if (reportData?.transactionValue) {
-            statusMap[status].value += parseFloat(reportData.transactionValue);
-          }
-        }
-      });
-
-      const formattedData = Object.entries(statusMap).map(([status, { domains, value }]) => ({
-        status,
-        count: domains.size,
-        value,
-      }));
-
-      setData(formattedData);
+      setData(statusArray);
     } catch (error) {
-      console.error("Error fetching status data:", error);
+      console.error("Error fetching pipeline status data:", error);
     } finally {
       setLoading(false);
     }

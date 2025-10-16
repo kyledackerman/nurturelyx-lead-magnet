@@ -784,6 +784,10 @@ export type Database = {
         Args: { period?: string }
         Returns: Json
       }
+      get_crm_funnel_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_crm_metrics: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -819,6 +823,14 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_daily_unique_domains_contacted: {
+        Args: { days?: number }
+        Returns: Json
+      }
+      get_daily_unique_domains_enriched: {
+        Args: { days?: number }
+        Returns: Json
+      }
       get_domain_contact_counts: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -833,6 +845,14 @@ export type Database = {
       get_peak_performance_day: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_pipeline_status_domain_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          domain_count: number
+          status: string
+          total_value: number
+        }[]
       }
       get_quality_score: {
         Args: Record<PropertyKey, never>

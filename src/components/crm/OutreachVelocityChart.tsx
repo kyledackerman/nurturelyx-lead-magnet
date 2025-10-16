@@ -31,72 +31,17 @@ export function OutreachVelocityChart() {
 
   const fetchData = async () => {
     try {
-      const now = new Date();
-      const thirtyDaysAgo = new Date(now);
-      thirtyDaysAgo.setDate(now.getDate() - 30);
-      const startDate = thirtyDaysAgo.toISOString();
-
-      // Query audit logs for status changes to contacted/interested/proposal/closed_won
-      const { data: auditData, error } = await supabase
-        .from("audit_logs")
-        .select(`
-          changed_at,
-          record_id,
-          new_value
-        `)
-        .eq("table_name", "prospect_activities")
-        .eq("field_name", "status")
-        .in("new_value", ["contacted", "interested", "proposal", "closed_won"])
-        .gte("changed_at", startDate)
-        .order("changed_at", { ascending: true });
+      const { data: chartData, error } = await supabase.rpc('get_daily_unique_domains_contacted', { days: 30 });
 
       if (error) throw error;
 
-      // Get prospect activities to map to domains
-      const prospectIds = auditData?.map(a => a.record_id) || [];
-      const { data: prospectsData } = await supabase
-        .from("prospect_activities")
-        .select(`
-          id,
-          report_id,
-          reports!inner(domain)
-        `)
-        .in("id", prospectIds);
+      // Format the data for the chart
+      const formattedData = Array.isArray(chartData) ? chartData.map((item: any) => ({
+        date: format(new Date(item.date), "MMM dd"),
+        count: item.count
+      })) : [];
 
-      const prospectDomainMap = new Map(
-        prospectsData?.map((p: any) => [p.id, p.reports.domain]) || []
-      );
-
-      // Group by date and count unique domains contacted
-      const dailyDomainsMap = new Map<string, Set<string>>();
-      
-      auditData?.forEach((item) => {
-        const dateKey = item.changed_at.slice(0, 10);
-        const domain = prospectDomainMap.get(item.record_id);
-        
-        if (domain) {
-          if (!dailyDomainsMap.has(dateKey)) {
-            dailyDomainsMap.set(dateKey, new Set());
-          }
-          dailyDomainsMap.get(dateKey)!.add(domain);
-        }
-      });
-
-      // Build chart data for last 30 days
-      const chartData: TrendData[] = [];
-      for (let i = 29; i >= 0; i--) {
-        const dateObj = new Date();
-        dateObj.setUTCDate(dateObj.getUTCDate() - i);
-        const dateKey = dateObj.toISOString().slice(0, 10);
-        const uniqueDomains = dailyDomainsMap.get(dateKey)?.size || 0;
-        
-        chartData.push({
-          date: format(dateObj, "MMM dd"),
-          count: uniqueDomains,
-        });
-      }
-
-      setData(chartData);
+      setData(formattedData);
       await fetchComparisonStats();
     } catch (error) {
       console.error("Error fetching outreach velocity:", error);

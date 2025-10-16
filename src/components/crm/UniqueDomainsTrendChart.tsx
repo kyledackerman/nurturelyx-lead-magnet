@@ -31,64 +31,17 @@ export function UniqueDomainsTrendChart() {
 
   const fetchData = async () => {
     try {
-      const now = new Date();
-      const thirtyDaysAgo = new Date(now);
-      thirtyDaysAgo.setDate(now.getDate() - 30);
-      const startDate = thirtyDaysAgo.toISOString();
-
-      // Query prospect_activities with contacts that have emails (enriched)
-      const { data: enrichedData, error } = await supabase
-        .from("prospect_activities")
-        .select(`
-          id,
-          updated_at,
-          report_id,
-          reports!inner(domain)
-        `)
-        .gte("updated_at", startDate)
-        .order("updated_at", { ascending: true });
+      const { data: chartData, error } = await supabase.rpc('get_daily_unique_domains_enriched', { days: 30 });
 
       if (error) throw error;
 
-      // Filter to only include prospects with email contacts
-      const { data: contactsData } = await supabase
-        .from("prospect_contacts")
-        .select("prospect_activity_id, email")
-        .not('email', 'is', null)
-        .neq('email', '');
+      // Format the data for the chart
+      const formattedData = Array.isArray(chartData) ? chartData.map((item: any) => ({
+        date: format(new Date(item.date), "MMM dd"),
+        count: item.count
+      })) : [];
 
-      const enrichedProspectIds = new Set(
-        contactsData?.map(c => c.prospect_activity_id) || []
-      );
-
-      // Group by date and count unique domains that are enriched
-      const dailyDomainsMap = new Map<string, Set<string>>();
-      
-      enrichedData?.forEach((item: any) => {
-        if (enrichedProspectIds.has(item.id)) {
-          const dateKey = item.updated_at.slice(0, 10);
-          if (!dailyDomainsMap.has(dateKey)) {
-            dailyDomainsMap.set(dateKey, new Set());
-          }
-          dailyDomainsMap.get(dateKey)!.add(item.reports.domain);
-        }
-      });
-
-      // Build chart data for last 30 days
-      const chartData: TrendData[] = [];
-      for (let i = 29; i >= 0; i--) {
-        const dateObj = new Date();
-        dateObj.setUTCDate(dateObj.getUTCDate() - i);
-        const dateKey = dateObj.toISOString().slice(0, 10);
-        const uniqueDomains = dailyDomainsMap.get(dateKey)?.size || 0;
-        
-        chartData.push({
-          date: format(dateObj, "MMM dd"),
-          count: uniqueDomains,
-        });
-      }
-
-      setData(chartData);
+      setData(formattedData);
       await fetchComparisonStats();
     } catch (error) {
       console.error("Error fetching unique domains trend:", error);

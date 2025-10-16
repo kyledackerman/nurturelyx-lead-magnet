@@ -24,74 +24,21 @@ export function ConversionFunnelCard() {
 
   const fetchMetrics = async () => {
     try {
-      // Get total unique domains
-      const { data: allProspects } = await supabase
-        .from("prospect_activities")
-        .select(`
-          id,
-          status,
-          reports!inner(domain)
-        `);
+      const { data, error } = await supabase.rpc('get_crm_funnel_metrics');
 
-      const totalDomains = new Set(
-        allProspects?.map((p: any) => p.reports.domain) || []
-      ).size;
+      if (error) throw error;
 
-      // Get enriched domains (prospects with email contacts)
-      const { data: contactsData } = await supabase
-        .from("prospect_contacts")
-        .select("prospect_activity_id, email")
-        .not('email', 'is', null)
-        .neq('email', '');
-
-      const enrichedProspectIds = new Set(
-        contactsData?.map(c => c.prospect_activity_id) || []
-      );
-
-      const enrichedDomains = new Set(
-        allProspects?.filter((p: any) => enrichedProspectIds.has(p.id))
-          .map((p: any) => p.reports.domain) || []
-      ).size;
-
-      // Get contacted domains (status in contacted, interested, proposal, closed_won)
-      const contactedDomains = new Set(
-        allProspects?.filter((p: any) => 
-          ['contacted', 'interested', 'proposal', 'closed_won'].includes(p.status)
-        ).map((p: any) => p.reports.domain) || []
-      ).size;
-
-      // Get won domains
-      const wonDomains = new Set(
-        allProspects?.filter((p: any) => p.status === 'closed_won')
-          .map((p: any) => p.reports.domain) || []
-      ).size;
-
-      // Calculate rates
-      const enrichmentRate = totalDomains > 0 
-        ? (enrichedDomains / totalDomains) * 100 
-        : 0;
-      
-      const contactRate = enrichedDomains > 0 
-        ? (contactedDomains / enrichedDomains) * 100 
-        : 0;
-      
-      const winRate = contactedDomains > 0 
-        ? (wonDomains / contactedDomains) * 100 
-        : 0;
-      
-      const overallConversion = totalDomains > 0 
-        ? (wonDomains / totalDomains) * 100 
-        : 0;
+      const metrics = data as any;
 
       setMetrics({
-        totalDomains,
-        enrichedDomains,
-        contactedDomains,
-        wonDomains,
-        enrichmentRate,
-        contactRate,
-        winRate,
-        overallConversion,
+        totalDomains: metrics.totalDomains,
+        enrichedDomains: metrics.enrichedDomains,
+        contactedDomains: metrics.contactedDomains,
+        wonDomains: metrics.wonDomains,
+        enrichmentRate: metrics.enrichmentRate,
+        contactRate: metrics.contactRate,
+        winRate: metrics.winRate,
+        overallConversion: metrics.overallConversion
       });
     } catch (error) {
       console.error("Error fetching conversion funnel metrics:", error);
