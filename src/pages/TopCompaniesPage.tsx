@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -7,6 +6,10 @@ import Footer from "@/components/Footer";
 import { ReportTable } from "@/components/programmatic/ReportTable";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, TrendingDown } from "lucide-react";
+import { MetaTags } from "@/components/seo/MetaTags";
+import { ItemListSchema } from "@/components/seo/ItemListSchema";
+import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { scrollToTopIfHomeLink } from "@/lib/scroll";
 
 export default function TopCompaniesPage() {
@@ -37,19 +40,44 @@ export default function TopCompaniesPage() {
 
   return (
     <>
-      <Helmet>
-        <title>Top 25 Companies Losing the Most Revenue to Anonymous Traffic | NurturelyX</title>
-        <meta 
-          name="description" 
-          content="Discover the top 25 companies losing the most revenue from anonymous website visitors. See real examples of missed lead generation opportunities."
+      <MetaTags
+        title="Top 25 Companies Losing Revenue to Anonymous Traffic | NurturelyX"
+        description="Discover the top 25 companies losing the most revenue from anonymous website visitors. Real examples of missed lead generation opportunities and revenue benchmarks."
+        canonical="https://x1.nurturely.io/top-companies"
+        keywords="revenue loss rankings, anonymous traffic cost, B2B lead generation benchmarks, visitor tracking statistics"
+      />
+
+      {reports && reports.length > 0 && (
+        <ItemListSchema
+          items={reports.map((report, index) => ({
+            name: report.domain || `Company ${index + 1}`,
+            url: `/report/${report.slug}`,
+            description: `Losing $${((report.report_data as any)?.yearlyRevenueLost || 0).toLocaleString()} annually to anonymous traffic`,
+          }))}
+          listName="Top 25 Companies Losing Revenue to Anonymous Traffic"
+          description="Real businesses losing millions to anonymous website traffic"
         />
-      </Helmet>
+      )}
+
+      <WebPageSchema
+        name="Top 25 Companies Losing Revenue to Anonymous Traffic"
+        description="Rankings of companies losing the most revenue from unidentified website visitors"
+        url="https://x1.nurturely.io/top-companies"
+        breadcrumbs={[
+          { name: "Top Companies", url: "/top-companies" }
+        ]}
+        keywords={["revenue loss rankings", "anonymous traffic statistics", "lead generation benchmarks"]}
+      />
 
       <Header />
       
       <main className="min-h-screen py-16">
         <div className="container max-w-6xl">
-          <div className="text-center mb-12">
+          <Breadcrumb items={[
+            { label: "Top Companies", href: "/top-companies" }
+          ]} />
+          
+          <div className="text-center mb-12 mt-6">
             <div className="inline-flex items-center justify-center gap-2 mb-4">
               <TrendingDown className="h-12 w-12 text-destructive" />
             </div>

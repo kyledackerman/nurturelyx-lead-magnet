@@ -1,13 +1,15 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadReport from "@/components/LeadReport";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, TrendingUp, ArrowRight } from "lucide-react";
+import { BarChart3, ArrowRight } from "lucide-react";
+import { MetaTags } from "@/components/seo/MetaTags";
+import { ArticleSchema } from "@/components/seo/ArticleSchema";
+import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { ReportData } from "@/types/report";
 import { reportService } from "@/services/reportService";
 import { formatCurrency } from "@/lib/utils";
@@ -57,69 +59,61 @@ const PublicReportPage = () => {
 
   // Generate SEO-optimized metadata
   const generateMetadata = (data: ReportData) => {
-    const title = `${data.domain} Lead Loss Report | NurturelyX`;
-    const description = `${data.domain} is potentially losing $${formatCurrency(data.monthlyRevenueLost)}/month ($${formatCurrency(data.yearlyRevenueLost)}/year) from ${data.missedLeads.toLocaleString()} missed leads. See the complete analysis.`;
-    const url = `${window.location.origin}/report/${slug}`;
-    const imageUrl = `${window.location.origin}/og-image.png`;
+    const title = `${data.domain} Lead Loss Report | ${formatCurrency(data.yearlyRevenueLost)}/year Lost Revenue`;
+    const description = `${data.domain} is losing $${formatCurrency(data.monthlyRevenueLost)}/month ($${formatCurrency(data.yearlyRevenueLost)}/year) from ${data.missedLeads.toLocaleString()} missed leads. Free analysis and recommendations.`;
+    const url = `https://x1.nurturely.io/report/${slug}`;
 
-    return { title, description, url, imageUrl };
-  };
-
-  // Generate JSON-LD structured data
-  const generateStructuredData = (data: ReportData) => {
-    const metadata = generateMetadata(data);
-    return {
-      "@context": "https://schema.org",
-      "@type": "Report",
-      "headline": `${data.domain} Lead Loss Report`,
-      "description": metadata.description,
-      "url": metadata.url,
-      "datePublished": new Date().toISOString(),
-      "author": {
-        "@type": "Organization",
-        "name": "NurturelyX",
-        "url": window.location.origin
-      },
-      "about": {
-        "@type": "AnalysisNewsArticle",
-        "headline": `Revenue Loss Analysis for ${data.domain}`,
-        "description": `Comprehensive analysis showing ${data.domain} has ${data.missedLeads.toLocaleString()} missed leads resulting in potential revenue loss.`
-      }
-    };
+    return { title, description, url };
   };
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       {reportData && (
-        <Helmet>
-          <title>{generateMetadata(reportData).title}</title>
-          <meta name="description" content={generateMetadata(reportData).description} />
-          <link rel="canonical" href={generateMetadata(reportData).url} />
-          
-          {/* Open Graph Tags */}
-          <meta property="og:type" content="article" />
-          <meta property="og:title" content={generateMetadata(reportData).title} />
-          <meta property="og:description" content={generateMetadata(reportData).description} />
-          <meta property="og:url" content={generateMetadata(reportData).url} />
-          <meta property="og:image" content={generateMetadata(reportData).imageUrl} />
-          <meta property="og:site_name" content="NurturelyX" />
-          
-          {/* Twitter Card Tags */}
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content={generateMetadata(reportData).title} />
-          <meta name="twitter:description" content={generateMetadata(reportData).description} />
-          <meta name="twitter:image" content={generateMetadata(reportData).imageUrl} />
-          
-          {/* Structured Data */}
-          <script type="application/ld+json">
-            {JSON.stringify(generateStructuredData(reportData))}
-          </script>
-        </Helmet>
+        <>
+          <MetaTags
+            title={generateMetadata(reportData).title}
+            description={generateMetadata(reportData).description}
+            canonical={generateMetadata(reportData).url}
+            keywords={`${reportData.domain} leads, ${reportData.domain} revenue loss, anonymous traffic analysis, lead generation report`}
+            ogType="article"
+          />
+
+          <ArticleSchema
+            title={`${reportData.domain} Lead Loss Report`}
+            description={generateMetadata(reportData).description}
+            publishedAt={new Date().toISOString()}
+            updatedAt={new Date().toISOString()}
+            author="NurturelyX"
+            url={generateMetadata(reportData).url}
+            category="Revenue Analysis"
+          />
+
+          <WebPageSchema
+            name={`${reportData.domain} Lead Loss Report`}
+            description={generateMetadata(reportData).description}
+            url={generateMetadata(reportData).url}
+            breadcrumbs={[
+              { name: "Reports", url: "/reports" },
+              { name: reportData.domain, url: `/report/${slug}` }
+            ]}
+            keywords={[reportData.domain, "lead analysis", "revenue loss report"]}
+          />
+        </>
       )}
+
       <Header />
       
-      <main className="flex-1 bg-background py-12">
+      <main className="min-h-screen flex flex-col bg-background py-12">
         <div className="container mx-auto">
+          {reportData && (
+            <div className="max-w-6xl mx-auto mb-6">
+              <Breadcrumb items={[
+                { label: "Reports", href: "/top-companies" },
+                { label: reportData.domain, href: `/report/${slug}` }
+              ]} />
+            </div>
+          )}
+          
           {loading ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <div className="w-16 h-16 border-t-4 border-primary rounded-full animate-spin"></div>
@@ -139,14 +133,14 @@ const PublicReportPage = () => {
                 <p className="text-sm text-muted-foreground mb-6">
                   Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                 </p>
-                 <Button 
-                   onClick={handleCreateMyReport} 
-                   className="gradient-bg mx-auto mb-12"
-                   size="lg"
-                 >
-                   <ArrowRight className="mr-2 h-4 w-4" />
-                   Generate My Own Report
-                 </Button>
+                <Button 
+                  onClick={handleCreateMyReport} 
+                  className="gradient-bg mx-auto mb-12"
+                  size="lg"
+                >
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  Generate My Own Report
+                </Button>
               </article>
               
               <LeadReport
@@ -172,7 +166,7 @@ const PublicReportPage = () => {
       </main>
       
       <Footer />
-    </div>
+    </>
   );
 };
 

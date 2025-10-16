@@ -1,7 +1,12 @@
 import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { MetaTags } from "@/components/seo/MetaTags";
+import { HowToSchema } from "@/components/seo/HowToSchema";
+import { ServiceSchema } from "@/components/seo/ServiceSchema";
+import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { ArticleSchema } from "@/components/seo/ArticleSchema";
+import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { scrollToTopIfHomeLink } from "@/lib/scroll";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import { 
@@ -32,70 +37,71 @@ const LearnPage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Website Visitor Identification Guide 2025: Convert Anonymous Traffic | Complete Guide</title>
-        <meta 
-          name="description" 
-          content="Learn how to identify anonymous website visitors and convert 98% of lost traffic into qualified leads. Complete guide to visitor identification technology, ROI calculation, and implementation strategies." 
-        />
-        <meta name="keywords" content="website visitor identification, anonymous traffic conversion, identify website visitors, visitor tracking software, lead generation technology, visitor identification ROI" />
-        <link rel="canonical" href={`${window.location.origin}/learn`} />
-        
-        {/* Schema.org markup for Article */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Article",
-            "headline": "The Complete Guide to Website Visitor Identification & Anonymous Traffic Conversion",
-            "description": "Comprehensive guide explaining how businesses identify anonymous website visitors and convert lost traffic into revenue",
-            "author": {
-              "@type": "Organization",
-              "name": "Lead Estimation Report"
-            },
-            "publisher": {
-              "@type": "Organization",
-              "name": "Lead Estimation Report"
-            },
-            "datePublished": "2025-01-01",
-            "dateModified": new Date().toISOString().split('T')[0]
-          })}
-        </script>
+      <MetaTags
+        title="Website Visitor Identification Guide 2025: Convert Anonymous Traffic"
+        description="Learn how to identify anonymous website visitors and convert 98% of lost traffic into qualified leads. Complete guide to visitor identification technology and ROI."
+        canonical="https://x1.nurturely.io/learn"
+        keywords="website visitor identification, anonymous traffic conversion, identify website visitors, visitor tracking software, lead generation technology"
+      />
 
-        {/* Schema.org markup for HowTo */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "HowTo",
-            "name": "How to Identify Anonymous Website Visitors",
-            "description": "Step-by-step guide to implementing visitor identification technology",
-            "step": [
-              {
-                "@type": "HowToStep",
-                "name": "Calculate Your Lost Revenue",
-                "text": "Use our calculator to see how much revenue you're losing from anonymous traffic"
-              },
-              {
-                "@type": "HowToStep",
-                "name": "Understand Your Traffic",
-                "text": "Analyze your visitor patterns and identify high-value anonymous visitors"
-              },
-              {
-                "@type": "HowToStep",
-                "name": "Implement Identification",
-                "text": "Deploy visitor identification technology to capture anonymous visitor data"
-              },
-              {
-                "@type": "HowToStep",
-                "name": "Convert to Revenue",
-                "text": "Use identified visitor data for targeted outreach and retargeting campaigns"
-              }
-            ]
-          })}
-        </script>
-      </Helmet>
+      <HowToSchema
+        name="How to Identify Anonymous Website Visitors"
+        description="Step-by-step guide to implementing visitor identification technology and converting anonymous traffic into qualified leads"
+        steps={[
+          {
+            name: "Calculate Your Lost Revenue",
+            text: "Use our calculator to see how much revenue you're losing from anonymous traffic and understand the financial impact"
+          },
+          {
+            name: "Understand Your Traffic",
+            text: "Analyze your visitor patterns and identify high-value anonymous visitors using analytics data"
+          },
+          {
+            name: "Implement Identification",
+            text: "Deploy visitor identification technology to capture anonymous visitor data automatically"
+          },
+          {
+            name: "Convert to Revenue",
+            text: "Use identified visitor data for targeted outreach and retargeting campaigns to convert leads into customers"
+          }
+        ]}
+        totalTime="PT30M"
+      />
 
-      <div className="min-h-screen bg-background">
-        <Header />
+      <ServiceSchema
+        name="Website Visitor Identification Technology"
+        description="Comprehensive visitor identification service that helps businesses identify anonymous website visitors and convert lost traffic into qualified leads"
+        serviceType="Professional Service"
+      />
+
+      <ArticleSchema
+        title="The Complete Guide to Website Visitor Identification & Anonymous Traffic Conversion"
+        description="Comprehensive guide explaining how businesses identify anonymous website visitors and convert lost traffic into revenue"
+        publishedAt="2025-01-01"
+        updatedAt={new Date().toISOString().split('T')[0]}
+        author="NurturelyX"
+        url="https://x1.nurturely.io/learn"
+        category="Lead Generation"
+      />
+
+      <WebPageSchema
+        name="Website Visitor Identification Guide"
+        description="Complete guide to identifying anonymous website visitors and converting lost traffic into qualified leads"
+        url="https://x1.nurturely.io/learn"
+        breadcrumbs={[
+          { name: "Learn", url: "/learn" }
+        ]}
+        keywords={["visitor identification guide", "anonymous traffic conversion", "lead generation technology"]}
+      />
+
+      <Header />
+      
+      <main className="min-h-screen bg-background">
+        <div className="container max-w-6xl py-6">
+          <Breadcrumb items={[
+            { label: "Learn", href: "/learn" }
+          ]} />
+        </div>
         
         {/* Hero Section */}
         <section className="pt-24 pb-12 px-4 bg-gradient-to-br from-primary/5 via-background to-background">
@@ -1293,9 +1299,9 @@ const LearnPage = () => {
           </section>
 
         </div>
+      </main>
 
-        <Footer />
-      </div>
+      <Footer />
     </>
   );
 };

@@ -6,7 +6,14 @@ import CallToActionSection from "@/components/CallToActionSection";
 import { getIndustryData } from "@/data/industryData";
 import { AlertCircle } from "lucide-react";
 import { FAQSchema } from "@/components/seo/FAQSchema";
+import { MetaTags } from "@/components/seo/MetaTags";
+import { ServiceSchema } from "@/components/seo/ServiceSchema";
+import { LocalBusinessSchema } from "@/components/seo/LocalBusinessSchema";
+import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export default function AutomotiveIndustryPage() {
   usePageViewTracking('marketing');
@@ -22,84 +29,128 @@ export default function AutomotiveIndustryPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <IndustryHero
-        name={industry.name}
-        headline={industry.headline}
-        subheadline={industry.subheadline}
+    <>
+      <MetaTags
+        title="Automotive Visitor Identification | Dealership Lead Tracking - NurturelyX"
+        description="Identify anonymous website visitors for automotive dealerships. Track fleet buyers and service customers researching vehicles and automotive services."
+        canonical="https://x1.nurturely.io/industries/automotive"
+        keywords="automotive lead generation, dealership visitor tracking, fleet buyer identification, car dealer marketing"
+      />
+      
+      <ServiceSchema
+        name="Automotive Visitor Identification Service"
+        description="Identify anonymous website visitors for automotive dealerships and service centers. Track potential fleet buyers and service customers."
+        serviceType="Professional Service"
+      />
+      
+      <LocalBusinessSchema
+        name="NurturelyX Automotive Visitor Identification"
+        description="Visitor identification technology for automotive dealerships and service centers"
+        businessType="ProfessionalService"
+        areaServed={["United States"]}
+      />
+      
+      <WebPageSchema
+        name="Automotive Visitor Identification & Dealership Lead Generation"
+        description="Track anonymous website visitors for automotive dealerships and identify potential fleet buyers and service customers"
+        url="https://x1.nurturely.io/industries/automotive"
+        breadcrumbs={[
+          { name: "Industries", url: "/industries" },
+          { name: "Automotive", url: "/industries/automotive" }
+        ]}
+        keywords={["automotive leads", "dealership visitor tracking", "fleet buyer identification", "car dealer marketing"]}
       />
 
-      <section className="py-16 bg-muted/30">
-        <div className="container max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Automotive Industry Challenges
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Identify fleet buyers and service customers before competitors do
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {industry.painPoints.map((point, index) => (
-              <div key={index} className="flex items-start gap-4 p-6 bg-background rounded-lg border">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center font-bold">
-                  {index + 1}
+      <Header />
+      
+      <main className="min-h-screen">
+        <div className="container max-w-6xl py-6">
+          <Breadcrumb items={[
+            { label: "Industries", href: "/industries" },
+            { label: "Automotive", href: "/industries/automotive" }
+          ]} />
+        </div>
+
+        <IndustryHero
+          name={industry.name}
+          headline={industry.headline}
+          subheadline={industry.subheadline}
+        />
+
+        <section className="py-16 bg-muted/30">
+          <div className="container max-w-6xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Automotive Industry Challenges
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+                Identify fleet buyers and service customers before competitors do
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {industry.painPoints.map((point, index) => (
+                <div key={index} className="flex items-start gap-4 p-6 bg-background rounded-lg border">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center font-bold">
+                    {index + 1}
+                  </div>
+                  <p className="text-lg">{point}</p>
                 </div>
-                <p className="text-lg">{point}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="py-16">
-        <div className="container max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Automotive Businesses Tracking Website Visitors
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Fleet sales and service opportunities being missed
-            </p>
+        <section className="py-16">
+          <div className="container max-w-6xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Automotive Businesses Tracking Website Visitors
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Fleet sales and service opportunities being missed
+              </p>
+            </div>
+            <IndustryReportGrid industry="automotive" />
           </div>
-          <IndustryReportGrid industry="automotive" />
-        </div>
-      </section>
+        </section>
 
-      <section className="py-16 bg-muted/30">
-        <div className="container max-w-4xl">
-          <IndustryROICalculator
-            industryName={industry.name}
-            avgConversionRate={industry.avgConversionRate}
-            avgTransactionValue={industry.avgTransactionValue}
-          />
-        </div>
-      </section>
-
-      <section className="py-16">
-        <div className="container max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Automotive Visitor Intelligence Benefits
-            </h2>
+        <section className="py-16 bg-muted/30">
+          <div className="container max-w-4xl">
+            <IndustryROICalculator
+              industryName={industry.name}
+              avgConversionRate={industry.avgConversionRate}
+              avgTransactionValue={industry.avgTransactionValue}
+            />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {industry.benefits.map((benefit, index) => (
-              <div key={index} className="flex items-start gap-4 p-6 bg-background rounded-lg border">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
-                  ✓
+        </section>
+
+        <section className="py-16">
+          <div className="container max-w-6xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Automotive Visitor Intelligence Benefits
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {industry.benefits.map((benefit, index) => (
+                <div key={index} className="flex items-start gap-4 p-6 bg-background rounded-lg border">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
+                    ✓
+                  </div>
+                  <p className="text-lg">{benefit}</p>
                 </div>
-                <p className="text-lg">{benefit}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <IndustryFAQ faqs={industry.faqs} />
-      <FAQSchema questions={industry.faqs} />
+        <IndustryFAQ faqs={industry.faqs} />
+        <FAQSchema questions={industry.faqs} />
 
-      <CallToActionSection />
-    </div>
+        <CallToActionSection />
+      </main>
+      
+      <Footer />
+    </>
   );
 }
