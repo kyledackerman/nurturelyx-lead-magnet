@@ -296,28 +296,65 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
 
     // Save contacts to database if any found
     if (Array.isArray(contacts) && contacts.length > 0) {
-      const contactsToInsert = contacts.map((contact: any) => ({
-        prospect_activity_id: prospect_id,
-        report_id: prospect.report_id,
-        first_name: contact.first_name,
-        last_name: contact.last_name || null,
-        email: contact.email || null,
-        phone: contact.phone || null,
-        title: contact.title || null,
-        linkedin_url: contact.linkedin_url || null,
-        facebook_url: contact.facebook_url || null,
-        notes: contact.notes || null,
-        is_primary: false,
-      }));
-
-      const { error: insertError } = await supabase
-        .from("prospect_contacts")
-        .insert(contactsToInsert);
-
-      if (insertError) {
-        console.error("Error inserting contacts:", insertError);
+      // Filter out .gov, .edu, .mil emails and legal/compliance emails
+      const filteredContacts = contacts.filter((contact: any) => {
+        if (!contact.email) return true; // Keep contacts without email (phone-only)
+        
+        const domain = contact.email.split('@')[1]?.toLowerCase() || '';
+        const isExcluded = domain.endsWith('.gov') || 
+                          domain.endsWith('.edu') || 
+                          domain.endsWith('.mil');
+        
+        if (isExcluded) {
+          console.log(`⚠️ Filtered out ${contact.email} (government/educational domain)`);
+          return false;
+        }
+        
+        // Filter legal/compliance emails
+        const localPart = contact.email.split('@')[0]?.toLowerCase() || '';
+        const isLegal = ['legal','privacy','compliance','counsel','attorney','law','dmca']
+          .some(prefix => localPart === prefix || localPart.includes(prefix));
+        
+        if (isLegal) {
+          console.log(`⚠️ Filtered out ${contact.email} (legal/compliance email)`);
+          return false;
+        }
+        
+        return true;
+      });
+      
+      if (filteredContacts.length === 0) {
+        console.log(`⚠️ All contacts filtered out (gov/edu or legal emails)`);
       } else {
-        contactsInserted = contacts.length;
+        const contactsToInsert = filteredContacts.map((contact: any) => ({
+          prospect_activity_id: prospect_id,
+          report_id: prospect.report_id,
+          first_name: contact.first_name,
+          last_name: contact.last_name || null,
+          email: contact.email || null,
+          phone: contact.phone || null,
+          title: contact.title || null,
+          linkedin_url: contact.linkedin_url || null,
+          facebook_url: contact.facebook_url || null,
+          notes: contact.notes || null,
+          is_primary: false,
+        }));
+
+        // Use upsert to handle duplicates gracefully
+        const { error: insertError, data: insertedContacts } = await supabase
+          .from("prospect_contacts")
+          .upsert(contactsToInsert, {
+            onConflict: 'prospect_activity_id,email',
+            ignoreDuplicates: true
+          })
+          .select();
+
+        if (!insertError) {
+          contactsInserted = insertedContacts?.length || 0;
+          console.log(`✅ Inserted ${contactsInserted} unique contacts`);
+        } else {
+          console.error("Error inserting contacts:", insertError);
+        }
       }
     }
 

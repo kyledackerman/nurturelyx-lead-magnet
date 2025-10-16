@@ -13,12 +13,25 @@ const PERSONAL_DOMAINS = [
   'msn.com', 'me.com', 'mac.com'
 ];
 
+// Government, educational, and military domains to exclude from sales outreach
+const EXCLUDED_DOMAINS = ['edu', 'gov', 'mil'];
+
 export interface EmailValidationResult {
   isValid: boolean;
   isPersonal: boolean;
   isGeneric: boolean;
   warning?: string;
   emailType: 'personal' | 'corporate-person' | 'generic' | 'invalid';
+}
+
+/**
+ * Check if email domain is excluded (government, educational, or military)
+ */
+export function isExcludedDomain(email: string): boolean {
+  const domain = email.split('@')[1]?.toLowerCase() || '';
+  return EXCLUDED_DOMAINS.some(tld => 
+    domain.endsWith(`.${tld}`) || domain === tld
+  );
 }
 
 /**
@@ -69,6 +82,17 @@ export function validateSalesEmail(email: string): EmailValidationResult {
 
   // Extract parts
   const [localPart, domain] = trimmedEmail.split('@');
+  
+  // Check for excluded domains (government/educational)
+  if (isExcludedDomain(trimmedEmail)) {
+    return {
+      isValid: false,
+      isPersonal: false,
+      isGeneric: true,
+      emailType: 'generic',
+      warning: `Government/educational email detected (@${domain}). We avoid .gov, .edu, and .mil domains for B2B sales outreach.`
+    };
+  }
   
   // Check if personal email domain
   const isPersonal = PERSONAL_DOMAINS.includes(domain);

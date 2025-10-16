@@ -478,7 +478,8 @@ serve(async (req) => {
 - ✅ INCLUDE: Phone numbers from contact pages even without names
 - ✅ INCLUDE: Addresses and locations from contact pages
 - ✅ CREATE GENERIC CONTACTS: If you find phone/email/address but no name, create a contact with first_name="Office" or "Reception" and add details to notes
-- ❌ ONLY EXCLUDE: noreply@, no-reply@, donotreply@, mailer-daemon@, example@example.com
+- ❌ EXCLUDE: noreply@, no-reply@, donotreply@, mailer-daemon@, example@example.com
+- ❌ EXCLUDE: All .gov, .edu, and .mil email domains (government/educational institutions)
 
 **CRITICAL: ACCEPT GENERAL BUSINESS CONTACTS**
 - If you find a contact form with phone number but no specific person → CREATE CONTACT: first_name="Office", phone=number, title="General Contact"
@@ -617,33 +618,72 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
               }
             }
 
-            // Save contacts to database
-            let contactsInserted = 0;
-            if (Array.isArray(contacts) && contacts.length > 0) {
-              const contactsToInsert = contacts.map((contact: any) => ({
-                prospect_activity_id: prospectId,
-                report_id: prospect.report_id,
-                first_name: contact.first_name,
-                last_name: contact.last_name || null,
-                email: contact.email || null,
-                phone: contact.phone || null,
-                title: contact.title || null,
-                linkedin_url: contact.linkedin_url || null,
-                facebook_url: contact.facebook_url || null,
-                notes: contact.notes || null,
-                is_primary: false,
-              }));
-
-              const { error: insertError } = await supabase
-                .from("prospect_contacts")
-                .insert(contactsToInsert);
-
-              if (!insertError) {
-                contactsInserted = contacts.length;
-              }
-            } else {
-              console.log(`⚠️ No contacts extracted for ${domain} - will be set to review status`);
+        // Save contacts to database
+        let contactsInserted = 0;
+        if (Array.isArray(contacts) && contacts.length > 0) {
+          // Filter out .gov, .edu, .mil emails and legal/compliance emails
+          const filteredContacts = contacts.filter((contact: any) => {
+            if (!contact.email) return true; // Keep contacts without email (phone-only)
+            
+            const domain = contact.email.split('@')[1]?.toLowerCase() || '';
+            const isExcluded = domain.endsWith('.gov') || 
+                              domain.endsWith('.edu') || 
+                              domain.endsWith('.mil');
+            
+            if (isExcluded) {
+              console.log(`⚠️ Filtered out ${contact.email} (government/educational domain)`);
+              return false;
             }
+            
+            // Filter legal/compliance emails
+            const localPart = contact.email.split('@')[0]?.toLowerCase() || '';
+            const isLegal = ['legal','privacy','compliance','counsel','attorney','law','dmca']
+              .some(prefix => localPart === prefix || localPart.includes(prefix));
+            
+            if (isLegal) {
+              console.log(`⚠️ Filtered out ${contact.email} (legal/compliance email)`);
+              return false;
+            }
+            
+            return true;
+          });
+          
+          if (filteredContacts.length === 0) {
+            console.log(`⚠️ All contacts filtered out for ${domain} (gov/edu or legal emails)`);
+          } else {
+            const contactsToInsert = filteredContacts.map((contact: any) => ({
+              prospect_activity_id: prospectId,
+              report_id: prospect.report_id,
+              first_name: contact.first_name,
+              last_name: contact.last_name || null,
+              email: contact.email || null,
+              phone: contact.phone || null,
+              title: contact.title || null,
+              linkedin_url: contact.linkedin_url || null,
+              facebook_url: contact.facebook_url || null,
+              notes: contact.notes || null,
+              is_primary: false,
+            }));
+
+            // Use upsert to handle duplicates gracefully
+            const { error: insertError, data: insertedContacts } = await supabase
+              .from("prospect_contacts")
+              .upsert(contactsToInsert, {
+                onConflict: 'prospect_activity_id,email',
+                ignoreDuplicates: true
+              })
+              .select();
+
+            if (!insertError) {
+              contactsInserted = insertedContacts?.length || 0;
+              console.log(`✅ Inserted ${contactsInserted} unique contacts for ${domain}`);
+            } else {
+              console.error(`Insert error for ${domain}:`, insertError);
+            }
+          }
+        } else {
+          console.log(`⚠️ No contacts extracted for ${domain} - will be set to review status`);
+        }
 
             // Update company name, Facebook URL, and industry
             const currentFacebookUrl = prospect.reports.facebook_url;
