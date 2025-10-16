@@ -280,94 +280,36 @@ serve(async (req) => {
             );
 
             // Scrape the website
-            const { content: scrapedData, socialLinks } = await scrapeWebsite(domain);
+            let scrapedData = "";
+            let socialLinks = "";
+            const scrapeResult = await scrapeWebsite(domain);
+            scrapedData = scrapeResult.content;
+            socialLinks = scrapeResult.socialLinks;
 
+            // If scraping failed/blocked, try using Google Search to fetch website content
             if (!scrapedData || scrapedData.length === 0) {
-              console.log(`⚠️ Scraping failed for ${domain}, attempting Google Search fallback...`);
-              
-              // Try Google Search for emails as fallback
-              const foundEmails = await googleSearchEmails(domain, currentCompanyName, lovableApiKey);
-              
-              if (foundEmails.length > 0) {
-                // SUCCESS with fallback - create contacts from emails
-                const contactsToInsert = foundEmails.map((email: string) => ({
-                  prospect_activity_id: prospectId,
-                  report_id: prospect.report_id,
-                  first_name: "Office",
-                  email: email,
-                  title: "Contact Found via Search",
-                  notes: "Email found via Google Search (website scraping blocked)",
-                  is_primary: false,
-                }));
+              console.log(`⚠️ Direct scraping failed for ${domain}, using Google Search to fetch website content...`);
+              scrapedData = await fetchWebsiteViaGoogleSearch(domain, lovableApiKey);
+            }
 
-                await supabase.from("prospect_contacts").insert(contactsToInsert);
-                
-                // Update to enriched with fallback source
-                await supabase.from("prospect_activities").update({
-                  status: "enriched",
-                  enrichment_source: 'google_search_only',
-                  enrichment_retry_count: 0,
-                  last_enrichment_attempt: new Date().toISOString()
-                }).eq("id", prospectId);
-                
-                // Update job item
-                if (enrichmentJobId) {
-                  await supabase.from('enrichment_job_items').update({ 
-                    status: 'completed',
-                    contacts_found: foundEmails.length,
-                    completed_at: new Date().toISOString()
-                  }).eq('job_id', enrichmentJobId).eq('prospect_id', prospectId);
-                }
-                
-                controller.enqueue(
-                  encoder.encode(
-                    `data: ${JSON.stringify({ 
-                      type: "success", 
-                      prospectId, 
-                      domain,
-                      status: "enriched",
-                      contacts: foundEmails.length,
-                      message: `✅ Enriched via Google Search: Found ${foundEmails.length} email(s). Website scraping was blocked.`
-                    })}\n\n`
-                  )
-                );
-                
-                successCount++;
-                
-                // Phase 2: Incremental progress update
-                if (enrichmentJobId) {
-                  await supabase
-                    .from('enrichment_jobs')
-                    .update({
-                      processed_count: successCount + failureCount,
-                      success_count: successCount,
-                      failed_count: failureCount,
-                    })
-                    .eq('id', enrichmentJobId);
-                }
-                
-                return;
-              }
+            // If we still have no content, fail fast
+            if (!scrapedData || scrapedData.length === 0) {
+              console.log(`❌ ${domain} - Both direct scraping and Google fetch failed`);
               
-              // BOTH methods failed - increment retry count and move to REVIEW for manual verification
               const currentRetryCount = prospect.enrichment_retry_count || 0;
               const newRetryCount = currentRetryCount + 1;
-              
-              const errorNote = `⚠️ Enrichment failed (attempt ${newRetryCount}). Could not access website or extract contacts. Manual review needed - consider: 1) Adding contacts manually, 2) Retrying enrichment, or 3) Marking as not viable if truly unreachable.`;
-              
-              console.log(`⚠️ ${domain} - Enrichment attempt ${newRetryCount} failed, moved to review`);
               
               await supabase.from("prospect_activities").update({
                 status: 'review',
                 enrichment_retry_count: newRetryCount,
                 last_enrichment_attempt: new Date().toISOString(),
-                notes: errorNote
+                notes: `⚠️ Enrichment failed (attempt ${newRetryCount}). Could not access website. Manual review needed.`
               }).eq("id", prospectId);
               
               if (enrichmentJobId) {
                 await supabase.from('enrichment_job_items').update({ 
                   status: 'failed',
-                  error_message: `Could not access website (attempt ${newRetryCount}) - Needs manual review`,
+                  error_message: `Could not access website (attempt ${newRetryCount})`,
                   completed_at: new Date().toISOString()
                 }).eq('job_id', enrichmentJobId).eq('prospect_id', prospectId);
               }
@@ -380,27 +322,28 @@ serve(async (req) => {
                     domain,
                     status: 'review',
                     retryCount: newRetryCount,
-                    error: `Enrichment failed (attempt ${newRetryCount}) - moved to review for manual action`
+                    error: `Could not access website (attempt ${newRetryCount})`
                   })}\n\n`
                 )
               );
               
               failureCount++;
               
-              // Phase 2: Incremental progress update
               if (enrichmentJobId) {
                 await supabase
                   .from('enrichment_jobs')
                   .update({
                     processed_count: successCount + failureCount,
                     success_count: successCount,
-                  failed_count: failureCount,
-                })
-                .eq('id', enrichmentJobId);
+                    failed_count: failureCount,
+                  })
+                  .eq('id', enrichmentJobId);
+              }
+              
+              return;
             }
             
-            return;
-          }
+            console.log(`✅ Got ${scrapedData.length} characters of content for ${domain}`);
           
           // Phase 2: Facebook Scraping (check settings first)
             let facebookData = "";
@@ -710,9 +653,43 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
             } else {
               console.error(`Insert error for ${domain}:`, insertError);
             }
+          } else {
+            console.log(`⚠️ All contacts filtered out (gov/edu or legal emails)`);
           }
-        } else {
-          console.log(`⚠️ No contacts extracted for ${domain} - will be set to review status`);
+        }
+        
+        // If AI extraction found no valid emails, try Google Search as last resort
+        if (contactsInserted === 0 && Array.isArray(contacts)) {
+          console.log(`⚠️ AI found no valid emails for ${domain}, trying Google Search as last resort...`);
+          
+          const searchedEmails = await googleSearchEmails(domain, companyName, lovableApiKey);
+          
+          if (searchedEmails.length > 0) {
+            console.log(`✅ Google Search found ${searchedEmails.length} email(s)`);
+            
+            const contactsToInsert = searchedEmails.map((email: string) => ({
+              prospect_activity_id: prospectId,
+              report_id: prospect.report_id,
+              first_name: "Office",
+              email: email,
+              title: "Contact Found via Search",
+              notes: "Email found via Google Search (AI extraction found no valid emails)",
+              is_primary: false,
+            }));
+
+            const { error: insertError, data: insertedContacts } = await supabase
+              .from("prospect_contacts")
+              .upsert(contactsToInsert, {
+                onConflict: 'prospect_activity_id,email',
+                ignoreDuplicates: true
+              })
+              .select();
+
+            if (!insertError) {
+              contactsInserted = insertedContacts?.length || 0;
+              console.log(`✅ Inserted ${contactsInserted} contacts from Google Search for ${domain}`);
+            }
+          }
         }
 
             // Update company name, Facebook URL, and industry
@@ -1278,6 +1255,50 @@ async function scrapeFacebookPage(facebookUrl: string): Promise<string> {
   }
   
   return "";
+}
+
+// Helper function to fetch website content via Google Search when direct scraping fails
+async function fetchWebsiteViaGoogleSearch(domain: string, lovableApiKey: string): Promise<string> {
+  try {
+    console.log(`🔍 Using Google Search to fetch content from ${domain}...`);
+    
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${lovableApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content: "You are a web content fetcher. Retrieve and return the main content from the website's contact page, about page, or homepage."
+          },
+          {
+            role: "user",
+            content: `Fetch the main text content from these pages for domain ${domain}: contact page, about page, or homepage. Return the raw text content you find.`
+          }
+        ],
+        tools: [{ type: "google_search_retrieval" }],
+      }),
+      signal: AbortSignal.timeout(10000), // 10 second timeout
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || "";
+      if (content) {
+        console.log(`✅ Google Search fetched ${content.length} characters`);
+      }
+      return content;
+    }
+    console.log(`❌ Google Search fetch failed: ${response.status}`);
+    return "";
+  } catch (error) {
+    console.log(`❌ Failed to fetch via Google Search:`, error instanceof Error ? error.message : String(error));
+    return "";
+  }
 }
 
 // WHOIS lookup for domain registration contacts

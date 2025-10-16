@@ -78,9 +78,57 @@ serve(async (req) => {
       .eq("id", prospect_id);
 
     // Scrape the website
-    const { content: scrapedData, socialLinks } = await scrapeWebsite(domain);
+    let scrapedData = "";
+    let socialLinks = "";
+    const scrapeResult = await scrapeWebsite(domain);
+    scrapedData = scrapeResult.content;
+    socialLinks = scrapeResult.socialLinks;
 
+    // If scraping failed, try Google Search to fetch website content
     if (!scrapedData || scrapedData.length === 0) {
+      console.log(`⚠️ Direct scraping failed for ${domain}, using Google Search to fetch website content...`);
+      scrapedData = await fetchWebsiteViaGoogleSearch(domain, lovableApiKey);
+    }
+
+    // If still no content, try Google Search for emails as last resort
+    if (!scrapedData || scrapedData.length === 0) {
+      console.log(`⚠️ Could not fetch website content, trying Google Search for emails...`);
+      
+      const foundEmails = await googleSearchEmails(domain, currentCompanyName, lovableApiKey);
+      
+      if (foundEmails.length > 0) {
+        console.log(`✅ Google Search found ${foundEmails.length} email(s)`);
+        
+        const contactsToInsert = foundEmails.map((email: string) => ({
+          prospect_activity_id: prospect_id,
+          report_id: prospect.report_id,
+          first_name: "Office",
+          email: email,
+          title: "Contact Found via Search",
+          notes: "Email found via Google Search (website inaccessible)",
+          is_primary: false,
+        }));
+
+        await supabase.from("prospect_contacts").insert(contactsToInsert);
+        
+        await supabase.from("prospect_activities").update({
+          status: "enriched",
+          enrichment_source: 'google_search_only',
+          last_enrichment_attempt: new Date().toISOString()
+        }).eq("id", prospect_id);
+        
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            contactsFound: foundEmails.length,
+            source: 'google_search',
+            message: `Found ${foundEmails.length} email(s) via Google Search`
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      // All methods failed
       await supabase
         .from("prospect_activities")
         .update({ status: prospect.status })
@@ -89,13 +137,13 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: "Could not access website. Domain may be down or unreachable." 
+          error: "Could not access website or find contacts via search" 
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log(`Scraped ${scrapedData.length} characters from ${domain}`);
+    console.log(`✅ Got ${scrapedData.length} characters of content from ${domain}`);
     
     // Phase 2: Facebook Scraping (check settings first)
     let facebookData = "";
@@ -656,6 +704,50 @@ function extractSocialLinks(html: string): string {
   }
   
   return Array.from(socialLinks).join('\n');
+}
+
+// Helper function to fetch website content via Google Search when direct scraping fails
+async function fetchWebsiteViaGoogleSearch(domain: string, lovableApiKey: string): Promise<string> {
+  try {
+    console.log(`🔍 Using Google Search to fetch content from ${domain}...`);
+    
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${lovableApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content: "You are a web content fetcher. Retrieve and return the main content from the website's contact page, about page, or homepage."
+          },
+          {
+            role: "user",
+            content: `Fetch the main text content from these pages for domain ${domain}: contact page, about page, or homepage. Return the raw text content you find.`
+          }
+        ],
+        tools: [{ type: "google_search_retrieval" }],
+      }),
+      signal: AbortSignal.timeout(10000), // 10 second timeout
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || "";
+      if (content) {
+        console.log(`✅ Google Search fetched ${content.length} characters`);
+      }
+      return content;
+    }
+    console.log(`❌ Google Search fetch failed: ${response.status}`);
+    return "";
+  } catch (error) {
+    console.log(`❌ Failed to fetch via Google Search:`, error instanceof Error ? error.message : String(error));
+    return "";
+  }
 }
 
 // Phase 2: Scrape Facebook "About" page for contact info
