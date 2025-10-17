@@ -9,6 +9,7 @@ export function useCRMSidebarCounts() {
     const { data, error } = await supabase.rpc('get_crm_sidebar_counts');
     if (error) {
       console.error('Error fetching sidebar counts:', error);
+      setLoading(false);
       return;
     }
     setCounts((data as Record<string, number>) || {});

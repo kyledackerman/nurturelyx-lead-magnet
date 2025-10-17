@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UserPlus, UserMinus, Shield, Mail, Clock, KeyRound } from "lucide-react";
+import { UserPlus, UserMinus, Shield, Mail, Clock, KeyRound, Zap } from "lucide-react";
 import { DirectPasswordReset } from "./DirectPasswordReset";
 
 interface AdminUser {
@@ -25,6 +25,7 @@ export const AdminManagement = () => {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [resetPasswordUserId, setResetPasswordUserId] = useState<string | null>(null);
   const [resetPasswordUserEmail, setResetPasswordUserEmail] = useState<string>("");
+  const [triggeringAutoEnrich, setTriggeringAutoEnrich] = useState(false);
 
   useEffect(() => {
     checkSuperAdmin();
@@ -114,6 +115,23 @@ export const AdminManagement = () => {
     }
   };
 
+  const handleTriggerAutoEnrich = async () => {
+    setTriggeringAutoEnrich(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('auto-enrich-needs-enrichment');
+
+      if (error) throw error;
+
+      const result = data as { queued: number; skipped: number; message: string };
+      toast.success(result.message || `Started enriching ${result.queued} prospects`);
+    } catch (error: any) {
+      console.error('Error triggering auto-enrichment:', error);
+      toast.error(error.message || 'Failed to trigger auto-enrichment');
+    } finally {
+      setTriggeringAutoEnrich(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -126,6 +144,26 @@ export const AdminManagement = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Auto-Enrichment Trigger */}
+        <div className="space-y-2">
+          <h4 className="font-medium flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            Auto-Enrichment
+          </h4>
+          <p className="text-sm text-muted-foreground">
+            Manually trigger background enrichment for prospects in "Needs Enrichment". 
+            Runs automatically every 10 minutes via scheduled job.
+          </p>
+          <Button 
+            onClick={handleTriggerAutoEnrich} 
+            disabled={triggeringAutoEnrich}
+            variant="outline"
+          >
+            <Zap className="h-4 w-4 mr-2" />
+            {triggeringAutoEnrich ? 'Starting...' : 'Run Auto-Enrichment Now'}
+          </Button>
+        </div>
+
         {/* Invite New Admin */}
         <div className="space-y-2">
           <h4 className="font-medium flex items-center gap-2">
