@@ -40,6 +40,26 @@ serve(async (req) => {
     let failed = 0;
     let stopped = 0;
 
+    // PHASE 3: Smarter prospect status restoration
+    // Fetch original status before enrichment for pending items
+    const pendingProspectIds = (jobItems || [])
+      .filter(item => item.status === 'pending')
+      .map(item => item.prospect_id);
+    
+    // Get original statuses from audit logs (most recent status BEFORE enrichment started)
+    const { data: originalStatuses } = await supabase
+      .from('audit_logs')
+      .select('record_id, old_value')
+      .eq('table_name', 'prospect_activities')
+      .eq('field_name', 'status')
+      .eq('new_value', 'enriching')
+      .in('record_id', pendingProspectIds)
+      .order('changed_at', { ascending: false });
+    
+    const originalStatusMap = new Map(
+      (originalStatuses || []).map(log => [log.record_id, log.old_value || 'new'])
+    );
+
     // Process each job item
     for (const item of jobItems || []) {
       const prospectActivity = item.prospect_activities;
@@ -56,55 +76,92 @@ serve(async (req) => {
         }
       } else if (item.status === 'failed' || item.status === 'rate_limited') {
         failed++;
-      } else if (item.status === 'pending' || item.status === 'processing') {
-        // Still in progress - stop it
+      } else if (item.status === 'pending') {
+        // PHASE 3: Never started processing - restore original status
+        stopped++;
+        const originalStatus = originalStatusMap.get(item.prospect_id) || 'new';
+        
+        // Update job item as stopped
+        await supabase
+          .from('enrichment_job_items')
+          .update({ 
+            status: 'failed',
+            completed_at: new Date().toISOString(),
+            error_message: 'Stopped before processing started'
+          })
+          .eq('id', item.id);
+        
+        // Restore original status (don't increment retry count - never attempted)
+        await supabase
+          .from('prospect_activities')
+          .update({
+            enrichment_locked_at: null,
+            enrichment_locked_by: null,
+            status: originalStatus
+          })
+          .eq('id', item.prospect_id);
+        
+        console.log(`⏸️ Stopped ${item.domain} (pending) → restored to '${originalStatus}'`);
+        
+      } else if (item.status === 'processing') {
+        // PHASE 3: Started but not finished - be smart about status
         stopped++;
         
-        // Determine appropriate status for the prospect
-        let newStatus = 'review';
+        let newStatus: string;
+        let shouldIncrementRetry = true;
         
-        // Check current state of prospect
+        // Check what data we collected so far
         if (prospectActivity.contact_count > 0 && prospectActivity.icebreaker_text) {
+          // Has valid email + icebreaker = fully enriched
           newStatus = 'enriched';
+          shouldIncrementRetry = false; // Don't penalize - it worked
         } else if (prospectActivity.contact_count > 0) {
-          newStatus = 'enriching'; // Has contacts but missing emails/icebreaker
-        }
-        
-        // Don't downgrade if already enriched
-        if (prospectActivity.status === 'enriched') {
-          newStatus = 'enriched';
+          // Has contacts but no valid email = keep as enriching for retry
+          newStatus = 'enriching';
+          shouldIncrementRetry = false; // Can retry later
+        } else {
+          // No contacts found = terminal failure
+          newStatus = 'review';
+          shouldIncrementRetry = true; // Increment retry count
         }
         
         // Update job item
         await supabase
           .from('enrichment_job_items')
           .update({ 
-            status: 'stopped',
+            status: 'failed',
             completed_at: new Date().toISOString(),
-            error_message: 'Stopped by user'
+            error_message: 'Stopped during processing'
           })
           .eq('id', item.id);
         
-        // Release lock and update prospect status
+        // Update prospect
+        const updateData: any = {
+          enrichment_locked_at: null,
+          enrichment_locked_by: null,
+          status: newStatus
+        };
+        
+        if (shouldIncrementRetry) {
+          updateData.enrichment_retry_count = (prospectActivity.enrichment_retry_count || 0) + 1;
+        }
+        
         await supabase
           .from('prospect_activities')
-          .update({
-            enrichment_locked_at: null,
-            enrichment_locked_by: null,
-            status: newStatus
-          })
+          .update(updateData)
           .eq('id', item.prospect_id);
         
-        console.log(`⏸️ Stopped prospect ${item.domain} → ${newStatus}`);
+        console.log(`⏸️ Stopped ${item.domain} (processing) → ${newStatus}${shouldIncrementRetry ? ' (retry++)' : ''}`);
       }
     }
 
-    // Update job status to completed (stopped by user)
+    // PHASE 3: Update job status to completed with stopped_reason
     await supabase
       .from('enrichment_jobs')
       .update({
         status: 'completed',
-        completed_at: new Date().toISOString()
+        completed_at: new Date().toISOString(),
+        stopped_reason: 'user_requested'
       })
       .eq('id', job_id);
 

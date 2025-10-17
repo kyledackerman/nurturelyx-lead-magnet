@@ -58,7 +58,8 @@ serve(async (req) => {
         .update({
           status: 'failed',
           completed_at: new Date().toISOString(),
-          processed_count: job.total_count
+          processed_count: job.total_count,
+          stopped_reason: 'system_timeout'
         })
         .eq('id', job.id);
 

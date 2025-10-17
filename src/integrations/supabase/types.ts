@@ -130,6 +130,7 @@ export type Database = {
           processed_count: number | null
           started_at: string | null
           status: string | null
+          stopped_reason: string | null
           success_count: number | null
           total_count: number
         }
@@ -143,6 +144,7 @@ export type Database = {
           processed_count?: number | null
           started_at?: string | null
           status?: string | null
+          stopped_reason?: string | null
           success_count?: number | null
           total_count: number
         }
@@ -156,6 +158,7 @@ export type Database = {
           processed_count?: number | null
           started_at?: string | null
           status?: string | null
+          stopped_reason?: string | null
           success_count?: number | null
           total_count?: number
         }

@@ -86,7 +86,8 @@ serve(async (req) => {
 
         console.log(`Starting bulk enrichment for ${prospect_ids.length} prospects (mode: ${processing_mode})...`);
 
-        // PRE-FLIGHT CHECK: Prevent concurrent enrichments (only 1 at a time)
+        // PHASE 2: PRE-FLIGHT CHECK - BEFORE creating job record
+        // Prevent concurrent enrichments (only 1 at a time)
         const { data: runningJobs, error: checkError } = await supabase
           .from('enrichment_jobs')
           .select('id, started_at')
@@ -107,10 +108,10 @@ serve(async (req) => {
             })}\n\n`
           );
           controller.close();
-          return;
+          return; // Exit WITHOUT creating a job record
         }
 
-        // Create or update enrichment job
+        // Create or update enrichment job (only after passing pre-flight check)
         let enrichmentJobId = job_id;
         if (!enrichmentJobId) {
           const { data: jobData, error: jobError } = await supabase
@@ -126,7 +127,7 @@ serve(async (req) => {
             console.error('Failed to create job:', jobError);
           } else {
             enrichmentJobId = jobData.id;
-            console.log(`Created enrichment job: ${enrichmentJobId}`);
+            console.log(`✅ Created enrichment job: ${enrichmentJobId}`);
           }
         }
 
