@@ -111,25 +111,27 @@ serve(async (req) => {
           return; // Exit WITHOUT creating a job record
         }
 
-        // Create or update enrichment job (only after passing pre-flight check)
-        let enrichmentJobId = job_id;
-        if (!enrichmentJobId) {
-          const { data: jobData, error: jobError } = await supabase
-            .from('enrichment_jobs')
-            .insert({
-              total_count: prospect_ids.length,
-              job_type: 'manual'
-            })
-            .select('id')
-            .single();
-          
-          if (jobError) {
-            console.error('Failed to create job:', jobError);
-          } else {
-            enrichmentJobId = jobData.id;
-            console.log(`✅ Created enrichment job: ${enrichmentJobId}`);
-          }
+        // Create enrichment job (only after passing pre-flight check)
+        const { data: jobData, error: jobError } = await supabase
+          .from('enrichment_jobs')
+          .insert({
+            total_count: prospect_ids.length,
+            job_type: 'manual'
+          })
+          .select('id')
+          .single();
+        
+        if (jobError || !jobData) {
+          console.error('Failed to create job:', jobError);
+          safeEnqueue(
+            `data: ${JSON.stringify({ type: "error", error: "Failed to create enrichment job" })}\n\n`
+          );
+          controller.close();
+          return;
         }
+        
+        const enrichmentJobId = jobData.id;
+        console.log(`✅ Created enrichment job: ${enrichmentJobId}`);
 
         // Batch-fetch all prospect details in ONE query
         const { data: allProspects, error: fetchAllError } = await supabase
@@ -173,6 +175,16 @@ serve(async (req) => {
           controller.close();
           return;
         }
+
+        // Emit job_started event so client knows the job ID and can display progress
+        safeEnqueue(
+          `data: ${JSON.stringify({ 
+            type: "job_started", 
+            jobId: enrichmentJobId,
+            total: eligibleProspects.length
+          })}\n\n`
+        );
+        console.log(`📡 Emitted job_started event for job ${enrichmentJobId}`);
 
         // Create job items for ELIGIBLE prospects only
         if (enrichmentJobId) {

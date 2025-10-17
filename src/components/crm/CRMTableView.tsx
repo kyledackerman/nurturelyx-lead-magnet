@@ -864,25 +864,16 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     try {
       setBulkEnriching(true);
       
-      // Create enrichment job in database
-      const { data: jobData, error: jobError } = await supabase
-        .from('enrichment_jobs')
-        .insert({
-          created_by: user?.id,
-          total_count: selectedCount,
-          job_type: 'manual'
-        })
-        .select('id')
-        .single();
+      // Get auth token for direct fetch
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
       
-      if (jobError || !jobData) {
-        throw new Error('Failed to create enrichment job');
+      if (!accessToken) {
+        toast.error('Not authenticated');
+        setBulkEnriching(false);
+        return;
       }
-      
-      const jobId = jobData.id;
-      setCurrentJobId(jobId);
-      setShowEnrichmentProgress(true);
-      
+
       // Initialize progress map
       const initialProgress = new Map();
       Array.from(selectedProspectIds).forEach(id => {
@@ -897,75 +888,110 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       });
       setEnrichmentProgress(initialProgress);
 
-      const response = await supabase.functions.invoke('bulk-enrich-prospects', {
-        body: { 
-          prospect_ids: Array.from(selectedProspectIds),
-          job_id: jobId,
-          processing_mode: processingMode
+      // Direct fetch with streaming (Edge Function will create the job after preflight)
+      const response = await fetch(
+        'https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/bulk-enrich-prospects',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream',
+          },
+          body: JSON.stringify({
+            prospect_ids: Array.from(selectedProspectIds),
+            processing_mode: processingMode,
+          }),
         }
-      });
+      );
 
-      if (response.error) {
-        throw response.error;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Enrichment request failed:', errorText);
+        toast.error('Failed to start enrichment');
+        setBulkEnriching(false);
+        return;
       }
 
-      // Read the stream
-      const reader = response.data.getReader();
+      const reader = response.body?.getReader();
+      if (!reader) {
+        toast.error('No stream available');
+        setBulkEnriching(false);
+        return;
+      }
+
       const decoder = new TextDecoder();
-      let isFirstMessage = true;
+      let buffer = '';
+      let jobId: string | null = null;
 
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
+          buffer += decoder.decode(value, { stream: true });
+          
+          // Split by SSE delimiter
+          const events = buffer.split('\n\n');
+          buffer = events.pop() || ''; // Keep incomplete event in buffer
 
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                
-                // Check if first message is an error (e.g., another job running, no eligible prospects)
-                if (isFirstMessage && data.type === 'error') {
-                  console.error('❌ Enrichment pre-flight check failed:', data.error);
-                  toast.error(data.error || 'Failed to start enrichment');
+          for (const event of events) {
+            if (!event.trim()) continue;
+            
+            const lines = event.split('\n');
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6));
                   
-                  await supabase
-                    .from('enrichment_jobs')
-                    .update({ status: 'failed', stopped_reason: 'pre_flight_check_failed' })
-                    .eq('id', jobId);
+                  // Handle job_started event
+                  if (data.type === 'job_started') {
+                    jobId = data.jobId;
+                    setCurrentJobId(jobId);
+                    setShowEnrichmentProgress(true);
+                    console.log(`✅ Job started: ${jobId} (${data.total} prospects)`);
+                    continue;
+                  }
                   
-                  setBulkEnriching(false);
-                  return; // Exit early, don't open dialog
+                  // Handle error event (preflight failure)
+                  if (data.type === 'error' && !jobId) {
+                    console.error('❌ Enrichment pre-flight check failed:', data.error);
+                    toast.error(data.error || 'Failed to start enrichment');
+                    setBulkEnriching(false);
+                    return;
+                  }
+                  
+                  // Handle progress/success/error events
+                  if (data.prospectId) {
+                    setEnrichmentProgress(prev => {
+                      const newMap = new Map(prev);
+                      const existing = newMap.get(data.prospectId);
+                      if (existing) {
+                        newMap.set(data.prospectId, {
+                          ...existing,
+                          status: data.status || (data.type === 'success' ? 'success' : data.type === 'error' ? 'failed' : 'processing'),
+                          contactsFound: data.contactsFound,
+                          error: data.error,
+                        });
+                      }
+                      return newMap;
+                    });
+                  }
+                  
+                  // Handle completion
+                  if (data.type === 'complete') {
+                    toast.success(
+                      `Enrichment complete: ${data.summary.succeeded}/${data.summary.total} successful`
+                    );
+                  }
+                  
+                  // Handle job_stopped
+                  if (data.type === 'job_stopped') {
+                    toast.info(data.message || 'Enrichment stopped');
+                  }
+                } catch (e) {
+                  console.error('Failed to parse SSE message:', e);
                 }
-                
-                isFirstMessage = false;
-                
-                if (data.prospectId) {
-                  setEnrichmentProgress(prev => {
-                    const newMap = new Map(prev);
-                    const existing = newMap.get(data.prospectId);
-                    if (existing) {
-                      newMap.set(data.prospectId, {
-                        ...existing,
-                        status: data.status || (data.type === 'success' ? 'success' : data.type === 'error' ? 'failed' : 'processing'),
-                        contactsFound: data.contactsFound,
-                        error: data.error,
-                      });
-                    }
-                    return newMap;
-                  });
-                }
-                
-                if (data.type === 'complete') {
-                  toast.success(
-                    `Enrichment complete: ${data.summary.succeeded}/${data.summary.total} successful`
-                  );
-                }
-              } catch (e) {
-                console.error('Failed to parse SSE message:', e);
               }
             }
           }
@@ -973,7 +999,6 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
       } catch (error) {
         console.error('❌ Stream reading error:', error);
         toast.error('Enrichment stream was interrupted');
-        // Job status will be handled by backend cleanup
       }
 
       // Refresh table
