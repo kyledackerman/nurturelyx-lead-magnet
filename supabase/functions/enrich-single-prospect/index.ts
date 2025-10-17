@@ -532,75 +532,51 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
 
     console.log(`✅ Manual enrichment complete: ${resultMessage}`);
 
-    // Generate icebreaker in background (async, no await)
-    // Using EdgeRuntime.waitUntil to ensure it completes even after response is sent
-    EdgeRuntime.waitUntil(
-      (async () => {
-        console.log("🧊 Generating icebreaker in background...");
-        try {
-          const { data: icebreakerData, error: icebreakerError } = await supabase.functions.invoke(
-            'generate-icebreaker',
-            {
-              body: {
-                prospect_activity_id: prospect_id,
-                domain: domain,
-                company_name: companyName,
-                scraped_content: scrapedData,
-                force_regenerate: false
-              }
-            }
-          );
-
-          if (icebreakerError) {
-            console.error('❌ Error generating icebreaker:', icebreakerError);
-            
-            // If icebreaker fails, move to review with note
-            await supabase
-              .from("prospect_activities")
-              .update({ 
-                status: "review",
-                notes: "Enrichment complete but icebreaker generation failed. Please review manually."
-              })
-              .eq("id", prospect_id);
-            
-            console.log('⚠️ Icebreaker failed - moved prospect to review');
-          } else {
-            console.log('✅ Icebreaker generated successfully in background');
-            
-            // Check if we have email contacts
-            const { data: emailContacts } = await supabase
-              .from('prospect_contacts')
-              .select('email')
-              .eq('prospect_activity_id', prospect_id)
-              .not('email', 'is', null)
-              .neq('email', '');
-            
-            const hasEmails = emailContacts && emailContacts.length > 0;
-            
-            // NOW mark as "enriched" - icebreaker is generated successfully
-            await supabase
-              .from("prospect_activities")
-              .update({ 
-                status: "enriched",  // Only mark enriched when EVERYTHING is done
-                enrichment_status: {
-                  has_company_info: companyNameUpdated,
-                  has_contacts: contactsInserted > 0,
-                  has_emails: hasEmails,
-                  has_phones: contactsInserted > 0,
-                  has_icebreaker: true,
-                  facebook_found: false,
-                  industry_found: false
-                }
-              })
-              .eq("id", prospect_id);
-            
-            console.log(`✅ Prospect fully enriched with icebreaker - status set to 'enriched'`);
-          }
-        } catch (error) {
-          console.error('❌ Background icebreaker generation failed:', error);
+    // Generate icebreaker synchronously to avoid race conditions
+    console.log("🧊 Generating icebreaker synchronously...");
+    const { data: icebreakerData, error: icebreakerError } = await supabase.functions.invoke(
+      'generate-icebreaker',
+      {
+        body: {
+          prospect_activity_id: prospect_id,
+          domain: domain,
+          company_name: companyName,
+          scraped_content: scrapedData,
+          force_regenerate: false
         }
-      })()
+      }
     );
+
+    if (icebreakerError) {
+      console.error('❌ Error generating icebreaker:', icebreakerError);
+      
+      // If icebreaker fails, move to review with note
+      await supabase
+        .from("prospect_activities")
+        .update({ 
+          status: "review",
+          enrichment_locked_at: null,
+          enrichment_locked_by: null,
+          notes: "Enrichment complete but icebreaker generation failed. Please review manually."
+        })
+        .eq("id", prospect_id);
+      
+      console.log('⚠️ Icebreaker failed - moved prospect to review');
+    } else {
+      console.log('✅ Icebreaker generated successfully');
+      
+      // Database trigger will auto-promote to enriched if valid emails exist
+      // Just release the lock here
+      await supabase
+        .from("prospect_activities")
+        .update({ 
+          enrichment_locked_at: null,
+          enrichment_locked_by: null
+        })
+        .eq("id", prospect_id);
+      
+      console.log(`✅ Icebreaker complete - database trigger will handle promotion to enriched`);
+    }
 
     // Return response immediately without waiting for icebreaker
     return new Response(

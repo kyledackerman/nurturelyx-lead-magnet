@@ -18,9 +18,8 @@ serve(async (req) => {
 
     console.log("🔧 Starting stuck enrichment reconciliation...");
 
-    // Phase 1: Release stale locks (older than 10 minutes)
-    const staleLockThreshold = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-    
+    // Check ALL enriching prospects, not just stale locks
+    // This catches prospects where icebreaker completed but status wasn't updated
     const { data: staleLockedProspects, error: fetchError } = await supabase
       .from("prospect_activities")
       .select(`
@@ -33,9 +32,7 @@ serve(async (req) => {
         enrichment_locked_at,
         reports!inner(domain)
       `)
-      .eq("status", "enriching")
-      .not("enrichment_locked_at", "is", null)
-      .lt("enrichment_locked_at", staleLockThreshold);
+      .eq("status", "enriching");
 
     if (fetchError) {
       console.error("Failed to fetch stale locked prospects:", fetchError);
@@ -45,7 +42,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Found ${staleLockedProspects?.length || 0} prospects with stale locks`);
+    console.log(`Found ${staleLockedProspects?.length || 0} enriching prospects to reconcile`);
 
     let reconciledCount = 0;
     let movedToReview = 0;
@@ -138,70 +135,6 @@ serve(async (req) => {
         const domain = prospect.reports?.domain || prospect.id;
         console.error(`Error reconciling ${domain}:`, err);
         errors.push(`${domain}: ${err instanceof Error ? err.message : String(err)}`);
-      }
-    }
-
-    // Phase 2: One-time backfill for any existing stuck prospects without stale locks
-    // (These may have failed before locks were even set)
-    const { data: orphanedProspects } = await supabase
-      .from("prospect_activities")
-      .select(`
-        id,
-        report_id,
-        contact_count,
-        icebreaker_text,
-        enrichment_retry_count,
-        reports!inner(domain)
-      `)
-      .eq("status", "enriching")
-      .is("enrichment_locked_at", null)
-      .eq("enrichment_retry_count", 0);
-
-    console.log(`Found ${orphanedProspects?.length || 0} orphaned enriching prospects (no lock, retry=0)`);
-
-    for (const prospect of orphanedProspects || []) {
-      try {
-        const domain = prospect.reports.domain;
-        const hasContacts = (prospect.contact_count || 0) > 0;
-
-        // Same logic: check for accepted emails
-        const { data: contacts } = await supabase
-          .from("prospect_contacts")
-          .select("email")
-          .eq("prospect_activity_id", prospect.id);
-
-        const acceptedEmails = (contacts || []).filter((c) => {
-          if (!c.email || c.email.trim() === '') return false;
-          const localPart = c.email.split('@')[0]?.toLowerCase();
-          const domainPart = c.email.split('@')[1]?.toLowerCase();
-          const isLegal = ['legal', 'privacy', 'compliance', 'counsel', 'attorney', 'law', 'dmca']
-            .some(prefix => localPart === prefix || localPart.includes(prefix));
-          const isGovEduMil = domainPart?.endsWith('.gov') || domainPart?.endsWith('.edu') || domainPart?.endsWith('.mil');
-          return !isLegal && !isGovEduMil;
-        });
-
-        const finalStatus = hasContacts && acceptedEmails.length === 0 ? 'enriching' : 'review';
-        const finalNotes = hasContacts && acceptedEmails.length === 0
-          ? `⚠️ Backfilled: ${prospect.contact_count} contacts but no valid sales emails (terminal)`
-          : `⚠️ Backfilled: No contacts found (terminal)`;
-
-        await supabase
-          .from("prospect_activities")
-          .update({
-            status: finalStatus,
-            enrichment_retry_count: 1,
-            last_enrichment_attempt: new Date().toISOString(),
-            notes: finalNotes,
-          })
-          .eq("id", prospect.id);
-
-        if (finalStatus === 'review') movedToReview++;
-        else movedToMissingEmails++;
-        
-        reconciledCount++;
-        console.log(`✅ Backfilled ${domain} -> ${finalStatus}`);
-      } catch (err) {
-        console.error(`Error backfilling prospect:`, err);
       }
     }
 
