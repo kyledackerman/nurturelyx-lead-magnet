@@ -3128,7 +3128,7 @@ blogPosts.push(
   {
     slug: 'omnichannel-identity-unified-lead-nurturing',
     title: 'Omnichannel Identity: The Playbook for Unified Lead Nurturing in 2025',
-    description: 'Stop confusing your leads across channels. Learn how identity-unified omnichannel marketing delivers consistent, personalized experiences that actually convert.',
+    metaDescription: 'Stop confusing your leads across channels. Learn how identity-unified omnichannel marketing delivers consistent, personalized experiences that actually convert.',
     content: `# Omnichannel Identity: The Playbook for Unified Lead Nurturing in 2025
 
 You're losing deals because your marketing channels don't talk to each other. Here's how to fix it.
@@ -3423,7 +3423,7 @@ blogPosts.push(
   {
     slug: 'website-ghost-traffic-hidden-leads-identity-resolution',
     title: 'Ghost Traffic: The Hidden Leads Haunting Your Website (And How to Unmask Them)',
-    description: '98% of your website visitors leave without converting. But they're not gone—they're ghosts. Learn how to identify, score, and convert the high-value leads hiding in your anonymous traffic.',
+    metaDescription: '98% of your website visitors leave without converting. But they\'re not gone—they\'re ghosts. Learn how to identify, score, and convert the high-value leads hiding in your anonymous traffic.',
     content: `# Ghost Traffic: The Hidden Leads Haunting Your Website (And How to Unmask Them)
 
 Your website has ghosts. Thousands of them. And they're costing you millions.
