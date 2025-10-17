@@ -70,11 +70,10 @@ serve(async (req) => {
       .from("prospect_activities")
       .update({
         status: "enriching",
-        enrichment_retry_count: 0,
         last_enrichment_attempt: null,
         enrichment_locked_at: null,
         enrichment_locked_by: null,
-        notes: "🔄 Reset from review status - ready for retry (no accepted email found)"
+        notes: "🔄 Retry scheduled from review (preserved retry count to honor 3-attempt cap)"
       })
       .in("id", prospectIds)
       .select("id, reports!inner(domain)");

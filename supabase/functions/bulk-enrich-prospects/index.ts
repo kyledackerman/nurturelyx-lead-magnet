@@ -931,26 +931,28 @@ Now search the web and write the icebreaker:
             });
 
             // Send success update
-            successCount++;
+            if (hasAcceptedEmails) {
+              successCount++;
+            }
             
-            // Update job item status to success
+            // Update job item status to success (tracks quality via has_emails/contacts_found)
             if (enrichmentJobId) {
               await supabase
                 .from('enrichment_job_items')
                 .update({ 
                   status: 'success',
                   contacts_found: contactsInserted,
-                  has_emails: hasAcceptedEmails, // Track if accepted emails were found
+                  has_emails: hasAcceptedEmails,
                   completed_at: new Date().toISOString()
                 })
                 .eq('job_id', enrichmentJobId)
                 .eq('prospect_id', prospectId);
               
-              // Phase 2: Incremental progress update
+              // Incremental progress update: success_count counts only real wins
               await supabase
                 .from('enrichment_jobs')
                 .update({
-                  processed_count: successCount + failureCount,
+                  processed_count: successCount + failureCount, // excludes "no contacts" from success_count
                   success_count: successCount,
                   failed_count: failureCount,
                 })

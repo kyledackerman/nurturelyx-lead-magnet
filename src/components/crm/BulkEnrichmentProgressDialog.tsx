@@ -11,6 +11,7 @@ export interface EnrichmentProgress {
   domain: string;
   status: 'pending' | 'processing' | 'success' | 'failed' | 'rate_limited';
   contactsFound?: number;
+  hasEmails?: boolean;
   error?: string;
 }
 
@@ -56,6 +57,7 @@ export default function BulkEnrichmentProgressDialog({
                 domain: item.domain,
                 status: item.status,
                 contactsFound: item.contacts_found,
+                hasEmails: item.has_emails,
                 error: item.error_message,
               });
               return newMap;
@@ -72,10 +74,11 @@ export default function BulkEnrichmentProgressDialog({
   
   const progressArray = Array.from(jobId ? dbProgress.values() : progress.values());
   const total = progressArray.length;
-  const completed = progressArray.filter(p => ['success', 'failed', 'rate_limited'].includes(p.status)).length;
-  const succeeded = progressArray.filter(p => p.status === 'success').length;
-  const failed = progressArray.filter(p => ['failed', 'rate_limited'].includes(p.status)).length;
-  const progressPercent = total > 0 ? (completed / total) * 100 : 0;
+const withContacts = progressArray.filter(p => p.status === 'success' && (((p.contactsFound || 0) > 0) || p.hasEmails)).length;
+const noContacts = progressArray.filter(p => p.status === 'success' && ((p.contactsFound || 0) === 0) && !p.hasEmails).length;
+const failed = progressArray.filter(p => ['failed', 'rate_limited'].includes(p.status)).length;
+const completed = withContacts + noContacts + failed;
+const progressPercent = total > 0 ? (completed / total) * 100 : 0;
 
   const getStatusIcon = (status: EnrichmentProgress['status']) => {
     switch (status) {
@@ -129,7 +132,7 @@ export default function BulkEnrichmentProgressDialog({
                 {completed} of {total} completed
               </span>
               <span className="font-medium">
-                {succeeded} succeeded · {failed} failed
+                {withContacts} with contacts · {noContacts} no contacts · {failed} failed
               </span>
             </div>
             <Progress value={progressPercent} className="h-2" />
