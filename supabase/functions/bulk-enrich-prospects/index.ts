@@ -67,6 +67,16 @@ serve(async (req) => {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
+      // Helper to safely enqueue messages (prevents stream errors from breaking enrichment)
+      const safeEnqueue = (message: string) => {
+        try {
+          controller.enqueue(encoder.encode(message));
+        } catch (err) {
+          // Stream already closed or errored - log but don't throw
+          console.warn('⚠️ Failed to send progress update (stream closed):', err);
+        }
+      };
+      
       try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
         const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -120,13 +130,11 @@ serve(async (req) => {
     });
 
     if (eligibleProspects.length === 0) {
-      controller.enqueue(
-        encoder.encode(
-          `data: ${JSON.stringify({ 
-            type: "error", 
-            error: "All selected prospects have already been enriched once. Please select different prospects or manually review failed ones." 
-          })}\n\n`
-        )
+      safeEnqueue(
+        `data: ${JSON.stringify({ 
+          type: "error", 
+          error: "All selected prospects have already been enriched once. Please select different prospects or manually review failed ones." 
+        })}\n\n`
       );
       controller.close();
       return;
@@ -136,10 +144,8 @@ serve(async (req) => {
 
         if (fetchAllError || !allProspects) {
           console.error(`Failed to fetch prospects:`, fetchAllError);
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ type: "error", error: "Failed to fetch prospects" })}\n\n`
-            )
+          safeEnqueue(
+            `data: ${JSON.stringify({ type: "error", error: "Failed to fetch prospects" })}\n\n`
           );
           controller.close();
           return;
@@ -193,16 +199,14 @@ serve(async (req) => {
         const skippedProspects = lockResults.filter(r => !r.locked);
         for (const skipped of skippedProspects) {
           console.log(`🔒 Prospect ${skipped.prospectId} (${skipped.domain}) already being enriched - skipping`);
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ 
-                type: "error", 
-                prospectId: skipped.prospectId, 
-                domain: skipped.domain,
-                status: "skipped",
-                error: "Already being enriched" 
-              })}\n\n`
-            )
+          safeEnqueue(
+            `data: ${JSON.stringify({ 
+              type: "error", 
+              prospectId: skipped.prospectId, 
+              domain: skipped.domain,
+              status: "skipped",
+              error: "Already being enriched" 
+            })}\n\n`
           );
         }
 
@@ -258,10 +262,8 @@ serve(async (req) => {
             
             if (jobData?.status === 'stopped') {
               console.log(`🛑 Job ${enrichmentJobId} stopped by user, breaking enrichment loop`);
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ type: "job_stopped", jobId: enrichmentJobId })}\n\n`
-                )
+              safeEnqueue(
+                `data: ${JSON.stringify({ type: "job_stopped", jobId: enrichmentJobId })}\n\n`
               );
               break;
             }
@@ -288,15 +290,13 @@ serve(async (req) => {
             }
 
             // Send processing update
-            controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify({ 
-                  type: "progress", 
-                  prospectId, 
-                  domain,
-                  status: "processing" 
-                })}\n\n`
-              )
+            safeEnqueue(
+              `data: ${JSON.stringify({ 
+                type: "progress", 
+                prospectId, 
+                domain,
+                status: "processing" 
+              })}\n\n`
             );
 
             // Scrape the website
@@ -334,17 +334,15 @@ serve(async (req) => {
                 }).eq('job_id', enrichmentJobId).eq('prospect_id', prospectId);
               }
               
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ 
-                    type: "needs_review", 
-                    prospectId, 
-                    domain,
-                    status: 'review',
-                    retryCount: newRetryCount,
-                    error: `Could not access website (attempt ${newRetryCount})`
-                  })}\n\n`
-                )
+              safeEnqueue(
+                `data: ${JSON.stringify({ 
+                  type: "needs_review", 
+                  prospectId, 
+                  domain,
+                  status: 'review',
+                  retryCount: newRetryCount,
+                  error: `Could not access website (attempt ${newRetryCount})`
+                })}\n\n`
               );
               
               failureCount++;
@@ -517,16 +515,14 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
                   .eq('prospect_id', prospectId);
               }
               
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ 
-                    type: "error", 
-                    prospectId, 
-                    domain,
-                    status: aiResponse.status === 429 ? "rate_limited" : "failed",
-                    error: errorMessage
-                  })}\n\n`
-                )
+              safeEnqueue(
+                `data: ${JSON.stringify({ 
+                  type: "error", 
+                  prospectId, 
+                  domain,
+                  status: aiResponse.status === 429 ? "rate_limited" : "failed",
+                  error: errorMessage
+                })}\n\n`
               );
               
               await supabase
@@ -880,7 +876,7 @@ Now search the web and write the icebreaker:
               console.log(`🛑 ${domain} - NEEDS REVIEW (no contacts found, terminal after 1 attempt)`);
             }
 
-            // Update prospect status, enrichment_status, retry count, and release lock
+            // Update prospect status, retry count, and release lock
             const { error: finalUpdateError } = await supabase
               .from("prospect_activities")
               .update({
@@ -892,17 +888,6 @@ Now search the web and write the icebreaker:
                 enrichment_locked_at: null,
                 enrichment_locked_by: null,
                 notes: notesArray.length > 0 ? notesArray.join('; ') : null,
-                enrichment_status: {
-                  has_company_info: !!companyName,
-                  has_contacts: contactsInserted > 0,
-                  has_emails: hasAcceptedEmails,
-                  has_phones: contactsInserted > 0,
-                  has_icebreaker: icebreakerGenerated,
-                  facebook_found: !!companyFacebookUrl,
-                  industry_found: !!detectedIndustry,
-                  retry_count: retryCount,
-                  final_status: finalStatus
-                },
               })
               .eq("id", prospectId);
 
@@ -957,18 +942,16 @@ Now search the web and write the icebreaker:
                 .eq('id', enrichmentJobId);
             }
             
-            controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify({ 
-                  type: "success", 
-                  prospectId, 
-                  domain,
-                  status: "success",
-                  contactsFound: contactsInserted,
-                  companyName: companyNameUpdated ? companyName : null,
-                  industry: industryUpdated ? detectedIndustry : null
-                })}\n\n`
-              )
+            safeEnqueue(
+              `data: ${JSON.stringify({ 
+                type: "success", 
+                prospectId, 
+                domain,
+                status: "success",
+                contactsFound: contactsInserted,
+                companyName: companyNameUpdated ? companyName : null,
+                industry: industryUpdated ? detectedIndustry : null
+              })}\n\n`
             );
 
           } catch (error) {
@@ -992,16 +975,14 @@ Now search the web and write the icebreaker:
               p_prospect_id: prospectId
             });
             
-            controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify({ 
-                  type: "error", 
-                  prospectId, 
-                  domain: "unknown",
-                  status: "failed",
-                  error: error instanceof Error ? error.message : "Unknown error" 
-                })}\n\n`
-              )
+            safeEnqueue(
+              `data: ${JSON.stringify({ 
+                type: "error", 
+                prospectId, 
+                domain: "unknown",
+                status: "failed",
+                error: error instanceof Error ? error.message : "Unknown error" 
+              })}\n\n`
             );
             failureCount++;
             
@@ -1093,15 +1074,13 @@ Now search the web and write the icebreaker:
               }).eq('job_id', enrichmentJobId).eq('prospect_id', prospectId);
             }
             
-            controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify({ 
-                  type: "error", 
-                  prospectId, 
-                  domain: prospect.reports.domain,
-                  error: "Processing timeout - moved to review" 
-                })}\n\n`
-              )
+            safeEnqueue(
+              `data: ${JSON.stringify({ 
+                type: "error", 
+                prospectId, 
+                domain: prospect.reports.domain,
+                error: "Processing timeout - moved to review" 
+              })}\n\n`
             );
             
             failureCount++;
@@ -1143,17 +1122,15 @@ Now search the web and write the icebreaker:
             .eq('id', enrichmentJobId);
         }
         
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ 
-              type: "complete", 
-              summary: { 
-                total: prospect_ids.length, 
-                succeeded: successCount, 
-                failed: failureCount 
-              } 
-            })}\n\n`
-          )
+        safeEnqueue(
+          `data: ${JSON.stringify({ 
+            type: "complete", 
+            summary: { 
+              total: prospect_ids.length, 
+              succeeded: successCount, 
+              failed: failureCount 
+            } 
+          })}\n\n`
         );
 
         console.log(`Bulk enrichment complete: ${successCount}/${prospect_ids.length} succeeded`);
@@ -1177,13 +1154,11 @@ Now search the web and write the icebreaker:
 
       } catch (error) {
         console.error("Bulk enrichment error:", error);
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ 
-              type: "error", 
-              error: error instanceof Error ? error.message : "Unknown error" 
-            })}\n\n`
-          )
+        safeEnqueue(
+          `data: ${JSON.stringify({ 
+            type: "error", 
+            error: error instanceof Error ? error.message : "Unknown error" 
+          })}\n\n`
         );
       } finally {
         controller.close();

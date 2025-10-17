@@ -348,7 +348,7 @@ export default function BulkEnrichmentProgressDialog({
                       <div className="font-medium truncate">{item.domain}</div>
                       {item.error && (
                         <div className="text-xs text-red-500 truncate mt-1">
-                          {item.error}
+                          {item.error === 'Unknown error' ? 'Enrichment failed - check logs' : item.error}
                         </div>
                       )}
                     </div>
