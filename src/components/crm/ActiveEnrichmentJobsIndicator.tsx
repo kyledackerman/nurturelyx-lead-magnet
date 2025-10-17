@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -95,20 +96,28 @@ export default function ActiveEnrichmentJobsIndicator({ onOpenProgressDialog }: 
     : 0;
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleClick}
-      className="gap-2"
-      title="Click to view progress"
-    >
-      <Loader2 className="h-4 w-4 animate-spin" />
-      <span className="hidden sm:inline">
-        {activeJobs.length} Enrichment{activeJobs.length > 1 ? 's' : ''} Running ({progress}%)
-      </span>
-      <span className="sm:hidden">
-        {progress}%
-      </span>
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleClick}
+            className="gap-2"
+          >
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="hidden sm:inline">
+              {activeJobs.length} Running · Click to manage
+            </span>
+            <span className="sm:hidden">
+              {progress}%
+            </span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Click to view progress and stop enrichment</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

@@ -236,21 +236,25 @@ export default function BulkEnrichmentProgressDialog({
 
         {/* Footer with Stop Button */}
         {isRunning && jobStatus === 'running' && (
-          <DialogFooter>
+          <DialogFooter className="flex-col gap-3 sm:flex-col">
+            <div className="text-sm text-muted-foreground bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-md p-3">
+              ⚠️ Stopping will preserve already-enriched contacts and mark incomplete ones for review
+            </div>
             <Button
               variant="destructive"
+              size="lg"
               onClick={handleStopEnrichment}
               disabled={stopping}
-              className="gap-2"
+              className="gap-2 w-full sm:w-auto"
             >
               {stopping ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                   Stopping...
                 </>
               ) : (
                 <>
-                  <StopCircle className="h-4 w-4" />
+                  <StopCircle className="h-5 w-5" />
                   Stop Enrichment
                 </>
               )}
