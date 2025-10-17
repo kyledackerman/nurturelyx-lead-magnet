@@ -37,8 +37,8 @@ Deno.serve(async (req) => {
       console.log(`🔓 Released ${locksReleased?.length || 0} stale locks`);
     }
 
-    // Phase 2: Terminalize prospects at retry_count >= 3
-    // Get prospects that have hit the retry cap but aren't terminalized
+    // Phase 2: Terminalize prospects at retry_count >= 1
+    // Get prospects that have been attempted once but aren't terminalized
     const { data: terminalCandidates, error: terminalError } = await supabase
       .from('prospect_activities')
       .select(`
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
         contact_count,
         reports!inner(domain)
       `)
-      .gte('enrichment_retry_count', 3)
+      .gte('enrichment_retry_count', 1)
       .in('status', ['enriching', 'review']);
 
     if (terminalError) {
@@ -87,13 +87,13 @@ Deno.serve(async (req) => {
         if (prospect.contact_count === 0) {
           // Terminal: No contacts found -> review
           targetStatus = 'review';
-          notes = `Cleanup: No contacts found after ${prospect.enrichment_retry_count} attempts (terminal). Needs human review.`;
+          notes = `Cleanup: No contacts found after 1 attempt (terminal). Needs human review.`;
           reviewCount++;
           console.log(`🛑 ${domain} -> review (zero contacts, terminal)`);
         } else if (!hasAcceptedEmails) {
           // Terminal: Has contacts but no accepted emails -> keep enriching (shows in Missing Emails)
           targetStatus = 'enriching';
-          notes = `Cleanup: ${prospect.contact_count} contacts but no accepted emails after ${prospect.enrichment_retry_count} attempts (terminal). Shows in Missing Emails.`;
+          notes = `Cleanup: ${prospect.contact_count} contacts but no accepted emails after 1 attempt (terminal). Shows in Missing Emails.`;
           missingEmailsCount++;
           console.log(`🛑 ${domain} -> enriching/terminal (${prospect.contact_count} contacts, no accepted emails) - Missing Emails`);
         } else {

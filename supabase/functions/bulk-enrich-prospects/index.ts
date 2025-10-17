@@ -109,11 +109,11 @@ serve(async (req) => {
       `)
       .in("id", prospect_ids);
     
-    // Filter out prospects that have exhausted retries (3 strikes)
+    // Filter out prospects that have already been attempted once (1-attempt policy)
     const eligibleProspects = (allProspects || []).filter(p => {
       const retryCount = p.enrichment_retry_count || 0;
-      if (retryCount >= 3) {
-        console.log(`⏭️ Skipping ${p.reports.domain} - already used all 3 attempts`);
+      if (retryCount >= 1) {
+        console.log(`⏭️ Skipping ${p.reports.domain} - already attempted enrichment once (terminal)`);
         return false;
       }
       return true;
@@ -124,7 +124,7 @@ serve(async (req) => {
         encoder.encode(
           `data: ${JSON.stringify({ 
             type: "error", 
-            error: "All selected prospects have already exhausted their 3 enrichment attempts. Please select different prospects or manually review failed ones." 
+            error: "All selected prospects have already been enriched once. Please select different prospects or manually review failed ones." 
           })}\n\n`
         )
       );
@@ -855,41 +855,28 @@ Now search the web and write the icebreaker:
             const currentRetryCount = prospect.enrichment_retry_count || 0;
             const notesArray = [];
 
-            // Determine final status with strict 3-attempt terminal policy:
+            // Determine final status with 1-attempt terminal policy:
             // - Has accepted email + icebreaker = enriched (Ready for Outreach)
-            // - Has contacts but no accepted emails after 3 attempts = enriching + retry=3 terminal (Missing Emails)
-            // - Has contacts but no accepted emails, retry < 3 = enriching (keep trying)
-            // - No contacts after 3 attempts = review + retry=3 terminal (Needs Review)
-            // - No contacts, retry < 3 = enriching (keep trying)
+            // - Has contacts but no accepted emails = enriching + retry=1 terminal (Missing Emails)
+            // - No contacts = review + retry=1 terminal (Needs Review)
             let finalStatus = 'enriching';
-            let retryCount = currentRetryCount;
+            let retryCount = 1; // All outcomes are terminal after 1 attempt
 
             if (hasAcceptedEmails && icebreakerGenerated) {
               // SUCCESS: Email + icebreaker = ready for outreach
               finalStatus = 'enriched';
+              notesArray.push(`✅ AI enrichment successful: ${contactsWithEmail.length} accepted email(s) + icebreaker generated`);
               console.log(`✅ ${domain} - ENRICHED (${contactsWithEmail.length} accepted emails + icebreaker)`);
-            } else if (contactsInserted > 0 && !hasAcceptedEmails && retryCount >= 2) {
-              // TERMINAL: Contacts found but no accepted emails after 3 attempts - keep enriching so it shows in "Missing Emails"
-              finalStatus = 'enriching';
-              retryCount = 3; // Terminal - no more retries
-              notesArray.push(`AI enrichment: No accepted email found after 3 attempts (terminal). Found ${contactsInserted} contacts without valid sales emails. Shows in Missing Emails.`);
-              console.log(`🛑 ${domain} - TERMINAL ENRICHING (${contactsInserted} contacts, 0 accepted emails, 3 attempts) - Missing Emails`);
             } else if (contactsInserted > 0 && !hasAcceptedEmails) {
-              // RETRY: Contacts found but no accepted emails, still under retry limit
+              // TERMINAL: Contacts found but no accepted emails - Missing Emails
               finalStatus = 'enriching';
-              retryCount++;
-              console.log(`🔄 ${domain} - RETRY (${contactsInserted} contacts, 0 accepted emails, attempt ${retryCount}/3)`);
-            } else if (contactsInserted === 0 && retryCount >= 2) {
-              // TERMINAL: No contacts after 3 attempts - move to review for human triage
-              finalStatus = 'review';
-              retryCount = 3; // Terminal - no more retries
-              notesArray.push(`AI enrichment: No contacts found after 3 attempts (terminal). Needs human review.`);
-              console.log(`🛑 ${domain} - TERMINAL REVIEW (no contacts after 3 attempts)`);
+              notesArray.push(`⚠️ AI enrichment: Found ${contactsInserted} contacts but no valid sales emails (terminal). Shows in Missing Emails view.`);
+              console.log(`🛑 ${domain} - MISSING EMAILS (${contactsInserted} contacts, 0 accepted emails, terminal after 1 attempt)`);
             } else {
-              // RETRY: No contacts, increment retry
-              finalStatus = 'enriching';
-              retryCount++;
-              console.log(`🔄 ${domain} - RETRY (no contacts, attempt ${retryCount}/3)`);
+              // TERMINAL: No contacts after 1 attempt - Needs Review
+              finalStatus = 'review';
+              notesArray.push(`⚠️ AI enrichment: No contacts found after 1 attempt (terminal). Needs human review.`);
+              console.log(`🛑 ${domain} - NEEDS REVIEW (no contacts found, terminal after 1 attempt)`);
             }
 
             // Update prospect status, enrichment_status, retry count, and release lock

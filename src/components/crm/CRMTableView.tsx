@@ -1177,21 +1177,21 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                             🔥 Warm
                           </Badge>
                         )}
-                        {prospect.enrichmentRetryCount > 0 && (
+                        {prospect.enrichmentRetryCount >= 1 && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Badge 
-                                  variant={prospect.enrichmentRetryCount === 2 ? "destructive" : "secondary"}
-                                  className="text-xs shrink-0"
+                                  variant="outline"
+                                  className="text-xs shrink-0 bg-amber-50 text-amber-700 border-amber-200"
                                 >
-                                  🔄 Attempt {prospect.enrichmentRetryCount + 1}/3
+                                  <AlertCircle className="h-3 w-3 mr-1" />
+                                  Terminal
                                 </Badge>
                               </TooltipTrigger>
                               <TooltipContent>
-                                {prospect.enrichmentRetryCount === 1 
-                                  ? "1st retry attempt - 2 attempts remaining" 
-                                  : "2nd retry attempt - Last attempt before review"}
+                                <p>Enrichment attempted once - no valid emails found</p>
+                                <p className="text-xs text-muted-foreground">Shows in "Missing Emails" view</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
