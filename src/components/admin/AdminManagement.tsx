@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserPlus, UserMinus, Shield, Mail, Clock, KeyRound, Zap } from "lucide-react";
 import { DirectPasswordReset } from "./DirectPasswordReset";
+import { EnrichmentStatsCard } from "./EnrichmentStatsCard";
+import { EnrichmentJobHistory } from "./EnrichmentJobHistory";
 
 interface AdminUser {
   id: string;
@@ -144,25 +146,36 @@ export const AdminManagement = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Auto-Enrichment Trigger */}
-        <div className="space-y-2">
-          <h4 className="font-medium flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            Auto-Enrichment
-          </h4>
-          <p className="text-sm text-muted-foreground">
-            Manually trigger background enrichment for prospects in "Needs Enrichment". 
-            Runs automatically every 10 minutes via scheduled job.
-          </p>
+        {/* Auto-Enrichment Section */}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h4 className="font-medium flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Auto-Enrichment
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              Manually trigger background enrichment for prospects in "Needs Enrichment". 
+              Runs automatically every 7 minutes via scheduled job.
+            </p>
+          </div>
+          
+          {/* Stats Card */}
+          <EnrichmentStatsCard />
+          
+          {/* Trigger Button */}
           <Button 
             onClick={handleTriggerAutoEnrich} 
             disabled={triggeringAutoEnrich}
             variant="outline"
+            className="w-full sm:w-auto"
           >
             <Zap className="h-4 w-4 mr-2" />
             {triggeringAutoEnrich ? 'Starting...' : 'Run Auto-Enrichment Now'}
           </Button>
         </div>
+
+        {/* Enrichment History */}
+        <EnrichmentJobHistory />
 
         {/* Invite New Admin */}
         <div className="space-y-2">
