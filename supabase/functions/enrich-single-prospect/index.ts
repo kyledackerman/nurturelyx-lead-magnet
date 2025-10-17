@@ -521,7 +521,7 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
     if (companyNameUpdated) contextParts.push(`updated company name to "${companyName}"`);
     if (facebookUrlAdded) contextParts.push(`added Facebook URL`);
     if (industryUpdated) contextParts.push(`set industry to "${detectedIndustry}"`);
-    contextParts.push(`from ${domain}. Status: ${prospect.status} → ${newStatus}`);
+    contextParts.push(`from ${domain}. Status: ${prospect.status} → ${tempStatus}`);
     
     await supabase.rpc("log_business_context", {
       p_table_name: "prospect_activities",
