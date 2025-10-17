@@ -1,4 +1,4 @@
-import { Flame, AlertCircle, Sparkles, Search, Target, Heart, LayoutDashboard, CheckCircle, Mail, Building2 } from "lucide-react";
+import { Flame, AlertCircle, Sparkles, Loader2, Target, Heart, LayoutDashboard, CheckCircle } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,20 +14,18 @@ import { Badge } from "@/components/ui/badge";
 import { useCRMSidebarCounts } from "@/hooks/useCRMSidebarCounts";
 
 interface CRMSidebarProps {
-  selectedView: "warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails" | "needs-company";
-  onViewChange: (view: "warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails" | "needs-company") => void;
+  selectedView: "new-prospects" | "enriching-now" | "warm-inbound" | "needs-attention" | "ready-outreach" | "active-pipeline" | "interested" | "closed";
+  onViewChange: (view: "new-prospects" | "enriching-now" | "warm-inbound" | "needs-attention" | "ready-outreach" | "active-pipeline" | "interested" | "closed") => void;
 }
 
 const navItems = [
-  { title: "Warm Inbound", view: "warm-inbound" as const, icon: Flame },
-  { title: "Needs Review", view: "needs-review" as const, icon: AlertCircle },
-  { title: "Missing Valid Emails", view: "missing-emails" as const, icon: Mail },
-  { title: "Needs Company Name", view: "needs-company" as const, icon: Building2 },
   { title: "New Prospects", view: "new-prospects" as const, icon: Sparkles },
-  { title: "Needs Enrichment", view: "needs-enrichment" as const, icon: Search },
+  { title: "Enriching Now", view: "enriching-now" as const, icon: Loader2 },
+  { title: "Warm Inbound", view: "warm-inbound" as const, icon: Flame },
+  { title: "Needs Attention", view: "needs-attention" as const, icon: AlertCircle },
   { title: "Ready for Outreach", view: "ready-outreach" as const, icon: Target },
+  { title: "Active Pipeline", view: "active-pipeline" as const, icon: LayoutDashboard },
   { title: "Interested", view: "interested" as const, icon: Heart },
-  { title: "Active Pipeline", view: "dashboard" as const, icon: LayoutDashboard },
   { title: "Closed Deals", view: "closed" as const, icon: CheckCircle },
 ];
 
@@ -57,7 +55,7 @@ export function CRMSidebar({ selectedView, onViewChange }: CRMSidebarProps) {
                       {!loading && state === "expanded" && counts[item.view] !== undefined && (
                         <Badge 
                           variant={
-                            item.view === 'warm-inbound' || item.view === 'needs-review' 
+                            item.view === 'warm-inbound' || item.view === 'needs-attention' 
                               ? 'default' 
                               : 'secondary'
                           }

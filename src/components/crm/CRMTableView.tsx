@@ -58,7 +58,7 @@ interface ProspectRow {
 interface CRMTableViewProps {
   onSelectProspect: (id: string) => void;
   compact?: boolean;
-  view?: 'warm-inbound' | 'new-prospects' | 'needs-enrichment' | 'ready-outreach' | 'active' | 'closed' | 'needs-review' | 'interested' | 'missing-emails' | 'needs-company';
+  view?: 'new-prospects' | 'enriching-now' | 'warm-inbound' | 'needs-attention' | 'ready-outreach' | 'active-pipeline' | 'interested' | 'closed';
   externalStatusFilter?: string | null;
   resumeJobId?: string | null;
   onJobResumed?: () => void;
@@ -1036,7 +1036,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
 
   return (
     <div className="space-y-4">
-      {view === 'needs-enrichment' && (
+      {view === 'enriching-now' && (
         <div className="mb-6 flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border rounded-lg bg-muted/50">
             <div>
@@ -1085,7 +1085,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
               updatingStatus={updatingBulkStatus}
               onBulkEnrich={handleBulkEnrich}
               enriching={bulkEnriching}
-              showEnrichAction={view === 'needs-enrichment'}
+              showEnrichAction={view === 'enriching-now'}
               showMarkContactedOption={view === 'ready-outreach'}
             />
 
@@ -1192,9 +1192,9 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
               <SortableHeader label="Domain" sortKey="domain" />
               {!compact && <TableHead>Contacts</TableHead>}
               {!compact && <TableHead className="w-20">Opener</TableHead>}
-              {view !== 'needs-enrichment' && <SortableHeader label="Revenue & Leads" sortKey="monthlyRevenue" className="text-right w-32" />}
+              {view !== 'enriching-now' && <SortableHeader label="Revenue & Leads" sortKey="monthlyRevenue" className="text-right w-32" />}
               <SortableHeader label="Status" sortKey="status" />
-              {view !== 'needs-enrichment' && <TableHead>Assigned To</TableHead>}
+              {view !== 'enriching-now' && <TableHead>Assigned To</TableHead>}
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -1225,17 +1225,22 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                             🔥 Warm
                           </Badge>
                         )}
-                        {view === 'missing-emails' && (
+                        {view === 'needs-attention' && !prospect.enrichmentStatus?.has_emails && (
                           <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 shrink-0">
                             No valid sales email
                           </Badge>
                         )}
-                        {view === 'needs-company' && (
+                        {view === 'needs-attention' && !prospect.companyName && prospect.enrichmentStatus?.has_emails && (
                           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 shrink-0">
                             Missing company name
                           </Badge>
                         )}
-                        {prospect.enrichmentRetryCount >= 1 && view !== 'missing-emails' && view !== 'needs-company' && (
+                        {view === 'needs-attention' && prospect.status === 'review' && (
+                          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 shrink-0">
+                            Manual review required
+                          </Badge>
+                        )}
+                        {prospect.enrichmentRetryCount >= 1 && view !== 'needs-attention' && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -1258,7 +1263,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                          prospect.enrichmentStatus.has_company_info && 
                          !prospect.enrichmentStatus.has_emails && 
                          prospect.status === 'review' &&
-                         view !== 'missing-emails' && view !== 'needs-company' && (
+                         view !== 'needs-attention' && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -1317,7 +1322,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                       </TooltipProvider>
                     </TableCell>
                   )}
-                  {view !== 'needs-enrichment' && (
+                  {view !== 'enriching-now' && (
                     <TableCell className="text-right w-32 px-2">
                       <div className="flex flex-col gap-0.5">
                         <span className={cn(
@@ -1355,7 +1360,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                        </SelectContent>
                     </Select>
                   </TableCell>
-                  {view !== 'needs-enrichment' && (
+                  {view !== 'enriching-now' && (
                     <TableCell>
                       <AssignmentDropdown
                         currentAssignedTo={prospect.assignedTo}
@@ -1412,7 +1417,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
             {displayedProspects.length === 0 && (
               <TableRow>
                 <TableCell colSpan={compact ? 6 : 9} className="text-center text-muted-foreground py-8">
-                  {view === 'needs-enrichment' 
+                  {view === 'enriching-now' 
                     ? "No prospects need enrichment - great job!" 
                     : "No prospects found"}
                 </TableCell>

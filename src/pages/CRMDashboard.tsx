@@ -14,7 +14,7 @@ import { CRMSidebar } from "@/components/crm/CRMSidebar";
 import { toast } from "sonner";
 
 export default function CRMDashboard() {
-  const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails" | "needs-company">("needs-review");
+  const [selectedView, setSelectedView] = useState<"new-prospects" | "enriching-now" | "warm-inbound" | "needs-attention" | "ready-outreach" | "active-pipeline" | "interested" | "closed">("active-pipeline");
   const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
   const [pipelineStatusFilter, setPipelineStatusFilter] = useState<string | null>(null);
   const [progressDialogJobId, setProgressDialogJobId] = useState<string | null>(null);
@@ -57,42 +57,6 @@ export default function CRMDashboard() {
           />
               
               <div className="container mx-auto px-4 py-6 max-w-[2000px]">
-                {selectedView === "warm-inbound" && (
-                  <CRMTableView 
-                    onSelectProspect={setSelectedProspectId}
-                    compact={false}
-                    view="warm-inbound"
-                    refreshTrigger={refreshTrigger}
-                  />
-                )}
-
-                {selectedView === "needs-review" && (
-                  <CRMTableView 
-                    onSelectProspect={setSelectedProspectId}
-                    compact={false}
-                    view="needs-review"
-                    refreshTrigger={refreshTrigger}
-                  />
-                )}
-
-                {selectedView === "missing-emails" && (
-                  <CRMTableView 
-                    onSelectProspect={setSelectedProspectId}
-                    compact={false}
-                    view="missing-emails"
-                    refreshTrigger={refreshTrigger}
-                  />
-                )}
-
-                {selectedView === "needs-company" && (
-                  <CRMTableView 
-                    onSelectProspect={setSelectedProspectId}
-                    compact={false}
-                    view="needs-company"
-                    refreshTrigger={refreshTrigger}
-                  />
-                )}
-
                 {selectedView === "new-prospects" && (
                   <CRMTableView 
                     onSelectProspect={setSelectedProspectId}
@@ -102,11 +66,29 @@ export default function CRMDashboard() {
                   />
                 )}
 
-                {selectedView === "needs-enrichment" && (
+                {selectedView === "enriching-now" && (
                   <CRMTableView 
                     onSelectProspect={setSelectedProspectId}
                     compact={false}
-                    view="needs-enrichment"
+                    view="enriching-now"
+                    refreshTrigger={refreshTrigger}
+                  />
+                )}
+
+                {selectedView === "warm-inbound" && (
+                  <CRMTableView 
+                    onSelectProspect={setSelectedProspectId}
+                    compact={false}
+                    view="warm-inbound"
+                    refreshTrigger={refreshTrigger}
+                  />
+                )}
+
+                {selectedView === "needs-attention" && (
+                  <CRMTableView 
+                    onSelectProspect={setSelectedProspectId}
+                    compact={false}
+                    view="needs-attention"
                     refreshTrigger={refreshTrigger}
                   />
                 )}
@@ -129,7 +111,7 @@ export default function CRMDashboard() {
                   />
                 )}
 
-                {selectedView === "dashboard" && (
+                {selectedView === "active-pipeline" && (
                   <div className="space-y-6">
                     {/* Conversion Funnel */}
                     <ConversionFunnelCard />
@@ -153,7 +135,7 @@ export default function CRMDashboard() {
                     <CRMTableView 
                       onSelectProspect={setSelectedProspectId}
                       compact={false}
-                      view="active"
+                      view="active-pipeline"
                       externalStatusFilter={pipelineStatusFilter}
                       refreshTrigger={refreshTrigger}
                     />
