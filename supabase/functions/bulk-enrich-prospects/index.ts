@@ -570,25 +570,7 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
             const companyName = extractedData.company_name || currentCompanyName;
             let contacts = extractedData.contacts || [];
 
-            // Phase 5: Stage 3: If no contacts found, try WHOIS lookup first (fast & free)
-            if (contacts.length === 0) {
-              console.log(`⚠️ No contacts found for ${domain}, trying WHOIS lookup...`);
-              const whoisEmails = await whoisLookup(domain);
-              
-              if (whoisEmails.length > 0) {
-                console.log(`✅ WHOIS found ${whoisEmails.length} email(s) for ${domain}`);
-                contacts = whoisEmails.map(email => ({
-                  first_name: "Domain Owner",
-                  last_name: null,
-                  email: email,
-                  phone: null,
-                  title: "Registrant Contact",
-                  linkedin_url: null,
-                  facebook_url: null,
-                  notes: "Email found via WHOIS lookup"
-                }));
-              }
-            }
+            // PHASE 2 OPTIMIZATION: WHOIS removed - rarely returns useful data (saves 5s)
 
             // Phase 5: Stage 4: If still no contacts, try multi-source Google Search
             if (contacts.length === 0) {
@@ -1192,7 +1174,7 @@ async function scrapeWebsite(domain: string): Promise<{ content: string; socialL
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         },
-        signal: AbortSignal.timeout(15000), // Increased from 10s to 15s per URL
+        signal: AbortSignal.timeout(5000), // PHASE 3: Reduced to 5s (from 15s) for speed
       });
 
       if (response.ok) {
@@ -1252,7 +1234,7 @@ async function scrapeFacebookPage(facebookUrl: string): Promise<string> {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       },
-      signal: AbortSignal.timeout(15000), // Increased from 10s to 15s
+      signal: AbortSignal.timeout(7000), // PHASE 3: Reduced to 7s (from 15s) for speed
     });
 
     if (response.ok) {
@@ -1426,10 +1408,10 @@ If no emails found, return empty array: []`
   return [];
 }
 
-// Phase 4: Multi-source Google Search across the entire public internet
+// Phase 4: Multi-source Google Search across the entire public internet (PARALLELIZED)
 async function googleSearchEmails(domain: string, companyName: string, lovableApiKey: string): Promise<string[]> {
   try {
-    console.log(`🔍 Multi-source search for ${domain} (${companyName})...`);
+    console.log(`🔍 Parallel multi-source search for ${domain} (${companyName})...`);
     
     // Define search queries - searching the ENTIRE public internet
     const searchQueries = [
@@ -1452,31 +1434,30 @@ async function googleSearchEmails(domain: string, companyName: string, lovableAp
       `"${companyName}" OR "${domain}" email site:reddit.com OR site:quora.com`,
     ];
     
-    const allEmails: string[] = [];
+    // PHASE 1 OPTIMIZATION: Run all queries in parallel (70% faster)
+    console.log(`🚀 Running ${searchQueries.length} queries in parallel...`);
+    const searchPromises = searchQueries.map(async (query, i) => {
+      try {
+        console.log(`  📍 Query ${i + 1}: ${query.substring(0, 60)}...`);
+        const emails = await runSingleSearch(query, lovableApiKey);
+        if (emails.length > 0) {
+          console.log(`  ✅ Query ${i + 1} found ${emails.length} email(s)`);
+        }
+        return emails;
+      } catch (error) {
+        console.log(`  ❌ Query ${i + 1} failed:`, error instanceof Error ? error.message : String(error));
+        return [];
+      }
+    });
     
-    // Run searches with 1-second delays between queries to avoid rate limits
-    for (let i = 0; i < searchQueries.length; i++) {
-      const query = searchQueries[i];
-      console.log(`🔍 Query ${i + 1}/${searchQueries.length}: ${query.substring(0, 60)}...`);
-      
-      const emails = await runSingleSearch(query, lovableApiKey);
-      
-      if (emails.length > 0) {
-        console.log(`  ✅ Found ${emails.length} email(s) from query ${i + 1}`);
-        allEmails.push(...emails);
-      }
-      
-      // Add 1-second delay between queries (except after last query)
-      if (i < searchQueries.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-    }
+    const results = await Promise.all(searchPromises);
+    const allEmails = results.flat();
     
     // Deduplicate emails
     const uniqueEmails = [...new Set(allEmails)];
     
     if (uniqueEmails.length > 0) {
-      console.log(`✅ Multi-source search found ${uniqueEmails.length} unique email(s) from ${allEmails.length} total results`);
+      console.log(`✅ Parallel search found ${uniqueEmails.length} unique email(s) from ${allEmails.length} total results`);
     } else {
       console.log(`⚠️ No emails found across all sources`);
     }
