@@ -93,29 +93,63 @@ export default function BulkEnrichmentProgressDialog({
   }, [completed, total]);
 
   const handleStopEnrichment = async () => {
-    if (!jobId) return;
-    
+    if (!jobId) {
+      console.error('❌ No jobId provided to stop enrichment');
+      toast.error('Cannot stop enrichment', { description: 'No job ID found' });
+      return;
+    }
+
+    // Confirmation dialog
     const confirmed = window.confirm(
-      "Stop this enrichment? Already-enriched contacts will be preserved, and incomplete ones will be moved to review."
+      '⚠️ Stop Enrichment?\n\n' +
+      'This will:\n' +
+      '• Keep all already-enriched contacts\n' +
+      '• Move incomplete prospects to review\n' +
+      '• Stop the enrichment process\n\n' +
+      'Continue?'
     );
+
+    if (!confirmed) {
+      console.log('⏸️ User cancelled stop enrichment');
+      return;
+    }
     
-    if (!confirmed) return;
-    
+    console.log('🛑 Stopping enrichment job:', jobId);
     setStopping(true);
+    
     try {
       const { data, error } = await supabase.functions.invoke('graceful-stop-enrichment', {
         body: { job_id: jobId }
       });
-      
-      if (error) throw error;
+
+      console.log('📊 Stop enrichment response:', { data, error });
+
+      if (error) {
+        console.error('❌ Edge function error:', error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('No response data from stop enrichment function');
+      }
+
+      console.log('✅ Enrichment stopped successfully:', data);
+
+      toast.success('Enrichment job stopped successfully', {
+        description: `✅ ${data.enriched} enriched · 📭 ${data.noContacts} no contacts · ❌ ${data.failed} failed · ⏸️ ${data.stopped} moved to review`
+      });
       
       setJobStatus('stopped');
-      toast.success(
-        `Enrichment stopped: ${data.enriched} enriched · ${data.noContacts} no contacts · ${data.failed} failed · ${data.stopped} pending (moved to review)`
-      );
-    } catch (error) {
-      console.error('Error stopping enrichment:', error);
-      toast.error("Failed to stop enrichment");
+      
+      // Refresh the page data after a short delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error: any) {
+      console.error('❌ Error stopping enrichment:', error);
+      toast.error('Failed to stop enrichment', {
+        description: error.message || 'Unknown error occurred'
+      });
     } finally {
       setStopping(false);
     }

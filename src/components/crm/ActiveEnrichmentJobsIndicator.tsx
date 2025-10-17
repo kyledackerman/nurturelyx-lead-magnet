@@ -60,7 +60,12 @@ export default function ActiveEnrichmentJobsIndicator({ onOpenProgressDialog }: 
         .eq('status', 'running')
         .order('started_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching active jobs:', error);
+        throw error;
+      }
+      
+      console.log('📊 Fetched active jobs:', data?.length || 0);
       
       // Filter out stuck jobs (older than 15 minutes with no progress)
       const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
@@ -70,19 +75,34 @@ export default function ActiveEnrichmentJobsIndicator({ onOpenProgressDialog }: 
         return hasRecentActivity || hasProgress;
       });
       
+      console.log('✅ Active jobs after filtering:', recentJobs.length);
       setActiveJobs(recentJobs);
-    } catch (error) {
-      console.error('Error fetching active jobs:', error);
+    } catch (error: any) {
+      console.error('❌ Error fetching active jobs:', error);
+      toast.error('Failed to fetch active jobs', {
+        description: error.message
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleClick = () => {
-    if (activeJobs.length === 0) return;
+    if (activeJobs.length === 0) {
+      console.warn('⚠️ No active jobs to manage');
+      return;
+    }
     
     // Open progress dialog for the most recent job
     const latestJob = activeJobs[0];
+    console.log('🎯 Opening progress dialog for job:', latestJob.id);
+    console.log('📊 Job details:', {
+      total: latestJob.total_count,
+      processed: latestJob.processed_count,
+      success: latestJob.success_count,
+      failed: latestJob.failed_count
+    });
+    
     onOpenProgressDialog(latestJob.id);
   };
 
