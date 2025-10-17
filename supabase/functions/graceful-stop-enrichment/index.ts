@@ -99,11 +99,11 @@ serve(async (req) => {
       }
     }
 
-    // Update job status to stopped
+    // Update job status to completed (stopped by user)
     await supabase
       .from('enrichment_jobs')
       .update({
-        status: 'stopped',
+        status: 'completed',
         completed_at: new Date().toISOString()
       })
       .eq('id', job_id);
@@ -115,8 +115,8 @@ serve(async (req) => {
       action_type: 'UPDATE',
       field_name: 'status',
       old_value: 'running',
-      new_value: 'stopped',
-      business_context: `User gracefully stopped enrichment. Results: ${enriched} enriched, ${noContacts} no contacts, ${failed} failed, ${stopped} stopped mid-process`
+      new_value: 'completed',
+      business_context: `User stopped enrichment gracefully. Results: ${enriched} enriched, ${noContacts} no contacts, ${failed} failed, ${stopped} stopped mid-process`
     });
 
     const summary = {

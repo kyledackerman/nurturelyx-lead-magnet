@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface ActiveJob {
@@ -106,6 +106,26 @@ export default function ActiveEnrichmentJobsIndicator({ onOpenProgressDialog }: 
     onOpenProgressDialog(latestJob.id);
   };
 
+  const handleCleanup = async () => {
+    try {
+      console.log('🧹 Cleaning up stuck jobs...');
+      const { data, error } = await supabase.functions.invoke('cleanup-stuck-enrichment-jobs');
+      
+      if (error) throw error;
+      
+      toast.success('Cleanup complete', {
+        description: data.message
+      });
+      
+      fetchActiveJobs();
+    } catch (error: any) {
+      console.error('❌ Cleanup failed:', error);
+      toast.error('Cleanup failed', {
+        description: error.message
+      });
+    }
+  };
+
   if (loading || activeJobs.length === 0) {
     return null;
   }
@@ -116,28 +136,51 @@ export default function ActiveEnrichmentJobsIndicator({ onOpenProgressDialog }: 
     : 0;
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={handleClick}
-            className="gap-2"
-          >
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="hidden sm:inline">
-              {activeJobs.length} Running · Click to manage
-            </span>
-            <span className="sm:hidden">
-              {progress}%
-            </span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Click to view progress and stop enrichment</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <div className="flex gap-2">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleClick}
+              className="gap-2"
+            >
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="hidden sm:inline">
+                {activeJobs.length} Running · Click to manage
+              </span>
+              <span className="sm:hidden">
+                {progress}%
+              </span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Click to view progress and stop enrichment</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      
+      {activeJobs.length > 0 && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleCleanup}
+                className="gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Clean Up Stuck Jobs</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Clean up jobs stuck for more than 30 minutes</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+    </div>
   );
 }

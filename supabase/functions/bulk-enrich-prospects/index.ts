@@ -86,6 +86,30 @@ serve(async (req) => {
 
         console.log(`Starting bulk enrichment for ${prospect_ids.length} prospects (mode: ${processing_mode})...`);
 
+        // PRE-FLIGHT CHECK: Prevent concurrent enrichments (only 1 at a time)
+        const { data: runningJobs, error: checkError } = await supabase
+          .from('enrichment_jobs')
+          .select('id, started_at')
+          .eq('status', 'running');
+        
+        if (checkError) {
+          console.error('❌ Failed to check for running jobs:', checkError);
+        } else if (runningJobs && runningJobs.length > 0) {
+          const oldestJob = runningJobs[0];
+          const jobAge = Date.now() - new Date(oldestJob.started_at).getTime();
+          const minutesAgo = Math.round(jobAge / 60000);
+          
+          console.log(`⚠️ Cannot start: ${runningJobs.length} job(s) already running (oldest: ${minutesAgo}min ago)`);
+          safeEnqueue(
+            `data: ${JSON.stringify({ 
+              type: "error", 
+              error: `Another enrichment is already running (started ${minutesAgo} minutes ago). Please wait or stop the current job before starting a new one.` 
+            })}\n\n`
+          );
+          controller.close();
+          return;
+        }
+
         // Create or update enrichment job
         let enrichmentJobId = job_id;
         if (!enrichmentJobId) {
@@ -1161,6 +1185,46 @@ Now search the web and write the icebreaker:
           })}\n\n`
         );
       } finally {
+        // CRITICAL: Always mark job as completed, even on error
+        if (enrichmentJobId) {
+          try {
+            console.log("🔧 Ensuring job is marked as completed...");
+            
+            // Run reconciliation first to catch any stragglers
+            try {
+              const { data: reconResult, error: reconError } = await supabase.functions.invoke(
+                'reconcile-stuck-enrichments',
+                { body: {} }
+              );
+              
+              if (reconError) {
+                console.error("⚠️ Final reconciliation failed:", reconError);
+              } else {
+                console.log("✅ Final reconciliation complete:", reconResult);
+              }
+            } catch (reconErr) {
+              console.error("⚠️ Failed to invoke final reconciliation:", reconErr);
+            }
+            
+            // Mark job as completed (in case it wasn't already)
+            await supabase
+              .from('enrichment_jobs')
+              .update({
+                status: 'completed',
+                completed_at: new Date().toISOString(),
+                processed_count: successCount + failureCount,
+                success_count: successCount,
+                failed_count: failureCount
+              })
+              .eq('id', enrichmentJobId)
+              .eq('status', 'running'); // Only update if still running
+            
+            console.log("✅ Job marked as completed in finally block");
+          } catch (finalErr) {
+            console.error("❌ Failed to mark job as completed:", finalErr);
+          }
+        }
+        
         controller.close();
       }
     },
