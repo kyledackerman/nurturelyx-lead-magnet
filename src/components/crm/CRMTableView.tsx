@@ -909,8 +909,24 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         throw response.error;
       }
 
+      // Defensive guard: verify we got a readable stream
+      const stream = response.data as ReadableStream<Uint8Array> | undefined;
+      if (!stream || typeof (stream as any).getReader !== 'function') {
+        console.error('❌ Expected stream from bulk-enrich-prospects, got:', response.data);
+        
+        // Mark job as failed to avoid "running 0 items" limbo
+        await supabase
+          .from('enrichment_jobs')
+          .update({ status: 'failed', stopped_reason: 'client_stream_error' })
+          .eq('id', jobId);
+        
+        toast.error('Failed to start enrichment stream. Please try again.');
+        setBulkEnriching(false);
+        return;
+      }
+
       // Read the stream
-      const reader = response.data.getReader();
+      const reader = stream.getReader();
       const decoder = new TextDecoder();
 
       while (true) {

@@ -333,7 +333,10 @@ export default function BulkEnrichmentProgressDialog({
               </div>
             ) : progressArray.length === 0 ? (
               <div className="flex items-center justify-center h-full">
-                <p className="text-sm text-muted-foreground">No enrichment items found</p>
+                <div className="text-center space-y-2">
+                  <p className="text-sm text-muted-foreground">No enrichment items found</p>
+                  <p className="text-xs text-muted-foreground/70">Waiting for items… If this persists, another job might be running or the stream failed to initialize.</p>
+                </div>
               </div>
             ) : (
               <div className="space-y-2">
