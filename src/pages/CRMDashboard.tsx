@@ -14,7 +14,7 @@ import { CRMSidebar } from "@/components/crm/CRMSidebar";
 import { toast } from "sonner";
 
 export default function CRMDashboard() {
-  const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails">("needs-review");
+  const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails" | "needs-company">("needs-review");
   const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
   const [pipelineStatusFilter, setPipelineStatusFilter] = useState<string | null>(null);
   const [progressDialogJobId, setProgressDialogJobId] = useState<string | null>(null);
@@ -80,6 +80,15 @@ export default function CRMDashboard() {
                     onSelectProspect={setSelectedProspectId}
                     compact={false}
                     view="missing-emails"
+                    refreshTrigger={refreshTrigger}
+                  />
+                )}
+
+                {selectedView === "needs-company" && (
+                  <CRMTableView 
+                    onSelectProspect={setSelectedProspectId}
+                    compact={false}
+                    view="needs-company"
                     refreshTrigger={refreshTrigger}
                   />
                 )}

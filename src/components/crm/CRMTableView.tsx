@@ -58,7 +58,7 @@ interface ProspectRow {
 interface CRMTableViewProps {
   onSelectProspect: (id: string) => void;
   compact?: boolean;
-  view?: 'warm-inbound' | 'new-prospects' | 'needs-enrichment' | 'ready-outreach' | 'active' | 'closed' | 'needs-review' | 'interested' | 'missing-emails';
+  view?: 'warm-inbound' | 'new-prospects' | 'needs-enrichment' | 'ready-outreach' | 'active' | 'closed' | 'needs-review' | 'interested' | 'missing-emails' | 'needs-company';
   externalStatusFilter?: string | null;
   resumeJobId?: string | null;
   onJobResumed?: () => void;
@@ -1225,7 +1225,17 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                             🔥 Warm
                           </Badge>
                         )}
-                        {prospect.enrichmentRetryCount >= 1 && (
+                        {view === 'missing-emails' && (
+                          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 shrink-0">
+                            No valid sales email
+                          </Badge>
+                        )}
+                        {view === 'needs-company' && (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 shrink-0">
+                            Missing company name
+                          </Badge>
+                        )}
+                        {prospect.enrichmentRetryCount >= 1 && view !== 'missing-emails' && view !== 'needs-company' && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -1247,7 +1257,8 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                         {prospect.enrichmentStatus && 
                          prospect.enrichmentStatus.has_company_info && 
                          !prospect.enrichmentStatus.has_emails && 
-                         prospect.status === 'review' && (
+                         prospect.status === 'review' &&
+                         view !== 'missing-emails' && view !== 'needs-company' && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
