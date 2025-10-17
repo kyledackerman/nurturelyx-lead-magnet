@@ -56,6 +56,15 @@ serve(async (req) => {
         const hasContacts = (prospect.contact_count || 0) > 0;
         const hasIcebreaker = !!prospect.icebreaker_text;
 
+        // Check for company name
+        const { data: reportData } = await supabase
+          .from("reports")
+          .select("extracted_company_name")
+          .eq("id", prospect.report_id)
+          .single();
+        
+        const hasCompanyName = !!reportData?.extracted_company_name;
+
         // Check for accepted emails (not legal/compliance/gov/edu/mil)
         const { data: contacts } = await supabase
           .from("prospect_contacts")
@@ -80,22 +89,33 @@ serve(async (req) => {
 
         const hasAcceptedEmails = acceptedEmails.length > 0;
 
-        // Determine final status
+        // Determine final status based on ALL 3 CRITERIA
         let finalStatus = 'review';
         let finalNotes = '';
 
-        if (hasAcceptedEmails && hasIcebreaker) {
-          // SUCCESS: Has accepted email + icebreaker = enriched
+        if (hasCompanyName && hasAcceptedEmails && hasIcebreaker) {
+          // SUCCESS: Has company name + accepted email + icebreaker = enriched
           finalStatus = 'enriched';
-          finalNotes = `✅ Reconciled: ${acceptedEmails.length} accepted email(s) + icebreaker (terminal)`;
+          finalNotes = `✅ Reconciled: Company name + ${acceptedEmails.length} accepted email(s) + icebreaker (terminal)`;
           movedToEnriched++;
-          console.log(`✅ ${domain} -> enriched (${acceptedEmails.length} emails + icebreaker)`);
+          console.log(`✅ ${domain} -> enriched (company + ${acceptedEmails.length} emails + icebreaker)`);
         } else if (hasContacts && !hasAcceptedEmails) {
           // TERMINAL: Contacts but no accepted emails = Missing Emails
           finalStatus = 'enriching';
           finalNotes = `⚠️ Reconciled: ${prospect.contact_count} contacts but no valid sales emails (terminal)`;
           movedToMissingEmails++;
           console.log(`🛑 ${domain} -> Missing Emails (${prospect.contact_count} contacts, 0 accepted emails)`);
+        } else if (!hasCompanyName || !hasIcebreaker || !hasAcceptedEmails) {
+          // TERMINAL: Missing one or more required criteria = Needs Review
+          const missing = [];
+          if (!hasCompanyName) missing.push('company name');
+          if (!hasAcceptedEmails) missing.push('valid email');
+          if (!hasIcebreaker) missing.push('icebreaker');
+          
+          finalStatus = 'review';
+          finalNotes = `⚠️ Reconciled: Missing ${missing.join(', ')} (terminal)`;
+          movedToReview++;
+          console.log(`🛑 ${domain} -> Needs Review (missing: ${missing.join(', ')})`);
         } else {
           // TERMINAL: No contacts = Needs Review
           finalStatus = 'review';
