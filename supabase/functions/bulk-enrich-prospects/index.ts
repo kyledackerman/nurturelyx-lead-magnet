@@ -270,6 +270,7 @@ serve(async (req) => {
           const maxProspectTime = 90000; // 90 seconds max per prospect
           
           const processProspect = async () => {
+            let finalStatusWritten = false;
             try {
               const domain = prospect.reports.domain;
             const currentCompanyName = prospect.reports.extracted_company_name || domain;
@@ -880,7 +881,7 @@ Now search the web and write the icebreaker:
             }
 
             // Update prospect status, enrichment_status, retry count, and release lock
-            await supabase
+            const { error: finalUpdateError } = await supabase
               .from("prospect_activities")
               .update({
                 status: finalStatus,
@@ -904,6 +905,13 @@ Now search the web and write the icebreaker:
                 },
               })
               .eq("id", prospectId);
+
+            if (finalUpdateError) {
+              console.error(`❌ Failed to write final status for ${domain}:`, finalUpdateError);
+              throw finalUpdateError;
+            }
+            
+            finalStatusWritten = true;
 
             // Log to audit trail
             const contextParts = [`Bulk enrichment: extracted ${contactsInserted} contacts (${contactsWithEmail.length} accepted emails)`];
@@ -1008,6 +1016,53 @@ Now search the web and write the icebreaker:
                 })
                 .eq('id', enrichmentJobId);
             }
+          } finally {
+            // CRITICAL: Ensure final state is always written, even on error
+            if (!finalStatusWritten) {
+              try {
+                const domain = prospect.reports?.domain || 'unknown';
+                console.log(`⚠️ Final status not written for ${domain}, forcing recovery state...`);
+                
+                // Determine status based on what we know
+                const { data: contactCheck } = await supabase
+                  .from("prospect_contacts")
+                  .select("id, email")
+                  .eq("prospect_activity_id", prospectId);
+                
+                const contactCount = contactCheck?.length || 0;
+                const hasAcceptedEmail = (contactCheck || []).some(c => {
+                  if (!c.email || c.email.trim() === '') return false;
+                  const localPart = c.email.split('@')[0]?.toLowerCase();
+                  const domainPart = c.email.split('@')[1]?.toLowerCase();
+                  const isLegal = ['legal', 'privacy', 'compliance', 'counsel', 'attorney', 'law', 'dmca']
+                    .some(prefix => localPart === prefix || localPart.includes(prefix));
+                  const isGovEduMil = domainPart?.endsWith('.gov') || domainPart?.endsWith('.edu') || domainPart?.endsWith('.mil');
+                  return !isLegal && !isGovEduMil;
+                });
+                
+                const recoveryStatus = contactCount > 0 && !hasAcceptedEmail ? 'enriching' : 'review';
+                const recoveryNotes = contactCount > 0 && !hasAcceptedEmail
+                  ? `⚠️ Enrichment error recovery: ${contactCount} contacts but no valid emails (terminal)`
+                  : `⚠️ Enrichment error recovery: No contacts found (terminal)`;
+                
+                await supabase
+                  .from("prospect_activities")
+                  .update({
+                    status: recoveryStatus,
+                    enrichment_retry_count: 1,
+                    last_enrichment_attempt: new Date().toISOString(),
+                    contact_count: contactCount,
+                    enrichment_locked_at: null,
+                    enrichment_locked_by: null,
+                    notes: recoveryNotes,
+                  })
+                  .eq("id", prospectId);
+                
+                console.log(`✅ Recovery state written for ${domain}: ${recoveryStatus}`);
+              } catch (recoveryErr) {
+                console.error(`❌ Failed to write recovery state for ${prospectId}:`, recoveryErr);
+              }
+            }
           }
         };
         
@@ -1102,6 +1157,23 @@ Now search the web and write the icebreaker:
         );
 
         console.log(`Bulk enrichment complete: ${successCount}/${prospect_ids.length} succeeded`);
+
+        // Invoke reconciliation to catch any stragglers
+        console.log("🔧 Running post-job reconciliation...");
+        try {
+          const { data: reconResult, error: reconError } = await supabase.functions.invoke(
+            'reconcile-stuck-enrichments',
+            { body: {} }
+          );
+          
+          if (reconError) {
+            console.error("⚠️ Post-job reconciliation failed:", reconError);
+          } else {
+            console.log("✅ Post-job reconciliation complete:", reconResult);
+          }
+        } catch (reconErr) {
+          console.error("⚠️ Failed to invoke reconciliation:", reconErr);
+        }
 
       } catch (error) {
         console.error("Bulk enrichment error:", error);
