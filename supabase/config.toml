@@ -36,6 +36,9 @@ verify_jwt = false
 [functions.sitemap]
 verify_jwt = false
 
+[functions.sitemap-blog]
+verify_jwt = false
+
 [functions.sitemap-reports]
 verify_jwt = false
 

@@ -31,11 +31,19 @@ serve(async (req) => {
     const baseUrl = 'https://x1.nurturely.io';
     const now = new Date().toISOString();
 
-    // Generate sitemap index XML
+    // Generate sitemap index XML with all sitemaps
     const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
-    <loc>https://x1.nurturely.io/sitemap-reports</loc>
+    <loc>${baseUrl}/sitemap-static.xml</loc>
+    <lastmod>${now}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/sitemap-blog</loc>
+    <lastmod>${now}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/sitemap-reports</loc>
     <lastmod>${now}</lastmod>
   </sitemap>
 </sitemapindex>`;

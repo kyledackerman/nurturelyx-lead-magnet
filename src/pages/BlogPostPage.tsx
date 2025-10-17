@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { getBlogPost, BlogPost } from "@/data/blogPosts";
 import { ArticleSchema } from "@/components/seo/ArticleSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,21 @@ export default function BlogPostPage() {
         <meta name="twitter:description" content={post.metaDescription} />
         <meta name="twitter:image" content={post.featuredImage || 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png'} />
       </Helmet>
+      
+      <WebPageSchema
+        name={post.title}
+        description={post.metaDescription}
+        url={`https://x1.nurturely.io/blog/${post.slug}`}
+        datePublished={post.publishedAt}
+        dateModified={post.updatedAt}
+        image={post.featuredImage}
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Blog', url: '/blog' },
+          { name: post.category, url: `/blog/category/${post.category.toLowerCase().replace(/\s+/g, '-')}` },
+          { name: post.title, url: `/blog/${post.slug}` }
+        ]}
+      />
       
       <ArticleSchema
         title={post.title}
