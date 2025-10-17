@@ -33,16 +33,84 @@ export default function BulkEnrichmentProgressDialog({
   const [dbProgress, setDbProgress] = useState<Map<string, EnrichmentProgress>>(progress);
   const [stopping, setStopping] = useState(false);
   const [jobStatus, setJobStatus] = useState<'running' | 'stopped' | 'completed'>('running');
+  const [loadingItems, setLoadingItems] = useState(false);
   
-  // Subscribe to realtime updates if jobId is provided
+  // Initial data fetch when dialog opens with jobId
+  useEffect(() => {
+    if (!open || !jobId) return;
+    
+    setLoadingItems(true);
+    console.log('🔍 Loading enrichment job items for:', jobId);
+    
+    (async () => {
+      try {
+        // Fetch all enrichment_job_items for this job
+        const { data: items, error: itemsErr } = await supabase
+          .from('enrichment_job_items')
+          .select('prospect_id, domain, status, contacts_found, has_emails, error_message')
+          .eq('job_id', jobId)
+          .limit(2000);
+        
+        if (itemsErr) {
+          console.error('❌ Error loading job items:', itemsErr);
+          throw itemsErr;
+        }
+        
+        console.log('📊 Loaded job items:', items?.length || 0);
+        
+        // Populate the progress map
+        const map = new Map<string, EnrichmentProgress>();
+        (items || []).forEach(item => {
+          map.set(item.prospect_id, {
+            prospectId: item.prospect_id,
+            domain: item.domain,
+            status: item.status as EnrichmentProgress['status'],
+            contactsFound: item.contacts_found ?? 0,
+            hasEmails: item.has_emails ?? false,
+            error: item.error_message || undefined,
+          });
+        });
+        setDbProgress(map);
+        
+        // Fetch job status
+        const { data: job, error: jobErr } = await supabase
+          .from('enrichment_jobs')
+          .select('status, processed_count, total_count')
+          .eq('id', jobId)
+          .single();
+        
+        if (jobErr) {
+          console.error('❌ Error loading job status:', jobErr);
+          throw jobErr;
+        }
+        
+        console.log('📊 Job status:', job?.status);
+        
+        if (job?.status) {
+          setJobStatus(
+            job.status === 'running' ? 'running' :
+            job.status === 'stopped' ? 'stopped' :
+            'completed'
+          );
+        }
+      } catch (error) {
+        console.error('❌ Error loading enrichment data:', error);
+        toast.error('Failed to load enrichment data');
+      } finally {
+        setLoadingItems(false);
+      }
+    })();
+  }, [open, jobId]);
+  
+  // Subscribe to realtime updates for job items if jobId is provided
   useEffect(() => {
     if (!jobId) {
       setDbProgress(progress);
       return;
     }
 
-    const channel = supabase
-      .channel(`enrichment-job-${jobId}`)
+    const itemsChannel = supabase
+      .channel(`enrichment-job-items-${jobId}`)
       .on(
         'postgres_changes',
         {
@@ -70,9 +138,35 @@ export default function BulkEnrichmentProgressDialog({
         }
       )
       .subscribe();
+    
+    // Subscribe to job status changes
+    const statusChannel = supabase
+      .channel(`enrichment-job-status-${jobId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'enrichment_jobs',
+          filter: `id=eq.${jobId}`
+        },
+        (payload) => {
+          const job = payload.new as any;
+          console.log('📊 Job status updated:', job?.status);
+          if (job?.status) {
+            setJobStatus(
+              job.status === 'running' ? 'running' :
+              job.status === 'stopped' ? 'stopped' :
+              'completed'
+            );
+          }
+        }
+      )
+      .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(itemsChannel);
+      supabase.removeChannel(statusChannel);
     };
   }, [jobId]);
   
@@ -83,7 +177,6 @@ export default function BulkEnrichmentProgressDialog({
   const failed = progressArray.filter(p => ['failed', 'rate_limited'].includes(p.status)).length;
   const completed = withContacts + noContacts + failed;
   const progressPercent = total > 0 ? (completed / total) * 100 : 0;
-  const isRunning = completed < total;
 
   // Update job status based on completion
   useEffect(() => {
@@ -231,8 +324,20 @@ export default function BulkEnrichmentProgressDialog({
 
           {/* Prospect List */}
           <ScrollArea className="h-[400px] pr-4">
-            <div className="space-y-2">
-              {progressArray.map((item) => (
+            {loadingItems ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center space-y-3">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Loading enrichment data...</p>
+                </div>
+              </div>
+            ) : progressArray.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-sm text-muted-foreground">No enrichment items found</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {progressArray.map((item) => (
                 <div
                   key={item.prospectId}
                   className="flex items-center justify-between p-3 border rounded-lg"
@@ -250,12 +355,13 @@ export default function BulkEnrichmentProgressDialog({
                   </div>
                   {getStatusBadge(item)}
                 </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </ScrollArea>
 
           {/* Info Message */}
-          {isRunning && jobStatus === 'running' && (
+          {jobStatus === 'running' && (
             <div className="text-xs text-muted-foreground text-center p-2 bg-muted/30 rounded">
               Enrichment continues in background. You can close this dialog.
             </div>
@@ -269,7 +375,7 @@ export default function BulkEnrichmentProgressDialog({
         </div>
 
         {/* Footer with Stop Button */}
-        {isRunning && jobStatus === 'running' && (
+        {jobStatus === 'running' && (
           <DialogFooter className="flex-col gap-3 sm:flex-col">
             <div className="text-sm text-muted-foreground bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-md p-3">
               ⚠️ Stopping will preserve already-enriched contacts and mark incomplete ones for review
