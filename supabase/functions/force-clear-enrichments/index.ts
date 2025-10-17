@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
       console.log(`✅ Set ${failedJobs?.length || 0} running jobs to failed`);
     }
 
-    // 2. Release ALL locks on prospect_activities
+    // 2. Release ALL locks on prospect_activities (but preserve their statuses)
     const { data: unlockedProspects, error: unlockError } = await supabase
       .from('prospect_activities')
       .update({
@@ -49,37 +49,21 @@ Deno.serve(async (req) => {
       console.log(`✅ Released locks on ${unlockedProspects?.length || 0} prospects`);
     }
 
-    // 3. Move ALL enriching prospects to review status
-    const { data: reviewProspects, error: reviewError } = await supabase
-      .from('prospect_activities')
-      .update({
-        status: 'review',
-      })
-      .eq('status', 'enriching')
-      .select('id');
-
-    if (reviewError) {
-      console.error('❌ Error moving prospects to review:', reviewError);
-    } else {
-      console.log(`✅ Moved ${reviewProspects?.length || 0} enriching prospects to review`);
-    }
-
-    // 4. Log the emergency cleanup
+    // 3. Log the safe emergency stop
     await supabase.from('audit_logs').insert({
       table_name: 'enrichment_jobs',
       record_id: '00000000-0000-0000-0000-000000000000',
-      action_type: 'EMERGENCY_CLEANUP',
-      business_context: `Force cleared all enrichments: ${failedJobs?.length || 0} jobs failed, ${unlockedProspects?.length || 0} locks released, ${reviewProspects?.length || 0} prospects moved to review`,
+      action_type: 'EMERGENCY_STOP',
+      business_context: `Safe emergency stop: ${failedJobs?.length || 0} jobs failed, ${unlockedProspects?.length || 0} locks released (statuses preserved)`,
       changed_by: null,
     });
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'All enrichments force cleared',
+        message: 'Emergency stop complete (safe - statuses preserved)',
         jobsFailed: failedJobs?.length || 0,
         locksReleased: unlockedProspects?.length || 0,
-        prospectsMoved: reviewProspects?.length || 0,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

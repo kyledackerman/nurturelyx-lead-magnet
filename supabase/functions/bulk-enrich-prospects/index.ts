@@ -854,12 +854,12 @@ Now search the web and write the icebreaker:
             const currentRetryCount = prospect.enrichment_retry_count || 0;
             const notesArray = [];
 
-            // Determine final status with 3-attempt retry policy:
-            // - Has accepted email + icebreaker = enriched
-            // - Has contacts but no accepted emails after 3 attempts (retry_count >= 2) = review (shows in "missing-emails")
+            // Determine final status with strict 3-attempt terminal policy:
+            // - Has accepted email + icebreaker = enriched (Ready for Outreach)
+            // - Has contacts but no accepted emails after 3 attempts = enriching + retry=3 terminal (Missing Emails)
             // - Has contacts but no accepted emails, retry < 3 = enriching (keep trying)
-            // - No contacts after 3 attempts = review
-            // - No contacts, retry < 3 = enriching
+            // - No contacts after 3 attempts = review + retry=3 terminal (Needs Review)
+            // - No contacts, retry < 3 = enriching (keep trying)
             let finalStatus = 'enriching';
             let retryCount = currentRetryCount;
 
@@ -868,25 +868,27 @@ Now search the web and write the icebreaker:
               finalStatus = 'enriched';
               console.log(`✅ ${domain} - ENRICHED (${contactsWithEmail.length} accepted emails + icebreaker)`);
             } else if (contactsInserted > 0 && !hasAcceptedEmails && retryCount >= 2) {
-              // PARTIAL: Contacts found but no accepted emails after 3 attempts (0,1,2)
-              finalStatus = 'review';
-              notesArray.push(`AI enrichment: No accepted email found after ${retryCount + 1} attempts. Found ${contactsInserted} contacts without valid sales emails.`);
-              console.log(`⚠️ ${domain} - REVIEW (${contactsInserted} contacts, 0 accepted emails, attempt ${retryCount + 1}/3)`);
+              // TERMINAL: Contacts found but no accepted emails after 3 attempts - keep enriching so it shows in "Missing Emails"
+              finalStatus = 'enriching';
+              retryCount = 3; // Terminal - no more retries
+              notesArray.push(`AI enrichment: No accepted email found after 3 attempts (terminal). Found ${contactsInserted} contacts without valid sales emails. Shows in Missing Emails.`);
+              console.log(`🛑 ${domain} - TERMINAL ENRICHING (${contactsInserted} contacts, 0 accepted emails, 3 attempts) - Missing Emails`);
             } else if (contactsInserted > 0 && !hasAcceptedEmails) {
               // RETRY: Contacts found but no accepted emails, still under retry limit
               finalStatus = 'enriching';
               retryCount++;
-              console.log(`🔄 ${domain} - RETRY (${contactsInserted} contacts, 0 accepted emails, attempt ${retryCount + 1}/3)`);
+              console.log(`🔄 ${domain} - RETRY (${contactsInserted} contacts, 0 accepted emails, attempt ${retryCount}/3)`);
             } else if (contactsInserted === 0 && retryCount >= 2) {
-              // FAILED: No contacts after 3 attempts
+              // TERMINAL: No contacts after 3 attempts - move to review for human triage
               finalStatus = 'review';
-              notesArray.push(`AI enrichment: No contacts found after ${retryCount + 1} attempts.`);
-              console.log(`❌ ${domain} - REVIEW (no contacts after ${retryCount + 1} attempts)`);
+              retryCount = 3; // Terminal - no more retries
+              notesArray.push(`AI enrichment: No contacts found after 3 attempts (terminal). Needs human review.`);
+              console.log(`🛑 ${domain} - TERMINAL REVIEW (no contacts after 3 attempts)`);
             } else {
               // RETRY: No contacts, increment retry
               finalStatus = 'enriching';
               retryCount++;
-              console.log(`🔄 ${domain} - RETRY (no contacts, attempt ${retryCount + 1}/3)`);
+              console.log(`🔄 ${domain} - RETRY (no contacts, attempt ${retryCount}/3)`);
             }
 
             // Update prospect status, enrichment_status, retry count, and release lock

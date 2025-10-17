@@ -20,11 +20,20 @@ export default function CRMHeader({ onResumeEnrichment, currentView, onRefreshDa
 
   const handleCleanupStuckJobs = async () => {
     try {
-      const { error } = await supabase.functions.invoke('cleanup-stuck-enrichment-jobs');
+      toast.loading("Cleaning up stuck enrichments...");
+      const { data, error } = await supabase.functions.invoke('cleanup-stuck-enrichment-jobs');
       
       if (error) throw error;
       
-      toast.success("Stuck enrichment jobs cleaned up");
+      const summary = data.prospectsTerminalized;
+      toast.success(
+        `✅ Cleanup complete: ${data.locksReleased} locks released, ` +
+        `${summary.enriched} enriched, ${summary.review} review, ${summary.missingEmails} missing emails, ` +
+        `${data.jobsReconciled} jobs reconciled`
+      );
+      
+      // Auto-refresh after cleanup
+      setTimeout(() => onRefreshData(), 500);
     } catch (error) {
       console.error('Error cleaning up stuck jobs:', error);
       toast.error("Failed to clean up stuck jobs");
@@ -33,24 +42,24 @@ export default function CRMHeader({ onResumeEnrichment, currentView, onRefreshDa
 
   const handleForceClearAll = async () => {
     const confirmed = window.confirm(
-      "⚠️ This will FORCE STOP all running enrichments and clear ALL locks. Are you sure?"
+      "⚠️ EMERGENCY STOP: This will stop all running enrichments and release locks, but will NOT change prospect statuses. Continue?"
     );
     
     if (!confirmed) return;
     
     try {
-      toast.loading("Force clearing all enrichments...");
+      toast.loading("Emergency stop in progress...");
       const { data, error } = await supabase.functions.invoke('force-clear-enrichments');
       
       if (error) throw error;
       
-      toast.success(`✅ Force cleared: ${data.jobsFailed} jobs, ${data.locksReleased} locks, ${data.prospectsMoved} prospects moved to review`);
+      toast.success(`✅ Emergency stop complete (safe): ${data.jobsFailed} jobs stopped, ${data.locksReleased} locks released`);
       
-      // Refresh the page after 1 second
-      setTimeout(() => window.location.reload(), 1000);
+      // Refresh after 1 second
+      setTimeout(() => onRefreshData(), 1000);
     } catch (error) {
-      console.error('Error force clearing enrichments:', error);
-      toast.error("Failed to force clear enrichments");
+      console.error('Error during emergency stop:', error);
+      toast.error("Failed to execute emergency stop");
     }
   };
 
@@ -113,7 +122,7 @@ export default function CRMHeader({ onResumeEnrichment, currentView, onRefreshDa
                   className="gap-2"
                 >
                   <AlertTriangle className="h-4 w-4" />
-                  <span className="hidden sm:inline">Force Clear ALL</span>
+                  <span className="hidden sm:inline">Emergency Stop (safe)</span>
                 </Button>
                 <Button
                   variant="outline"

@@ -15,197 +15,180 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log('🧹 Starting cleanup of stuck enrichment jobs...');
+    console.log('🧹 Starting prospect-centric cleanup (locks + terminal classification)...');
 
-    // Find jobs stuck in 'running' status with no updates in 15+ minutes
-    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-    
-    const { data: stuckJobs, error: fetchError } = await supabase
-      .from('enrichment_jobs')
-      .select('*')
-      .eq('status', 'running')
-      .lt('started_at', fifteenMinutesAgo);
-
-    if (fetchError) {
-      throw new Error(`Failed to fetch stuck jobs: ${fetchError.message}`);
-    }
-
-    if (!stuckJobs || stuckJobs.length === 0) {
-      console.log('✅ No stuck jobs found');
-      return new Response(
-        JSON.stringify({ 
-          message: 'No stuck jobs found',
-          cleaned: 0 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log(`📊 Found ${stuckJobs.length} stuck jobs`);
-
-    const cleanedJobs = [];
-
-    for (const job of stuckJobs) {
-      console.log(`\n🔧 Cleaning job ${job.id}...`);
-
-      // Get actual progress from enrichment_job_items
-      const { data: items, error: itemsError } = await supabase
-        .from('enrichment_job_items')
-        .select('prospect_id, status, contacts_found')
-        .eq('job_id', job.id);
-
-      if (itemsError) {
-        console.error(`❌ Error fetching items for job ${job.id}:`, itemsError);
-        continue;
-      }
-
-      const successCount = items.filter(i => i.status === 'success').length;
-      const failedCount = items.filter(i => i.status === 'failed').length;
-      const pendingCount = items.filter(i => i.status === 'pending').length;
-      const processedCount = successCount + failedCount;
-      const totalCount = items.length;
-
-      console.log(`📊 Job ${job.id} progress: ${processedCount}/${totalCount} (${successCount} success, ${failedCount} failed, ${pendingCount} pending)`);
-
-      // Intelligently categorize each prospect based on what was found
-      let enrichedCount = 0;
-      let reviewCount = 0;
-      let resetCount = 0;
-
-      for (const item of items) {
-        if (!item.prospect_id) continue;
-
-        // HARD GUARDRAIL: Never downgrade enriched prospects
-        const { data: prospect } = await supabase
-          .from('prospect_activities')
-          .select('status, enrichment_retry_count, icebreaker_text')
-          .eq('id', item.prospect_id)
-          .single();
-        
-        if (prospect?.status === 'enriched') {
-          console.log(`⚠️ SKIP: Prospect ${item.prospect_id} already enriched`);
-          continue;
-        }
-
-        let targetStatus = 'review';
-        
-        if (item.status === 'success' && item.contacts_found > 0) {
-          // Check if contacts have accepted emails (not legal/compliance)
-          const { data: contacts } = await supabase
-            .from('prospect_contacts')
-            .select('email')
-            .eq('prospect_activity_id', item.prospect_id);
-          
-          const hasAcceptedEmails = contacts?.some(c => {
-            if (!c.email || c.email.trim() === '') return false;
-            const localPart = c.email.split('@')[0]?.toLowerCase();
-            return !['legal','privacy','compliance','counsel','attorney','law','dmca']
-              .some(prefix => localPart === prefix || localPart.includes(prefix));
-          });
-          
-          const hasIcebreaker = prospect?.icebreaker_text != null;
-          
-          if (hasAcceptedEmails && hasIcebreaker) {
-            targetStatus = 'enriched';
-            enrichedCount++;
-          } else if (hasAcceptedEmails && !hasIcebreaker) {
-            targetStatus = 'enriching'; // Need icebreaker
-            resetCount++;
-          } else if ((prospect?.enrichment_retry_count || 0) >= 2) {
-            targetStatus = 'review'; // Failed after 3 attempts
-            reviewCount++;
-          } else {
-            targetStatus = 'enriching'; // Keep trying
-            resetCount++;
-          }
-        } else if (item.status === 'pending') {
-          targetStatus = 'enriching';
-          resetCount++;
-        } else if ((prospect?.enrichment_retry_count || 0) >= 2) {
-          targetStatus = 'review';
-          reviewCount++;
-        } else {
-          targetStatus = 'enriching';
-          resetCount++;
-        }
-
-        // Update prospect status (with safety check to never overwrite enriched)
-        const { error: prospectError } = await supabase
-          .from('prospect_activities')
-          .update({
-            status: targetStatus,
-            enrichment_locked_at: null,
-            enrichment_locked_by: null,
-          })
-          .eq('id', item.prospect_id)
-          .neq('status', 'enriched'); // Extra safety
-
-        if (prospectError) {
-          console.error(`❌ Error updating prospect ${item.prospect_id}:`, prospectError);
-        }
-      }
-
-      console.log(`✅ Categorized prospects: ${enrichedCount} enriched, ${reviewCount} review, ${resetCount} reset to new`);
-
-      // Update the job with actual progress
-      const isCompleted = pendingCount === 0;
-      const newStatus = isCompleted ? 'completed' : 'running';
-
-      const { error: updateError } = await supabase
-        .from('enrichment_jobs')
-        .update({
-          processed_count: processedCount,
-          success_count: successCount,
-          failed_count: failedCount,
-          status: newStatus,
-          completed_at: isCompleted ? new Date().toISOString() : null,
-        })
-        .eq('id', job.id);
-
-      if (updateError) {
-        console.error(`❌ Error updating job ${job.id}:`, updateError);
-        continue;
-      }
-
-      console.log(`✅ Updated job ${job.id} to status '${newStatus}'`);
-      cleanedJobs.push({
-        job_id: job.id,
-        processed: processedCount,
-        total: totalCount,
-        status: newStatus,
-        enriched: enrichedCount,
-        review: reviewCount,
-        reset: resetCount,
-      });
-    }
-
-    // Release stale locks (older than 10 minutes) without changing status
-    console.log('\n🔓 Releasing stale locks...');
-    
+    // Phase 1: Release stale locks (10+ minutes old OR last attempt 15+ minutes ago)
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
 
-    // Just release locks, don't change status (status was already handled above)
     const { data: locksReleased, error: lockError } = await supabase
       .from('prospect_activities')
       .update({
         enrichment_locked_at: null,
         enrichment_locked_by: null,
       })
-      .lt('enrichment_locked_at', tenMinutesAgo)
-      .select('id');
+      .or(`enrichment_locked_at.lt.${tenMinutesAgo},last_enrichment_attempt.lt.${fifteenMinutesAgo}`)
+      .not('enrichment_locked_at', 'is', null)
+      .select('id, domain:reports!inner(domain)');
 
     if (lockError) {
       console.error('❌ Error releasing locks:', lockError);
     } else {
-      console.log(`✅ Released ${locksReleased?.length || 0} stale locks`);
+      console.log(`🔓 Released ${locksReleased?.length || 0} stale locks`);
     }
+
+    // Phase 2: Terminalize prospects at retry_count >= 3
+    // Get prospects that have hit the retry cap but aren't terminalized
+    const { data: terminalCandidates, error: terminalError } = await supabase
+      .from('prospect_activities')
+      .select(`
+        id,
+        status,
+        enrichment_retry_count,
+        contact_count,
+        reports!inner(domain)
+      `)
+      .gte('enrichment_retry_count', 3)
+      .in('status', ['enriching', 'review']);
+
+    if (terminalError) {
+      console.error('❌ Error fetching terminal candidates:', terminalError);
+    }
+
+    let enrichedCount = 0;
+    let reviewCount = 0;
+    let missingEmailsCount = 0;
+
+    if (terminalCandidates && terminalCandidates.length > 0) {
+      console.log(`🔍 Processing ${terminalCandidates.length} prospects at retry cap...`);
+
+      for (const prospect of terminalCandidates) {
+        const domain = prospect.reports?.domain || 'unknown';
+        
+        // Check if prospect has contacts with accepted emails
+        const { data: contacts } = await supabase
+          .from('prospect_contacts')
+          .select('email')
+          .eq('prospect_activity_id', prospect.id);
+
+        const hasAcceptedEmails = contacts?.some(c => {
+          if (!c.email || c.email.trim() === '') return false;
+          const localPart = c.email.split('@')[0]?.toLowerCase();
+          const domain = c.email.split('@')[1]?.toLowerCase();
+          return !(
+            ['legal','privacy','compliance','counsel','attorney','law','dmca'].some(prefix => localPart === prefix || localPart.includes(prefix)) ||
+            /\.(gov|edu|mil)$/.test(domain)
+          );
+        });
+
+        let targetStatus = prospect.status;
+        let notes = '';
+
+        if (prospect.contact_count === 0) {
+          // Terminal: No contacts found -> review
+          targetStatus = 'review';
+          notes = `Cleanup: No contacts found after ${prospect.enrichment_retry_count} attempts (terminal). Needs human review.`;
+          reviewCount++;
+          console.log(`🛑 ${domain} -> review (zero contacts, terminal)`);
+        } else if (!hasAcceptedEmails) {
+          // Terminal: Has contacts but no accepted emails -> keep enriching (shows in Missing Emails)
+          targetStatus = 'enriching';
+          notes = `Cleanup: ${prospect.contact_count} contacts but no accepted emails after ${prospect.enrichment_retry_count} attempts (terminal). Shows in Missing Emails.`;
+          missingEmailsCount++;
+          console.log(`🛑 ${domain} -> enriching/terminal (${prospect.contact_count} contacts, no accepted emails) - Missing Emails`);
+        } else {
+          // Has accepted emails -> should be enriched (check for icebreaker)
+          const { data: activityData } = await supabase
+            .from('prospect_activities')
+            .select('icebreaker_text')
+            .eq('id', prospect.id)
+            .single();
+
+          if (activityData?.icebreaker_text) {
+            targetStatus = 'enriched';
+            enrichedCount++;
+            console.log(`✅ ${domain} -> enriched (has accepted emails + icebreaker)`);
+          }
+        }
+
+        if (targetStatus !== prospect.status || notes) {
+          await supabase
+            .from('prospect_activities')
+            .update({
+              status: targetStatus,
+              notes: notes || null,
+            })
+            .eq('id', prospect.id)
+            .neq('status', 'enriched'); // Never downgrade enriched
+        }
+      }
+    }
+
+    // Phase 3: Reconcile job items and job statuses
+    const { data: runningJobs } = await supabase
+      .from('enrichment_jobs')
+      .select('*')
+      .eq('status', 'running');
+
+    const cleanedJobs = [];
+
+    if (runningJobs && runningJobs.length > 0) {
+      console.log(`📊 Reconciling ${runningJobs.length} running jobs...`);
+
+      for (const job of runningJobs) {
+        const { data: items } = await supabase
+          .from('enrichment_job_items')
+          .select('*')
+          .eq('job_id', job.id);
+
+        if (!items) continue;
+
+        // Count with "accepted email only" success rule
+        const successCount = items.filter(i => i.status === 'success' && i.has_emails === true).length;
+        const failedCount = items.filter(i => i.status === 'failed').length;
+        const pendingCount = items.filter(i => i.status === 'pending').length;
+        const processedCount = successCount + failedCount + items.filter(i => i.status === 'success' && !i.has_emails).length;
+        const totalCount = items.length;
+
+        const isCompleted = pendingCount === 0;
+        const newStatus = isCompleted ? 'completed' : 'running';
+
+        await supabase
+          .from('enrichment_jobs')
+          .update({
+            processed_count: processedCount,
+            success_count: successCount,
+            failed_count: failedCount,
+            status: newStatus,
+            completed_at: isCompleted ? new Date().toISOString() : null,
+          })
+          .eq('id', job.id);
+
+        console.log(`✅ Job ${job.id}: ${processedCount}/${totalCount} (${successCount} with emails, ${failedCount} failed) - ${newStatus}`);
+        cleanedJobs.push({
+          job_id: job.id,
+          processed: processedCount,
+          total: totalCount,
+          success_with_emails: successCount,
+          failed: failedCount,
+          status: newStatus,
+        });
+      }
+    }
+
 
     return new Response(
       JSON.stringify({
-        message: `Cleaned ${cleanedJobs.length} stuck jobs`,
-        cleaned: cleanedJobs.length,
-        jobs: cleanedJobs,
+        message: `Cleanup complete: ${locksReleased?.length || 0} locks released, ${enrichedCount + reviewCount + missingEmailsCount} prospects terminalized, ${cleanedJobs.length} jobs reconciled`,
         locksReleased: locksReleased?.length || 0,
+        prospectsTerminalized: {
+          enriched: enrichedCount,
+          review: reviewCount,
+          missingEmails: missingEmailsCount,
+          total: enrichedCount + reviewCount + missingEmailsCount,
+        },
+        jobsReconciled: cleanedJobs.length,
+        jobs: cleanedJobs,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
