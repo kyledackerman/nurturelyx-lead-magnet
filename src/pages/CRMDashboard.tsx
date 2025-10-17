@@ -34,6 +34,10 @@ export default function CRMDashboard() {
     toast.success("Refreshing data...");
   };
 
+  const handleDomainSelect = (prospectId: string) => {
+    setSelectedProspectId(prospectId);
+  };
+
   return (
     <CRMErrorBoundary>
       <CRMRealtimeProvider>
@@ -45,11 +49,12 @@ export default function CRMDashboard() {
             />
             
             <main className="flex-1 flex flex-col">
-      <CRMHeader 
-        onOpenProgressDialog={handleOpenProgressDialog}
-        currentView={selectedView}
-        onRefreshData={handleRefreshData}
-      />
+          <CRMHeader 
+            onOpenProgressDialog={handleOpenProgressDialog}
+            currentView={selectedView}
+            onRefreshData={handleRefreshData}
+            onDomainSelect={handleDomainSelect}
+          />
               
               <div className="container mx-auto px-4 py-6 max-w-[2000px]">
                 {selectedView === "warm-inbound" && (
