@@ -392,21 +392,11 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
           return false;
         }
         
-        // Filter legal/compliance emails
-        const localPart = contact.email.split('@')[0]?.toLowerCase() || '';
-        const isLegal = ['legal','privacy','compliance','counsel','attorney','law','dmca']
-          .some(prefix => localPart === prefix || localPart.includes(prefix));
-        
-        if (isLegal) {
-          console.log(`⚠️ Filtered out ${contact.email} (legal/compliance email)`);
-          return false;
-        }
-        
         return true;
       });
       
       if (filteredContacts.length === 0) {
-        console.log(`⚠️ All contacts filtered out (gov/edu or legal emails)`);
+        console.log(`⚠️ All contacts filtered out (gov/edu/mil domains)`);
       } else {
         const contactsToInsert = filteredContacts.map((contact: any) => ({
           prospect_activity_id: prospect_id,
