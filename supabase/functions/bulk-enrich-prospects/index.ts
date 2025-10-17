@@ -131,42 +131,19 @@ serve(async (req) => {
           }
         }
 
-        // PHASE 3: Batch-fetch all prospect details in ONE query
-    const { data: allProspects, error: fetchAllError } = await supabase
-      .from("prospect_activities")
-      .select(`
-        id,
-        report_id,
-        status,
-        enrichment_locked_at,
-        enrichment_retry_count,
-        reports!inner(domain, extracted_company_name, facebook_url, industry)
-      `)
-      .in("id", prospect_ids);
-    
-    // Filter out prospects that have already been attempted once (1-attempt policy)
-    const eligibleProspects = (allProspects || []).filter(p => {
-      const retryCount = p.enrichment_retry_count || 0;
-      if (retryCount >= 1) {
-        console.log(`⏭️ Skipping ${p.reports.domain} - already attempted enrichment once (terminal)`);
-        return false;
-      }
-      return true;
-    });
-
-    if (eligibleProspects.length === 0) {
-      safeEnqueue(
-        `data: ${JSON.stringify({ 
-          type: "error", 
-          error: "All selected prospects have already been enriched once. Please select different prospects or manually review failed ones." 
-        })}\n\n`
-      );
-      controller.close();
-      return;
-    }
-    
-    const allProspectsFiltered = eligibleProspects;
-
+        // Batch-fetch all prospect details in ONE query
+        const { data: allProspects, error: fetchAllError } = await supabase
+          .from("prospect_activities")
+          .select(`
+            id,
+            report_id,
+            status,
+            enrichment_locked_at,
+            enrichment_retry_count,
+            reports!inner(domain, extracted_company_name, facebook_url, industry)
+          `)
+          .in("id", prospect_ids);
+        
         if (fetchAllError || !allProspects) {
           console.error(`Failed to fetch prospects:`, fetchAllError);
           safeEnqueue(
@@ -175,11 +152,31 @@ serve(async (req) => {
           controller.close();
           return;
         }
+        
+        // Filter out prospects that have already been attempted once (1-attempt policy)
+        const eligibleProspects = allProspects.filter(p => {
+          const retryCount = p.enrichment_retry_count || 0;
+          if (retryCount >= 1) {
+            console.log(`⏭️ Skipping ${p.reports.domain} - already attempted enrichment once (terminal)`);
+            return false;
+          }
+          return true;
+        });
 
-        // PHASE 3: Batch-acquire locks for all prospects in parallel
-        // Create job items for all prospects
+        if (eligibleProspects.length === 0) {
+          safeEnqueue(
+            `data: ${JSON.stringify({ 
+              type: "error", 
+              error: "All selected prospects have already been enriched once. Please select different prospects or manually review failed ones." 
+            })}\n\n`
+          );
+          controller.close();
+          return;
+        }
+
+        // Create job items for ELIGIBLE prospects only
         if (enrichmentJobId) {
-          const jobItems = allProspects.map(p => ({
+          const jobItems = eligibleProspects.map(p => ({
             job_id: enrichmentJobId,
             prospect_id: p.id,
             domain: p.reports.domain,
@@ -189,13 +186,13 @@ serve(async (req) => {
           await supabase.from('enrichment_job_items').insert(jobItems);
         }
 
-        console.log(`🔒 Acquiring locks for ${allProspects.length} prospects (${processing_mode} mode)...`);
+        console.log(`🔒 Acquiring locks for ${eligibleProspects.length} prospects (${processing_mode} mode)...`);
         
         let lockResults;
         if (processing_mode === 'sequential') {
           // Sequential processing - one at a time
           lockResults = [];
-          for (const p of allProspects) {
+          for (const p of eligibleProspects) {
             const { data: locked } = await supabase.rpc('acquire_enrichment_lock', {
               p_prospect_id: p.id,
               p_source: 'bulk_enrichment'
@@ -205,7 +202,7 @@ serve(async (req) => {
         } else {
           // Parallel processing - all at once (default)
           lockResults = await Promise.all(
-            allProspects.map(async (p) => {
+            eligibleProspects.map(async (p) => {
               const { data: locked } = await supabase.rpc('acquire_enrichment_lock', {
                 p_prospect_id: p.id,
                 p_source: 'bulk_enrichment'
@@ -235,13 +232,13 @@ serve(async (req) => {
           );
         }
 
-        console.log(`✅ Successfully locked ${lockedProspectIds.length}/${allProspects.length} prospects`);
+        console.log(`✅ Successfully locked ${lockedProspectIds.length}/${eligibleProspects.length} prospects`);
 
         let successCount = 0;
         let failureCount = skippedProspects.length; // Count skipped as failures
 
         // HARD GUARDRAIL: Filter out already enriched prospects and .edu/.gov/.mil domains
-        const prospectsToEnrich = allProspects.filter(p => {
+        const prospectsToEnrich = eligibleProspects.filter(p => {
           if (!lockedProspectIds.includes(p.id)) return false;
           
           const domain = p.reports.domain.toLowerCase();
@@ -1190,6 +1187,51 @@ Now search the web and write the icebreaker:
         if (enrichmentJobId) {
           try {
             console.log("🔧 Ensuring job is marked as completed...");
+            
+            // PHASE 3 SAFEGUARD: If no items were processed, reset prospects to original status
+            if (successCount + failureCount === 0) {
+              console.log("⚠️ No items processed - resetting any prospects marked as enriching...");
+              
+              // Get all prospects that were selected for this job
+              const { data: jobItems } = await supabase
+                .from('enrichment_job_items')
+                .select('prospect_id')
+                .eq('job_id', enrichmentJobId);
+              
+              if (jobItems && jobItems.length > 0) {
+                const prospectIds = jobItems.map(item => item.prospect_id);
+                
+                // Reset any prospects still in enriching status
+                const { data: resetProspects } = await supabase
+                  .from('prospect_activities')
+                  .update({
+                    status: 'new',
+                    enrichment_locked_at: null,
+                    enrichment_locked_by: null,
+                    updated_at: new Date().toISOString()
+                  })
+                  .in('id', prospectIds)
+                  .eq('status', 'enriching')
+                  .select('id');
+                
+                if (resetProspects && resetProspects.length > 0) {
+                  console.log(`✅ Reset ${resetProspects.length} prospects back to 'new' status (0 items processed)`);
+                  
+                  // Log to audit trail
+                  for (const prospect of resetProspects) {
+                    await supabase.from('audit_logs').insert({
+                      table_name: 'prospect_activities',
+                      record_id: prospect.id,
+                      action_type: 'UPDATE',
+                      field_name: 'status',
+                      old_value: 'enriching',
+                      new_value: 'new',
+                      business_context: `Job ${enrichmentJobId} aborted with 0 items processed - reset to original status`
+                    });
+                  }
+                }
+              }
+            }
             
             // Run reconciliation first to catch any stragglers
             try {
