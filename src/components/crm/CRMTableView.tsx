@@ -909,64 +909,71 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         throw response.error;
       }
 
-      // Defensive guard: verify we got a readable stream
-      const stream = response.data as ReadableStream<Uint8Array> | undefined;
-      if (!stream || typeof (stream as any).getReader !== 'function') {
-        console.error('❌ Expected stream from bulk-enrich-prospects, got:', response.data);
-        
-        // Mark job as failed to avoid "running 0 items" limbo
-        await supabase
-          .from('enrichment_jobs')
-          .update({ status: 'failed', stopped_reason: 'client_stream_error' })
-          .eq('id', jobId);
-        
-        toast.error('Failed to start enrichment stream. Please try again.');
-        setBulkEnriching(false);
-        return;
-      }
-
       // Read the stream
-      const reader = stream.getReader();
+      const reader = response.data.getReader();
       const decoder = new TextDecoder();
+      let isFirstMessage = true;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              
-              if (data.prospectId) {
-                setEnrichmentProgress(prev => {
-                  const newMap = new Map(prev);
-                  const existing = newMap.get(data.prospectId);
-                  if (existing) {
-                    newMap.set(data.prospectId, {
-                      ...existing,
-                      status: data.status || (data.type === 'success' ? 'success' : data.type === 'error' ? 'failed' : 'processing'),
-                      contactsFound: data.contactsFound,
-                      error: data.error,
-                    });
-                  }
-                  return newMap;
-                });
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                
+                // Check if first message is an error (e.g., another job running, no eligible prospects)
+                if (isFirstMessage && data.type === 'error') {
+                  console.error('❌ Enrichment pre-flight check failed:', data.error);
+                  toast.error(data.error || 'Failed to start enrichment');
+                  
+                  await supabase
+                    .from('enrichment_jobs')
+                    .update({ status: 'failed', stopped_reason: 'pre_flight_check_failed' })
+                    .eq('id', jobId);
+                  
+                  setBulkEnriching(false);
+                  return; // Exit early, don't open dialog
+                }
+                
+                isFirstMessage = false;
+                
+                if (data.prospectId) {
+                  setEnrichmentProgress(prev => {
+                    const newMap = new Map(prev);
+                    const existing = newMap.get(data.prospectId);
+                    if (existing) {
+                      newMap.set(data.prospectId, {
+                        ...existing,
+                        status: data.status || (data.type === 'success' ? 'success' : data.type === 'error' ? 'failed' : 'processing'),
+                        contactsFound: data.contactsFound,
+                        error: data.error,
+                      });
+                    }
+                    return newMap;
+                  });
+                }
+                
+                if (data.type === 'complete') {
+                  toast.success(
+                    `Enrichment complete: ${data.summary.succeeded}/${data.summary.total} successful`
+                  );
+                }
+              } catch (e) {
+                console.error('Failed to parse SSE message:', e);
               }
-              
-              if (data.type === 'complete') {
-                toast.success(
-                  `Enrichment complete: ${data.summary.succeeded}/${data.summary.total} successful`
-                );
-              }
-            } catch (e) {
-              console.error('Failed to parse SSE message:', e);
             }
           }
         }
+      } catch (error) {
+        console.error('❌ Stream reading error:', error);
+        toast.error('Enrichment stream was interrupted');
+        // Job status will be handled by backend cleanup
       }
 
       // Refresh table
