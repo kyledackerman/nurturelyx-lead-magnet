@@ -2,6 +2,7 @@ import { useState } from "react";
 import CRMHeader from "@/components/crm/CRMHeader";
 import CRMTableView from "@/components/crm/CRMTableView";
 import ProspectDetailPanel from "@/components/crm/ProspectDetailPanel";
+import BulkEnrichmentProgressDialog from "@/components/crm/BulkEnrichmentProgressDialog";
 import PipelineStatusCards from "@/components/crm/PipelineStatusCards";
 import { UniqueDomainsTrendChart } from "@/components/crm/UniqueDomainsTrendChart";
 import { OutreachVelocityChart } from "@/components/crm/OutreachVelocityChart";
@@ -16,7 +17,7 @@ export default function CRMDashboard() {
   const [selectedView, setSelectedView] = useState<"warm-inbound" | "new-prospects" | "needs-enrichment" | "ready-outreach" | "dashboard" | "closed" | "needs-review" | "interested" | "missing-emails">("needs-review");
   const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
   const [pipelineStatusFilter, setPipelineStatusFilter] = useState<string | null>(null);
-  const [resumedJobId, setResumedJobId] = useState<string | null>(null);
+  const [progressDialogJobId, setProgressDialogJobId] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handlePipelineClick = (status: string) => {
@@ -24,10 +25,8 @@ export default function CRMDashboard() {
     setPipelineStatusFilter(prev => prev === status ? null : status);
   };
 
-  const handleResumeEnrichment = (jobId: string) => {
-    setResumedJobId(jobId);
-    // Switch to needs-enrichment view to show the table with resume capability
-    setSelectedView("needs-enrichment");
+  const handleOpenProgressDialog = (jobId: string) => {
+    setProgressDialogJobId(jobId);
   };
 
   const handleRefreshData = () => {
@@ -47,7 +46,7 @@ export default function CRMDashboard() {
             
             <main className="flex-1 flex flex-col">
       <CRMHeader 
-        onResumeEnrichment={handleResumeEnrichment}
+        onOpenProgressDialog={handleOpenProgressDialog}
         currentView={selectedView}
         onRefreshData={handleRefreshData}
       />
@@ -94,8 +93,6 @@ export default function CRMDashboard() {
                     onSelectProspect={setSelectedProspectId}
                     compact={false}
                     view="needs-enrichment"
-                    resumeJobId={resumedJobId}
-                    onJobResumed={() => setResumedJobId(null)}
                     refreshTrigger={refreshTrigger}
                   />
                 )}
@@ -164,6 +161,21 @@ export default function CRMDashboard() {
                 <ProspectDetailPanel
                   prospectId={selectedProspectId}
                   onClose={() => setSelectedProspectId(null)}
+                />
+              )}
+
+              {/* Enrichment Progress Dialog */}
+              {progressDialogJobId && (
+                <BulkEnrichmentProgressDialog
+                  open={!!progressDialogJobId}
+                  onOpenChange={(open) => {
+                    if (!open) {
+                      setProgressDialogJobId(null);
+                      handleRefreshData();
+                    }
+                  }}
+                  progress={new Map()}
+                  jobId={progressDialogJobId}
                 />
               )}
             </main>

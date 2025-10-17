@@ -14,10 +14,10 @@ interface ActiveJob {
 }
 
 interface ActiveEnrichmentJobsIndicatorProps {
-  onResumeJob: (jobId: string) => void;
+  onOpenProgressDialog: (jobId: string) => void;
 }
 
-export default function ActiveEnrichmentJobsIndicator({ onResumeJob }: ActiveEnrichmentJobsIndicatorProps) {
+export default function ActiveEnrichmentJobsIndicator({ onOpenProgressDialog }: ActiveEnrichmentJobsIndicatorProps) {
   const [activeJobs, setActiveJobs] = useState<ActiveJob[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -77,18 +77,12 @@ export default function ActiveEnrichmentJobsIndicator({ onResumeJob }: ActiveEnr
     }
   };
 
-  const handleResumeClick = () => {
+  const handleClick = () => {
     if (activeJobs.length === 0) return;
     
-    // Resume the most recent job
+    // Open progress dialog for the most recent job
     const latestJob = activeJobs[0];
-    onResumeJob(latestJob.id);
-    
-    const progress = latestJob.processed_count > 0 
-      ? Math.round((latestJob.processed_count / latestJob.total_count) * 100)
-      : 0;
-    
-    toast.info(`Resuming enrichment (${progress}% complete)`);
+    onOpenProgressDialog(latestJob.id);
   };
 
   if (loading || activeJobs.length === 0) {
@@ -104,12 +98,13 @@ export default function ActiveEnrichmentJobsIndicator({ onResumeJob }: ActiveEnr
     <Button
       variant="outline"
       size="sm"
-      onClick={handleResumeClick}
+      onClick={handleClick}
       className="gap-2"
+      title="Click to view progress"
     >
       <Loader2 className="h-4 w-4 animate-spin" />
       <span className="hidden sm:inline">
-        {activeJobs.length} Enrichment{activeJobs.length > 1 ? 's' : ''} Running
+        {activeJobs.length} Enrichment{activeJobs.length > 1 ? 's' : ''} Running ({progress}%)
       </span>
       <span className="sm:hidden">
         {progress}%

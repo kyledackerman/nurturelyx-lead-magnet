@@ -248,6 +248,25 @@ serve(async (req) => {
           const prospect = safeProspects[i];
           const prospectId = prospect.id;
           
+          // Check if job has been stopped
+          if (enrichmentJobId) {
+            const { data: jobData } = await supabase
+              .from('enrichment_jobs')
+              .select('status')
+              .eq('id', enrichmentJobId)
+              .single();
+            
+            if (jobData?.status === 'stopped') {
+              console.log(`🛑 Job ${enrichmentJobId} stopped by user, breaking enrichment loop`);
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({ type: "job_stopped", jobId: enrichmentJobId })}\n\n`
+                )
+              );
+              break;
+            }
+          }
+          
           const maxProspectTime = 90000; // 90 seconds max per prospect
           
           const processProspect = async () => {

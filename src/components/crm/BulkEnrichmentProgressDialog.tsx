@@ -1,10 +1,12 @@
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Clock, Loader2, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, XCircle, Clock, Loader2, AlertTriangle, StopCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export interface EnrichmentProgress {
   prospectId: string;
@@ -29,6 +31,8 @@ export default function BulkEnrichmentProgressDialog({
   jobId,
 }: BulkEnrichmentProgressDialogProps) {
   const [dbProgress, setDbProgress] = useState<Map<string, EnrichmentProgress>>(progress);
+  const [stopping, setStopping] = useState(false);
+  const [jobStatus, setJobStatus] = useState<'running' | 'stopped' | 'completed'>('running');
   
   // Subscribe to realtime updates if jobId is provided
   useEffect(() => {
@@ -74,11 +78,48 @@ export default function BulkEnrichmentProgressDialog({
   
   const progressArray = Array.from(jobId ? dbProgress.values() : progress.values());
   const total = progressArray.length;
-const withContacts = progressArray.filter(p => p.status === 'success' && (((p.contactsFound || 0) > 0) || p.hasEmails)).length;
-const noContacts = progressArray.filter(p => p.status === 'success' && ((p.contactsFound || 0) === 0) && !p.hasEmails).length;
-const failed = progressArray.filter(p => ['failed', 'rate_limited'].includes(p.status)).length;
-const completed = withContacts + noContacts + failed;
-const progressPercent = total > 0 ? (completed / total) * 100 : 0;
+  const withContacts = progressArray.filter(p => p.status === 'success' && (((p.contactsFound || 0) > 0) || p.hasEmails)).length;
+  const noContacts = progressArray.filter(p => p.status === 'success' && ((p.contactsFound || 0) === 0) && !p.hasEmails).length;
+  const failed = progressArray.filter(p => ['failed', 'rate_limited'].includes(p.status)).length;
+  const completed = withContacts + noContacts + failed;
+  const progressPercent = total > 0 ? (completed / total) * 100 : 0;
+  const isRunning = completed < total;
+
+  // Update job status based on completion
+  useEffect(() => {
+    if (completed >= total) {
+      setJobStatus('completed');
+    }
+  }, [completed, total]);
+
+  const handleStopEnrichment = async () => {
+    if (!jobId) return;
+    
+    const confirmed = window.confirm(
+      "Stop this enrichment? Already-enriched contacts will be preserved, and incomplete ones will be moved to review."
+    );
+    
+    if (!confirmed) return;
+    
+    setStopping(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('graceful-stop-enrichment', {
+        body: { job_id: jobId }
+      });
+      
+      if (error) throw error;
+      
+      setJobStatus('stopped');
+      toast.success(
+        `Enrichment stopped: ${data.enriched} enriched · ${data.noContacts} no contacts · ${data.failed} failed · ${data.stopped} pending (moved to review)`
+      );
+    } catch (error) {
+      console.error('Error stopping enrichment:', error);
+      toast.error("Failed to stop enrichment");
+    } finally {
+      setStopping(false);
+    }
+  };
 
   const getStatusIcon = (status: EnrichmentProgress['status']) => {
     switch (status) {
@@ -114,14 +155,30 @@ const progressPercent = total > 0 ? (completed / total) * 100 : 0;
     }
   };
 
+  const getJobStatusBadge = () => {
+    switch (jobStatus) {
+      case 'running':
+        return <Badge className="bg-blue-500 text-white"><Loader2 className="h-3 w-3 mr-1 animate-spin inline" />Running</Badge>;
+      case 'stopped':
+        return <Badge className="bg-orange-500 text-white"><StopCircle className="h-3 w-3 mr-1 inline" />Stopped</Badge>;
+      case 'completed':
+        return <Badge className="bg-green-500 text-white"><CheckCircle className="h-3 w-3 mr-1 inline" />Completed</Badge>;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle>Bulk Enrichment Progress</DialogTitle>
-          <DialogDescription>
-            Enriching {total} prospect{total !== 1 ? 's' : ''} with AI
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle>Bulk Enrichment Progress</DialogTitle>
+              <DialogDescription>
+                Enriching {total} prospect{total !== 1 ? 's' : ''} with AI
+              </DialogDescription>
+            </div>
+            {getJobStatusBadge()}
+          </div>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -164,12 +221,42 @@ const progressPercent = total > 0 ? (completed / total) * 100 : 0;
           </ScrollArea>
 
           {/* Info Message */}
-          {completed < total && (
+          {isRunning && jobStatus === 'running' && (
             <div className="text-xs text-muted-foreground text-center p-2 bg-muted/30 rounded">
               Enrichment continues in background. You can close this dialog.
             </div>
           )}
+          
+          {jobStatus === 'stopped' && (
+            <div className="text-xs text-orange-500 text-center p-2 bg-orange-500/10 rounded">
+              Enrichment stopped. Enriched contacts preserved, incomplete items moved to review.
+            </div>
+          )}
         </div>
+
+        {/* Footer with Stop Button */}
+        {isRunning && jobStatus === 'running' && (
+          <DialogFooter>
+            <Button
+              variant="destructive"
+              onClick={handleStopEnrichment}
+              disabled={stopping}
+              className="gap-2"
+            >
+              {stopping ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Stopping...
+                </>
+              ) : (
+                <>
+                  <StopCircle className="h-4 w-4" />
+                  Stop Enrichment
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );
