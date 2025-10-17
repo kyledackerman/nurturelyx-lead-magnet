@@ -20,8 +20,8 @@ interface CRMSidebarProps {
 
 const navItems = [
   { title: "New Prospects", view: "new-prospects" as const, icon: Sparkles },
-  { title: "Enriching Now", view: "enriching-now" as const, icon: Loader2 },
   { title: "Warm Inbound", view: "warm-inbound" as const, icon: Flame },
+  { title: "Enriching Now", view: "enriching-now" as const, icon: Loader2 },
   { title: "Needs Attention", view: "needs-attention" as const, icon: AlertCircle },
   { title: "Ready for Outreach", view: "ready-outreach" as const, icon: Target },
   { title: "Active Pipeline", view: "active-pipeline" as const, icon: LayoutDashboard },
