@@ -118,6 +118,10 @@ export default function ExportToolbar({
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Mark as Contacted
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onBulkStatusUpdate('interested')}>
+                  <AlertCircle className="h-4 w-4 mr-2 text-yellow-600" />
+                  Mark as Interested
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onBulkStatusUpdate('proposal')}>
                   <FileText className="h-4 w-4 mr-2" />
                   Mark as Proposal

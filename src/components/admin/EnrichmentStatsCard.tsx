@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Users, AlertTriangle, CheckCircle, Clock, RefreshCw } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { TrendingUp, Users, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 
 interface EnrichmentStats {
   queue_count: number;
@@ -19,7 +17,6 @@ interface EnrichmentStats {
 export const EnrichmentStatsCard = () => {
   const [stats, setStats] = useState<EnrichmentStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [fixing, setFixing] = useState(false);
 
   useEffect(() => {
     fetchStats();
@@ -34,38 +31,6 @@ export const EnrichmentStatsCard = () => {
       console.error('Error fetching enrichment stats:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleFixStuckProspects = async () => {
-    setFixing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('promote-complete-prospects');
-      
-      if (error) throw error;
-      
-      if (data.promoted > 0) {
-        toast({
-          title: "Prospects Promoted",
-          description: `Successfully promoted ${data.promoted} stuck prospects to enriched status`,
-        });
-        // Refresh stats after fix
-        fetchStats();
-      } else {
-        toast({
-          title: "No Stuck Prospects",
-          description: "All prospects are properly categorized",
-        });
-      }
-    } catch (error) {
-      console.error('Error fixing stuck prospects:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fix stuck prospects. Check console for details.",
-        variant: "destructive",
-      });
-    } finally {
-      setFixing(false);
     }
   };
 
@@ -94,17 +59,8 @@ export const EnrichmentStatsCard = () => {
   return (
     <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-background">
       <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4">
           <h3 className="text-sm font-medium text-muted-foreground">Enrichment Statistics</h3>
-          <Button 
-            size="sm" 
-            variant="outline"
-            onClick={handleFixStuckProspects}
-            disabled={fixing}
-          >
-            <RefreshCw className={`h-3 w-3 mr-2 ${fixing ? 'animate-spin' : ''}`} />
-            Fix Stuck Prospects
-          </Button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="flex flex-col gap-1">
