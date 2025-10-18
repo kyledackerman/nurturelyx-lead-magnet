@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 export interface ClientAccount {
   id: string;
@@ -111,6 +112,84 @@ export const useClientSidebarCounts = () => {
       };
 
       return counts;
+    },
+  });
+};
+
+export const useUpdateClientAccount = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<Omit<ClientAccount, 'id' | 'created_at' | 'updated_at'>>;
+    }) => {
+      const { data, error } = await supabase
+        .from('client_accounts')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['client-account', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['client-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['client-sidebar-counts'] });
+      toast({
+        title: "Client updated",
+        description: "Client account has been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useUpdateClientImplementation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      clientId,
+      updates,
+    }: {
+      clientId: string;
+      updates: any;
+    }) => {
+      const { data, error } = await supabase
+        .from('client_implementation')
+        .update(updates)
+        .eq('client_account_id', clientId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['client-implementation', variables.clientId] });
+      toast({
+        title: "Implementation updated",
+        description: "Implementation details have been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 };
