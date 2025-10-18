@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Users, AlertTriangle, CheckCircle, Clock, RefreshCw } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { TrendingUp, Users, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 
 interface EnrichmentStats {
   queue_count: number;
@@ -19,7 +17,6 @@ interface EnrichmentStats {
 export const EnrichmentStatsCard = () => {
   const [stats, setStats] = useState<EnrichmentStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [reconciling, setReconciling] = useState(false);
 
   useEffect(() => {
     fetchStats();
@@ -34,40 +31,6 @@ export const EnrichmentStatsCard = () => {
       console.error('Error fetching enrichment stats:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleReconcile = async () => {
-    setReconciling(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('reconcile-enriching-prospects');
-      
-      if (error) throw error;
-      
-      const summary = [
-        `Promoted: ${data.promoted}`,
-        `Moved to Review: ${data.movedToReview}`,
-        `  - Legal emails only: ${data.legalEmailsOnly}`,
-        `  - No emails found: ${data.noEmails}`,
-        `Contact counts fixed: ${data.contactCountFixed}`
-      ].join('\n');
-      
-      toast({
-        title: "Reconciliation Complete",
-        description: summary,
-      });
-      
-      // Refresh stats
-      fetchStats();
-    } catch (error) {
-      console.error('Error reconciling prospects:', error);
-      toast({
-        title: "Reconciliation Failed",
-        description: "Failed to reconcile stuck prospects. Check console for details.",
-        variant: "destructive",
-      });
-    } finally {
-      setReconciling(false);
     }
   };
 
@@ -96,18 +59,7 @@ export const EnrichmentStatsCard = () => {
   return (
     <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-background">
       <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-muted-foreground">Enrichment Statistics</h3>
-          <Button 
-            size="sm" 
-            variant="outline"
-            onClick={handleReconcile}
-            disabled={reconciling}
-          >
-            <RefreshCw className={`h-3 w-3 mr-2 ${reconciling ? 'animate-spin' : ''}`} />
-            Reconcile Stuck Prospects
-          </Button>
-        </div>
+        <h3 className="text-sm font-medium text-muted-foreground mb-4">Enrichment Statistics</h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
