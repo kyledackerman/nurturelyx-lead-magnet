@@ -17,6 +17,8 @@ import { ProspectContactCard } from "./ProspectContactCard";
 import { auditService } from "@/services/auditService";
 import ContactsSection from "./ContactsSection";
 import { formatCRMCurrency } from "@/lib/crmHelpers";
+import { updateProspectStatus } from "@/services/prospectService";
+import { normalizeStatus } from "@/lib/crmStatus";
 
 interface ProspectDetailPanelProps {
   prospectId: string;
@@ -54,8 +56,27 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
       fetchAdmins();
     }
 
-    // Real-time subscriptions removed - using CRMRealtimeContext instead
-    return () => {};
+    // Real-time subscription for prospect updates
+    const channel = supabase
+      .channel(`prospect-${prospectId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'prospect_activities',
+          filter: `id=eq.${prospectId}`
+        },
+        () => {
+          console.log('Prospect updated, refreshing detail panel');
+          fetchProspectDetails();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [prospectId]);
 
   const fetchProspectDetails = async () => {
@@ -102,6 +123,7 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
 
       setProspect({
         ...data,
+        status: normalizeStatus(data.status), // Normalize legacy statuses
         report: data.reports,
         activities: activities || [],
         contacts: contacts || []
@@ -274,12 +296,10 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
   const updateStatus = async (newStatus: string) => {
     setIsUpdating(true);
     try {
-      const { error } = await supabase
-        .from("prospect_activities")
-        .update({ status: newStatus })
-        .eq("id", prospectId);
+      await updateProspectStatus(prospectId, newStatus);
 
-      if (error) throw error;
+      // Optimistically update local state
+      setProspect((prev: any) => prev ? { ...prev, status: newStatus } : null);
 
       await auditService.logBusinessContext(
         "prospect_activities",
@@ -288,10 +308,13 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
       );
 
       toast.success("Status updated");
+      // Refetch to ensure sync
       fetchProspectDetails();
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error("Failed to update status");
+      // Revert on error
+      fetchProspectDetails();
     } finally {
       setIsUpdating(false);
     }

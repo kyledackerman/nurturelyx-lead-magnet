@@ -25,6 +25,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { auditService } from "@/services/auditService";
 import BulkEnrichmentDialog from "./BulkEnrichmentDialog";
 import BulkEnrichmentProgressDialog, { EnrichmentProgress } from "./BulkEnrichmentProgressDialog";
+import { updateProspectStatus } from "@/services/prospectService";
+import { PROSPECT_STATUSES, STATUS_LABELS, normalizeStatus } from "@/lib/crmStatus";
 
 interface ProspectRow {
   id: string;
@@ -407,26 +409,16 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     }
 
     setUpdatingId(prospectId);
-    
-    // Optimistic update
-    setProspects(prev => prev.map(p => 
-      p.id === prospectId ? { ...p, status: newStatus } : p
-    ));
-    
     try {
-      const updateData: any = { status: newStatus };
-      
-      // Set closed_at when closing a deal
-      if (newStatus === 'closed_won' || newStatus === 'closed_lost') {
-        updateData.closed_at = new Date().toISOString();
-      }
+      await updateProspectStatus(prospectId, newStatus);
 
-      const { error } = await supabase
-        .from("prospect_activities")
-        .update(updateData)
-        .eq("id", prospectId);
+      // Optimistically update local state
+      setProspects(prospects.map(p =>
+        p.id === prospectId ? { ...p, status: newStatus } : p
+      ));
 
-      if (error) throw error;
+      // Clear cache to force fresh data on next fetch
+      cacheRef.current.timestamp = 0;
 
       await auditService.logBusinessContext(
         "prospect_activities",
@@ -438,7 +430,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error("Failed to update status");
-      // Revert on error
+      // Refresh on error to revert
       fetchProspects();
     } finally {
       setUpdatingId(null);
@@ -1337,9 +1329,9 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                       </div>
                     </TableCell>
                   )}
-                  <TableCell>
+                   <TableCell>
                     <Select
-                      value={prospect.status}
+                      value={normalizeStatus(prospect.status)}
                       onValueChange={(value) => updateStatus(prospect.id, value)}
                       disabled={updatingId === prospect.id}
                     >
@@ -1347,17 +1339,12 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
                         <SelectValue />
                       </SelectTrigger>
                         <SelectContent className="z-50 bg-popover">
-                         <SelectItem value="new">New</SelectItem>
-                         <SelectItem value="enriching">Enriching</SelectItem>
-                         <SelectItem value="review">⚠️ Review</SelectItem>
-                         <SelectItem value="enriched">Enriched</SelectItem>
-                         <SelectItem value="contacted">Contacted</SelectItem>
-                         <SelectItem value="interested">Interested</SelectItem>
-                         <SelectItem value="proposal">Proposal</SelectItem>
-                         <SelectItem value="closed_won">Closed Won</SelectItem>
-                         <SelectItem value="closed_lost">Closed Lost</SelectItem>
-                         <SelectItem value="not_viable">Not Viable</SelectItem>
-                       </SelectContent>
+                         {PROSPECT_STATUSES.map((statusKey) => (
+                           <SelectItem key={statusKey} value={statusKey}>
+                             {STATUS_LABELS[statusKey]}
+                           </SelectItem>
+                         ))}
+                        </SelectContent>
                     </Select>
                   </TableCell>
                   {view !== 'enriching-now' && (

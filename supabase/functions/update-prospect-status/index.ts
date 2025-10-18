@@ -45,13 +45,29 @@ Deno.serve(async (req) => {
 
     console.log(`Updating prospect ${prospect_activity_id} to status ${new_status}`);
 
+    // Prepare update payload with side effects
+    const updatePayload: any = {
+      status: new_status,
+      updated_at: new Date().toISOString()
+    };
+
+    // Set closed_at for closed statuses
+    if (new_status === 'closed_won' || new_status === 'closed_lost') {
+      updatePayload.closed_at = new Date().toISOString();
+    } else {
+      updatePayload.closed_at = null;
+    }
+
+    // Clear enrichment locks when moving off enriching
+    if (new_status !== 'enriching') {
+      updatePayload.enrichment_locked_at = null;
+      updatePayload.enrichment_locked_by = null;
+    }
+
     // Update the prospect activity status
     const { data: updatedProspect, error: updateError } = await supabase
       .from('prospect_activities')
-      .update({
-        status: new_status,
-        updated_at: new Date().toISOString()
-      })
+      .update(updatePayload)
       .eq('id', prospect_activity_id)
       .select()
       .single();
