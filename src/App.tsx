@@ -12,6 +12,7 @@ import AuthCallback from "./pages/AuthCallback";
 import PublicReportPage from "./pages/PublicReportPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import CRMDashboard from "./pages/CRMDashboard";
+import ClientsDashboard from "./pages/ClientsDashboard";
 import AuthPage from "./pages/AuthPage";
 import { AdminAuthGuard } from "./components/admin/AdminAuthGuard";
 import UserDashboard from "./pages/UserDashboard";
@@ -57,6 +58,11 @@ const App = () => (
             <Route path="/admin/crm" element={
               <AdminAuthGuard>
                 <CRMDashboard />
+              </AdminAuthGuard>
+            } />
+            <Route path="/admin/clients" element={
+              <AdminAuthGuard>
+                <ClientsDashboard />
               </AdminAuthGuard>
             } />
             <Route path="/how-it-works" element={<HowItWorksPage />} />

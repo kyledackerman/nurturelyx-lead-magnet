@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, BarChart3, Shield } from 'lucide-react';
+import { User, LogOut, BarChart3, Shield, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const Header = () => {
@@ -65,7 +65,7 @@ const Header = () => {
                 Industries
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent className="bg-background z-50">
               <DropdownMenuItem asChild>
                 <Link to="/industries/hvac">HVAC</Link>
               </DropdownMenuItem>
@@ -104,13 +104,25 @@ const Header = () => {
                   {user.email}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-background z-50">
                 {isAdmin && (
                   <>
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="flex items-center gap-2">
                         <Shield className="h-4 w-4" />
                         Admin Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/crm" className="flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4" />
+                        Prospecting CRM
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/clients" className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Client Management
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
