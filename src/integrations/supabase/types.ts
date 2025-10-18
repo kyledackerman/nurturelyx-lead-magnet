@@ -65,6 +65,160 @@ export type Database = {
         }
         Relationships: []
       }
+      client_accounts: {
+        Row: {
+          assigned_csm: string | null
+          company_name: string
+          contract_start_date: string | null
+          contract_value: number | null
+          created_at: string
+          domain: string
+          health_score: number | null
+          id: string
+          next_renewal_date: string | null
+          prospect_activity_id: string
+          report_id: string
+          status: Database["public"]["Enums"]["client_status"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_csm?: string | null
+          company_name: string
+          contract_start_date?: string | null
+          contract_value?: number | null
+          created_at?: string
+          domain: string
+          health_score?: number | null
+          id?: string
+          next_renewal_date?: string | null
+          prospect_activity_id: string
+          report_id: string
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_csm?: string | null
+          company_name?: string
+          contract_start_date?: string | null
+          contract_value?: number | null
+          created_at?: string
+          domain?: string
+          health_score?: number | null
+          id?: string
+          next_renewal_date?: string | null
+          prospect_activity_id?: string
+          report_id?: string
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_accounts_prospect_activity_id_fkey"
+            columns: ["prospect_activity_id"]
+            isOneToOne: true
+            referencedRelation: "prospect_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_accounts_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_implementation: {
+        Row: {
+          client_account_id: string
+          created_at: string
+          data_flowing: boolean
+          first_data_received_at: string | null
+          id: string
+          implementation_status: Database["public"]["Enums"]["implementation_status"]
+          integration_notes: string | null
+          tracking_code_installed: boolean
+          tracking_code_verified_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_account_id: string
+          created_at?: string
+          data_flowing?: boolean
+          first_data_received_at?: string | null
+          id?: string
+          implementation_status?: Database["public"]["Enums"]["implementation_status"]
+          integration_notes?: string | null
+          tracking_code_installed?: boolean
+          tracking_code_verified_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_account_id?: string
+          created_at?: string
+          data_flowing?: boolean
+          first_data_received_at?: string | null
+          id?: string
+          implementation_status?: Database["public"]["Enums"]["implementation_status"]
+          integration_notes?: string | null
+          tracking_code_installed?: boolean
+          tracking_code_verified_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_implementation_client_account_id_fkey"
+            columns: ["client_account_id"]
+            isOneToOne: true
+            referencedRelation: "client_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_outreach_performance: {
+        Row: {
+          client_account_id: string
+          conversion_rate: number | null
+          created_at: string
+          id: string
+          leads_contacted: number | null
+          leads_identified: number | null
+          notes: string | null
+          period_end: string
+          period_start: string
+        }
+        Insert: {
+          client_account_id: string
+          conversion_rate?: number | null
+          created_at?: string
+          id?: string
+          leads_contacted?: number | null
+          leads_identified?: number | null
+          notes?: string | null
+          period_end: string
+          period_start: string
+        }
+        Update: {
+          client_account_id?: string
+          conversion_rate?: number | null
+          created_at?: string
+          id?: string
+          leads_contacted?: number | null
+          leads_identified?: number | null
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_outreach_performance_client_account_id_fkey"
+            columns: ["client_account_id"]
+            isOneToOne: false
+            referencedRelation: "client_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrichment_job_items: {
         Row: {
           completed_at: string | null
@@ -737,6 +891,91 @@ export type Database = {
         }
         Relationships: []
       }
+      support_ticket_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_internal_note: boolean
+          message: string
+          ticket_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_internal_note?: boolean
+          message: string
+          ticket_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_internal_note?: boolean
+          message?: string
+          ticket_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          client_account_id: string
+          created_at: string
+          description: string
+          id: string
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          submitted_by: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          client_account_id: string
+          created_at?: string
+          description: string
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          submitted_by: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          client_account_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject?: string
+          submitted_by?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_client_account_id_fkey"
+            columns: ["client_account_id"]
+            isOneToOne: false
+            referencedRelation: "client_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -925,6 +1164,19 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user" | "super_admin"
+      client_status: "onboarding" | "active" | "at_risk" | "churned" | "paused"
+      implementation_status:
+        | "not_started"
+        | "in_progress"
+        | "completed"
+        | "blocked"
+      ticket_priority: "low" | "medium" | "high" | "urgent"
+      ticket_status:
+        | "open"
+        | "in_progress"
+        | "waiting_client"
+        | "resolved"
+        | "closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1053,6 +1305,21 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user", "super_admin"],
+      client_status: ["onboarding", "active", "at_risk", "churned", "paused"],
+      implementation_status: [
+        "not_started",
+        "in_progress",
+        "completed",
+        "blocked",
+      ],
+      ticket_priority: ["low", "medium", "high", "urgent"],
+      ticket_status: [
+        "open",
+        "in_progress",
+        "waiting_client",
+        "resolved",
+        "closed",
+      ],
     },
   },
 } as const
