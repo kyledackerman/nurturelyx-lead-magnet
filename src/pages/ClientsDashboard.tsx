@@ -1,12 +1,20 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ClientsSidebar } from "@/components/clients/ClientsSidebar";
 import { ClientsTableView } from "@/components/clients/ClientsTableView";
 import { ClientDetailPanel } from "@/components/clients/ClientDetailPanel";
+import { SupportTicketsTable } from "@/components/clients/SupportTicketsTable";
+import { TicketDetailDialog } from "@/components/clients/TicketDetailDialog";
 import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
 
 export default function ClientsDashboard() {
+  const [searchParams] = useSearchParams();
+  const view = searchParams.get('view');
+  const clientFilter = searchParams.get('client');
+  
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
 
   return (
     <AdminAuthGuard>
@@ -20,9 +28,14 @@ export default function ClientsDashboard() {
               <div className="flex h-16 items-center gap-4 px-6">
                 <SidebarTrigger />
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold">Client Management</h1>
+                  <h1 className="text-2xl font-bold">
+                    {view === 'support' ? 'Support Tickets' : 'Client Management'}
+                  </h1>
                   <p className="text-sm text-muted-foreground">
-                    Manage client relationships and implementation
+                    {view === 'support' 
+                      ? 'Manage client support tickets and inquiries'
+                      : 'Manage client relationships and implementation'
+                    }
                   </p>
                 </div>
               </div>
@@ -30,7 +43,14 @@ export default function ClientsDashboard() {
 
             {/* Main Content */}
             <main className="flex-1 p-6">
-              <ClientsTableView onSelectClient={setSelectedClientId} />
+              {view === 'support' ? (
+                <SupportTicketsTable 
+                  onTicketClick={setSelectedTicketId}
+                  clientFilter={clientFilter || undefined}
+                />
+              ) : (
+                <ClientsTableView onSelectClient={setSelectedClientId} />
+              )}
             </main>
           </div>
 
@@ -41,6 +61,13 @@ export default function ClientsDashboard() {
               onClose={() => setSelectedClientId(null)}
             />
           )}
+          
+          {/* Ticket Detail Dialog */}
+          <TicketDetailDialog
+            ticketId={selectedTicketId}
+            open={!!selectedTicketId}
+            onClose={() => setSelectedTicketId(null)}
+          />
         </div>
       </SidebarProvider>
     </AdminAuthGuard>

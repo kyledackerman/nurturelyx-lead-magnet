@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Users, UserPlus, UserCheck, AlertTriangle } from "lucide-react";
+import { Users, UserPlus, UserCheck, AlertTriangle, LifeBuoy } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -44,6 +44,13 @@ export function ClientsSidebar() {
       icon: AlertTriangle,
       count: counts?.at_risk || 0,
       variant: "destructive" as const,
+    },
+    {
+      title: "Support Tickets",
+      url: "/admin/clients?view=support",
+      icon: LifeBuoy,
+      count: counts?.open_tickets || 0,
+      variant: counts?.urgent_tickets && counts.urgent_tickets > 0 ? "destructive" as const : undefined,
     },
   ];
 

@@ -93,17 +93,21 @@ export const useClientSidebarCounts = () => {
   return useQuery({
     queryKey: ['client-sidebar-counts'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('client_accounts')
-        .select('status');
+      const [clientsResult, ticketsResult] = await Promise.all([
+        supabase.from('client_accounts').select('status'),
+        supabase.from('support_tickets').select('status, priority'),
+      ]);
 
-      if (error) throw error;
+      if (clientsResult.error) throw clientsResult.error;
+      if (ticketsResult.error) throw ticketsResult.error;
 
       const counts = {
-        all: data.length,
-        onboarding: data.filter(c => c.status === 'onboarding').length,
-        active: data.filter(c => c.status === 'active').length,
-        at_risk: data.filter(c => c.status === 'at_risk').length,
+        all: clientsResult.data.length,
+        onboarding: clientsResult.data.filter(c => c.status === 'onboarding').length,
+        active: clientsResult.data.filter(c => c.status === 'active').length,
+        at_risk: clientsResult.data.filter(c => c.status === 'at_risk').length,
+        open_tickets: ticketsResult.data.filter(t => t.status === 'open').length,
+        urgent_tickets: ticketsResult.data.filter(t => t.priority === 'urgent').length,
       };
 
       return counts;

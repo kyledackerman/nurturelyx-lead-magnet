@@ -102,9 +102,10 @@ export function ClientDetailPanel({ clientId, onClose }: ClientDetailPanelProps)
             </div>
           ) : (
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="implementation">Implementation</TabsTrigger>
+                <TabsTrigger value="support">Support</TabsTrigger>
                 <TabsTrigger value="history">History</TabsTrigger>
               </TabsList>
 
@@ -215,6 +216,27 @@ export function ClientDetailPanel({ clientId, onClose }: ClientDetailPanelProps)
                         </div>
                       </>
                     )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="support" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Support Tickets</CardTitle>
+                    <CardDescription>
+                      Recent support tickets for this client
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      View all tickets for this client in the Support Tickets section.
+                    </p>
+                    <Button variant="outline" className="mt-4" asChild>
+                      <a href={`/admin/clients?view=support&client=${clientId}`}>
+                        View All Support Tickets
+                      </a>
+                    </Button>
                   </CardContent>
                 </Card>
               </TabsContent>

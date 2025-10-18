@@ -1,9 +1,5 @@
 project_id = "apjlauuidcbvuplfcshg"
 
-# [functions.retry-failed-enrichments]
-# verify_jwt = false
-# ⚠️ DEPRECATED: Removed with 1-attempt enrichment policy
-
 [functions.parse-bulk-contacts]
 verify_jwt = true
 
@@ -108,4 +104,10 @@ verify_jwt = true
 
 [functions.auto-enrich-needs-enrichment]
 verify_jwt = false
+
+[functions.submit-ticket]
+verify_jwt = true
+
+[functions.update-ticket]
+verify_jwt = true
 
