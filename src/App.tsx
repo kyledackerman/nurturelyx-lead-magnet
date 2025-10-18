@@ -30,6 +30,7 @@ import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import IndustryReportsPage from "./pages/IndustryReportsPage";
 import TopCompaniesPage from "./pages/TopCompaniesPage";
+import SubmitSupportTicket from "./pages/SubmitSupportTicket";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,11 @@ const App = () => (
             <Route path="/admin/clients" element={
               <AdminAuthGuard>
                 <ClientsDashboard />
+              </AdminAuthGuard>
+            } />
+            <Route path="/support/new" element={
+              <AdminAuthGuard>
+                <SubmitSupportTicket />
               </AdminAuthGuard>
             } />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
