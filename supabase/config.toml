@@ -100,6 +100,9 @@ verify_jwt = true
 [functions.reconcile-stuck-enrichments]
 verify_jwt = true
 
+[functions.reconcile-enriching-prospects]
+verify_jwt = true
+
 [functions.cleanup-stuck-enrichment-jobs]
 verify_jwt = true
 
