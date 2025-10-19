@@ -50,13 +50,39 @@ Deno.serve(async (req) => {
 
     console.log(`Exporting ${prospectIds.length} prospects for user ${user.id}`);
 
-    // Fetch prospect data with report information
-    const { data: prospects, error: fetchError } = await supabase
-      .from('prospect_activities')
-      .select('id, report_id, assigned_to, lost_reason, lost_notes, icebreaker_text, icebreaker_generated_at, reports!inner(domain, slug, report_data, extracted_company_name)')
-      .in('id', prospectIds);
+    // Batch size to avoid URI Too Long errors (URL query string limits)
+    const BATCH_SIZE = 75;
+    
+    // Helper function to fetch data in batches
+    const fetchInBatches = async (ids: string[], batchSize: number) => {
+      const batches = [];
+      for (let i = 0; i < ids.length; i += batchSize) {
+        batches.push(ids.slice(i, i + batchSize));
+      }
+      
+      const allResults = [];
+      for (let i = 0; i < batches.length; i++) {
+        const batch = batches[i];
+        console.log(`Fetching batch ${i + 1} of ${batches.length} (${batch.length} prospects)`);
+        
+        const { data, error } = await supabase
+          .from('prospect_activities')
+          .select('id, report_id, assigned_to, lost_reason, lost_notes, icebreaker_text, icebreaker_generated_at, reports!inner(domain, slug, report_data, extracted_company_name)')
+          .in('id', batch);
+        
+        if (error) throw error;
+        if (data) allResults.push(...data);
+      }
+      
+      return allResults;
+    };
 
-    if (fetchError) {
+    // Fetch prospect data with report information in batches
+    let prospects;
+    try {
+      prospects = await fetchInBatches(prospectIds, BATCH_SIZE);
+      console.log(`Successfully fetched ${prospects.length} prospects`);
+    } catch (fetchError) {
       console.error('Error fetching prospects:', fetchError);
       return new Response(JSON.stringify({ error: 'Failed to fetch prospect data' }), {
         status: 500,
@@ -64,17 +90,37 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch contacts for all prospects
-    const { data: allContacts, error: contactsError } = await supabase
-      .from('prospect_contacts')
-      .select('*')
-      .in('prospect_activity_id', prospectIds)
-      .order('is_primary', { ascending: false })
-      .order('created_at', { ascending: true });
+    // Fetch contacts for all prospects in batches
+    const fetchContactsInBatches = async (ids: string[], batchSize: number) => {
+      const batches = [];
+      for (let i = 0; i < ids.length; i += batchSize) {
+        batches.push(ids.slice(i, i + batchSize));
+      }
+      
+      const allContacts = [];
+      for (let i = 0; i < batches.length; i++) {
+        const batch = batches[i];
+        console.log(`Fetching contacts batch ${i + 1} of ${batches.length}`);
+        
+        const { data, error } = await supabase
+          .from('prospect_contacts')
+          .select('*')
+          .in('prospect_activity_id', batch)
+          .order('is_primary', { ascending: false })
+          .order('created_at', { ascending: true });
+        
+        if (error) {
+          console.error('Error fetching contacts batch:', error);
+          continue;
+        }
+        if (data) allContacts.push(...data);
+      }
+      
+      return allContacts;
+    };
 
-    if (contactsError) {
-      console.error('Error fetching contacts:', contactsError);
-    }
+    const allContacts = await fetchContactsInBatches(prospectIds, BATCH_SIZE);
+    console.log(`Successfully fetched ${allContacts.length} contacts`);
 
     // Group contacts by prospect_activity_id
     const contactsByProspect = new Map();
@@ -190,19 +236,29 @@ Deno.serve(async (req) => {
       console.error('Error logging export:', logError);
     }
 
-    // Update status to "contacted" if requested
+    // Update status to "contacted" if requested (in batches)
     if (autoUpdateStatus) {
-      const { error: updateError } = await supabase
-        .from('prospect_activities')
-        .update({ status: 'contacted' })
-        .in('id', prospectIds);
+      const batches = [];
+      for (let i = 0; i < prospectIds.length; i += BATCH_SIZE) {
+        batches.push(prospectIds.slice(i, i + BATCH_SIZE));
+      }
+      
+      for (let i = 0; i < batches.length; i++) {
+        const batch = batches[i];
+        console.log(`Updating status batch ${i + 1} of ${batches.length}`);
+        
+        const { error: updateError } = await supabase
+          .from('prospect_activities')
+          .update({ status: 'contacted' })
+          .in('id', batch);
 
-      if (updateError) {
-        console.error('Error updating prospect status:', updateError);
-        return new Response(JSON.stringify({ error: 'Export succeeded but status update failed' }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        if (updateError) {
+          console.error('Error updating prospect status batch:', updateError);
+          return new Response(JSON.stringify({ error: 'Export succeeded but status update failed' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
       }
 
       console.log(`Updated ${prospectIds.length} prospects to "contacted" status`);
