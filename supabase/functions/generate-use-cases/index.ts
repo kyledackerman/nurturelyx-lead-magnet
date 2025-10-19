@@ -42,10 +42,10 @@ serve(async (req) => {
 
     const { extracted_company_name, industry, report_data, domain } = report;
 
-    if (!extracted_company_name || !industry) {
-      console.log('Skipping generation: missing company name or industry');
+    if (!extracted_company_name) {
+      console.log('Skipping generation: missing company name');
       return new Response(
-        JSON.stringify({ success: false, message: 'Missing required data' }),
+        JSON.stringify({ success: false, message: 'Missing company name' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -55,15 +55,18 @@ serve(async (req) => {
     const yearlyRevenueLost = report_data?.yearlyRevenueLost || 0;
     const avgTransactionValue = report_data?.avgTransactionValue || 0;
 
-    // Format industry name
-    const industryName = industry.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+    // Format industry name for context (if available)
+    const industryContext = industry && industry !== 'other' 
+      ? `a ${industry.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())} business` 
+      : 'a business';
 
     // Build AI prompt
-    const prompt = `You are a B2B SaaS copywriter specializing in identity resolution. Write 2-3 specific, actionable scenarios showing how ${extracted_company_name}, a ${industryName} business with ${organicTraffic.toLocaleString()} monthly visitors, can use identity resolution to convert anonymous visitors into customers and increase revenue.
+    const prompt = `You are a B2B SaaS copywriter specializing in identity resolution. Analyze ${extracted_company_name} (${domain}) and write 2-3 specific, actionable scenarios showing how they can use identity resolution to convert anonymous visitors into customers and increase revenue.
 
 Context:
 - Company: ${extracted_company_name}
-- Industry: ${industryName}
+- Domain: ${domain}
+- Current Industry Tag: ${industry || 'unknown'}
 - Monthly Traffic: ${organicTraffic.toLocaleString()}
 - Missed Leads/Month: ${missedLeads.toLocaleString()}
 - Avg Transaction Value: $${avgTransactionValue.toLocaleString()}
@@ -71,7 +74,7 @@ Context:
 
 Each scenario must:
 - Use the actual company name "${extracted_company_name}" (not "your company")
-- Be specific to the ${industryName} industry with concrete examples
+- Be specific to their actual business type with concrete examples
 - Include realistic dollar amounts based on their $${avgTransactionValue} sale value
 - Address their specific pain point: ${missedLeads.toLocaleString()} visitors leave without identifying themselves every month
 - Be written in second person ("your team can..." or "you can...")
@@ -82,9 +85,9 @@ Each scenario must:
 
 Do not include section headers, bullet points, or intro/outro text. Output only the 2-3 scenarios as plain paragraphs separated by double line breaks.`;
 
-    console.log('Generating use cases for:', extracted_company_name);
+    console.log('Generating use cases and categorizing industry for:', extracted_company_name);
 
-    // Call Lovable AI
+    // Call Lovable AI with tool calling for structured output
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -96,15 +99,62 @@ Do not include section headers, bullet points, or intro/outro text. Output only 
         messages: [
           {
             role: 'system',
-            content: 'You are an expert B2B SaaS copywriter specializing in identity resolution and lead generation. Write compelling, specific use cases that demonstrate clear ROI and practical implementation steps.'
+            content: 'You are an expert B2B SaaS copywriter specializing in identity resolution and lead generation. Analyze the company domain and business type, then generate compelling use cases and categorize the industry accurately.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "generate_content",
+              description: "Generate personalized use cases and categorize the business industry",
+              parameters: {
+                type: "object",
+                properties: {
+                  use_cases: {
+                    type: "string",
+                    description: "2-3 scenario paragraphs showing how the company can use identity resolution (250-350 words total)"
+                  },
+                  industry_category: {
+                    type: "string",
+                    description: "2-word maximum industry category that best describes this business type",
+                    enum: [
+                      "hvac", "plumbing", "roofing", "electrical", "automotive", "legal", 
+                      "medical", "real-estate", "restaurant", "retail", "insurance", 
+                      "construction", "moving-services", "pest-control", "landscaping", 
+                      "photography", "fitness", "education", "consulting", "marketing", 
+                      "accounting", "veterinary", "salon-beauty", "home-security", 
+                      "pool-service", "window-cleaning", "carpet-cleaning", "locksmith", 
+                      "property-management", "mortgage", "financial-services", "it-services", 
+                      "web-design", "manufacturing", "wholesale", "distribution", 
+                      "e-commerce", "hospitality", "healthcare", "dental", "chiropractic",
+                      "physical-therapy", "mental-health", "senior-care", "childcare",
+                      "home-improvement", "flooring", "painting", "kitchen-remodeling",
+                      "solar-energy", "waste-management", "logistics", "transportation",
+                      "storage", "event-planning", "catering", "cleaning-services",
+                      "security-services", "telecommunications", "software", "saas",
+                      "app-development", "game-development", "graphic-design", "video-production",
+                      "music", "entertainment", "travel", "tourism", "hotel",
+                      "spa-wellness", "nonprofit", "government", "association",
+                      "franchising", "automotive-repair", "tire-shop", "oil-change",
+                      "car-wash", "auto-detailing", "towing", "collision-repair",
+                      "other"
+                    ]
+                  }
+                },
+                required: ["use_cases", "industry_category"],
+                additionalProperties: false
+              }
+            }
+          }
+        ],
+        tool_choice: { type: "function", function: { name: "generate_content" } },
         temperature: 0.8,
-        max_tokens: 800
+        max_tokens: 1000
       }),
     });
 
@@ -115,22 +165,45 @@ Do not include section headers, bullet points, or intro/outro text. Output only 
     }
 
     const aiData = await aiResponse.json();
-    const generatedText = aiData.choices?.[0]?.message?.content;
+    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
 
-    if (!generatedText) {
-      throw new Error('No content generated by AI');
+    if (!toolCall || toolCall.function.name !== 'generate_content') {
+      throw new Error('No tool call returned by AI');
+    }
+
+    const functionArgs = JSON.parse(toolCall.function.arguments);
+    const generatedText = functionArgs.use_cases;
+    const aiSuggestedIndustry = functionArgs.industry_category;
+
+    if (!generatedText || !aiSuggestedIndustry) {
+      throw new Error('Missing use_cases or industry_category in AI response');
     }
 
     console.log('Generated use cases length:', generatedText.length);
+    console.log('AI suggested industry:', aiSuggestedIndustry);
+
+    // Determine if we should update the industry field
+    const shouldUpdateIndustry = !industry || industry === 'other';
+    
+    // Build update object
+    const updateData: any = {
+      personalized_use_cases: generatedText,
+      use_cases_approved: true,
+      use_cases_generated_at: new Date().toISOString()
+    };
+
+    // Only update industry if current value is "other" or null
+    if (shouldUpdateIndustry) {
+      updateData.industry = aiSuggestedIndustry;
+      console.log(`✅ Updating industry from "${industry || 'null'}" to "${aiSuggestedIndustry}"`);
+    } else {
+      console.log(`ℹ️ Keeping existing industry "${industry}" (AI suggested: "${aiSuggestedIndustry}")`);
+    }
 
     // Save to database
     const { error: updateError } = await supabase
       .from('reports')
-      .update({
-        personalized_use_cases: generatedText,
-        use_cases_approved: true,
-        use_cases_generated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', report_id);
 
     if (updateError) {
@@ -144,7 +217,10 @@ Do not include section headers, bullet points, or intro/outro text. Output only 
       JSON.stringify({ 
         success: true, 
         text: generatedText,
-        word_count: generatedText.split(/\s+/).length
+        word_count: generatedText.split(/\s+/).length,
+        industry_updated: shouldUpdateIndustry,
+        old_industry: industry,
+        new_industry: aiSuggestedIndustry
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
