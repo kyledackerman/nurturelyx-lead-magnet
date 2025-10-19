@@ -1,6 +1,22 @@
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 
 const Footer = () => {
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = "https://widgets.leadconnectorhq.com/loader.js";
+    script.setAttribute('data-resources-url', 'https://widgets.leadconnectorhq.com/chat-widget/loader.js');
+    script.setAttribute('data-widget-id', '68f52b2ebad480e00c1e81ad');
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      // Cleanup: remove script when component unmounts
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
   return (
     <footer className="bg-black border-t border-gray-800">
       <div className="container mx-auto px-4 py-12">
