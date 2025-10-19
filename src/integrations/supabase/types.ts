@@ -985,6 +985,51 @@ export type Database = {
           },
         ]
       }
+      use_case_generation_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          failure_count: number | null
+          id: string
+          last_processed_report_id: string | null
+          paused_at: string | null
+          processed_count: number | null
+          started_at: string | null
+          status: string
+          success_count: number | null
+          total_count: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          failure_count?: number | null
+          id?: string
+          last_processed_report_id?: string | null
+          paused_at?: string | null
+          processed_count?: number | null
+          started_at?: string | null
+          status?: string
+          success_count?: number | null
+          total_count: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          failure_count?: number | null
+          id?: string
+          last_processed_report_id?: string | null
+          paused_at?: string | null
+          processed_count?: number | null
+          started_at?: string | null
+          status?: string
+          success_count?: number | null
+          total_count?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
