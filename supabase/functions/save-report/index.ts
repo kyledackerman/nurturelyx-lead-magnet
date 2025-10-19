@@ -310,6 +310,28 @@ serve(async (req) => {
       // Non-blocking: continue even if assignment fails
     }
 
+    // Generate personalized use cases for enriched reports
+    if (industry && companyName) {
+      console.log("🎯 Generating personalized use cases for", sanitizedDomain);
+      try {
+        const { error: useCasesError } = await supabase.functions.invoke(
+          'generate-use-cases',
+          {
+            body: { report_id: reportId }
+          }
+        );
+        
+        if (useCasesError) {
+          console.error('Use cases generation failed:', useCasesError);
+        } else {
+          console.log('✅ Use cases generated successfully');
+        }
+      } catch (e) {
+        console.error('Use cases generation error:', e);
+        // Non-blocking - continue even if this fails
+      }
+    }
+
     const publicUrl = `https://x1.nurturely.io/report/${reportSlug}`;
 
     return new Response(

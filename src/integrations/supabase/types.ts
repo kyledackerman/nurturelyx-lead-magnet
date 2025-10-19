@@ -839,12 +839,15 @@ export type Database = {
           is_public: boolean
           lead_source: string | null
           monthly_traffic_tier: string | null
+          personalized_use_cases: string | null
           report_data: Json
           seo_description: string | null
           seo_title: string | null
           slug: string
           state: string | null
           updated_at: string
+          use_cases_approved: boolean | null
+          use_cases_generated_at: string | null
           user_id: string | null
         }
         Insert: {
@@ -860,12 +863,15 @@ export type Database = {
           is_public?: boolean
           lead_source?: string | null
           monthly_traffic_tier?: string | null
+          personalized_use_cases?: string | null
           report_data: Json
           seo_description?: string | null
           seo_title?: string | null
           slug: string
           state?: string | null
           updated_at?: string
+          use_cases_approved?: boolean | null
+          use_cases_generated_at?: string | null
           user_id?: string | null
         }
         Update: {
@@ -881,12 +887,15 @@ export type Database = {
           is_public?: boolean
           lead_source?: string | null
           monthly_traffic_tier?: string | null
+          personalized_use_cases?: string | null
           report_data?: Json
           seo_description?: string | null
           seo_title?: string | null
           slug?: string
           state?: string | null
           updated_at?: string
+          use_cases_approved?: boolean | null
+          use_cases_generated_at?: string | null
           user_id?: string | null
         }
         Relationships: []

@@ -31,6 +31,7 @@ import CaseStudyCard from "./report/CaseStudyCard";
 import { RelatedReports } from "./report/RelatedReports";
 import { Breadcrumb } from "./report/Breadcrumb";
 import { BreadcrumbSchema } from "./seo/BreadcrumbSchema";
+import { PersonalizedUseCases } from "./report/PersonalizedUseCases";
 
 
 interface LeadReportProps {
@@ -108,6 +109,14 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false, onUpdate 
           monthlyRevenueLost={data.monthlyRevenueLost}
           yearlyRevenueLost={data.yearlyRevenueLost}
         />
+
+      {data.extracted_company_name && data.personalized_use_cases && (
+        <PersonalizedUseCases 
+          companyName={data.extracted_company_name}
+          industry={data.industry || 'business'}
+          useCasesText={data.personalized_use_cases}
+        />
+      )}
 
       <div className="bg-secondary/50 border border-accent/20 rounded-lg p-4">
         <div className="text-white/90 text-sm text-center space-y-1">

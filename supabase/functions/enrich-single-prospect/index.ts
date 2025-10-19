@@ -575,6 +575,25 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
         })
         .eq("id", prospect_id);
       
+      // Generate personalized use cases if we have company name and industry
+      if (companyName && industryValue) {
+        console.log("🎯 Generating personalized use cases...");
+        try {
+          const { error: useCasesError } = await supabase.functions.invoke(
+            'generate-use-cases',
+            { body: { report_id: prospect.report_id } }
+          );
+          
+          if (useCasesError) {
+            console.error('Use cases generation failed:', useCasesError);
+          } else {
+            console.log('✅ Use cases generated successfully');
+          }
+        } catch (e) {
+          console.error('Use cases generation error:', e);
+        }
+      }
+      
       console.log(`✅ Icebreaker complete - database trigger will handle promotion to enriched`);
     }
 

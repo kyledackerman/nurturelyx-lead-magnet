@@ -9,10 +9,11 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Eye, Copy, ChevronUp, ChevronDown, AlertTriangle, TrendingUp, Download, UserPlus, Loader2 } from "lucide-react";
+import { ExternalLink, Eye, Copy, ChevronUp, ChevronDown, AlertTriangle, TrendingUp, Download, UserPlus, Loader2, FileEdit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { EditTransactionValueDialog } from "@/components/dialog/EditTransactionValueDialog";
+import { EditUseCasesDialog } from "@/components/admin/EditUseCasesDialog";
 import { useAuth } from "@/hooks/useAuth";
 
 interface ReportData {
@@ -22,6 +23,8 @@ interface ReportData {
   user_id: string | null;
   slug: string;
   id: string;
+  extracted_company_name?: string;
+  personalized_use_cases?: string;
   report_data: {
     organicTraffic?: number;
     paidTraffic?: number;
@@ -49,6 +52,7 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
   const [sortedReports, setSortedReports] = useState<ReportData[]>([]);
   const [crmReportIds, setCrmReportIds] = useState<Set<string>>(new Set());
   const [addingToCRM, setAddingToCRM] = useState<string | null>(null);
+  const [editUseCasesReport, setEditUseCasesReport] = useState<ReportData | null>(null);
 
   // Enhanced formatting functions
   const formatDate = (dateString: string) => {
@@ -491,6 +495,16 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
                       )}
                       {crmReportIds.has(report.id) ? 'In CRM' : 'Add to CRM'}
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditUseCasesReport(report)}
+                      className="h-8"
+                      title="Edit use cases"
+                    >
+                      <FileEdit className="h-4 w-4 mr-1" />
+                      Use Cases
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -498,7 +512,22 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
           })}
         </TableBody>
       </Table>
-    </div>
+      </div>
+
+      {editUseCasesReport && (
+        <EditUseCasesDialog
+          open={!!editUseCasesReport}
+          onOpenChange={(open) => !open && setEditUseCasesReport(null)}
+          reportId={editUseCasesReport.id}
+          currentText={editUseCasesReport.personalized_use_cases || null}
+          companyName={editUseCasesReport.extracted_company_name || editUseCasesReport.domain}
+          domain={editUseCasesReport.domain}
+          onUpdate={() => {
+            setEditUseCasesReport(null);
+            onReportUpdate?.();
+          }}
+        />
+      )}
     </div>
   );
 };

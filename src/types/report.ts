@@ -21,6 +21,7 @@ export interface ReportData extends FormData, ApiData {
   totalMissedLeads?: number; // For compatibility with report grid
   extracted_company_name?: string; // Extracted company name
   conversionRate?: number; // Lead-to-sale conversion rate (default 1%)
+  personalized_use_cases?: string; // AI-generated use cases
 }
 
 export interface NewApiDataT {

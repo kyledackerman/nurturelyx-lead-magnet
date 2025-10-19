@@ -111,3 +111,6 @@ verify_jwt = true
 [functions.update-ticket]
 verify_jwt = true
 
+[functions.generate-use-cases]
+verify_jwt = true
+
