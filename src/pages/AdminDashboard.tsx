@@ -22,6 +22,7 @@ import { ComposedChart, Area, Line, Bar, BarChart, PieChart, Pie, Cell, XAxis, Y
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
 import AdminManual from "@/components/admin/AdminManual";
 import { ReportCategorizationTool } from "@/components/admin/ReportCategorizationTool";
+import { BackfillUseCasesButton } from "@/components/admin/BackfillUseCasesButton";
 import { FormData, ReportData } from "@/types/report";
 import { fetchDomainData, calculateReportMetrics } from "@/services/spyfuService";
 import { reportService } from "@/services/reportService";
@@ -2129,6 +2130,9 @@ const AdminDashboard = () => {
 
 
             <TabsContent value="reports" className="space-y-6">
+              {/* Backfill Tool */}
+              <BackfillUseCasesButton />
+
               {/* Search */}
               <Card>
                 <CardHeader>
