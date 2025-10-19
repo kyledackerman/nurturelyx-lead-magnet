@@ -243,12 +243,6 @@ const AdminDashboard = () => {
       
       console.log('Cleanup result:', data);
       toast.success(data.message || `Cleaned up ${data.cleanedJobs} stuck job(s)`);
-      
-      if (data.cleanedJobs > 0) {
-        toast.success(`Cleaned up ${data.cleanedJobs} stuck job(s)`);
-      } else {
-        toast.info("No stuck jobs found");
-      }
     } catch (error) {
       toast.dismiss();
       console.error('Error cleaning up stuck jobs:', error);
