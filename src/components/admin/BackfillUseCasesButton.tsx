@@ -1,529 +1,314 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+import { Play, Pause, CheckCircle2, AlertCircle, Info, X, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Sparkles, Loader2, CheckCircle, XCircle, Pause, Play, Info } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 interface BackfillUseCasesButtonProps {
   variant?: "banner" | "compact";
 }
 
 export const BackfillUseCasesButton = ({ variant = "banner" }: BackfillUseCasesButtonProps) => {
-  const [eligibleCount, setEligibleCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [currentIndex, setCurrent] = useState(0);
-  const [successCount, setSuccessCount] = useState(0);
-  const [failureCount, setFailureCount] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [activeJob, setActiveJob] = useState<any>(null);
-  const pauseSignal = useRef(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
-    fetchEligibleCount();
     checkForActiveJob();
-    
-    // Check for stuck jobs on mount
-    const checkStuckJob = async () => {
-      const { data: runningJob } = await supabase
-        .from('use_case_generation_jobs')
-        .select('*')
-        .eq('status', 'running')
-        .order('started_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      
-      if (runningJob) {
-        const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
-        const jobStartTime = new Date(runningJob.started_at).getTime();
-        
-        if (jobStartTime < tenMinutesAgo) {
-          // Job is stuck - offer to resume
-          setActiveJob(runningJob);
-          setCurrent(runningJob.processed_count || 0);
-          setSuccessCount(runningJob.success_count || 0);
-          setFailureCount(runningJob.failure_count || 0);
-          setProcessing(false);
-          
-          toast.info("Found interrupted job - click Resume to continue", {
-            duration: 10000
-          });
-        }
-      }
-    };
-    
-    checkStuckJob();
   }, []);
+
+  // Realtime subscription for job updates
+  useEffect(() => {
+    if (!activeJob) return;
+
+    const channel = supabase
+      .channel(`job-${activeJob.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'use_case_generation_jobs',
+          filter: `id=eq.${activeJob.id}`
+        },
+        (payload) => {
+          console.log('📡 Realtime job update:', payload.new);
+          setActiveJob(payload.new);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeJob?.id]);
 
   const checkForActiveJob = async () => {
     try {
-      const { data: job, error } = await supabase
+      // First run cleanup to pause any truly stuck jobs
+      const { error: cleanupError } = await supabase.functions.invoke('cleanup-stuck-use-case-jobs');
+      
+      if (cleanupError) {
+        console.error('Cleanup error:', cleanupError);
+      }
+
+      // Then check for active/paused jobs
+      const { data: jobs, error } = await supabase
         .from('use_case_generation_jobs')
         .select('*')
         .in('status', ['running', 'paused'])
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
 
-      if (!error && job) {
-        setActiveJob(job);
-        setSuccessCount(job.success_count);
-        setFailureCount(job.failure_count);
-        setCurrent(job.processed_count);
-        setProgress((job.processed_count / job.total_count) * 100);
+      if (error) throw error;
+
+      if (jobs && jobs.length > 0) {
+        setActiveJob(jobs[0]);
       }
-    } catch (error: any) {
-      // No active job found
-      console.log('No active job found');
+    } catch (error) {
+      console.error('Error checking for active job:', error);
     }
   };
 
-  const fetchEligibleCount = async () => {
+  const startJob = async () => {
     setLoading(true);
     try {
-      const { count, error } = await supabase
-        .from('reports')
-        .select('*', { count: 'exact', head: true })
-        .not('extracted_company_name', 'is', null)
-        .not('industry', 'is', null)
-        .is('personalized_use_cases', null);
+      const { data, error } = await supabase.functions.invoke('resume-use-case-job', {
+        body: { chain: true }
+      });
 
-      if (error) throw error;
-      setEligibleCount(count || 0);
+      if (error) {
+        throw error;
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      console.log('✅ Job started:', data);
+      toast.success('Use case generation started!');
+      
+      // Refresh to get the job
+      await checkForActiveJob();
     } catch (error: any) {
-      console.error('Error fetching eligible count:', error);
-      toast.error('Failed to fetch eligible reports count');
+      console.error('Failed to start job:', error);
+      toast.error(`Failed to start: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const pauseBackfill = () => {
-    pauseSignal.current = true;
-    toast.info('Pausing after current report...');
-  };
-
-  const processBackfill = async (resumeJobId?: string) => {
-    setProcessing(true);
-    pauseSignal.current = false;
-
-    let jobId = resumeJobId;
-    let startIndex = 0;
-    let successes = activeJob?.success_count || 0;
-    let failures = activeJob?.failure_count || 0;
-
+  const pauseJob = async () => {
+    if (!activeJob) return;
+    
+    setLoading(true);
     try {
-      // Build query for reports to process
-      let query = supabase
-        .from('reports')
-        .select('id, domain')
-        .not('extracted_company_name', 'is', null)
-        .not('industry', 'is', null)
-        .is('personalized_use_cases', null)
-        .order('created_at', { ascending: false });
-
-      // If resuming, skip already processed reports
-      if (activeJob?.last_processed_report_id) {
-        // Fetch all eligible reports and filter out already processed
-        const { data: allReports } = await supabase
-          .from('reports')
-          .select('id, domain, created_at')
-          .not('extracted_company_name', 'is', null)
-          .not('industry', 'is', null)
-          .is('personalized_use_cases', null)
-          .order('created_at', { ascending: false });
-
-        const lastProcessedIndex = allReports?.findIndex(r => r.id === activeJob.last_processed_report_id) || -1;
-        const reports = allReports?.slice(lastProcessedIndex + 1) || [];
-        
-        if (!jobId) {
-          // Create new job if not resuming
-          const { data: newJob, error: jobError } = await supabase
-            .from('use_case_generation_jobs')
-            .insert({
-              created_by: (await supabase.auth.getUser()).data.user?.id,
-              total_count: reports.length,
-              status: 'running'
-            })
-            .select()
-            .single();
-
-          if (jobError) throw jobError;
-          jobId = newJob.id;
-          setActiveJob(newJob);
-        } else {
-          // Resume existing job
-          await supabase
-            .from('use_case_generation_jobs')
-            .update({ status: 'running', started_at: new Date().toISOString() })
-            .eq('id', jobId);
-        }
-
-        await processReports(reports, jobId!, successes, failures, activeJob?.processed_count || 0);
-      } else {
-        // New job - fetch all eligible reports
-        const { data: reports, error } = await query;
-
-        if (error) throw error;
-        if (!reports || reports.length === 0) {
-          toast.info('No eligible reports found');
-          setProcessing(false);
-          return;
-        }
-
-        // Create new job
-        const { data: newJob, error: jobError } = await supabase
-          .from('use_case_generation_jobs')
-          .insert({
-            created_by: (await supabase.auth.getUser()).data.user?.id,
-            total_count: reports.length,
-            status: 'running'
-          })
-          .select()
-          .single();
-
-        if (jobError) throw jobError;
-        jobId = newJob.id;
-        setActiveJob(newJob);
-
-        await processReports(reports, jobId, successes, failures, 0);
-      }
-    } catch (error: any) {
-      console.error('Backfill error:', error);
-      toast.error('Backfill process failed');
-      
-      if (jobId) {
-        await supabase
-          .from('use_case_generation_jobs')
-          .update({ status: 'failed', completed_at: new Date().toISOString() })
-          .eq('id', jobId);
-      }
-    } finally {
-      setProcessing(false);
-      pauseSignal.current = false;
-    }
-  };
-
-  const processReports = async (
-    reports: any[],
-    jobId: string,
-    initialSuccesses: number,
-    initialFailures: number,
-    initialProcessed: number
-  ) => {
-    const totalReports = reports.length;
-    let successes = initialSuccesses;
-    let failures = initialFailures;
-
-    for (let i = 0; i < totalReports; i++) {
-      // Check pause signal
-      if (pauseSignal.current) {
-        await supabase
-          .from('use_case_generation_jobs')
-          .update({
-            status: 'paused',
-            paused_at: new Date().toISOString(),
-            last_processed_report_id: reports[i - 1]?.id,
-            processed_count: initialProcessed + i,
-            success_count: successes,
-            failure_count: failures
-          })
-          .eq('id', jobId);
-
-        toast.success(`Paused at ${initialProcessed + i}/${initialProcessed + totalReports}`);
-        await checkForActiveJob();
-        return;
-      }
-
-      const report = reports[i];
-      setCurrent(initialProcessed + i + 1);
-
-      try {
-        const { error: invokeError } = await supabase.functions.invoke('generate-use-cases', {
-          body: { report_id: report.id }
-        });
-
-        if (invokeError) {
-          console.error(`Failed to generate use cases for ${report.domain}:`, invokeError);
-          failures++;
-          setFailureCount(failures);
-        } else {
-          successes++;
-          setSuccessCount(successes);
-        }
-      } catch (err: any) {
-        console.error(`Error processing ${report.domain}:`, err);
-        failures++;
-        setFailureCount(failures);
-      }
-
-      // Update job progress after each report
-      await supabase
+      const { error } = await supabase
         .from('use_case_generation_jobs')
-        .update({
-          processed_count: initialProcessed + i + 1,
-          success_count: successes,
-          failure_count: failures,
-          last_processed_report_id: report.id
+        .update({ 
+          status: 'paused',
+          paused_at: new Date().toISOString()
         })
-        .eq('id', jobId);
+        .eq('id', activeJob.id);
 
-      setProgress(((initialProcessed + i + 1) / (initialProcessed + totalReports)) * 100);
-
-      // Rate limiting: wait 6 seconds between calls (10 per minute)
-      if (i < totalReports - 1) {
-        await new Promise(resolve => setTimeout(resolve, 6000));
-      }
+      if (error) throw error;
+      
+      toast.success('Job paused');
+      await checkForActiveJob();
+    } catch (error: any) {
+      console.error('Failed to pause:', error);
+      toast.error(`Failed to pause: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
-
-    // Mark job as completed
-    await supabase
-      .from('use_case_generation_jobs')
-      .update({
-        status: 'completed',
-        completed_at: new Date().toISOString()
-      })
-      .eq('id', jobId);
-
-    toast.success(`Backfill complete: ${successes} succeeded, ${failures} failed`);
-    setActiveJob(null);
-    fetchEligibleCount();
   };
 
-  // Render detailed view (for both banner mode and dialog content)
-  const renderDetailedView = () => (
-    <div className="space-y-4">
-      {!processing && !activeJob && (
-        <Alert>
-          <Sparkles className="h-4 w-4 text-primary" />
-          <AlertDescription className="flex items-center justify-between">
-            <span>
-              <strong>{eligibleCount}</strong> report{eligibleCount !== 1 ? 's' : ''} eligible for use case generation
-            </span>
-            <Button onClick={() => processBackfill()} disabled={processing}>
-              <Sparkles className="h-4 w-4 mr-2" />
-              Start Generation
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
+  const resumeJob = async () => {
+    if (!activeJob) return;
+    
+    setLoading(true);
+    try {
+      // Update status to running
+      const { error: updateError } = await supabase
+        .from('use_case_generation_jobs')
+        .update({ 
+          status: 'running',
+          started_at: new Date().toISOString()
+        })
+        .eq('id', activeJob.id);
 
-      {!processing && activeJob?.status === 'paused' && (
-        <Alert>
-          <Pause className="h-4 w-4 text-orange-600" />
-          <AlertDescription className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold">
-                Paused at {activeJob.processed_count} of {activeJob.total_count}
-              </span>
-              <Button onClick={() => processBackfill(activeJob.id)} size="sm">
-                <Play className="h-4 w-4 mr-2" />
-                Resume
-              </Button>
-            </div>
-            <div className="flex gap-4 text-sm">
-              <span className="flex items-center gap-1">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                {activeJob.success_count} succeeded
-              </span>
-              {activeJob.failure_count > 0 && (
-                <span className="flex items-center gap-1">
-                  <XCircle className="h-4 w-4 text-red-600" />
-                  {activeJob.failure_count} failed
-                </span>
-              )}
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
+      if (updateError) throw updateError;
 
-      {processing && (
-        <Alert>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <AlertDescription className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold">
-                Processing {currentIndex} of {activeJob?.total_count || eligibleCount}...
-              </span>
-              <Button onClick={pauseBackfill} size="sm" variant="outline">
-                <Pause className="h-4 w-4 mr-2" />
-                Pause
-              </Button>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              ~{Math.ceil(((activeJob?.total_count || eligibleCount) - currentIndex) * 6 / 60)} min remaining
-            </div>
-            <Progress value={progress} className="h-2" />
-            <div className="flex gap-4 text-sm">
-              <span className="flex items-center gap-1">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                {successCount} succeeded
-              </span>
-              {failureCount > 0 && (
-                <span className="flex items-center gap-1">
-                  <XCircle className="h-4 w-4 text-red-600" />
-                  {failureCount} failed
-                </span>
-              )}
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-    </div>
-  );
+      // Call server function to resume
+      const { data, error } = await supabase.functions.invoke('resume-use-case-job', {
+        body: { 
+          job_id: activeJob.id,
+          chain: true 
+        }
+      });
 
-  // Compact mode rendering
-  if (variant === "compact") {
-    if (loading) {
-      return (
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Loading...</span>
-        </div>
-      );
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      console.log('✅ Job resumed:', data);
+      toast.success('Use case generation resumed!');
+      
+      await checkForActiveJob();
+    } catch (error: any) {
+      console.error('Failed to resume:', error);
+      toast.error(`Failed to resume: ${error.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const isRunning = processing || activeJob?.status === 'running';
+  const getStatusBadge = () => {
+    if (!activeJob) return null;
+    
+    const statusConfig = {
+      running: { label: 'Running', variant: 'default' as const, icon: Loader2 },
+      paused: { label: 'Paused', variant: 'secondary' as const, icon: Pause },
+      completed: { label: 'Completed', variant: 'outline' as const, icon: CheckCircle2 },
+    };
 
-    if (eligibleCount === 0 && !activeJob && !processing) {
-      return (
-        <Badge variant="secondary" className="gap-1">
-          <CheckCircle className="h-3 w-3" />
-          All Set
-        </Badge>
-      );
-    }
+    const config = statusConfig[activeJob.status as keyof typeof statusConfig];
+    if (!config) return null;
 
+    const Icon = config.icon;
+    
     return (
-      <div className="flex items-center gap-3">
-        {/* Idle state: ready to generate */}
-        {!isRunning && !activeJob && eligibleCount > 0 && (
-          <Button onClick={() => processBackfill()} size="sm" className="gap-2">
-            <Sparkles className="h-4 w-4" />
-            Generate Use Cases ({eligibleCount.toLocaleString()})
-          </Button>
-        )}
+      <Badge variant={config.variant} className="gap-1">
+        <Icon className={`h-3 w-3 ${activeJob.status === 'running' ? 'animate-spin' : ''}`} />
+        {config.label}
+      </Badge>
+    );
+  };
 
-        {/* Paused state */}
-        {!isRunning && activeJob?.status === 'paused' && (
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="gap-1">
-                  <Pause className="h-3 w-3" />
-                  Paused
-                </Badge>
-                <span className="text-sm font-medium tabular-nums">
-                  {activeJob.processed_count.toLocaleString()}/{activeJob.total_count.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <CheckCircle className="h-3 w-3 text-green-600" />
-                  {activeJob.success_count} success
-                </span>
-                {activeJob.failure_count > 0 && (
-                  <span className="flex items-center gap-1">
-                    <XCircle className="h-3 w-3 text-destructive" />
-                    {activeJob.failure_count} failed
-                  </span>
-                )}
-              </div>
-            </div>
-            <Button onClick={() => processBackfill(activeJob.id)} size="sm" className="gap-2">
-              <Play className="h-4 w-4" />
+  const progress = activeJob ? 
+    (activeJob.total_count > 0 ? (activeJob.processed_count / activeJob.total_count) * 100 : 0) 
+    : 0;
+
+  if (variant === "compact") {
+    return (
+      <>
+        <div className="flex items-center gap-2">
+          {getStatusBadge()}
+          
+          {!activeJob && (
+            <Button
+              onClick={startJob}
+              variant="outline"
+              size="sm"
+              disabled={loading}
+            >
+              <Play className="h-4 w-4 mr-2" />
+              Start
+            </Button>
+          )}
+
+          {activeJob?.status === 'paused' && (
+            <Button
+              onClick={resumeJob}
+              variant="default"
+              size="sm"
+              disabled={loading}
+            >
+              <Play className="h-4 w-4 mr-2" />
               Resume
             </Button>
-          </div>
-        )}
+          )}
 
-        {/* Running state */}
-        {isRunning && (
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col gap-1.5 min-w-[180px]">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-muted-foreground">Generating...</span>
-                <span className="font-mono font-medium tabular-nums">
-                  {currentIndex.toLocaleString()}/{(activeJob?.total_count || eligibleCount).toLocaleString()}
-                </span>
-              </div>
-              <Progress 
-                value={activeJob?.total_count ? (currentIndex / activeJob.total_count) * 100 : progress} 
-                className="h-2" 
-              />
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <CheckCircle className="h-3 w-3 text-green-600" />
-                  {successCount}
-                </span>
-                {failureCount > 0 && (
-                  <span className="flex items-center gap-1">
-                    <XCircle className="h-3 w-3 text-destructive" />
-                    {failureCount}
-                  </span>
-                )}
-              </div>
-            </div>
+          {activeJob?.status === 'running' && (
             <Button
-              onClick={pauseBackfill}
-              disabled={pauseSignal.current}
+              onClick={pauseJob}
+              variant="secondary"
               size="sm"
-              variant="outline"
-              className="gap-2"
+              disabled={loading}
             >
-              <Pause className="h-4 w-4" />
+              <Pause className="h-4 w-4 mr-2" />
               Pause
             </Button>
-          </div>
-        )}
+          )}
 
-        {/* Info dialog button - always visible when there's activity */}
-        {(isRunning || activeJob) && (
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                <Info className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5" />
-                  Use Case Generation Details
-                </DialogTitle>
-              </DialogHeader>
-              {renderDetailedView()}
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
+          {activeJob && (
+            <Button
+              onClick={() => setShowDetails(true)}
+              variant="ghost"
+              size="sm"
+            >
+              <Info className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+
+        <Dialog open={showDetails} onOpenChange={setShowDetails}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Use Case Generation Progress</DialogTitle>
+              <DialogDescription>
+                {activeJob ? (
+                  <span>{activeJob.processed_count} of {activeJob.total_count} reports processed</span>
+                ) : (
+                  <span>Generate personalized use cases for reports</span>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {activeJob && (
+              <div className="space-y-6">
+                {/* Progress */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Progress</span>
+                    <span className="font-medium">{Math.round(progress)}%</span>
+                  </div>
+                  <Progress value={progress} className="h-2" />
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="p-4 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-1">Processed</p>
+                    <p className="text-2xl font-bold">{activeJob.processed_count}</p>
+                  </div>
+                  <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-1">Success</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      {activeJob.success_count}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-1">Failed</p>
+                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                      {activeJob.failure_count}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Info */}
+                <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                  <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                  <div className="text-sm text-blue-900 dark:text-blue-100">
+                    <p className="mb-2">Job is running in the background on the server.</p>
+                    <p>You can close this dialog or even leave the page - the job will continue processing.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 
-  // Banner mode (default) rendering
-  if (loading) {
-    return (
-      <Alert>
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <AlertDescription>Loading eligible reports...</AlertDescription>
-      </Alert>
-    );
-  }
-
-  if (eligibleCount === 0 && !processing) {
-    return (
-      <Alert>
-        <CheckCircle className="h-4 w-4 text-green-600" />
-        <AlertDescription>
-          All reports with company names and industries already have personalized use cases!
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  return renderDetailedView();
+  return null;
 };

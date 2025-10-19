@@ -17,7 +17,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon, Award, Crown, AlertTriangle, Briefcase, Flame, Filter, DollarSign, Upload, Copy, ExternalLink, Wrench } from "lucide-react";
+import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon, Award, Crown, AlertTriangle, Briefcase, Flame, Filter, DollarSign, Upload, Copy, ExternalLink, Wrench, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { ComposedChart, Area, Line, Bar, BarChart, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
@@ -225,14 +225,24 @@ const AdminDashboard = () => {
   const [marketOpportunity, setMarketOpportunity] = useState({ totalOpportunity: 0, activeProspects: 0, avgPerProspect: 0 });
   
   const handleCleanupStuckJobs = async () => {
+    setLoading(true);
     try {
-      toast.loading("Checking for stuck use case generation jobs...");
-      
       const { data, error } = await supabase.functions.invoke('cleanup-stuck-use-case-jobs');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Cleanup function error:', error);
+        toast.error(`Failed to clean up: ${error.message || 'Unknown error'}`);
+        return;
+      }
       
-      toast.dismiss();
+      if (data?.error) {
+        console.error('Cleanup returned error:', data);
+        toast.error(`Cleanup error: ${data.error}${data.details ? ` - ${data.details}` : ''}`);
+        return;
+      }
+      
+      console.log('Cleanup result:', data);
+      toast.success(data.message || `Cleaned up ${data.cleanedJobs} stuck job(s)`);
       
       if (data.cleanedJobs > 0) {
         toast.success(`Cleaned up ${data.cleanedJobs} stuck job(s)`);

@@ -17,10 +17,12 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    console.log('Starting cleanup of stuck use case generation jobs...');
+    console.log('🧹 Starting cleanup of stuck use case generation jobs...');
 
     // Find jobs with status='running' that haven't been updated in 10+ minutes
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    
+    console.log(`Looking for jobs with started_at < ${tenMinutesAgo}`);
     
     const { data: stuckJobs, error: fetchError } = await supabaseClient
       .from('use_case_generation_jobs')
@@ -29,15 +31,19 @@ serve(async (req) => {
       .lt('started_at', tenMinutesAgo);
 
     if (fetchError) {
-      console.error('Error fetching stuck jobs:', fetchError);
+      console.error('❌ Error fetching stuck jobs:', fetchError);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch stuck jobs' }),
+        JSON.stringify({ 
+          error: 'Failed to fetch stuck jobs',
+          details: fetchError.message,
+          code: fetchError.code
+        }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     if (!stuckJobs || stuckJobs.length === 0) {
-      console.log('No stuck jobs found');
+      console.log('✅ No stuck jobs found');
       return new Response(
         JSON.stringify({ 
           success: true,
@@ -48,7 +54,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Found ${stuckJobs.length} stuck jobs, marking as paused...`);
+    console.log(`⚠️ Found ${stuckJobs.length} stuck jobs, marking as paused...`);
 
     // Mark each stuck job as 'paused'
     for (const job of stuckJobs) {
@@ -61,9 +67,9 @@ serve(async (req) => {
         .eq('id', job.id);
 
       if (updateError) {
-        console.error(`Error updating job ${job.id}:`, updateError);
+        console.error(`❌ Error updating job ${job.id}:`, updateError);
       } else {
-        console.log(`Marked job ${job.id} as paused (was inactive for 10+ minutes)`);
+        console.log(`✅ Marked job ${job.id} as paused (was inactive for 10+ minutes)`);
 
         // Log to audit trail
         await supabaseClient
@@ -80,7 +86,7 @@ serve(async (req) => {
       }
     }
 
-    console.log('Cleanup complete');
+    console.log('✅ Cleanup complete');
 
     return new Response(
       JSON.stringify({
@@ -97,10 +103,11 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error in cleanup-stuck-use-case-jobs:', error);
+    console.error('❌ Error in cleanup-stuck-use-case-jobs:', error);
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Unknown error occurred' 
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        details: error instanceof Error ? error.stack : String(error)
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
