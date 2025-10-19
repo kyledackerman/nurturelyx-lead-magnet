@@ -1,8 +1,14 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
 const Footer = () => {
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
+
   useEffect(() => {
+    // Don't load chat widget on admin pages
+    if (isAdminPage) return;
+
     const script = document.createElement('script');
     script.src = "https://widgets.leadconnectorhq.com/loader.js";
     script.setAttribute('data-resources-url', 'https://widgets.leadconnectorhq.com/chat-widget/loader.js');
@@ -16,7 +22,7 @@ const Footer = () => {
         document.body.removeChild(script);
       }
     };
-  }, []);
+  }, [isAdminPage]);
   return (
     <footer className="bg-black border-t border-gray-800">
       <div className="container mx-auto px-4 py-12">
