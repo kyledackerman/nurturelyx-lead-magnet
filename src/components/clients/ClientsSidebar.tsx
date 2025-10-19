@@ -69,7 +69,7 @@ export function ClientsSidebar() {
                       className={({ isActive }) =>
                         isActive
                           ? "bg-accent text-accent-foreground font-medium"
-                          : "hover:bg-accent/50"
+                          : "text-sidebar-foreground hover:bg-accent/10 hover:text-sidebar-foreground"
                       }
                     >
                       <view.icon className="mr-2 h-4 w-4" />
