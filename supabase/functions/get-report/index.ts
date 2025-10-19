@@ -135,7 +135,14 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        reportData: report.report_data,
+        reportData: {
+          ...report.report_data,
+          extracted_company_name: report.extracted_company_name,
+          personalized_use_cases: report.personalized_use_cases,
+          industry: report.industry,
+          reportId: report.id,
+          slug: report.slug,
+        },
         reportId: report.id,
         slug: report.slug,
         createdAt: report.created_at,
