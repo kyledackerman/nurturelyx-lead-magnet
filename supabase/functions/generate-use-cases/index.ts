@@ -121,29 +121,7 @@ Do not include section headers, bullet points, or intro/outro text. Output only 
                   },
                   industry_category: {
                     type: "string",
-                    description: "2-word maximum industry category that best describes this business type",
-                    enum: [
-                      "hvac", "plumbing", "roofing", "electrical", "automotive", "legal", 
-                      "medical", "real-estate", "restaurant", "retail", "insurance", 
-                      "construction", "moving-services", "pest-control", "landscaping", 
-                      "photography", "fitness", "education", "consulting", "marketing", 
-                      "accounting", "veterinary", "salon-beauty", "home-security", 
-                      "pool-service", "window-cleaning", "carpet-cleaning", "locksmith", 
-                      "property-management", "mortgage", "financial-services", "it-services", 
-                      "web-design", "manufacturing", "wholesale", "distribution", 
-                      "e-commerce", "hospitality", "healthcare", "dental", "chiropractic",
-                      "physical-therapy", "mental-health", "senior-care", "childcare",
-                      "home-improvement", "flooring", "painting", "kitchen-remodeling",
-                      "solar-energy", "waste-management", "logistics", "transportation",
-                      "storage", "event-planning", "catering", "cleaning-services",
-                      "security-services", "telecommunications", "software", "saas",
-                      "app-development", "game-development", "graphic-design", "video-production",
-                      "music", "entertainment", "travel", "tourism", "hotel",
-                      "spa-wellness", "nonprofit", "government", "association",
-                      "franchising", "automotive-repair", "tire-shop", "oil-change",
-                      "car-wash", "auto-detailing", "towing", "collision-repair",
-                      "other"
-                    ]
+                    description: "Industry category that best describes this business (max 3 words, lowercase, hyphenated if needed). Examples: hvac, legal, real-estate, financial-services, home-services, medical-practice, etc. Be specific and concise."
                   }
                 },
                 required: ["use_cases", "industry_category"],
