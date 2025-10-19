@@ -6,6 +6,7 @@ import { PasswordManagement } from "@/components/admin/PasswordManagement";
 import LeaderboardTab from "@/components/admin/LeaderboardTab";
 import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
 import { ProspectImporter } from "@/components/admin/ProspectImporter";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1259,30 +1260,33 @@ const AdminDashboard = () => {
                 Monitor submitted domains and report analytics
               </p>
             </div>
-            <Button onClick={() => {
-              fetchReports();
-              fetchStats();
-              fetchChartData(timePeriod);
-              fetchViewsChartData(viewsTimePeriod);
-              fetchTrafficStats();
-              fetchMostVisitedPages();
-              fetchShareDistribution();
-              fetchHourlyHeatmap();
-              fetchTopReports();
-              fetchRecentViews();
-              fetchPeakPerformanceDay();
-              fetchQualityScore();
-              fetchTopRevenueDomain();
-              fetchTopLeadsDomain();
-              fetchAverageDealSize();
-              fetchHotStreak();
-              fetchConversionRate();
-              fetchTotalMarketOpportunity();
-              setLastUpdated(new Date());
-              toast.success('Data refreshed!');
-            }} disabled={loading}>
-              Refresh Data
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button onClick={() => {
+                fetchReports();
+                fetchStats();
+                fetchChartData(timePeriod);
+                fetchViewsChartData(viewsTimePeriod);
+                fetchTrafficStats();
+                fetchMostVisitedPages();
+                fetchShareDistribution();
+                fetchHourlyHeatmap();
+                fetchTopReports();
+                fetchRecentViews();
+                fetchPeakPerformanceDay();
+                fetchQualityScore();
+                fetchTopRevenueDomain();
+                fetchTopLeadsDomain();
+                fetchAverageDealSize();
+                fetchHotStreak();
+                fetchConversionRate();
+                fetchTotalMarketOpportunity();
+                setLastUpdated(new Date());
+                toast.success('Data refreshed!');
+              }} disabled={loading}>
+                Refresh Data
+              </Button>
+            </div>
           </div>
 
           {/* Stats Cards */}

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { HelmetProvider } from "react-helmet-async";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { ScrollToTopOnRouteChange } from "@/components/ScrollToTopOnRouteChange";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -38,11 +39,12 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <HelmetProvider>
-        <TooltipProvider>
-          <Sonner />
-          <BrowserRouter>
-            <ScrollToTopOnRouteChange />
-            <Routes>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <TooltipProvider>
+            <Sonner />
+            <BrowserRouter>
+              <ScrollToTopOnRouteChange />
+              <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/learn" element={<LearnPage />} />
             <Route path="/pricing" element={<PricingPage />} />
@@ -84,9 +86,10 @@ const App = () => (
             <Route path="/top-companies-losing-revenue" element={<TopCompaniesPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-        </TooltipProvider>
+            </Routes>
+          </BrowserRouter>
+          </TooltipProvider>
+        </ThemeProvider>
       </HelmetProvider>
     </AuthProvider>
   </QueryClientProvider>

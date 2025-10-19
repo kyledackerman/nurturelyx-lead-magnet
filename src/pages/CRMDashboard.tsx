@@ -11,6 +11,7 @@ import { CRMRealtimeProvider } from "@/contexts/CRMRealtimeContext";
 import { CRMErrorBoundary } from "@/components/crm/CRMErrorBoundary";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { CRMSidebar } from "@/components/crm/CRMSidebar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { toast } from "sonner";
 
 export default function CRMDashboard() {
@@ -49,12 +50,19 @@ export default function CRMDashboard() {
             />
             
             <main className="flex-1 flex flex-col">
-          <CRMHeader 
-            onOpenProgressDialog={handleOpenProgressDialog}
-            currentView={selectedView}
-            onRefreshData={handleRefreshData}
-            onDomainSelect={handleDomainSelect}
-          />
+              <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="flex h-14 items-center gap-4 px-4">
+                  <div className="flex-1">
+                    <CRMHeader 
+                      onOpenProgressDialog={handleOpenProgressDialog}
+                      currentView={selectedView}
+                      onRefreshData={handleRefreshData}
+                      onDomainSelect={handleDomainSelect}
+                    />
+                  </div>
+                  <ThemeToggle />
+                </div>
+              </div>
               
               <div className="container mx-auto px-4 py-6 max-w-[2000px]">
                 {selectedView === "new-prospects" && (

@@ -7,6 +7,7 @@ import { ClientDetailPanel } from "@/components/clients/ClientDetailPanel";
 import { SupportTicketsTable } from "@/components/clients/SupportTicketsTable";
 import { TicketDetailDialog } from "@/components/clients/TicketDetailDialog";
 import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function ClientsDashboard() {
   const [searchParams] = useSearchParams();
@@ -38,6 +39,7 @@ export default function ClientsDashboard() {
                     }
                   </p>
                 </div>
+                <ThemeToggle />
               </div>
             </header>
 

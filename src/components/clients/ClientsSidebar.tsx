@@ -68,8 +68,8 @@ export function ClientsSidebar() {
                       to={view.url}
                       className={({ isActive }) =>
                         isActive
-                          ? "bg-accent text-accent-foreground font-medium"
-                          : "text-sidebar-foreground hover:bg-accent/10 hover:text-sidebar-foreground"
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                       }
                     >
                       <view.icon className="mr-2 h-4 w-4" />
