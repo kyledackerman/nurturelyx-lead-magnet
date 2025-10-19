@@ -728,6 +728,18 @@ export default function ProspectDetailPanel({ prospectId, onClose }: ProspectDet
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Report
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const publicUrl = `https://x1.nurturely.io/report/${prospect.report?.slug}`;
+                      navigator.clipboard.writeText(publicUrl);
+                      toast.success("Public URL copied to clipboard!");
+                    }}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy URL
+                  </Button>
                 </div>
               </div>
             </SheetHeader>

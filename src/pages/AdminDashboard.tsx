@@ -16,7 +16,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon, Award, Crown, AlertTriangle, Briefcase, Flame, Filter, DollarSign, Upload } from "lucide-react";
+import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon, Award, Crown, AlertTriangle, Briefcase, Flame, Filter, DollarSign, Upload, Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { ComposedChart, Area, Line, Bar, BarChart, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
@@ -1130,9 +1130,42 @@ const AdminDashboard = () => {
               slug: saveResult.slug
             } : null);
             console.log('Report saved:', saveResult);
+            
+            // Generate public URL
+            const publicUrl = `https://x1.nurturely.io/report/${saveResult.slug}`;
+            
             toast.success('Report saved successfully!', {
-              description: 'Report has been added to the database.',
-              duration: 4000
+              description: (
+                <div className="flex flex-col gap-2 mt-2">
+                  <p className="text-sm">Public URL created:</p>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(publicUrl);
+                        toast.success('URL copied to clipboard!');
+                      }}
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      Copy URL
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(publicUrl, '_blank');
+                      }}
+                    >
+                      <ExternalLink className="h-3 w-3 mr-1" />
+                      View Report
+                    </Button>
+                  </div>
+                </div>
+              ),
+              duration: 8000
             });
 
             // Refresh the reports list

@@ -291,6 +291,18 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
     }
   };
 
+  const copyPublicUrl = async (slug: string, id: string) => {
+    const publicUrl = `https://x1.nurturely.io/report/${slug}`;
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      setCopiedId(id);
+      toast.success('Public URL copied to clipboard');
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (error) {
+      toast.error('Failed to copy');
+    }
+  };
+
   const openReport = (slug: string) => {
     const url = `${window.location.origin}/report/${slug}`;
     window.open(url, '_blank');
@@ -335,6 +347,7 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
             <SortableHeader label="Created" sortKey="created_at" />
             <TableHead>Status</TableHead>
             <TableHead>Owner</TableHead>
+            <TableHead>Public URL</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -414,6 +427,23 @@ export const AdminReportsTable = ({ reports, loading, onReportUpdate }: AdminRep
                         <Copy className={`h-3 w-3 ${copiedId === report.id + '-user' ? 'text-green-500' : ''}`} />
                       </Button>
                     )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center justify-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyPublicUrl(report.slug, report.id + '-public')}
+                      className="h-8"
+                      title="Copy public URL to clipboard"
+                    >
+                      {copiedId === report.id + '-public' ? (
+                        <span className="text-xs text-green-600">Copied!</span>
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
                 </TableCell>
                 <TableCell>

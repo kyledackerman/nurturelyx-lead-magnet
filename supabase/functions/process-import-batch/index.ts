@@ -536,7 +536,7 @@ Deno.serve(async (req) => {
               industry,
               monthly_traffic_tier: trafficTier,
               company_size: companySize,
-              is_public: false,
+              is_public: true,
             })
             .select('id')
             .single();
