@@ -59,8 +59,12 @@ const PublicReportPage = () => {
 
   // Generate SEO-optimized metadata
   const generateMetadata = (data: ReportData) => {
-    const title = `${data.domain} Lead Loss Report | ${formatCurrency(data.yearlyRevenueLost)}/year Lost Revenue`;
-    const description = `${data.domain} is losing $${formatCurrency(data.monthlyRevenueLost)}/month ($${formatCurrency(data.yearlyRevenueLost)}/year) from ${data.missedLeads.toLocaleString()} missed leads. Free analysis and recommendations.`;
+    const yearlyRevenue = data.yearlyRevenueLost || 0;
+    const monthlyRevenue = data.monthlyRevenueLost || 0;
+    const leads = data.missedLeads || 0;
+    
+    const title = `${data.domain || 'Company'} Lead Loss Report | ${formatCurrency(yearlyRevenue)}/year Lost Revenue`;
+    const description = `${data.domain || 'Company'} is losing $${formatCurrency(monthlyRevenue)}/month ($${formatCurrency(yearlyRevenue)}/year) from ${leads.toLocaleString()} missed leads. Free analysis and recommendations.`;
     const url = `https://x1.nurturely.io/report/${slug}`;
 
     return { title, description, url };

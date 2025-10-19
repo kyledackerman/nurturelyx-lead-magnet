@@ -44,10 +44,13 @@ interface LeadReportProps {
 
 const LeadReport = ({ data, onReset, onEditData, isPublicView = false, onUpdate }: LeadReportProps) => {
   // Generate a consistent reportId if one doesn't exist
-  const reportId = data.reportId || `report_${Date.now()}_${data.domain.replace(/\./g, '_')}`;
+  const reportId = data.reportId || `report_${Date.now()}_${String(data.domain || '').replace(/\./g, '_')}`;
   
-  const industryName = data.industry ? data.industry.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
-  const companyName = data.extracted_company_name || data.domain;
+  // Safely handle industry name transformation
+  const industryName = data.industry && typeof data.industry === 'string' 
+    ? data.industry.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) 
+    : null;
+  const companyName = data.extracted_company_name || data.domain || 'Company';
   
   const breadcrumbItems = [];
   if (data.industry && industryName) {
