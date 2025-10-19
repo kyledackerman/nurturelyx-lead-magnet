@@ -356,6 +356,8 @@ export const BackfillUseCasesButton = ({ variant = "banner" }: BackfillUseCasesB
       );
     }
 
+    const isRunning = processing || activeJob?.status === 'running';
+
     if (eligibleCount === 0 && !activeJob && !processing) {
       return (
         <Badge variant="secondary" className="gap-1">
@@ -366,80 +368,107 @@ export const BackfillUseCasesButton = ({ variant = "banner" }: BackfillUseCasesB
     }
 
     return (
-      <div className="flex items-center gap-2">
-        {!processing && !activeJob && eligibleCount > 0 && (
-          <Button onClick={() => processBackfill()} size="sm">
-            <Sparkles className="h-4 w-4 mr-2" />
-            Generate Use Cases ({eligibleCount})
+      <div className="flex items-center gap-3">
+        {/* Idle state: ready to generate */}
+        {!isRunning && !activeJob && eligibleCount > 0 && (
+          <Button onClick={() => processBackfill()} size="sm" className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            Generate Use Cases ({eligibleCount.toLocaleString()})
           </Button>
         )}
 
-        {!processing && activeJob?.status === 'paused' && (
-          <>
-            <Button onClick={() => processBackfill(activeJob.id)} size="sm">
-              <Play className="h-4 w-4 mr-2" />
-              Resume ({activeJob.processed_count}/{activeJob.total_count})
-            </Button>
-            <div className="flex items-center gap-2 text-xs">
-              <Badge variant="outline" className="gap-1">
-                <CheckCircle className="h-3 w-3 text-green-600" />
-                {activeJob.success_count}
-              </Badge>
-              {activeJob.failure_count > 0 && (
+        {/* Paused state */}
+        {!isRunning && activeJob?.status === 'paused' && (
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
                 <Badge variant="outline" className="gap-1">
-                  <XCircle className="h-3 w-3 text-red-600" />
-                  {activeJob.failure_count}
+                  <Pause className="h-3 w-3" />
+                  Paused
                 </Badge>
-              )}
+                <span className="text-sm font-medium tabular-nums">
+                  {activeJob.processed_count.toLocaleString()}/{activeJob.total_count.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <CheckCircle className="h-3 w-3 text-green-600" />
+                  {activeJob.success_count} success
+                </span>
+                {activeJob.failure_count > 0 && (
+                  <span className="flex items-center gap-1">
+                    <XCircle className="h-3 w-3 text-destructive" />
+                    {activeJob.failure_count} failed
+                  </span>
+                )}
+              </div>
             </div>
-          </>
+            <Button onClick={() => processBackfill(activeJob.id)} size="sm" className="gap-2">
+              <Play className="h-4 w-4" />
+              Resume
+            </Button>
+          </div>
         )}
 
-        {processing && (
-          <>
-            <Button onClick={pauseBackfill} size="sm" variant="outline">
-              <Pause className="h-4 w-4 mr-2" />
+        {/* Running state */}
+        {isRunning && (
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-1.5 min-w-[180px]">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-muted-foreground">Generating...</span>
+                <span className="font-mono font-medium tabular-nums">
+                  {currentIndex.toLocaleString()}/{(activeJob?.total_count || eligibleCount).toLocaleString()}
+                </span>
+              </div>
+              <Progress 
+                value={activeJob?.total_count ? (currentIndex / activeJob.total_count) * 100 : progress} 
+                className="h-2" 
+              />
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <CheckCircle className="h-3 w-3 text-green-600" />
+                  {successCount}
+                </span>
+                {failureCount > 0 && (
+                  <span className="flex items-center gap-1">
+                    <XCircle className="h-3 w-3 text-destructive" />
+                    {failureCount}
+                  </span>
+                )}
+              </div>
+            </div>
+            <Button
+              onClick={pauseBackfill}
+              disabled={pauseSignal.current}
+              size="sm"
+              variant="outline"
+              className="gap-2"
+            >
+              <Pause className="h-4 w-4" />
               Pause
             </Button>
-            <div className="flex items-center gap-2">
-              <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                {currentIndex}/{activeJob?.total_count || eligibleCount}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <Badge variant="outline" className="gap-1">
-                <CheckCircle className="h-3 w-3 text-green-600" />
-                {successCount}
-              </Badge>
-              {failureCount > 0 && (
-                <Badge variant="outline" className="gap-1">
-                  <XCircle className="h-3 w-3 text-red-600" />
-                  {failureCount}
-                </Badge>
-              )}
-            </div>
-          </>
+          </div>
         )}
 
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-              <Info className="h-4 w-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Use Case Generation Details</DialogTitle>
-            </DialogHeader>
-            {renderDetailedView()}
-          </DialogContent>
-        </Dialog>
+        {/* Info dialog button - always visible when there's activity */}
+        {(isRunning || activeJob) && (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                <Info className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  Use Case Generation Details
+                </DialogTitle>
+              </DialogHeader>
+              {renderDetailedView()}
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     );
   }
