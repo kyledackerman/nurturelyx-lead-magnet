@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Users, UserPlus, UserCheck, AlertTriangle, LifeBuoy } from "lucide-react";
+import { Users, UserPlus, UserCheck, AlertTriangle, LifeBuoy, LayoutDashboard, Target, Briefcase } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,6 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,24 @@ export function ClientsSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const { data: counts } = useClientSidebarCounts();
+
+  const dashboards = [
+    {
+      title: "Admin",
+      url: "/admin",
+      icon: LayoutDashboard,
+    },
+    {
+      title: "CRM",
+      url: "/admin/crm",
+      icon: Target,
+    },
+    {
+      title: "Clients",
+      url: "/admin/clients",
+      icon: Briefcase,
+    },
+  ];
 
   const views = [
     {
@@ -57,6 +76,34 @@ export function ClientsSidebar() {
   return (
     <Sidebar className={collapsed ? "w-14" : "w-60"}>
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Dashboards</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {dashboards.map((dashboard) => (
+                <SidebarMenuItem key={dashboard.url}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={dashboard.url}
+                      end
+                      className={({ isActive }) =>
+                        isActive
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                      }
+                    >
+                      <dashboard.icon className="mr-2 h-4 w-4" />
+                      {!collapsed && <span>{dashboard.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
         <SidebarGroup>
           <SidebarGroupLabel>Client Views</SidebarGroupLabel>
           <SidebarGroupContent>
