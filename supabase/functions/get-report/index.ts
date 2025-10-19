@@ -133,10 +133,29 @@ serve(async (req) => {
       }
     })();
 
+    // Log for debugging
+    console.log(`Report ${report.domain}: missedLeads=${report.report_data.missedLeads}, monthlyRevenue=${report.report_data.monthlyRevenueLost}`);
+
     return new Response(
       JSON.stringify({ 
         reportData: {
+          // Spread JSONB data first
           ...report.report_data,
+          
+          // Ensure required fields exist with fallbacks
+          domain: report.domain,
+          missedLeads: report.report_data.missedLeads || 0,
+          estimatedSalesLost: report.report_data.estimatedSalesLost || 0,
+          monthlyRevenueLost: report.report_data.monthlyRevenueLost || 
+                              report.report_data.estimatedMonthlyLoss || 0,
+          yearlyRevenueLost: report.report_data.yearlyRevenueLost || 
+                             report.report_data.estimatedAnnualLoss || 0,
+          organicTraffic: report.report_data.organicTraffic || 0,
+          paidTraffic: report.report_data.paidTraffic || 0,
+          avgTransactionValue: report.report_data.avgTransactionValue || 1000,
+          monthlyRevenueData: report.report_data.monthlyRevenueData || [],
+          
+          // Database columns
           extracted_company_name: report.extracted_company_name,
           personalized_use_cases: report.personalized_use_cases,
           industry: report.industry,
