@@ -17,7 +17,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon, Award, Crown, AlertTriangle, Briefcase, Flame, Filter, DollarSign, Upload, Copy, ExternalLink } from "lucide-react";
+import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon, Award, Crown, AlertTriangle, Briefcase, Flame, Filter, DollarSign, Upload, Copy, ExternalLink, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { ComposedChart, Area, Line, Bar, BarChart, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
@@ -223,6 +223,29 @@ const AdminDashboard = () => {
   const [hotStreak, setHotStreak] = useState({ currentStreak: 0, longestStreak: 0, isActive: false });
   const [conversionHealth, setConversionHealth] = useState({ conversionRate: 0, reportsInCRM: 0, totalReports: 0 });
   const [marketOpportunity, setMarketOpportunity] = useState({ totalOpportunity: 0, activeProspects: 0, avgPerProspect: 0 });
+  
+  const handleCleanupStuckJobs = async () => {
+    try {
+      toast.loading("Checking for stuck use case generation jobs...");
+      
+      const { data, error } = await supabase.functions.invoke('cleanup-stuck-use-case-jobs');
+      
+      if (error) throw error;
+      
+      toast.dismiss();
+      
+      if (data.cleanedJobs > 0) {
+        toast.success(`Cleaned up ${data.cleanedJobs} stuck job(s)`);
+      } else {
+        toast.info("No stuck jobs found");
+      }
+    } catch (error) {
+      toast.dismiss();
+      console.error('Error cleaning up stuck jobs:', error);
+      toast.error('Failed to cleanup stuck jobs');
+    }
+  };
+
   useEffect(() => {
     fetchReports();
     fetchStats();
@@ -2143,7 +2166,18 @@ const AdminDashboard = () => {
                       Search and filter through all submitted domain reports
                     </CardDescription>
                   </div>
-                  <BackfillUseCasesButton variant="compact" />
+                  <div className="flex items-center gap-2">
+                    <BackfillUseCasesButton variant="compact" />
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={handleCleanupStuckJobs}
+                      className="gap-2"
+                    >
+                      <Wrench className="h-4 w-4" />
+                      Cleanup Stuck Jobs
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center space-x-2 mb-4">

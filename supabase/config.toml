@@ -114,3 +114,7 @@ verify_jwt = true
 [functions.generate-use-cases]
 verify_jwt = true
 
+[functions.cleanup-stuck-use-case-jobs]
+verify_jwt = true
+
+

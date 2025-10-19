@@ -26,6 +26,37 @@ export const BackfillUseCasesButton = ({ variant = "banner" }: BackfillUseCasesB
   useEffect(() => {
     fetchEligibleCount();
     checkForActiveJob();
+    
+    // Check for stuck jobs on mount
+    const checkStuckJob = async () => {
+      const { data: runningJob } = await supabase
+        .from('use_case_generation_jobs')
+        .select('*')
+        .eq('status', 'running')
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (runningJob) {
+        const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+        const jobStartTime = new Date(runningJob.started_at).getTime();
+        
+        if (jobStartTime < tenMinutesAgo) {
+          // Job is stuck - offer to resume
+          setActiveJob(runningJob);
+          setCurrent(runningJob.processed_count || 0);
+          setSuccessCount(runningJob.success_count || 0);
+          setFailureCount(runningJob.failure_count || 0);
+          setProcessing(false);
+          
+          toast.info("Found interrupted job - click Resume to continue", {
+            duration: 10000
+          });
+        }
+      }
+    };
+    
+    checkStuckJob();
   }, []);
 
   const checkForActiveJob = async () => {
