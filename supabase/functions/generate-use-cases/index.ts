@@ -61,29 +61,37 @@ serve(async (req) => {
       : 'a business';
 
     // Build AI prompt
-    const prompt = `You are a B2B SaaS copywriter specializing in identity resolution. Analyze ${extracted_company_name} (${domain}) and write 2-3 specific, actionable scenarios showing how they can use identity resolution to convert anonymous visitors into customers and increase revenue.
+    const prompt = `You are writing for busy small business owners who hate corporate jargon. Analyze ${extracted_company_name} (${domain}) and write 2-3 real-world scenarios showing how they can turn anonymous website visitors into paying customers.
 
 Context:
 - Company: ${extracted_company_name}
 - Domain: ${domain}
-- Current Industry Tag: ${industry || 'unknown'}
+- Industry: ${industry || 'unknown'}
 - Monthly Traffic: ${organicTraffic.toLocaleString()}
-- Missed Leads/Month: ${missedLeads.toLocaleString()}
-- Avg Transaction Value: $${avgTransactionValue.toLocaleString()}
-- Yearly Revenue Lost: $${yearlyRevenueLost.toLocaleString()}
+- Visitors leaving without identifying: ${missedLeads.toLocaleString()}/month
+- Average sale: $${avgTransactionValue.toLocaleString()}
+- Money left on table yearly: $${yearlyRevenueLost.toLocaleString()}
 
-Each scenario must:
-- Use the actual company name "${extracted_company_name}" (not "your company")
-- Be specific to their actual business type with concrete examples
-- Include realistic dollar amounts based on their $${avgTransactionValue} sale value
-- Address their specific pain point: ${missedLeads.toLocaleString()} visitors leave without identifying themselves every month
-- Be written in second person ("your team can..." or "you can...")
-- Be 3-4 sentences each
-- Total length: 250-350 words
-- Conversational, confident tone
-- Focus on practical implementation and ROI
+Writing style (IMPORTANT):
+- Write like you're explaining to a friend over coffee
+- Use short sentences and simple words
+- No buzzwords like "leverage", "synergy", "actionable", "holistic", "solution"
+- Speak directly: "When someone visits your site..." not "When a prospect engages..."
+- Be specific and visual: "That contractor who spent 10 minutes reading your pricing page" not "high-intent visitors"
 
-Do not include section headers, bullet points, or intro/outro text. Output only the 2-3 scenarios as plain paragraphs separated by double line breaks.`;
+Each scenario should:
+- Use "${extracted_company_name}" (not "your company")
+- Show a concrete example from their actual business type
+- Include realistic dollar amounts based on $${avgTransactionValue} sales
+- Address this specific pain: ${missedLeads.toLocaleString()} people visit every month but you don't know who they are
+- Be 3-4 sentences
+- Total: 250-350 words
+
+Examples of the friendly tone we want:
+✅ "Picture this: someone spends 15 minutes on your pricing page at 2am, then vanishes. With identity resolution, you'd know they're the operations manager at ABC Corp—and your sales team can follow up in the morning."
+❌ "Identity resolution enables your organization to leverage visitor intelligence for actionable outreach strategies."
+
+Output only 2-3 scenario paragraphs separated by double line breaks. No headers, bullets, or intro/outro.`;
 
     console.log('Generating use cases and categorizing industry for:', extracted_company_name);
 
@@ -99,7 +107,7 @@ Do not include section headers, bullet points, or intro/outro text. Output only 
         messages: [
           {
             role: 'system',
-            content: 'You are an expert B2B SaaS copywriter specializing in identity resolution and lead generation. Analyze the company domain and business type, then generate compelling use cases and categorize the industry accurately.'
+            content: 'You write like a friendly SaaS sales rep who hates corporate speak. Keep it real, specific, and conversational—like explaining the product to a busy small business owner over coffee.'
           },
           {
             role: 'user',
