@@ -142,17 +142,22 @@ serve(async (req) => {
           // Spread JSONB data first
           ...report.report_data,
           
-          // Ensure required fields exist with fallbacks
+          // Coerce and ensure all numeric fields exist with fallbacks
           domain: report.domain,
-          missedLeads: report.report_data.missedLeads || 0,
-          estimatedSalesLost: report.report_data.estimatedSalesLost || 0,
-          monthlyRevenueLost: report.report_data.monthlyRevenueLost || 
-                              report.report_data.estimatedMonthlyLoss || 0,
-          yearlyRevenueLost: report.report_data.yearlyRevenueLost || 
-                             report.report_data.estimatedAnnualLoss || 0,
-          organicTraffic: report.report_data.organicTraffic || 0,
-          paidTraffic: report.report_data.paidTraffic || 0,
-          avgTransactionValue: report.report_data.avgTransactionValue || 1000,
+          missedLeads: Number(report.report_data.missedLeads ?? 0),
+          estimatedSalesLost: Number(report.report_data.estimatedSalesLost ?? 0),
+          monthlyRevenueLost: Number(report.report_data.monthlyRevenueLost ?? 
+                                     report.report_data.estimatedMonthlyLoss ?? 0),
+          yearlyRevenueLost: Number(report.report_data.yearlyRevenueLost ?? 
+                                    report.report_data.estimatedAnnualLoss ?? 0),
+          organicTraffic: Number(report.report_data.organicTraffic ?? 0),
+          paidTraffic: Number(report.report_data.paidTraffic ?? 0),
+          avgTransactionValue: Number(report.report_data.avgTransactionValue ?? 1000),
+          domainPower: Number(report.report_data.domainPower ?? 0),
+          organicKeywords: Number(report.report_data.organicKeywords ?? 0),
+          backlinks: Number(report.report_data.backlinks ?? 0),
+          monthlyVisitors: Number(report.report_data.monthlyVisitors ?? 
+                                  ((report.report_data.organicTraffic || 0) + (report.report_data.paidTraffic || 0))),
           monthlyRevenueData: report.report_data.monthlyRevenueData || [],
           
           // Database columns

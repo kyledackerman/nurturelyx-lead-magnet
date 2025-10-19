@@ -13,6 +13,7 @@ import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { ReportData } from "@/types/report";
 import { reportService } from "@/services/reportService";
 import { formatCurrency } from "@/lib/utils";
+import { CRMErrorBoundary } from "@/components/crm/CRMErrorBoundary";
 
 // Function to fetch report data by slug
 const fetchPublicReport = async (slug: string): Promise<ReportData | null> => {
@@ -107,67 +108,69 @@ const PublicReportPage = () => {
 
       <Header />
       
-      <main className="min-h-screen flex flex-col bg-background py-12">
-        <div className="container mx-auto">
-          {reportData && (
-            <div className="max-w-6xl mx-auto mb-6">
-              <Breadcrumb items={[
-                { label: "Reports", href: "/top-companies" },
-                { label: reportData.domain, href: `/report/${slug}` }
-              ]} />
-            </div>
-          )}
-          
-          {loading ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <div className="w-16 h-16 border-t-4 border-primary rounded-full animate-spin"></div>
-                <p className="mt-4 text-muted-foreground">Loading report...</p>
+      <CRMErrorBoundary>
+        <main className="min-h-screen flex flex-col bg-background py-12">
+          <div className="container mx-auto">
+            {reportData && (
+              <div className="max-w-6xl mx-auto mb-6">
+                <Breadcrumb items={[
+                  { label: "Reports", href: "/top-companies" },
+                  { label: reportData.domain, href: `/report/${slug}` }
+                ]} />
               </div>
-          ) : reportData ? (
-            <>
-              <article className="mb-8 max-w-3xl mx-auto text-center">
-                <h1 className="text-3xl font-bold text-foreground mb-4">
-                  Lead Loss Report for{" "}
-                  <span className="text-primary text-4xl">{reportData.domain}</span>
-                </h1>
-                <p className="text-lg text-muted-foreground mb-2">
-                  This report shows how much revenue this website is potentially losing 
-                  due to anonymous visitor traffic.
+            )}
+            
+            {loading ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="w-16 h-16 border-t-4 border-primary rounded-full animate-spin"></div>
+                  <p className="mt-4 text-muted-foreground">Loading report...</p>
+                </div>
+            ) : reportData ? (
+              <>
+                <article className="mb-8 max-w-3xl mx-auto text-center">
+                  <h1 className="text-3xl font-bold text-foreground mb-4">
+                    Lead Loss Report for{" "}
+                    <span className="text-primary text-4xl">{reportData.domain}</span>
+                  </h1>
+                  <p className="text-lg text-muted-foreground mb-2">
+                    This report shows how much revenue this website is potentially losing 
+                    due to anonymous visitor traffic.
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </p>
+                  <Button 
+                    onClick={handleCreateMyReport} 
+                    className="gradient-bg mx-auto mb-12"
+                    size="lg"
+                  >
+                    <ArrowRight className="mr-2 h-4 w-4" />
+                    Generate My Own Report
+                  </Button>
+                </article>
+                
+                <LeadReport
+                  data={reportData} 
+                  onReset={() => {}} 
+                  isPublicView={true}
+                />
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <BarChart3 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h2 className="text-xl font-semibold text-foreground mb-2">Report Not Found</h2>
+                <p className="text-muted-foreground mb-6">
+                  The report you're looking for doesn't exist or has been removed.
                 </p>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
-                <Button 
-                  onClick={handleCreateMyReport} 
-                  className="gradient-bg mx-auto mb-12"
-                  size="lg"
-                >
+                <Button onClick={handleCreateMyReport} className="gradient-bg">
                   <ArrowRight className="mr-2 h-4 w-4" />
-                  Generate My Own Report
+                  Create Your Own Report
                 </Button>
-              </article>
-              
-              <LeadReport
-                data={reportData} 
-                onReset={() => {}} 
-                isPublicView={true}
-              />
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <BarChart3 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h2 className="text-xl font-semibold text-foreground mb-2">Report Not Found</h2>
-              <p className="text-muted-foreground mb-6">
-                The report you're looking for doesn't exist or has been removed.
-              </p>
-              <Button onClick={handleCreateMyReport} className="gradient-bg">
-                <ArrowRight className="mr-2 h-4 w-4" />
-                Create Your Own Report
-              </Button>
-            </div>
-          )}
-        </div>
-      </main>
+              </div>
+            )}
+          </div>
+        </main>
+      </CRMErrorBoundary>
       
       <Footer />
     </>

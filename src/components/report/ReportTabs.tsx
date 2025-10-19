@@ -22,10 +22,10 @@ const ReportTabs = ({ data }: ReportTabsProps) => {
       <TabsContent value="overview" className="animate-fade-in">
         <DomainOverviewTab
           domain={data.domain}
-          domainPower={data.domainPower}
-          organicTraffic={data.organicTraffic}
-          organicKeywords={data.organicKeywords}
-          paidTraffic={data.paidTraffic || data.monthlyVisitors}
+          domainPower={data.domainPower ?? 0}
+          organicTraffic={data.organicTraffic ?? 0}
+          organicKeywords={data.organicKeywords ?? 0}
+          paidTraffic={data.paidTraffic ?? data.monthlyVisitors ?? 0}
         />
       </TabsContent>
 

@@ -25,17 +25,22 @@ const DomainOverviewTab = ({
   organicKeywords,
   paidTraffic,
 }: DomainOverviewTabProps) => {
-  const totalTraffic = organicTraffic + paidTraffic;
+  // Coerce all props to numbers for safe rendering
+  const organic = Number(organicTraffic || 0);
+  const paid = Number(paidTraffic || 0);
+  const keywords = Number(organicKeywords || 0);
+  const power = Number(domainPower || 0);
+  const totalTraffic = organic + paid;
   
   const trafficData = [
     {
       name: "Organic",
-      value: organicTraffic,
+      value: organic,
       fill: "#10b981", // green
     },
     {
       name: "Paid",
-      value: paidTraffic,
+      value: paid,
       fill: "#9b87f5", // purple
     },
   ];
@@ -58,12 +63,12 @@ const DomainOverviewTab = ({
               </div>
               <div className="flex flex-row justify-between py-2 border-b border-border">
                 <dt className="font-medium text-foreground">Domain Authority</dt>
-                <dd className="text-right text-foreground">{domainPower}/100</dd>
+                <dd className="text-right text-foreground">{power}/100</dd>
               </div>
               <div className="flex flex-row justify-between py-2 border-b border-border">
                 <dt className="font-medium text-foreground">Organic Keywords</dt>
                 <dd className="text-right text-foreground">
-                  {organicKeywords.toLocaleString()}
+                  {keywords.toLocaleString()}
                 </dd>
               </div>
               <div className="flex flex-row justify-between py-2 border-b border-border">
@@ -71,13 +76,13 @@ const DomainOverviewTab = ({
                   Monthly Organic Traffic
                 </dt>
                 <dd className="text-right text-foreground">
-                  {organicTraffic.toLocaleString()}
+                  {organic.toLocaleString()}
                 </dd>
               </div>
               <div className="flex flex-row justify-between py-2 border-b border-border">
                 <dt className="font-medium text-foreground">Monthly Paid Traffic</dt>
                 <dd className="text-right text-foreground">
-                  {paidTraffic.toLocaleString()}
+                  {paid.toLocaleString()}
                 </dd>
               </div>
             </dl>
@@ -127,11 +132,11 @@ const DomainOverviewTab = ({
             </div>
             <p className="text-sm text-muted-foreground mt-4">
               Your traffic sources show{" "}
-              {organicTraffic > paidTraffic
+              {organic > paid
                 ? "more organic than paid traffic"
                 : "more paid than organic traffic"}
-              {" "}({Math.round((organicTraffic / totalTraffic) * 100)}% organic, {Math.round((paidTraffic / totalTraffic) * 100)}% paid). This indicates{" "}
-              {organicTraffic > paidTraffic
+              {" "}({totalTraffic > 0 ? Math.round((organic / totalTraffic) * 100) : 0}% organic, {totalTraffic > 0 ? Math.round((paid / totalTraffic) * 100) : 0}% paid). This indicates{" "}
+              {organic > paid
                 ? "strong SEO performance"
                 : "a reliance on paid acquisition"}
               .
