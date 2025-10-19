@@ -2134,16 +2134,16 @@ const AdminDashboard = () => {
 
 
             <TabsContent value="reports" className="space-y-6">
-              {/* Backfill Tool */}
-              <BackfillUseCasesButton />
-
               {/* Search */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Submitted Domains</CardTitle>
-                  <CardDescription>
-                    Search and filter through all submitted domain reports
-                  </CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between gap-4">
+                  <div className="space-y-1.5">
+                    <CardTitle>Submitted Domains</CardTitle>
+                    <CardDescription>
+                      Search and filter through all submitted domain reports
+                    </CardDescription>
+                  </div>
+                  <BackfillUseCasesButton variant="compact" />
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center space-x-2 mb-4">

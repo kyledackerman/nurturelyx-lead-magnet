@@ -2,11 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Sparkles, Loader2, CheckCircle, XCircle, Pause, Play } from "lucide-react";
+import { Sparkles, Loader2, CheckCircle, XCircle, Pause, Play, Info } from "lucide-react";
 
-export const BackfillUseCasesButton = () => {
+interface BackfillUseCasesButtonProps {
+  variant?: "banner" | "compact";
+}
+
+export const BackfillUseCasesButton = ({ variant = "banner" }: BackfillUseCasesButtonProps) => {
   const [eligibleCount, setEligibleCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -257,27 +263,8 @@ export const BackfillUseCasesButton = () => {
     fetchEligibleCount();
   };
 
-  if (loading) {
-    return (
-      <Alert>
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <AlertDescription>Loading eligible reports...</AlertDescription>
-      </Alert>
-    );
-  }
-
-  if (eligibleCount === 0 && !processing) {
-    return (
-      <Alert>
-        <CheckCircle className="h-4 w-4 text-green-600" />
-        <AlertDescription>
-          All reports with company names and industries already have personalized use cases!
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  return (
+  // Render detailed view (for both banner mode and dialog content)
+  const renderDetailedView = () => (
     <div className="space-y-4">
       {!processing && !activeJob && (
         <Alert>
@@ -357,4 +344,126 @@ export const BackfillUseCasesButton = () => {
       )}
     </div>
   );
+
+  // Compact mode rendering
+  if (variant === "compact") {
+    if (loading) {
+      return (
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Loading...</span>
+        </div>
+      );
+    }
+
+    if (eligibleCount === 0 && !activeJob && !processing) {
+      return (
+        <Badge variant="secondary" className="gap-1">
+          <CheckCircle className="h-3 w-3" />
+          All Set
+        </Badge>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        {!processing && !activeJob && eligibleCount > 0 && (
+          <Button onClick={() => processBackfill()} size="sm">
+            <Sparkles className="h-4 w-4 mr-2" />
+            Generate Use Cases ({eligibleCount})
+          </Button>
+        )}
+
+        {!processing && activeJob?.status === 'paused' && (
+          <>
+            <Button onClick={() => processBackfill(activeJob.id)} size="sm">
+              <Play className="h-4 w-4 mr-2" />
+              Resume ({activeJob.processed_count}/{activeJob.total_count})
+            </Button>
+            <div className="flex items-center gap-2 text-xs">
+              <Badge variant="outline" className="gap-1">
+                <CheckCircle className="h-3 w-3 text-green-600" />
+                {activeJob.success_count}
+              </Badge>
+              {activeJob.failure_count > 0 && (
+                <Badge variant="outline" className="gap-1">
+                  <XCircle className="h-3 w-3 text-red-600" />
+                  {activeJob.failure_count}
+                </Badge>
+              )}
+            </div>
+          </>
+        )}
+
+        {processing && (
+          <>
+            <Button onClick={pauseBackfill} size="sm" variant="outline">
+              <Pause className="h-4 w-4 mr-2" />
+              Pause
+            </Button>
+            <div className="flex items-center gap-2">
+              <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {currentIndex}/{activeJob?.total_count || eligibleCount}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <Badge variant="outline" className="gap-1">
+                <CheckCircle className="h-3 w-3 text-green-600" />
+                {successCount}
+              </Badge>
+              {failureCount > 0 && (
+                <Badge variant="outline" className="gap-1">
+                  <XCircle className="h-3 w-3 text-red-600" />
+                  {failureCount}
+                </Badge>
+              )}
+            </div>
+          </>
+        )}
+
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+              <Info className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Use Case Generation Details</DialogTitle>
+            </DialogHeader>
+            {renderDetailedView()}
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+
+  // Banner mode (default) rendering
+  if (loading) {
+    return (
+      <Alert>
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <AlertDescription>Loading eligible reports...</AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (eligibleCount === 0 && !processing) {
+    return (
+      <Alert>
+        <CheckCircle className="h-4 w-4 text-green-600" />
+        <AlertDescription>
+          All reports with company names and industries already have personalized use cases!
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  return renderDetailedView();
 };
