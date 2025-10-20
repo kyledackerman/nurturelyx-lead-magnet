@@ -17,6 +17,7 @@ import { ProductSchema } from "@/components/seo/ProductSchema";
 import { FAQSchema } from "@/components/seo/FAQSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
+import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 
 const PricingPage = () => {
   usePageViewTracking('marketing');
@@ -201,6 +202,27 @@ const PricingPage = () => {
               </Accordion>
             </div>
           </section>
+
+          <InternalLinkingWidget 
+            title="Learn More About Visitor Identification"
+            links={[
+              {
+                title: "How It Works",
+                href: "/how-it-works",
+                description: "Understand the technology behind visitor identification"
+              },
+              {
+                title: "Industry Examples",
+                href: "/industries",
+                description: "See real revenue loss examples from your industry"
+              },
+              {
+                title: "Calculate Your ROI",
+                href: "/",
+                description: "Get a free analysis of your missed opportunities"
+              }
+            ]}
+          />
         </main>
 
         <Footer />

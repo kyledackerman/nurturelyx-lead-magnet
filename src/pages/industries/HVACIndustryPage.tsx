@@ -15,6 +15,7 @@ import { ServiceSchema } from "@/components/seo/ServiceSchema";
 import { LocalBusinessSchema } from "@/components/seo/LocalBusinessSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
+import { RelatedIndustries } from "@/components/seo/RelatedIndustries";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { AlertCircle } from "lucide-react";
@@ -165,6 +166,8 @@ export default function HVACIndustryPage() {
 
         <IndustryFAQ faqs={industry.faqs} />
         <FAQSchema questions={industry.faqs} />
+
+        <RelatedIndustries currentIndustry="hvac" />
 
         <CallToActionSection />
         

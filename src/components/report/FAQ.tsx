@@ -14,6 +14,7 @@ import {
 import { HelpCircle } from "lucide-react";
 import { ReportData } from "@/types/report";
 import { formatCurrency } from "@/lib/utils";
+import { FAQSchema } from "@/components/seo/FAQSchema";
 
 const getFaqItems = (data: ReportData): Array<{ question: string; answer: string | React.ReactNode }> => [
   {
@@ -132,32 +133,41 @@ interface FAQProps {
 const FAQ = ({ data }: FAQProps) => {
   const faqItems = getFaqItems(data);
   
+  // Convert FAQ items to simple format for schema
+  const schemaItems = faqItems.map(item => ({
+    question: item.question,
+    answer: typeof item.answer === 'string' ? item.answer : item.question // Fallback for React nodes
+  }));
+  
   return (
-    <Card className="bg-secondary mt-8">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <HelpCircle className="h-5 w-5 text-accent" />
-          <CardTitle>Frequently Asked Questions</CardTitle>
-        </div>
-        <CardDescription className="text-white">
-          Common questions about visitor identification and lead generation
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Accordion type="single" collapsible className="w-full">
-          {faqItems.map((item, index) => (
-            <AccordionItem key={index} value={`item-${index}`} className="border-accent/20">
-              <AccordionTrigger className="text-white hover:text-accent text-left">
-                {item.question}
-              </AccordionTrigger>
-              <AccordionContent className="text-white/90 text-sm leading-relaxed">
-                {item.answer}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </CardContent>
-    </Card>
+    <>
+      <FAQSchema questions={schemaItems} />
+      <Card className="bg-secondary mt-8">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <HelpCircle className="h-5 w-5 text-accent" />
+            <CardTitle>Frequently Asked Questions</CardTitle>
+          </div>
+          <CardDescription className="text-white">
+            Common questions about visitor identification and lead generation
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            {faqItems.map((item, index) => (
+              <AccordionItem key={index} value={`item-${index}`} className="border-accent/20">
+                <AccordionTrigger className="text-white hover:text-accent text-left">
+                  {item.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-white/90 text-sm leading-relaxed">
+                  {item.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </CardContent>
+      </Card>
+    </>
   );
 };
 
