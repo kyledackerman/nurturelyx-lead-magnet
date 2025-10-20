@@ -42,7 +42,7 @@ export default function LegalIndustryPage() {
     <>
       <MetaTags
         title="Legal Services Visitor Identification | Law Firm Lead Generation - NurturelyX"
-        description="Identify anonymous website visitors for law firms. Track potential clients researching legal services and practice areas."
+        description="Turn anonymous law firm website visitors into qualified legal clients. Identify prospects researching your services—get your free lead report & boost case intake."
         canonical="https://x1.nurturely.io/industries/legal"
         keywords="legal lead generation, law firm marketing, legal visitor tracking, attorney marketing"
       />

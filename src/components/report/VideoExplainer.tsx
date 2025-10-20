@@ -6,16 +6,27 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Play } from "lucide-react";
+import { VideoSchema } from "@/components/seo/VideoSchema";
 
 const VideoExplainer = () => {
   return (
-    <Card className="bg-secondary mt-8">
-      <CardHeader>
-        <CardTitle>How Identity Resolution Works</CardTitle>
-        <CardDescription className="text-white">
-          Watch our 6-minute explainer video
-        </CardDescription>
-      </CardHeader>
+    <>
+      <VideoSchema
+        name="How NurturelyX Identity Resolution Works"
+        description="Learn how NurturelyX identifies anonymous website visitors, integrates with your CRM, and delivers measurable ROI. This 6-minute video explains our privacy-compliant visitor identification technology."
+        thumbnailUrl="https://storage.googleapis.com/msgsndr/nhc9xkcyzpaPrEARWW66/media/685aaf88f1a84877bce891b5.webp"
+        contentUrl="https://storage.googleapis.com/msgsndr/nhc9xkcyzpaPrEARWW66/media/68cdb0502a247e0db3deb950.mp4"
+        uploadDate="2024-01-15"
+        duration="PT6M"
+      />
+      
+      <Card className="bg-secondary mt-8">
+        <CardHeader>
+          <CardTitle>How Identity Resolution Works</CardTitle>
+          <CardDescription className="text-white">
+            Watch our 6-minute explainer video
+          </CardDescription>
+        </CardHeader>
       <CardContent>
         <div className="relative aspect-video rounded-lg overflow-hidden bg-background">
           <video
@@ -41,7 +52,8 @@ const VideoExplainer = () => {
           </ul>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+    </>
   );
 };
 

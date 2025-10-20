@@ -42,7 +42,7 @@ export default function RealEstateIndustryPage() {
     <>
       <MetaTags
         title="Real Estate Visitor Identification | Property Lead Generation - NurturelyX"
-        description="Identify anonymous website visitors for real estate businesses. Track potential buyers and investors viewing property listings."
+        description="Identify anonymous real estate website visitors & convert property browsers into buyers. Track investors viewing your listings—get your free lead report now."
         canonical="https://x1.nurturely.io/industries/real-estate"
         keywords="real estate lead generation, property visitor tracking, real estate marketing, commercial real estate leads"
       />
