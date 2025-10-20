@@ -87,9 +87,12 @@ export default function HowItWorksPage() {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
               Turn Anonymous Traffic Into Leads
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground mb-6 max-w-3xl mx-auto">
               Discover who's visiting your website, what they're interested in, and how to reach them - 
               even if they never fill out a form.
+            </p>
+            <p className="text-2xl md:text-3xl font-bold text-destructive mb-8">
+              97-98% of your website visitors are completely anonymous
             </p>
             <Button asChild size="lg" className="gradient-bg" onClick={scrollToTopIfHomeLink}>
               <Link to="/">

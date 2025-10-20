@@ -10,11 +10,7 @@ export const ProblemStatement = () => {
         </div>
         
         <div className="text-center space-y-6">
-          <p className="text-2xl md:text-3xl font-bold text-destructive">
-            97-98% of your website visitors are completely anonymous
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="p-6 bg-background rounded-lg border">
               <div className="text-4xl font-bold text-destructive mb-2">97-98%</div>
               <p className="text-muted-foreground">
