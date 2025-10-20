@@ -11,12 +11,12 @@ export const ProblemStatement = () => {
         
         <div className="text-center space-y-6">
           <p className="text-2xl md:text-3xl font-bold text-destructive">
-            95% of your website visitors are completely anonymous
+            97-98% of your website visitors are completely anonymous
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
             <div className="p-6 bg-background rounded-lg border">
-              <div className="text-4xl font-bold text-destructive mb-2">95%</div>
+              <div className="text-4xl font-bold text-destructive mb-2">97-98%</div>
               <p className="text-muted-foreground">
                 Never fill out a form or contact you
               </p>
@@ -30,17 +30,19 @@ export const ProblemStatement = () => {
             </div>
             
             <div className="p-6 bg-background rounded-lg border">
-              <div className="text-4xl font-bold text-destructive mb-2">72%</div>
+              <div className="text-4xl font-bold text-destructive mb-2">97%</div>
               <p className="text-muted-foreground">
-                Leave without you knowing who they are
+                Remain completely anonymous
               </p>
             </div>
           </div>
           
           <p className="text-lg text-muted-foreground mt-8 max-w-3xl mx-auto">
-            You're spending money on ads, SEO, and content marketing to drive traffic to your website. 
-            But when visitors don't convert immediately, they vanish forever. You have no idea who they were, 
-            what they wanted, or how to follow up.
+            You're spending thousands on ads, SEO, and content marketing to drive traffic. But <span className="font-semibold text-foreground">97% of visitors leave without converting</span>. They don't fill out forms, they don't call, they just browse and vanish. You have no idea who they were, which pages they viewed, or how to follow up. That's not a lead generation problem—that's a <span className="font-semibold text-foreground">lead identification problem</span>.
+          </p>
+          
+          <p className="text-sm text-muted-foreground mt-4 italic">
+            * Industry averages based on data from 6sense, Leadpipe, and Factors.ai (2024-2025)
           </p>
         </div>
       </div>
