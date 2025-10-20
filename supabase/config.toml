@@ -120,4 +120,23 @@ verify_jwt = false
 [functions.resume-use-case-job]
 verify_jwt = false
 
+[functions.mark-international-domains-not-viable]
+verify_jwt = true
+
+[functions.reconcile-prospect-status]
+verify_jwt = true
+
+[functions.recover-stuck-job]
+verify_jwt = true
+
+[functions.force-clear-enrichments]
+verify_jwt = true
+
+[functions.get-enrichment-history]
+verify_jwt = true
+
+[functions.regenerate-icebreakers]
+verify_jwt = true
+
+
 

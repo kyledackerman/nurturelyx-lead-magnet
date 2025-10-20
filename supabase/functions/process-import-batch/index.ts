@@ -448,6 +448,40 @@ Deno.serve(async (req) => {
       // Wrap each row in try/catch to skip individual failures
       try {
         const cleanedDomain = cleanDomain(domain);
+        
+        // Import domain validation utility
+        const { isUSADomain, getRejectReason, extractTLD } = await import("../_shared/domainValidation.ts");
+        
+        // Block non-USA domains from being imported
+        if (!isUSADomain(cleanedDomain)) {
+          const tld = extractTLD(cleanedDomain);
+          const reason = getRejectReason(cleanedDomain);
+          console.log(`⊘ Rejected ${cleanedDomain}: Non-USA domain (${tld})`);
+          
+          failCount++;
+          errorLog.push({ 
+            timestamp: new Date().toISOString(),
+            row: rowNum, 
+            domain: cleanedDomain, 
+            error: `Non-USA domain rejected (${tld}) - ${reason}` 
+          });
+          
+          // Batch progress updates
+          if ((i - lastUpdateRow >= 5) || (i === endIdx - 1)) {
+            await supabaseClient
+              .from('import_jobs')
+              .update({
+                processed_rows: i + 1,
+                failed_rows: job.failed_rows + failCount,
+                error_log: errorLog,
+                last_updated_at: new Date().toISOString(),
+              })
+              .eq('id', jobId);
+            lastUpdateRow = i;
+          }
+          continue;
+        }
+        
         console.log(`Processing ${i + 1}/${dataRows.length}: ${cleanedDomain}`);
 
         let apiData: ApiData;

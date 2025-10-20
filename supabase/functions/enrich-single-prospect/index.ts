@@ -52,15 +52,31 @@ serve(async (req) => {
     const domain = prospect.reports.domain;
     const currentCompanyName = prospect.reports.extracted_company_name || domain;
 
-    // Block .edu/.gov/.mil domains immediately
-    const domainLower = domain.toLowerCase();
-    if (domainLower.endsWith('.edu') || domainLower.endsWith('.gov') || domainLower.endsWith('.mil')) {
-      console.log(`⊘ Rejected ${domain}: government/educational domain not viable for B2B`);
+    // Import domain validation utility
+    const { isUSADomain, getRejectReason, extractTLD } = await import("../_shared/domainValidation.ts");
+    
+    // Block non-USA domains immediately
+    if (!isUSADomain(domain)) {
+      const tld = extractTLD(domain);
+      const reason = getRejectReason(domain);
+      console.log(`⊘ Rejected ${domain}: Non-USA domain (${tld})`);
+      
+      // Update prospect to not_viable status
+      await supabase
+        .from("prospect_activities")
+        .update({
+          status: "not_viable",
+          lost_reason: "international_domain",
+          lost_notes: reason
+        })
+        .eq("id", prospect_id);
+      
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'Cannot enrich government/educational domains (.edu, .gov, .mil)',
-          notViable: true 
+          error: reason,
+          notViable: true,
+          tld: tld
         }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );

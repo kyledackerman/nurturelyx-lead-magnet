@@ -90,6 +90,26 @@ serve(async (req) => {
       );
     }
 
+    // Import domain validation utility
+    const { isUSADomain, getRejectReason, extractTLD } = await import("../_shared/domainValidation.ts");
+    
+    // Block non-USA domains from being added to CRM
+    if (!isUSADomain(report.domain)) {
+      const tld = extractTLD(report.domain);
+      const reason = getRejectReason(report.domain);
+      console.log(`⊘ Rejected ${report.domain}: Cannot add non-USA domain to CRM (${tld})`);
+      
+      return new Response(
+        JSON.stringify({ 
+          error: reason,
+          notViable: true,
+          tld: tld,
+          message: 'Cannot add non-USA domains to CRM'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Check if prospect activity already exists
     const { data: existingActivity } = await supabase
       .from('prospect_activities')
