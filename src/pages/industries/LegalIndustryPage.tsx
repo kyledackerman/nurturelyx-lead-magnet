@@ -7,6 +7,10 @@ import { IndustryDataOwnership } from "@/components/industry/IndustryDataOwnersh
 import { IndustryTestimonial } from "@/components/industry/IndustryTestimonial";
 import { StickyIndustryCTA } from "@/components/industry/StickyIndustryCTA";
 import { IndustryCompetitorComparison } from "@/components/industry/IndustryCompetitorComparison";
+import { IndustryCaseStudies } from "@/components/industry/IndustryCaseStudies";
+import { IndustryStatistics } from "@/components/industry/IndustryStatistics";
+import { IndustryImplementation } from "@/components/industry/IndustryImplementation";
+import { IndustryContent } from "@/components/industry/IndustryContent";
 import CallToActionSection from "@/components/CallToActionSection";
 import { getIndustryData } from "@/data/industryData";
 import { AlertCircle } from "lucide-react";
@@ -163,6 +167,25 @@ export default function LegalIndustryPage() {
         </section>
 
         <IndustryDataOwnership />
+
+        {industry.contentSections && industry.contentSections.length > 0 && (
+          <IndustryContent industryName={industry.name} sections={industry.contentSections} />
+        )}
+
+        {industry.statistics && (
+          <IndustryStatistics 
+            industryName={industry.name}
+            statistics={industry.statistics.data}
+            marketSize={industry.statistics.marketSize}
+            growthRate={industry.statistics.growthRate}
+          />
+        )}
+
+        {industry.caseStudies && industry.caseStudies.length > 0 && (
+          <IndustryCaseStudies caseStudies={industry.caseStudies} industryName={industry.name} />
+        )}
+
+        <IndustryImplementation industryName={industry.name} />
 
         <IndustryFAQ faqs={industry.faqs} />
         <FAQSchema questions={industry.faqs} />
