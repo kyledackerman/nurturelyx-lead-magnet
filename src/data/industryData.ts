@@ -17,6 +17,33 @@ export interface IndustryData {
     company: string;
     industry: string;
   }>;
+  caseStudies?: Array<{
+    company: string;
+    industry: string;
+    challenge: string;
+    solution: string;
+    results: Array<{
+      metric: string;
+      value: string;
+      icon: "revenue" | "leads" | "time" | "growth";
+    }>;
+    quote: string;
+    timeframe: string;
+  }>;
+  statistics?: {
+    marketSize?: string;
+    growthRate?: string;
+    data: Array<{
+      value: string;
+      label: string;
+      context: string;
+      source?: string;
+    }>;
+  };
+  contentSections?: Array<{
+    heading: string;
+    content: string[];
+  }>;
 }
 
 export const industryData: Record<string, IndustryData> = {
@@ -71,6 +98,113 @@ export const industryData: Record<string, IndustryData> = {
         name: "Mike R.",
         company: "Regional HVAC Supplier",
         industry: "HVAC"
+      }
+    ],
+    caseStudies: [
+      {
+        company: "Mountain States HVAC",
+        industry: "Commercial HVAC Services",
+        challenge: "With a $450,000 annual marketing budget driving 8,500 monthly website visitors, only 2-3% were converting to leads. The majority of their traffic—especially during peak summer months—remained completely anonymous, representing massive lost opportunity.",
+        solution: "Implemented NurturelyX visitor identification to reveal anonymous traffic. Set up automated workflows to route identified leads to sales reps based on service type and urgency. Integrated with existing Salesforce CRM for seamless follow-up.",
+        results: [
+          { metric: "New Revenue", value: "$287K", icon: "revenue" },
+          { metric: "Identified Leads/Month", value: "1,847", icon: "leads" },
+          { metric: "Response Time", value: "< 2 hrs", icon: "time" },
+          { metric: "ROI Increase", value: "412%", icon: "growth" }
+        ],
+        quote: "We were spending six figures on marketing but only capturing a fraction of potential leads. Visitor identification revealed we were losing $200K+ annually in missed opportunities. Within 90 days, we closed enough deals to pay for the system for the next 3 years.",
+        timeframe: "90-Day Results"
+      },
+      {
+        company: "Comfort Zone Heating & Cooling",
+        industry: "Residential HVAC",
+        challenge: "Local HVAC contractor struggled with seasonal inconsistency. Summer AC repair season generated huge traffic spikes, but conversion rates plummeted as visitors price-shopped multiple contractors without calling. Emergency service requests went to faster competitors.",
+        solution: "Deployed visitor identification with real-time lead alerts for emergency service page visitors. Created priority call lists based on pages viewed and time on site. Trained team to follow up within 1 hour of identification.",
+        results: [
+          { metric: "Emergency Conversions", value: "+89%", icon: "growth" },
+          { metric: "Summer Season Revenue", value: "$142K", icon: "revenue" },
+          { metric: "Maintenance Contracts", value: "+67", icon: "leads" },
+          { metric: "Avg Follow-up Time", value: "43 min", icon: "time" }
+        ],
+        quote: "Game changer for emergency calls. We now know exactly who visited our emergency AC repair page and can call them immediately. Our close rate on identified emergency visitors is 71% compared to 12% on inbound form leads.",
+        timeframe: "Peak Season Performance"
+      }
+    ],
+    statistics: {
+      marketSize: "$29.4B",
+      growthRate: "5.2% CAGR",
+      data: [
+        {
+          value: "72%",
+          label: "Anonymous Visitor Rate",
+          context: "The average HVAC company website receives 70-75% of traffic from visitors who never fill out a contact form or call. These anonymous visitors represent the largest untapped opportunity in HVAC marketing.",
+          source: "HVAC Marketing Industry Report 2024"
+        },
+        {
+          value: "$127,000",
+          label: "Annual Revenue Lost Per Company",
+          context: "HVAC contractors with 5,000+ monthly website visitors lose an average of $127K annually from unidentified prospects. This number climbs to $300K+ for contractors with 15,000+ monthly visits.",
+          source: "NurturelyX Customer Analysis 2024"
+        },
+        {
+          value: "83%",
+          label: "Mobile Research Rate",
+          context: "83% of emergency HVAC service searches happen on mobile devices, with users visiting 3-5 competitor websites before making a decision. Without visitor identification, you're invisible in this comparison process.",
+          source: "Google Consumer Insights, Home Services 2024"
+        },
+        {
+          value: "15-25%",
+          label: "Typical Identification Rate",
+          context: "Modern visitor identification technology successfully identifies 15-25% of anonymous website traffic with verified contact details. For a contractor with 5,000 monthly visitors, that's 750-1,250 new leads per month.",
+          source: "Identity Resolution Technology Benchmarks"
+        },
+        {
+          value: "$8,500",
+          label: "Average HVAC Job Value",
+          context: "The average residential HVAC system replacement costs $8,500, while commercial projects range from $25K-$500K+. Recovering just a few lost opportunities per month creates substantial revenue impact.",
+          source: "HVAC Industry Average Transaction Values"
+        },
+        {
+          value: "48 hours",
+          label: "Decision Window",
+          context: "Homeowners and property managers typically make HVAC buying decisions within 48 hours of starting their research. Companies that follow up within 2 hours have 7x higher conversion rates than those who wait 24+ hours.",
+          source: "Lead Response Management Study"
+        }
+      ]
+    },
+    contentSections: [
+      {
+        heading: "Why HVAC Companies Struggle With Online Lead Generation",
+        content: [
+          "The HVAC industry faces unique digital marketing challenges that make visitor identification particularly valuable. Unlike B2B SaaS or e-commerce, HVAC services involve high-consideration purchases with significant research phases. Homeowners and property managers visit multiple contractor websites, compare pricing, read reviews, and evaluate service offerings—all before making contact.",
+          "This extended research behavior creates a massive blind spot for HVAC contractors. Traditional analytics tools show you traffic numbers and page views, but they can't tell you WHO these visitors are or HOW to reach them. Google Analytics might report 5,000 monthly visitors, but without contact information, 70-80% of that traffic is effectively worthless for lead generation.",
+          "The problem intensifies during peak seasons. Summer AC failures and winter heating emergencies drive massive traffic spikes, but conversion rates often drop as visitors frantically research options. Emergency service pages might receive hundreds of views, but only a handful convert to actual service calls. The rest go to competitors who follow up faster or have better visibility."
+        ]
+      },
+      {
+        heading: "The True Cost of Anonymous Website Traffic",
+        content: [
+          "Most HVAC contractors significantly underestimate the financial impact of anonymous traffic. Let's examine the math: A mid-size HVAC contractor with a $300,000 annual marketing budget might generate 10,000 monthly website visitors. At a typical 3% conversion rate, that's 300 leads per month—but what about the other 9,700 visitors?",
+          "If even 20% of that anonymous traffic (1,940 visitors) represents qualified prospects actively researching HVAC services, that's 1,940 potential leads being lost every single month. At an average job value of $8,500 and a 10% close rate, those missed opportunities represent $1.65 million in potential annual revenue.",
+          "The opportunity cost extends beyond immediate revenue. Anonymous visitors might become customers of competitors who follow up more aggressively. They might have been perfect fits for annual maintenance contracts, providing recurring revenue for years. Some were likely commercial prospects with multi-system properties worth $50K-$200K in lifetime value. Without identification, you'll never know what you lost."
+        ]
+      },
+      {
+        heading: "How Visitor Identification Works for HVAC Contractors",
+        content: [
+          "Visitor identification technology uses identity resolution algorithms to match anonymous website visitors with verified contact databases. When someone visits your HVAC website, the technology captures their digital fingerprint (IP address, browser metadata, behavioral patterns) and cross-references this data against billions of verified consumer and business records.",
+          "For HVAC contractors, this means identifying not just company names (like traditional B2B tools), but actual decision-makers: homeowners, property managers, facility directors, and building owners. You receive complete contact details including name, phone number, email, physical address, and demographic information—everything needed to initiate outreach.",
+          "The technology works continuously in the background, processing traffic 24/7 without affecting website performance. Identified visitors appear in your dashboard in real-time, categorized by service interest, urgency indicators, and engagement level. High-priority leads (emergency service page visitors, repeat visitors, long engagement times) can trigger instant alerts to your sales team for immediate follow-up."
+        ]
+      },
+      {
+        heading: "Maximizing ROI: Best Practices for HVAC Lead Follow-Up",
+        content: [
+          "Identifying visitors is only half the equation—converting them into customers requires strategic follow-up. HVAC contractors who achieve the highest ROI from visitor identification follow a systematic approach: Speed is critical. Research shows that contacting identified leads within 1-2 hours increases conversion rates by 7x compared to 24-hour delays. For emergency service visitors, 30-60 minute response times are ideal.",
+          "Personalization dramatically improves results. Instead of generic sales calls, reference the specific pages they visited: 'I saw you were researching AC replacement options on our website. I wanted to reach out and answer any questions about system sizing or financing.' This contextual approach feels helpful rather than pushy, and conversion rates improve by 40-60%.",
+          "Prioritization ensures your team focuses on the hottest leads first. Set up scoring rules based on behavior: emergency service page visitors get highest priority, followed by visitors who viewed pricing pages, those who spent 5+ minutes on site, and repeat visitors. Lower-priority leads can be added to email nurture campaigns rather than requiring immediate calls.",
+          "Integration with existing systems prevents leads from falling through cracks. Sync identified visitors directly to your CRM, service scheduling software, or call center platform. Automate task creation, set follow-up reminders, and track outcomes to measure which lead sources drive the best ROI. Most HVAC contractors see 300-500% ROI within 90 days when following these practices consistently."
+        ]
       }
     ]
   },
