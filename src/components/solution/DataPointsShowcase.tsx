@@ -1,19 +1,19 @@
-import { Building2, Mail, Phone, MapPin, Globe, Clock, TrendingUp, Users } from "lucide-react";
+import { User, Mail, Phone, MapPin, Calendar, DollarSign, Home, CreditCard, Briefcase, Heart, Eye, Clock } from "lucide-react";
 
 export const DataPointsShowcase = () => {
   const dataPoints = [
-    { icon: Building2, label: "Company Name", description: "Full legal business name" },
-    { icon: Mail, label: "Email Addresses", description: "Decision-maker contacts" },
-    { icon: Phone, label: "Phone Numbers", description: "Direct business lines" },
-    { icon: MapPin, label: "Physical Address", description: "Office location" },
-    { icon: Globe, label: "Industry & Size", description: "Business classification" },
-    { icon: Users, label: "Employee Count", description: "Company size data" },
-    { icon: TrendingUp, label: "Revenue Range", description: "Annual revenue estimates" },
-    { icon: Clock, label: "Visit Timestamp", description: "When they visited" },
-    { icon: Globe, label: "Pages Viewed", description: "What they looked at" },
-    { icon: Clock, label: "Time on Site", description: "How long they stayed" },
-    { icon: TrendingUp, label: "Intent Signals", description: "Buying indicators" },
-    { icon: Globe, label: "Technology Stack", description: "Tools they use" },
+    { icon: User, label: "Full Name", description: "First and last name of the actual visitor" },
+    { icon: Mail, label: "Email Address", description: "Personal or work email, verified and deliverable" },
+    { icon: Phone, label: "Phone Number", description: "Direct line, no gatekeeper needed" },
+    { icon: MapPin, label: "Physical Address", description: "Complete street address, not just city" },
+    { icon: Calendar, label: "Age & Generation", description: "Exact age and generational cohort" },
+    { icon: DollarSign, label: "Income Level", description: "Household income range for qualification" },
+    { icon: Home, label: "Home Ownership", description: "Owner, renter, or mortgage holder" },
+    { icon: CreditCard, label: "Credit Score Range", description: "Financing eligibility at a glance" },
+    { icon: Briefcase, label: "Occupation Category", description: "Job type and employment status" },
+    { icon: Heart, label: "Marital Status", description: "Single, married, divorced—affects buying decisions" },
+    { icon: Eye, label: "Pages Viewed", description: "What they looked at on your site" },
+    { icon: Clock, label: "Time on Site", description: "How long they spent researching" },
   ];
 
   return (
@@ -21,10 +21,10 @@ export const DataPointsShowcase = () => {
       <div className="container max-w-6xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            30+ Data Points Per Visitor
+            30+ Data Points Per Contact (Not Company)
           </h2>
           <p className="text-lg text-muted-foreground">
-            Everything you need to qualify and reach out to leads
+            We don't just tell you "ABC Company visited." We give you the actual person—name, phone, email, income, age, and 20+ more qualifiers
           </p>
         </div>
 
@@ -42,7 +42,7 @@ export const DataPointsShowcase = () => {
 
         <div className="mt-12 text-center">
           <p className="text-sm text-muted-foreground">
-            Plus: Social media profiles, web technologies, firmographics, and more
+            Plus: Education level, political affiliation, ethnicity, religion, net worth, birth year, gender, zip code, median income, IP address, and more
           </p>
         </div>
       </div>
