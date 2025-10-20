@@ -18,7 +18,7 @@ export const ProblemStatement = () => {
             <div className="p-6 bg-background rounded-lg border">
               <div className="text-4xl font-bold text-destructive mb-2">97-98%</div>
               <p className="text-muted-foreground">
-                Never fill out a form or contact you
+                Browse, research, and vanish without a trace
               </p>
             </div>
             
@@ -30,9 +30,9 @@ export const ProblemStatement = () => {
             </div>
             
             <div className="p-6 bg-background rounded-lg border">
-              <div className="text-4xl font-bold text-destructive mb-2">97%</div>
+              <div className="text-4xl font-bold text-destructive mb-2">0 Names</div>
               <p className="text-muted-foreground">
-                Remain completely anonymous
+                You have zero contact info for these visitors
               </p>
             </div>
           </div>
