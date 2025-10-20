@@ -72,34 +72,6 @@ export const ComplianceBadges = () => {
             </li>
           </ul>
         </div>
-
-        <div className="mt-8 p-8 bg-background rounded-lg border">
-          <h3 className="text-xl font-semibold mb-4 text-center">Data Processing Agreement (DPA)</h3>
-          <p className="text-sm text-muted-foreground mb-4 text-center max-w-2xl mx-auto">
-            Every customer receives a comprehensive DPA that details:
-          </p>
-          <ul className="space-y-3 max-w-3xl mx-auto">
-            <li className="flex items-start gap-3">
-              <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-              <p className="text-sm"><strong>Data matching and storage:</strong> How we match and securely store visitor data</p>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-              <p className="text-sm"><strong>Retention periods:</strong> Clear timelines for how long data is kept</p>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-              <p className="text-sm"><strong>Rights of access and erasure:</strong> How visitors can request their data or deletion</p>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-              <p className="text-sm"><strong>Data Protection Officer contact:</strong> Direct line to our compliance team</p>
-            </li>
-          </ul>
-          <p className="text-sm text-center mt-6 text-muted-foreground">
-            For EU/UK visitors: Contact our Data Protection Officer at <a href="mailto:privacy@nurturely.io" className="text-primary hover:underline">privacy@nurturely.io</a> to request access, correction, or deletion of your data.
-          </p>
-        </div>
       </div>
     </section>
   );
