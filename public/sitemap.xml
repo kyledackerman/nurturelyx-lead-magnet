@@ -2,10 +2,14 @@
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
     <loc>https://x1.nurturely.io/sitemap-static.xml</loc>
-    <lastmod>2025-01-20</lastmod>
+    <lastmod>2025-10-20</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/sitemap-blog</loc>
+    <lastmod>2025-10-20</lastmod>
   </sitemap>
   <sitemap>
     <loc>https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/sitemap-reports</loc>
-    <lastmod>2025-01-20</lastmod>
+    <lastmod>2025-10-20</lastmod>
   </sitemap>
 </sitemapindex>

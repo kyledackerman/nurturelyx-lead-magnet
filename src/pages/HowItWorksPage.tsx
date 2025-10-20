@@ -72,6 +72,7 @@ export default function HowItWorksPage() {
         name="How It Works - Visitor Identification Process"
         description="Complete guide to how visitor identification technology works to convert anonymous traffic into qualified leads"
         url="https://x1.nurturely.io/how-it-works"
+        dateModified="2025-10-20T00:00:00Z"
         breadcrumbs={[{ name: "How It Works", url: "/how-it-works" }]}
         keywords={["visitor identification", "lead generation process", "tracking technology"]}
       />

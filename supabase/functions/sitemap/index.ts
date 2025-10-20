@@ -29,7 +29,7 @@ serve(async (req) => {
     }
 
     const baseUrl = 'https://x1.nurturely.io';
-    const now = new Date().toISOString();
+    const now = new Date().toISOString().split('T')[0];
 
     // Generate sitemap index XML with all sitemaps
     const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
