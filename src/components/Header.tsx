@@ -55,7 +55,7 @@ const Header = () => {
             alt="NurturelyX - Visitor Identification and Lead Generation Platform Logo" 
             className="h-8 mr-2" 
           />
-          <p className="text-xs text-gray-400">Lead Estimation Report</p>
+          <p className="text-xs text-gray-400">Turn anonymous website visitors into qualified leads</p>
         </Link>
         
         <div className="flex items-center gap-4">
