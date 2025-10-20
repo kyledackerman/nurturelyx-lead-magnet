@@ -20,6 +20,7 @@ import UserDashboard from "./pages/UserDashboard";
 import LearnPage from "./pages/LearnPage";
 import HvacLeadsPage from "./pages/HvacLeadsPage";
 import PricingPage from "./pages/PricingPage";
+import ComparePage from "./pages/ComparePage";
 import HVACIndustryPage from "./pages/industries/HVACIndustryPage";
 import LegalIndustryPage from "./pages/industries/LegalIndustryPage";
 import RealEstateIndustryPage from "./pages/industries/RealEstateIndustryPage";
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/learn" element={<LearnPage />} />
             <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/compare" element={<ComparePage />} />
             <Route path="/generate-leads-hvac" element={<HvacLeadsPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/auth/callback" element={<AuthCallback />} />

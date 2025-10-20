@@ -1556,6 +1556,39 @@ Before comparing tools, you need to understand there are **two fundamentally dif
 
 **Real-world scenario**: "BMW visited your site from Munich" → Great data, but you still can't call anyone
 
+## Email Recovery Tools: Specialized Identity Resolution
+
+### Customers.ai (Email Recovery)
+
+**Technology**: Facebook pixel + email matching
+
+**What you receive**:
+✅ Email addresses recovered from Facebook profiles
+✅ Messenger chatbot integration
+✅ Facebook Custom Audiences sync
+✅ Basic contact info
+
+❌ No phone numbers
+❌ Very low identification rate
+❌ Facebook-dependent (limited data sources)
+
+**Pricing**: Starting at $197/month
+
+**Identification Rate**: 10-15% (only Facebook users)
+
+**Best for**:
+- Companies heavily invested in Facebook advertising
+- Ecommerce brands with Facebook presence
+- Businesses targeting consumers on social media
+
+**Limitations**:
+- Extremely limited compared to true identity resolution
+- Dependent on Facebook ecosystem
+- Low coverage outside Facebook users
+- Limited B2B functionality
+
+**Real-world scenario**: Only identifies people who have Facebook accounts and have interacted with Facebook pixel → Misses most B2B traffic
+
 ## Identity Resolution Tools: The Game Changer
 
 ### NurturelyX (Identity Resolution)
@@ -1598,6 +1631,217 @@ Before comparing tools, you need to understand there are **two fundamentally dif
 - Requires Lovable Cloud backend (automatic setup)
 - Primarily focused on US/Canada markets
 - Not ideal for pure brand awareness metrics (use GA for that)
+
+### OpenSend (Identity Resolution)
+
+**Technology**: Email-focused identity resolution with 250M+ database
+
+**What you receive**:
+✅ Email addresses (primary focus)
+✅ Names and job titles
+⚠️ Limited phone data
+✅ Deliverability scoring
+✅ Email verification
+
+**Pricing**: Starting at $149/month
+
+**Identification Rate**: 20-28% with email addresses
+
+**Best for**:
+- Email marketing campaigns
+- Companies prioritizing email over phone outreach
+- Marketing teams focused on nurture campaigns
+
+**Limitations**:
+- Lower phone coverage than NurturelyX
+- More expensive than NurturelyX
+- Email-centric (less complete profile)
+- Lower overall identification rate
+
+**Real-world scenario**: Great for email campaigns, but if you need to call prospects too, you'll need supplementary data
+
+### Retention.com (Email Recovery for Ecommerce)
+
+**Technology**: Email capture focused on abandoned carts
+
+**What you receive**:
+✅ Email addresses
+✅ Cart abandonment data
+✅ Ecommerce behavior tracking
+⚠️ Limited B2B functionality
+
+**Pricing**: Starting at $299/month
+
+**Identification Rate**: 15-20% (ecommerce-focused)
+
+**Best for**:
+- Ecommerce businesses
+- DTC brands
+- Cart abandonment recovery
+- Online retailers
+
+**Limitations**:
+- Extremely expensive for what you get
+- Limited B2B data
+- Ecommerce-focused (not versatile)
+- Lower ID rate than competitors
+
+**Real-world scenario**: Good for online stores recovering abandoned carts, but not ideal for B2B lead generation
+
+## ABM & Engagement Platforms: Enterprise Focus
+
+### Koala (Product-Led Growth ABM)
+
+**Technology**: Product analytics + visitor tracking
+
+**What you receive**:
+✅ Company identification
+✅ Product usage data
+✅ Intent signals based on behavior
+✅ Engagement scoring
+
+❌ No contact information
+❌ Requires product integration
+
+**Pricing**: Starting at $500/month
+
+**Identification Rate**: 18-25%
+
+**Best for**:
+- PLG (Product-Led Growth) companies
+- SaaS with free trials
+- Companies with significant product traffic
+
+**Limitations**:
+- No contact info (just company names)
+- Requires product instrumentation
+- Complex setup
+- Expensive for SMBs
+
+**Real-world scenario**: "This company is using your free trial heavily" → but who do you reach out to?
+
+### Warmly (Real-Time Sales Engagement)
+
+**Technology**: IP tracking + live engagement
+
+**What you receive**:
+✅ Real-time visitor alerts
+✅ Company identification
+✅ Video prospecting tools
+✅ Live chat integration
+
+❌ No contact export
+❌ No offline follow-up data
+
+**Pricing**: Starting at $700/month
+
+**Identification Rate**: 15-20%
+
+**Best for**:
+- Companies with 24/7 SDR teams
+- High-touch sales processes
+- Demo-driven products
+- Real-time engagement strategies
+
+**Limitations**:
+- Extremely expensive
+- Requires dedicated SDR team
+- Can't export contacts for later follow-up
+- No offline outreach capability
+
+**Real-world scenario**: Great for catching hot leads live, but expensive and only works if someone is watching
+
+### 6sense (Enterprise ABM Platform)
+
+**Technology**: AI-powered predictive analytics + account intelligence
+
+**What you receive**:
+✅ Predictive account scoring
+✅ Anonymous buying teams identification
+✅ Intent data aggregation
+✅ Multi-channel orchestration
+
+❌ No individual contact information
+❌ Company-level insights only
+
+**Pricing**: Custom (typically $50k-$150k/year)
+
+**Identification Rate**: 25-35% (company level)
+
+**Best for**:
+- Large enterprises ($100M+ revenue)
+- Complex ABM strategies
+- Multi-million dollar deals
+- Companies with large marketing teams
+
+**Limitations**:
+- Extremely expensive (prohibitive for SMB)
+- Long implementation (3-6 months)
+- Requires dedicated team to manage
+- Still doesn't give you contact info
+
+**Real-world scenario**: "This account has 95% buying intent" → but you still need to find decision-makers manually
+
+### Demandbase (Enterprise ABM Platform)
+
+**Technology**: Account-based advertising + visitor tracking
+
+**What you receive**:
+✅ Account identification
+✅ Advertising platform integration
+✅ Engagement tracking
+✅ Account-level insights
+
+❌ No decision-maker contact info
+❌ Requires large ad budget
+
+**Pricing**: Custom (typically $40k-$120k/year)
+
+**Identification Rate**: 22-30% (company level)
+
+**Best for**:
+- Enterprise B2B companies
+- Large advertising budgets ($500k+/year)
+- Integrated ABM strategies
+- Marketing ops teams
+
+**Limitations**:
+- Extremely expensive
+- Requires significant ad spend to maximize
+- Complex platform (steep learning curve)
+- No contact information for outreach
+
+**Real-world scenario**: Great for account-based advertising, but you'll still need another tool for contact info
+
+### RB2B (LinkedIn-Based Identification)
+
+**Technology**: LinkedIn profile matching
+
+**What you receive**:
+✅ LinkedIn profile links
+✅ Company identification
+⚠️ Basic firmographic data
+
+❌ No email addresses
+❌ No phone numbers
+❌ Very low coverage
+
+**Pricing**: Starting at $99/month
+
+**Identification Rate**: 8-15% (extremely low)
+
+**Best for**:
+- LinkedIn-heavy outreach
+- Budget-conscious startups
+- Manual research tolerance
+
+**Limitations**:
+- Lowest ID rate of all tools
+- Only works for LinkedIn users
+- No actual contact info (just profiles)
+- Still requires manual outreach setup
+
+**Real-world scenario**: Points you to LinkedIn profiles, but you still need to find emails/phones yourself
 
 ## Head-to-Head Comparison
 
