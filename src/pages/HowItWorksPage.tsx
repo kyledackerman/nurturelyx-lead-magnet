@@ -8,6 +8,7 @@ import { scrollToTopIfHomeLink } from "@/lib/scroll";
 import { ProblemStatement } from "@/components/solution/ProblemStatement";
 import { TrackingDiagram } from "@/components/solution/TrackingDiagram";
 import { DataPointsShowcase } from "@/components/solution/DataPointsShowcase";
+import { IndustryUseCases } from "@/components/solution/IndustryUseCases";
 import { IntegrationSteps } from "@/components/solution/IntegrationSteps";
 import { ComplianceBadges } from "@/components/solution/ComplianceBadges";
 import FAQ from "@/components/report/FAQ";
@@ -106,6 +107,7 @@ export default function HowItWorksPage() {
         <ProblemStatement />
         <TrackingDiagram />
         <DataPointsShowcase />
+        <IndustryUseCases />
         <IntegrationSteps />
         <ComplianceBadges />
         
