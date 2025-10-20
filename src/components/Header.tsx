@@ -52,7 +52,7 @@ const Header = () => {
         <Link to="/" className="flex items-center">
           <img 
             src="/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png" 
-            alt="NurturelyX Logo" 
+            alt="NurturelyX - Visitor Identification and Lead Generation Platform Logo" 
             className="h-8 mr-2" 
           />
           <p className="text-xs text-gray-400">Lead Estimation Report</p>

@@ -82,7 +82,7 @@ const Testimonials = () => {
               <div className="flex items-center gap-3 mb-4">
                 <img 
                   src={testimonial.image} 
-                  alt={testimonial.author}
+                  alt={`${testimonial.author}, ${testimonial.position} at ${testimonial.company} - NurturelyX customer testimonial`}
                   className="w-12 h-12 rounded-full object-cover"
                 />
                 <div>

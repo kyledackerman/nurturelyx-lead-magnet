@@ -22,6 +22,7 @@ const VideoExplainer = () => {
             className="w-full h-full object-cover"
             controls
             poster="https://storage.googleapis.com/msgsndr/nhc9xkcyzpaPrEARWW66/media/685aaf88f1a84877bce891b5.webp"
+            aria-label="NurturelyX Identity Resolution Platform - How to identify anonymous website visitors and convert them into leads"
           >
             <source
               src="https://storage.googleapis.com/msgsndr/nhc9xkcyzpaPrEARWW66/media/68cdb0502a247e0db3deb950.mp4"
