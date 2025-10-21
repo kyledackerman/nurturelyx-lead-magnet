@@ -20,6 +20,7 @@ import UserDashboard from "./pages/UserDashboard";
 import LearnPage from "./pages/LearnPage";
 import HvacLeadsPage from "./pages/HvacLeadsPage";
 import WhyNoLeadsPage from "./pages/WhyNoLeadsPage";
+import GoogleAnalyticsLyingPage from "./pages/GoogleAnalyticsLyingPage";
 import PricingPage from "./pages/PricingPage";
 import ComparePage from "./pages/ComparePage";
 import HVACIndustryPage from "./pages/industries/HVACIndustryPage";
@@ -49,6 +50,7 @@ const App = () => (
               <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/learn" element={<LearnPage />} />
+            <Route path="/learn/google-analytics-lying" element={<GoogleAnalyticsLyingPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/compare" element={<ComparePage />} />
             <Route path="/generate-leads-hvac" element={<HvacLeadsPage />} />
