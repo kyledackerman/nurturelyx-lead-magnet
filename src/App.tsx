@@ -22,6 +22,7 @@ import HvacLeadsPage from "./pages/HvacLeadsPage";
 import WhyNoLeadsPage from "./pages/WhyNoLeadsPage";
 import GoogleAnalyticsLyingPage from "./pages/GoogleAnalyticsLyingPage";
 import VisitorIdVsTraditionalPage from "./pages/VisitorIdVsTraditionalPage";
+import LeadFeederComparisonPage from "./pages/LeadFeederComparisonPage";
 import PricingPage from "./pages/PricingPage";
 import ComparePage from "./pages/ComparePage";
 import HVACIndustryPage from "./pages/industries/HVACIndustryPage";
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/compare" element={<ComparePage />} />
             <Route path="/compare/visitor-id-vs-traditional" element={<VisitorIdVsTraditionalPage />} />
+            <Route path="/compare/leadfeeder-alternative" element={<LeadFeederComparisonPage />} />
             <Route path="/generate-leads-hvac" element={<HvacLeadsPage />} />
             <Route path="/why-website-not-getting-leads" element={<WhyNoLeadsPage />} />
             <Route path="/auth" element={<AuthPage />} />
