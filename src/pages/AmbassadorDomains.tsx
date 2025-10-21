@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ambassadorService } from "@/services/ambassadorService";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,38 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AmbassadorDomains() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [perLeadPrice, setPerLeadPrice] = useState<{ [key: string]: string }>({});
+  const [openDialog, setOpenDialog] = useState<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: domains, isLoading } = useQuery({
     queryKey: ['my-domains'],
     queryFn: () => ambassadorService.getMyDomains(),
+  });
+
+  const updatePricingMutation = useMutation({
+    mutationFn: ({ prospectActivityId, perLeadPrice }: { prospectActivityId: string; perLeadPrice: number }) =>
+      ambassadorService.updateClientPricing(prospectActivityId, 100, perLeadPrice),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-domains'] });
+      toast({
+        title: "Pricing Updated",
+        description: "Custom per-lead pricing has been saved successfully.",
+      });
+      setOpenDialog(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update pricing. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const filteredDomains = domains?.filter(domain =>
@@ -132,29 +157,55 @@ export default function AmbassadorDomains() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Dialog>
+                  <Dialog open={openDialog === domain.id} onOpenChange={(open) => setOpenDialog(open ? domain.id : null)}>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm">
-                        Set Custom Pricing
+                        Set Per-Lead Price
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Custom Pricing for {domain.reports.domain}</DialogTitle>
+                        <DialogTitle>Set Per-Lead Price for {domain.reports.domain}</DialogTitle>
                         <DialogDescription>
-                          Set custom monthly platform fee and per-lead pricing. Minimum $0.20 per lead.
+                          Set the custom per-lead pricing agreed with the customer. Minimum $0.20 per lead. Platform fee is fixed at $100/month.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <Label>Monthly Platform Fee</Label>
-                          <Input type="number" placeholder="100.00" min="100" step="0.01" />
-                        </div>
-                        <div className="space-y-2">
                           <Label>Per-Lead Price</Label>
-                          <Input type="number" placeholder="1.00" min="0.20" step="0.01" />
+                          <Input 
+                            type="number" 
+                            placeholder="1.00" 
+                            min="0.20" 
+                            step="0.01"
+                            value={perLeadPrice[domain.id] || ""}
+                            onChange={(e) => setPerLeadPrice(prev => ({ ...prev, [domain.id]: e.target.value }))}
+                          />
+                          <p className="text-sm text-muted-foreground">
+                            Monthly platform fee: $100.00 (fixed)
+                          </p>
                         </div>
-                        <Button className="w-full">Save Pricing</Button>
+                        <Button 
+                          className="w-full"
+                          onClick={() => {
+                            const price = parseFloat(perLeadPrice[domain.id] || "0");
+                            if (price < 0.20) {
+                              toast({
+                                title: "Invalid Price",
+                                description: "Per-lead price must be at least $0.20",
+                                variant: "destructive",
+                              });
+                              return;
+                            }
+                            updatePricingMutation.mutate({
+                              prospectActivityId: domain.id,
+                              perLeadPrice: price,
+                            });
+                          }}
+                          disabled={updatePricingMutation.isPending}
+                        >
+                          {updatePricingMutation.isPending ? "Saving..." : "Save Pricing"}
+                        </Button>
                       </div>
                     </DialogContent>
                   </Dialog>
