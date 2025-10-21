@@ -201,7 +201,13 @@ Deno.serve(async (req) => {
       changed_by: user.id,
     });
 
-    console.log(`Ambassador ${user.id} submitted and was assigned domain ${cleanDomain}`);
+    // Send email
+    const { sendEmail } = await import('../_shared/emailService.ts');
+    const { generateDomainSubmissionEmail } = await import('../_shared/emailTemplates.ts');
+    try {
+      await sendEmail({ to: profile.email, subject: 'Domain Submitted Successfully',
+        html: generateDomainSubmissionEmail(profile.full_name, cleanDomain, newReport.id) });
+    } catch (e) { console.error('Email failed:', e); }
 
     return new Response(
       JSON.stringify({

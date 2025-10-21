@@ -39,7 +39,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { application_id, admin_notes } = await req.json();
+    const { application_id, action, admin_notes, rejection_reason } = await req.json();
+
+    if (!action || !['approve', 'reject'].includes(action)) {
+      return new Response(JSON.stringify({ error: 'Invalid action. Must be "approve" or "reject"' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (action === 'reject' && !rejection_reason) {
+      return new Response(JSON.stringify({ error: 'Rejection reason required' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     if (!application_id) {
       return new Response(JSON.stringify({ error: 'application_id is required' }), {
@@ -65,10 +77,34 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Handle rejection
+    if (action === 'reject') {
+      await serviceClient.from('ambassador_applications').update({
+        status: 'rejected', reviewed_at: new Date().toISOString(),
+        reviewed_by: user.id, rejection_reason
+      }).eq('id', application_id);
+
+      const { sendEmail } = await import('../_shared/emailService.ts');
+      const { generateRejectionEmail } = await import('../_shared/emailTemplates.ts');
+      try {
+        await sendEmail({ to: application.email, subject: 'Ambassador Application Update',
+          html: generateRejectionEmail(application.full_name, rejection_reason) });
+      } catch (e) { console.error('Email failed:', e); }
+
+      await serviceClient.from('audit_logs').insert({
+        table_name: 'ambassador_applications', record_id: application_id,
+        action_type: 'UPDATE', field_name: 'status', old_value: application.status,
+        new_value: 'rejected', business_context: `Rejected: ${rejection_reason}`, changed_by: user.id
+      });
+
+      return new Response(JSON.stringify({ success: true, message: 'Application rejected' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     if (application.status === 'approved') {
-      return new Response(JSON.stringify({ error: 'Application already approved' }), {
-        status: 409,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      return new Response(JSON.stringify({ error: 'Already approved' }), {
+        status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -153,19 +189,19 @@ Deno.serve(async (req) => {
       console.error('Failed to update application:', updateError);
     }
 
-    // Log to audit trail
-    await serviceClient.from('audit_logs').insert({
-      table_name: 'ambassador_applications',
-      record_id: application_id,
-      action_type: 'UPDATE',
-      field_name: 'status',
-      old_value: application.status,
-      new_value: 'approved',
-      business_context: `Ambassador application approved: ${application.email}${admin_notes ? ` - ${admin_notes}` : ''}`,
-      changed_by: user.id,
-    });
+    // Send welcome email
+    const { sendEmail } = await import('../_shared/emailService.ts');
+    const { generateWelcomeEmail } = await import('../_shared/emailTemplates.ts');
+    try {
+      await sendEmail({ to: application.email, subject: 'Welcome to Nurturely Ambassador Program!',
+        html: generateWelcomeEmail(application.full_name, userId) });
+    } catch (e) { console.error('Email failed:', e); }
 
-    console.log(`Approved ambassador application for ${application.email}, user_id: ${userId}`);
+    await serviceClient.from('audit_logs').insert({
+      table_name: 'ambassador_applications', record_id: application_id,
+      action_type: 'UPDATE', field_name: 'status', old_value: application.status,
+      new_value: 'approved', business_context: `Approved: ${application.email}`, changed_by: user.id
+    });
 
     return new Response(
       JSON.stringify({

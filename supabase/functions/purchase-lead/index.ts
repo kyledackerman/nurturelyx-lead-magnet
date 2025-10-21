@@ -185,7 +185,13 @@ Deno.serve(async (req) => {
       changed_by: user.id,
     });
 
-    console.log(`Ambassador ${user.id} purchased lead ${prospect.reports.domain}`);
+    // Send email
+    const { sendEmail } = await import('../_shared/emailService.ts');
+    const { generatePurchaseConfirmationEmail } = await import('../_shared/emailTemplates.ts');
+    try {
+      await sendEmail({ to: profile.email, subject: 'Lead Purchase Confirmed',
+        html: generatePurchaseConfirmationEmail(profile.full_name, prospect.reports.domain, 0.01) });
+    } catch (e) { console.error('Email failed:', e); }
 
     return new Response(
       JSON.stringify({

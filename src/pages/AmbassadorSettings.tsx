@@ -121,7 +121,12 @@ export default function AmbassadorSettings() {
         <CardHeader>
           <CardTitle>Payment Information</CardTitle>
           <CardDescription>
-            Configure how you'd like to receive your commission payouts ($100 minimum)
+            Configure how you'd like to receive commission payouts (min $100)
+            {profile?.eligible_commission && profile.eligible_commission < 100 && (
+              <span className="block mt-1 text-amber-600">
+                Current eligible: ${profile.eligible_commission.toFixed(2)} - Minimum payout is $100
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

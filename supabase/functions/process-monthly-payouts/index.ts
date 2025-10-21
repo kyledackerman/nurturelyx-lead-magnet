@@ -205,16 +205,23 @@ Deno.serve(async (req) => {
         .eq('user_id', ambassador.ambassadorId);
     }
 
-    // Complete batch
-    await serviceClient
-      .from('payout_batches')
-      .update({
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-      })
-      .eq('id', batch.id);
+    // Send payout emails
+    const { sendEmail } = await import('../_shared/emailService.ts');
+    const { generatePayoutProcessedEmail } = await import('../_shared/emailTemplates.ts');
+    for (const amb of eligibleAmbassadors) {
+      const prof = profiles?.find(p => p.user_id === amb.ambassadorId);
+      if (prof?.email) {
+        try {
+          await sendEmail({ to: prof.email, subject: 'Monthly Payout Processed',
+            html: generatePayoutProcessedEmail(prof.full_name || 'Ambassador', amb.total,
+              new Date().toLocaleDateString(), { platformFee: amb.total * 0.6, perLead: amb.total * 0.4 }) });
+        } catch (e) { console.error('Email failed:', e); }
+      }
+    }
 
-    console.log(`Processed payout batch ${batch.id} for ${eligibleAmbassadors.length} ambassadors, total: $${totalAmount}`);
+    await serviceClient.from('payout_batches').update({
+      status: 'completed', completed_at: new Date().toISOString()
+    }).eq('id', batch.id);
 
     return new Response(
       JSON.stringify({

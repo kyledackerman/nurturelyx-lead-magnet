@@ -155,3 +155,6 @@ verify_jwt = true
 
 [functions.get-ambassador-dashboard-stats]
 verify_jwt = true
+
+[functions.check-commission-eligibility]
+verify_jwt = false
