@@ -21,6 +21,7 @@ import LearnPage from "./pages/LearnPage";
 import HvacLeadsPage from "./pages/HvacLeadsPage";
 import WhyNoLeadsPage from "./pages/WhyNoLeadsPage";
 import GoogleAnalyticsLyingPage from "./pages/GoogleAnalyticsLyingPage";
+import VisitorIdVsTraditionalPage from "./pages/VisitorIdVsTraditionalPage";
 import PricingPage from "./pages/PricingPage";
 import ComparePage from "./pages/ComparePage";
 import HVACIndustryPage from "./pages/industries/HVACIndustryPage";
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/learn/google-analytics-lying" element={<GoogleAnalyticsLyingPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/compare" element={<ComparePage />} />
+            <Route path="/compare/visitor-id-vs-traditional" element={<VisitorIdVsTraditionalPage />} />
             <Route path="/generate-leads-hvac" element={<HvacLeadsPage />} />
             <Route path="/why-website-not-getting-leads" element={<WhyNoLeadsPage />} />
             <Route path="/auth" element={<AuthPage />} />
