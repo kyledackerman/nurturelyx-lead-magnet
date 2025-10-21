@@ -2,11 +2,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 
 const TIER_THRESHOLDS = {
-  platform_fee: {
-    bronze: 100,
-    silver: 1000,
-    gold: Infinity,
-  },
   per_lead: {
     bronze: 100,
     silver: 1000,
@@ -15,15 +10,10 @@ const TIER_THRESHOLDS = {
 };
 
 const TIER_RATES = {
-  platform_fee: {
-    bronze: 30,
-    silver: 40,
-    gold: 50,
-  },
   per_lead: {
-    bronze: 5,
-    silver: 10,
-    gold: 15,
+    bronze: 0.05, // 5%
+    silver: 0.10, // 10%
+    gold: 0.15,   // 15%
   },
 };
 
@@ -97,8 +87,8 @@ Deno.serve(async (req) => {
       .single();
 
     // Calculate next tier requirements
-    const getNextTierInfo = (current: string, metric: number, type: 'platform_fee' | 'per_lead') => {
-      const thresholds = TIER_THRESHOLDS[type];
+    const getNextTierInfo = (current: string, metric: number) => {
+      const thresholds = TIER_THRESHOLDS.per_lead;
       
       if (current === 'bronze' && metric < thresholds.silver) {
         return { next: 'silver', needed: thresholds.silver - metric, current: metric };
@@ -111,16 +101,9 @@ Deno.serve(async (req) => {
       return { next: null, needed: 0, current: metric };
     };
 
-    const platformFeeNextTier = getNextTierInfo(
-      profile.platform_fee_tier,
-      profile.total_signups_lifetime,
-      'platform_fee'
-    );
-
     const perLeadNextTier = getNextTierInfo(
       profile.per_lead_tier,
-      profile.active_domains_count,
-      'per_lead'
+      profile.total_signups_lifetime
     );
 
     const stats = {
@@ -151,12 +134,9 @@ Deno.serve(async (req) => {
         estimated_next_payout: profile.pending_commission,
       },
       tiers: {
-        platform_fee_tier: profile.platform_fee_tier,
-        platform_fee_rate: TIER_RATES.platform_fee[profile.platform_fee_tier as keyof typeof TIER_RATES.platform_fee],
         per_lead_tier: profile.per_lead_tier,
         per_lead_rate: TIER_RATES.per_lead[profile.per_lead_tier as keyof typeof TIER_RATES.per_lead],
         next_tier_requirements: {
-          platform_fee: platformFeeNextTier,
           per_lead: perLeadNextTier,
         },
       },

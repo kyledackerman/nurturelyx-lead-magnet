@@ -5,17 +5,11 @@ import { sendEmail } from '../_shared/emailService.ts';
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-// Tier-based commission rates
-const PLATFORM_FEE_RATES = {
-  bronze: 30.0,
-  silver: 40.0,
-  gold: 50.0,
-};
-
+// Tier-based commission rates (percentages)
 const PER_LEAD_RATES = {
-  bronze: 5.0,
-  silver: 10.0,
-  gold: 15.0,
+  bronze: 0.05, // 5%
+  silver: 0.10, // 10%
+  gold: 0.15,   // 15%
 };
 
 Deno.serve(async (req) => {
@@ -127,76 +121,13 @@ Deno.serve(async (req) => {
 
     const commissionsCreated: any[] = [];
 
-    if (event_type === 'signup' || event_type === 'monthly_payment') {
-      // Calculate platform fee commission
-      const platformFeeRate = PLATFORM_FEE_RATES[profile.platform_fee_tier as keyof typeof PLATFORM_FEE_RATES] || 30.0;
-      const platformFeeBase = clientPricing?.platform_fee_monthly || 100.00;
-      const platformFeeCommission = (platformFeeBase * platformFeeRate) / 100;
-
-      const { data: commission, error: commissionError } = await serviceClient
-        .from('commissions')
-        .insert({
-          ambassador_id: prospect.purchased_by_ambassador,
-          prospect_activity_id: prospect.id,
-          report_id: prospect.report_id,
-          domain: prospect.reports.domain,
-          commission_type: 'platform_fee',
-          base_amount: platformFeeBase,
-          commission_rate: platformFeeRate,
-          commission_amount: platformFeeCommission,
-          status: 'pending',
-          platform_fee_tier_at_time: profile.platform_fee_tier,
-          billing_period_start: billing_period_start || null,
-          billing_period_end: billing_period_end || null,
-        })
-        .select()
-        .single();
-
-      if (commissionError) {
-        console.error('Failed to create platform fee commission:', commissionError);
-      } else {
-        commissionsCreated.push(commission);
-        
-        // Update ambassador pending commission
-        await serviceClient
-          .from('ambassador_profiles')
-          .update({
-            pending_commission: profile.pending_commission + platformFeeCommission,
-          })
-          .eq('user_id', prospect.purchased_by_ambassador);
-        
-        // Send email notification for significant commissions (>$10)
-        if (platformFeeCommission > 10) {
-          try {
-            await sendEmail({
-              to: profile.email,
-              subject: 'New Platform Fee Commission Earned!',
-              html: `
-                <h2>Congratulations, ${profile.full_name}!</h2>
-                <p>You've earned a new platform fee commission:</p>
-                <ul>
-                  <li><strong>Domain:</strong> ${prospect.reports.domain}</li>
-                  <li><strong>Commission Amount:</strong> $${platformFeeCommission.toFixed(2)}</li>
-                  <li><strong>Status:</strong> Pending (60-day hold)</li>
-                </ul>
-                <p>This commission will become eligible for payout 60 days after the first lead is delivered to the client.</p>
-                <p><a href="https://nurturely.io/ambassador/commissions">View all commissions →</a></p>
-              `,
-            });
-            console.log(`✅ Commission email sent to ${profile.email}`);
-          } catch (emailError) {
-            console.error('Failed to send commission email:', emailError);
-          }
-        }
-      }
-    }
-
-    if (event_type === 'monthly_payment' && leads_processed && leads_processed > 0) {
+    // Only process per-lead commissions (no platform fees)
+    if (event_type === 'lead_purchase' && leads_processed && leads_processed > 0) {
       // Calculate per-lead commission
-      const perLeadRate = PER_LEAD_RATES[profile.per_lead_tier as keyof typeof PER_LEAD_RATES] || 5.0;
+      const perLeadRate = PER_LEAD_RATES[profile.per_lead_tier as keyof typeof PER_LEAD_RATES] || 0.05;
       const perLeadPrice = clientPricing?.per_lead_price || 1.00;
       const perLeadBase = leads_processed * perLeadPrice;
-      const perLeadCommission = (perLeadBase * perLeadRate) / 100;
+      const perLeadCommission = perLeadBase * perLeadRate;
 
       const { data: commission, error: commissionError } = await serviceClient
         .from('commissions')
@@ -245,6 +176,8 @@ Deno.serve(async (req) => {
               <ul>
                 <li><strong>Domain:</strong> ${prospect.reports.domain}</li>
                 <li><strong>Leads Processed:</strong> ${leads_processed}</li>
+                <li><strong>Lead Price:</strong> $${perLeadPrice.toFixed(2)}</li>
+                <li><strong>Commission Rate:</strong> ${(perLeadRate * 100).toFixed(0)}%</li>
                 <li><strong>Commission Amount:</strong> $${perLeadCommission.toFixed(2)}</li>
                 <li><strong>Status:</strong> Immediately Eligible</li>
               </ul>
@@ -255,28 +188,6 @@ Deno.serve(async (req) => {
           console.log(`✅ Per-lead commission email sent to ${profile.email}`);
         } catch (emailError) {
           console.error('Failed to send per-lead commission email:', emailError);
-        }
-      }
-    }
-
-    if (event_type === 'first_lead') {
-      // Update existing pending platform fee commission
-      const { data: pendingCommissions, error: fetchError } = await serviceClient
-        .from('commissions')
-        .select('*')
-        .eq('prospect_activity_id', prospect_activity_id)
-        .eq('commission_type', 'platform_fee')
-        .eq('status', 'pending')
-        .is('first_lead_delivered_at', null);
-
-      if (pendingCommissions && pendingCommissions.length > 0) {
-        for (const comm of pendingCommissions) {
-          await serviceClient
-            .from('commissions')
-            .update({
-              first_lead_delivered_at: new Date().toISOString(),
-            })
-            .eq('id', comm.id);
         }
       }
     }
