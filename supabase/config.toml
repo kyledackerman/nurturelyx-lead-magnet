@@ -161,3 +161,6 @@ verify_jwt = true
 
 [functions.check-commission-eligibility]
 verify_jwt = false
+
+[functions.get-ambassador-leaderboard]
+verify_jwt = false

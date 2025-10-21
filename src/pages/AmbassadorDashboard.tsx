@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ambassadorService } from "@/services/ambassadorService";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { LeaderboardPreview } from "@/components/ambassador/LeaderboardPreview";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp, DollarSign, Users, Target, ArrowRight } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
@@ -52,7 +53,7 @@ export default function AmbassadorDashboard() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Active Domains</CardTitle>
@@ -96,6 +97,8 @@ export default function AmbassadorDashboard() {
             <p className="text-xs text-muted-foreground">Domains to signups</p>
           </CardContent>
         </Card>
+
+        <LeaderboardPreview />
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">

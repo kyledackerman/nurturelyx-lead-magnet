@@ -1,6 +1,15 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export const ambassadorService = {
+  // Get leaderboard
+  async getLeaderboard(metric: string = 'overall', limit: number = 50) {
+    const { data, error } = await supabase.functions.invoke('get-ambassador-leaderboard', {
+      body: { metric, limit }
+    });
+    if (error) throw error;
+    return data.leaderboard;
+  },
+
   // Get dashboard stats
   async getDashboardStats() {
     const { data, error } = await supabase.functions.invoke('get-ambassador-dashboard-stats');
