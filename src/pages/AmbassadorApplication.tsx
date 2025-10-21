@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { NewProgramBanner } from "@/components/ambassador/NewProgramBanner";
 import { IncomeCalculator } from "@/components/ambassador/IncomeCalculator";
 import { IncomeScenarioCards } from "@/components/ambassador/IncomeScenarioCards";
 import { BenefitsGrid } from "@/components/ambassador/BenefitsGrid";
@@ -71,8 +70,6 @@ export default function AmbassadorApplication() {
       <Header />
       
       <main className="container mx-auto px-4 py-12 max-w-7xl">
-        <NewProgramBanner />
-
         {/* Hero Section */}
         <div className="text-center mb-16 space-y-6">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
