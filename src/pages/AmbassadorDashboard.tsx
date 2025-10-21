@@ -118,7 +118,7 @@ export default function AmbassadorDashboard() {
                 onClick={() => navigate('/ambassador/marketplace')}
               >
                 <div className="font-semibold mb-1">Browse Marketplace</div>
-                <div className="text-xs text-muted-foreground text-left">Purchase leads for $0.01</div>
+                <div className="text-xs text-muted-foreground text-left">Purchase leads for $0.05</div>
                 <ArrowRight className="h-4 w-4 mt-2" />
               </Button>
 

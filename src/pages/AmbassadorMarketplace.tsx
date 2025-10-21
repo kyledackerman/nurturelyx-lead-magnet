@@ -24,7 +24,7 @@ export default function AmbassadorMarketplace() {
   const purchaseMutation = useMutation({
     mutationFn: (prospectId: string) => ambassadorService.purchaseLead(prospectId),
     onSuccess: () => {
-      toast.success('Lead purchased successfully for $0.01!');
+      toast.success('Lead purchased successfully for $0.05!');
       queryClient.invalidateQueries({ queryKey: ['marketplace-leads'] });
       queryClient.invalidateQueries({ queryKey: ['ambassador-stats'] });
       queryClient.invalidateQueries({ queryKey: ['my-domains'] });
@@ -75,7 +75,7 @@ export default function AmbassadorMarketplace() {
   const handleBulkPurchase = () => {
     if (selectedLeads.size === 0) return;
     
-    const totalCost = (selectedLeads.size * 0.01).toFixed(2);
+    const totalCost = (selectedLeads.size * 0.05).toFixed(2);
     const confirmMessage = `Purchase ${selectedLeads.size} lead${selectedLeads.size !== 1 ? 's' : ''} for $${totalCost}?`;
     
     if (window.confirm(confirmMessage)) {
@@ -84,7 +84,7 @@ export default function AmbassadorMarketplace() {
   };
 
   const allSelected = filteredLeads && filteredLeads.length > 0 && selectedLeads.size === filteredLeads.length;
-  const totalCost = (selectedLeads.size * 0.01).toFixed(2);
+  const totalCost = (selectedLeads.size * 0.05).toFixed(2);
 
   if (isLoading) {
     return (
@@ -103,7 +103,7 @@ export default function AmbassadorMarketplace() {
       <div className="container mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Lead Marketplace</h1>
-        <p className="text-muted-foreground">Purchase unassigned leads for $0.01 each</p>
+        <p className="text-muted-foreground">Purchase unassigned leads for $0.05 each</p>
       </div>
 
       <Card>
@@ -248,7 +248,7 @@ export default function AmbassadorMarketplace() {
                     <span className="text-sm text-muted-foreground">Purchase Price</span>
                     <span className="text-2xl font-bold flex items-center gap-1">
                       <DollarSign className="h-5 w-5" />
-                      0.01
+                      0.05
                     </span>
                   </div>
                   <Button 

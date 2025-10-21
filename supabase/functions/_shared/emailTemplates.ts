@@ -96,7 +96,8 @@ export function generateRejectionEmail(fullName: string, reason: string): string
 export function generatePurchaseConfirmationEmail(
   fullName: string,
   domain: string,
-  price: number
+  price: number,
+  newCreditBalance: number
 ): string {
   return `
 <!DOCTYPE html>
@@ -112,11 +113,16 @@ export function generatePurchaseConfirmationEmail(
     </div>
     <div style="padding: 40px 30px;">
       <h2 style="color: #333; margin: 0 0 20px;">Hi ${fullName},</h2>
-      <p style="margin: 0 0 15px;">Your lead purchase has been confirmed!</p>
+      <p style="margin: 0 0 15px;">Your lead purchase has been charged to your credit balance.</p>
       <div style="background-color: #f0fdf4; border: 2px solid #10b981; border-radius: 8px; padding: 20px; margin: 20px 0;">
         <h3 style="margin: 0 0 10px; color: #059669;">Purchase Details</h3>
         <p style="margin: 5px 0;"><strong>Domain:</strong> ${domain}</p>
-        <p style="margin: 5px 0;"><strong>Price:</strong> $${price.toFixed(2)}</p>
+        <p style="margin: 5px 0;"><strong>Price:</strong> $${price.toFixed(2)} (charged to credit)</p>
+        <p style="margin: 5px 0;"><strong>Current Credit Balance:</strong> $${newCreditBalance.toFixed(2)}</p>
+      </div>
+      <div style="background-color: #e7f3ff; padding: 15px; border-left: 4px solid #2196F3; margin: 20px 0;">
+        <p style="margin: 0;"><strong>💡 How Credit Works:</strong></p>
+        <p style="margin: 10px 0 0 0;">Your credit balance will be automatically settled against your monthly commission payouts. No upfront payment required!</p>
       </div>
       <p style="margin: 20px 0 0;">This lead is now exclusively assigned to you. View it in your dashboard to start outreach.</p>
       <div style="text-align: center; margin: 30px 0;">
@@ -174,7 +180,8 @@ export function generatePayoutProcessedEmail(
   fullName: string,
   payoutAmount: number,
   payoutDate: string,
-  commissionsSummary: { platformFee: number; perLead: number; }
+  commissionsSummary: { platformFee: number; perLead: number; },
+  creditSettlement?: number
 ): string {
   return `
 <!DOCTYPE html>
@@ -192,14 +199,21 @@ export function generatePayoutProcessedEmail(
       <h2 style="color: #333; margin: 0 0 20px;">Congratulations, ${fullName}!</h2>
       <p style="margin: 0 0 15px;">Your monthly payout has been processed and is on its way.</p>
       <div style="background-color: #f5f3ff; border: 2px solid #8b5cf6; border-radius: 8px; padding: 20px; margin: 20px 0;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <p style="margin: 0; font-size: 14px; color: #6d28d9;">Total Payout</p>
-          <p style="margin: 10px 0 0; font-size: 36px; font-weight: bold; color: #8b5cf6;">$${payoutAmount.toFixed(2)}</p>
-          <p style="margin: 5px 0 0; font-size: 12px; color: #6d28d9;">${payoutDate}</p>
-        </div>
-        <div style="border-top: 1px solid #c4b5fd; padding-top: 15px;">
+        <div style="border-bottom: 1px solid #c4b5fd; padding-bottom: 15px; margin-bottom: 15px;">
           <p style="margin: 5px 0; display: flex; justify-content: space-between;"><span>Platform Fee Commissions:</span> <strong>$${commissionsSummary.platformFee.toFixed(2)}</strong></p>
           <p style="margin: 5px 0; display: flex; justify-content: space-between;"><span>Per-Lead Commissions:</span> <strong>$${commissionsSummary.perLead.toFixed(2)}</strong></p>
+          <p style="margin: 5px 0; display: flex; justify-content: space-between; font-size: 16px;"><span><strong>Total Commissions Earned:</strong></span> <strong style="color: #8b5cf6;">$${(commissionsSummary.platformFee + commissionsSummary.perLead).toFixed(2)}</strong></p>
+        </div>
+        ${creditSettlement && creditSettlement > 0 ? `
+        <div style="border-bottom: 2px solid #ef4444; padding-bottom: 15px; margin-bottom: 15px;">
+          <p style="margin: 5px 0; display: flex; justify-content: space-between; color: #dc2626;"><span><strong>Credit Balance Settlement:</strong></span> <strong>-$${creditSettlement.toFixed(2)}</strong></p>
+          <p style="margin: 10px 0 0; font-size: 12px; color: #666;">This represents lead purchases charged to your credit that are now being settled.</p>
+        </div>
+        ` : ''}
+        <div style="text-align: center; padding-top: 15px;">
+          <p style="margin: 0; font-size: 14px; color: #6d28d9;">Net Payout</p>
+          <p style="margin: 10px 0 0; font-size: 36px; font-weight: bold; color: #10b981;">${payoutAmount > 0 ? '$' + payoutAmount.toFixed(2) : '$0.00'}</p>
+          <p style="margin: 5px 0 0; font-size: 12px; color: #6d28d9;">${payoutDate}</p>
         </div>
       </div>
       <p style="margin: 20px 0 0;">The funds should arrive within 3-5 business days depending on your payment method.</p>
@@ -257,7 +271,8 @@ export function generateDomainSubmissionEmail(
 export function generateBulkPurchaseConfirmationEmail(
   domains: string[],
   totalCost: number,
-  purchaseCount: number
+  purchaseCount: number,
+  newCreditBalance: number
 ): string {
   const domainList = domains.slice(0, 50).map(d => `<li style="padding: 4px 0;">${d}</li>`).join('');
   const hasMore = domains.length > 50;
@@ -290,13 +305,22 @@ export function generateBulkPurchaseConfirmationEmail(
           </tr>
           <tr>
             <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;"><strong>Price Per Lead:</strong></td>
-            <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0; text-align: right;">$0.01</td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0; text-align: right;">$0.05</td>
           </tr>
           <tr>
-            <td style="padding: 8px 0;"><strong>Total Cost:</strong></td>
-            <td style="padding: 8px 0; text-align: right; color: #667eea; font-size: 18px;"><strong>$${totalCost.toFixed(2)}</strong></td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;"><strong>Total Cost:</strong></td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0; text-align: right; color: #667eea; font-size: 18px;"><strong>$${totalCost.toFixed(2)}</strong></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Current Credit Balance:</strong></td>
+            <td style="padding: 8px 0; text-align: right; font-size: 16px;"><strong>$${newCreditBalance.toFixed(2)}</strong></td>
           </tr>
         </table>
+      </div>
+      
+      <div style="background-color: #e7f3ff; padding: 15px; border-left: 4px solid #2196F3; margin: 20px 0;">
+        <p style="margin: 0;"><strong>💡 How Credit Works:</strong></p>
+        <p style="margin: 10px 0 0 0;">Your credit balance will be automatically settled against your monthly commission payouts. No upfront payment required!</p>
       </div>
       
       <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">

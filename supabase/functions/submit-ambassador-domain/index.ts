@@ -108,11 +108,11 @@ Deno.serve(async (req) => {
       } else {
         return new Response(
           JSON.stringify({
-            error: 'This domain exists but is unassigned. You can purchase it from the marketplace for $0.01.',
+            error: 'This domain exists but is unassigned. You can purchase it from the marketplace for $0.05.',
             alreadyExists: true,
             canPurchase: true,
             report_id: existingReport.id,
-            purchase_price: 0.01,
+            purchase_price: 0.05,
           }),
           {
             status: 409,

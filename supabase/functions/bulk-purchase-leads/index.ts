@@ -69,8 +69,19 @@ serve(async (req) => {
       throw new Error("No valid leads available for purchase");
     }
 
-    const totalCost = validProspects.length * 0.01;
+    const LEAD_PRICE = 0.05;
+    const totalCost = validProspects.length * LEAD_PRICE;
     const purchaseTime = new Date().toISOString();
+
+    // Get current credit balance
+    const { data: profileData } = await supabase
+      .from('ambassador_profiles')
+      .select('credit_balance')
+      .eq('user_id', user.id)
+      .single();
+    
+    const currentBalance = profileData?.credit_balance || 0;
+    const newBalance = Number(currentBalance) + totalCost;
 
     // Insert lead purchases
     const leadPurchases = validProspects.map(p => ({
@@ -78,10 +89,11 @@ serve(async (req) => {
       prospect_activity_id: p.id,
       report_id: p.report_id,
       domain: p.reports.domain,
-      purchase_price: 0.01,
+      purchase_price: LEAD_PRICE,
       purchased_at: purchaseTime,
       source: 'marketplace',
-      payment_status: 'completed'
+      payment_method: 'credit',
+      payment_status: 'pending_settlement'
     }));
 
     const { error: insertError } = await supabase
@@ -105,13 +117,30 @@ serve(async (req) => {
 
     if (updateError) throw updateError;
 
-    // Update ambassador profile
+    // Create credit transactions
+    const creditTransactions = validProspects.map(p => ({
+      ambassador_id: user.id,
+      transaction_type: 'charge',
+      amount: LEAD_PRICE,
+      balance_after: currentBalance + (LEAD_PRICE * (validProspects.indexOf(p) + 1)),
+      description: `Bulk purchase: ${p.reports.domain}`,
+      related_purchase_id: p.id
+    }));
+
+    const { error: creditError } = await supabase
+      .from('credit_transactions')
+      .insert(creditTransactions);
+
+    if (creditError) throw creditError;
+
+    // Update ambassador profile with new credit balance
     const { error: profileError } = await supabase
       .from('ambassador_profiles')
       .update({
         total_domains_purchased: supabase.raw(`total_domains_purchased + ${validProspects.length}`),
         total_spent_on_leads: supabase.raw(`total_spent_on_leads + ${totalCost}`),
         active_domains_count: supabase.raw(`active_domains_count + ${validProspects.length}`),
+        credit_balance: newBalance,
         updated_at: purchaseTime
       })
       .eq('user_id', user.id);
@@ -119,19 +148,31 @@ serve(async (req) => {
     if (profileError) throw profileError;
 
     // Log to audit trail
-    await supabase.from('audit_logs').insert({
-      table_name: 'lead_purchases',
-      record_id: user.id,
-      action_type: 'INSERT',
-      field_name: 'bulk_purchase',
-      new_value: `${validProspects.length} leads`,
-      business_context: `Bulk purchased ${validProspects.length} leads for $${totalCost.toFixed(2)} from marketplace`,
-      changed_by: user.id
-    });
+    await supabase.from('audit_logs').insert([
+      {
+        table_name: 'lead_purchases',
+        record_id: user.id,
+        action_type: 'INSERT',
+        field_name: 'bulk_purchase',
+        new_value: `${validProspects.length} leads`,
+        business_context: `Bulk purchased ${validProspects.length} leads for $${totalCost.toFixed(2)} (credit)`,
+        changed_by: user.id
+      },
+      {
+        table_name: 'ambassador_profiles',
+        record_id: user.id,
+        action_type: 'UPDATE',
+        field_name: 'credit_balance',
+        old_value: currentBalance.toString(),
+        new_value: newBalance.toString(),
+        business_context: `Credit charged for bulk purchase: ${validProspects.length} leads`,
+        changed_by: user.id
+      }
+    ]);
 
     // Send confirmation email
     const domains = validProspects.map(p => p.reports.domain);
-    const emailHtml = generateBulkPurchaseConfirmationEmail(domains, totalCost, validProspects.length);
+    const emailHtml = generateBulkPurchaseConfirmationEmail(domains, totalCost, validProspects.length, newBalance);
     
     // Use Mailgun to send email (optional - only if Mailgun is configured)
     if (Deno.env.get("MAILGUN_API_KEY")) {

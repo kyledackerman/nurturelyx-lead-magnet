@@ -120,6 +120,10 @@ Deno.serve(async (req) => {
       });
     }
 
+    const purchasePrice = 0.05;
+    const currentBalance = profile.credit_balance || 0;
+    const newBalance = Number(currentBalance) + purchasePrice;
+
     // Create purchase record
     const { data: purchase, error: purchaseError } = await supabaseClient
       .from('lead_purchases')
@@ -128,8 +132,9 @@ Deno.serve(async (req) => {
         report_id: prospect.report_id,
         prospect_activity_id: prospect.id,
         domain: prospect.reports.domain,
-        purchase_price: 0.01,
-        payment_status: 'completed',
+        purchase_price: purchasePrice,
+        payment_status: 'pending_settlement',
+        payment_method: 'credit',
         source: 'marketplace',
       })
       .select()
@@ -160,13 +165,30 @@ Deno.serve(async (req) => {
       console.error('Failed to update prospect:', updateError);
     }
 
+    // Create credit transaction
+    const { error: creditError } = await supabaseClient
+      .from('credit_transactions')
+      .insert({
+        ambassador_id: user.id,
+        transaction_type: 'charge',
+        amount: purchasePrice,
+        balance_after: newBalance,
+        description: `Lead purchase: ${prospect.reports.domain}`,
+        related_purchase_id: purchase.id
+      });
+
+    if (creditError) {
+      console.error('Failed to create credit transaction:', creditError);
+    }
+
     // Update ambassador profile metrics
     const { error: profileUpdateError } = await supabaseClient
       .from('ambassador_profiles')
       .update({
         total_domains_purchased: profile.total_domains_purchased + 1,
-        total_spent_on_leads: profile.total_spent_on_leads + 0.01,
+        total_spent_on_leads: Number(profile.total_spent_on_leads) + purchasePrice,
         active_domains_count: profile.active_domains_count + 1,
+        credit_balance: newBalance,
       })
       .eq('user_id', user.id);
 
@@ -175,22 +197,34 @@ Deno.serve(async (req) => {
     }
 
     // Log to audit trail
-    await supabaseClient.from('audit_logs').insert({
-      table_name: 'lead_purchases',
-      record_id: purchase.id,
-      action_type: 'INSERT',
-      field_name: 'purchase',
-      new_value: prospect.reports.domain,
-      business_context: `Ambassador purchased lead for $0.01: ${prospect.reports.domain}`,
-      changed_by: user.id,
-    });
+    await supabaseClient.from('audit_logs').insert([
+      {
+        table_name: 'lead_purchases',
+        record_id: purchase.id,
+        action_type: 'INSERT',
+        field_name: 'purchase',
+        new_value: prospect.reports.domain,
+        business_context: `Ambassador purchased lead for $${purchasePrice.toFixed(2)} (credit): ${prospect.reports.domain}`,
+        changed_by: user.id,
+      },
+      {
+        table_name: 'ambassador_profiles',
+        record_id: user.id,
+        action_type: 'UPDATE',
+        field_name: 'credit_balance',
+        old_value: currentBalance.toString(),
+        new_value: newBalance.toString(),
+        business_context: `Credit charged for lead purchase: ${prospect.reports.domain}`,
+        changed_by: user.id,
+      }
+    ]);
 
     // Send email
     const { sendEmail } = await import('../_shared/emailService.ts');
     const { generatePurchaseConfirmationEmail } = await import('../_shared/emailTemplates.ts');
     try {
       await sendEmail({ to: profile.email, subject: 'Lead Purchase Confirmed',
-        html: generatePurchaseConfirmationEmail(profile.full_name, prospect.reports.domain, 0.01) });
+        html: generatePurchaseConfirmationEmail(profile.full_name, prospect.reports.domain, purchasePrice, newBalance) });
     } catch (e) { console.error('Email failed:', e); }
 
     return new Response(
@@ -198,7 +232,8 @@ Deno.serve(async (req) => {
         success: true,
         purchase_id: purchase.id,
         domain: prospect.reports.domain,
-        purchase_price: 0.01,
+        purchase_price: purchasePrice,
+        credit_balance: newBalance,
         message: 'Lead purchased successfully',
       }),
       {

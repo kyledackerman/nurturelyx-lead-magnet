@@ -76,6 +76,7 @@ export type Database = {
           active_domains_count: number
           application_id: string | null
           created_at: string
+          credit_balance: number
           eligible_commission: number
           email: string
           full_name: string
@@ -101,6 +102,7 @@ export type Database = {
           active_domains_count?: number
           application_id?: string | null
           created_at?: string
+          credit_balance?: number
           eligible_commission?: number
           email: string
           full_name: string
@@ -126,6 +128,7 @@ export type Database = {
           active_domains_count?: number
           application_id?: string | null
           created_at?: string
+          credit_balance?: number
           eligible_commission?: number
           email?: string
           full_name?: string
@@ -515,6 +518,45 @@ export type Database = {
           },
         ]
       }
+      credit_transactions: {
+        Row: {
+          ambassador_id: string
+          amount: number
+          balance_after: number
+          created_at: string
+          description: string
+          id: string
+          related_commission_id: string | null
+          related_payout_batch_id: string | null
+          related_purchase_id: string | null
+          transaction_type: string
+        }
+        Insert: {
+          ambassador_id: string
+          amount: number
+          balance_after: number
+          created_at?: string
+          description: string
+          id?: string
+          related_commission_id?: string | null
+          related_payout_batch_id?: string | null
+          related_purchase_id?: string | null
+          transaction_type: string
+        }
+        Update: {
+          ambassador_id?: string
+          amount?: number
+          balance_after?: number
+          created_at?: string
+          description?: string
+          id?: string
+          related_commission_id?: string | null
+          related_payout_batch_id?: string | null
+          related_purchase_id?: string | null
+          transaction_type?: string
+        }
+        Relationships: []
+      }
       enrichment_job_items: {
         Row: {
           completed_at: string | null
@@ -707,6 +749,7 @@ export type Database = {
           created_at: string
           domain: string
           id: string
+          payment_method: string
           payment_status: string
           prospect_activity_id: string
           purchase_price: number
@@ -719,6 +762,7 @@ export type Database = {
           created_at?: string
           domain: string
           id?: string
+          payment_method?: string
           payment_status?: string
           prospect_activity_id: string
           purchase_price?: number
@@ -731,6 +775,7 @@ export type Database = {
           created_at?: string
           domain?: string
           id?: string
+          payment_method?: string
           payment_status?: string
           prospect_activity_id?: string
           purchase_price?: number

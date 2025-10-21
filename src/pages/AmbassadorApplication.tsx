@@ -73,7 +73,7 @@ export default function AmbassadorApplication() {
             <CardTitle>Low Entry Cost</CardTitle>
           </CardHeader>
           <CardContent className="text-center text-sm text-muted-foreground">
-            Purchase marketplace leads for just $0.01 or submit new domains for free
+            Purchase marketplace leads for just $0.05 or submit new domains for free
           </CardContent>
         </Card>
 
@@ -198,7 +198,7 @@ export default function AmbassadorApplication() {
             <div>
               <div className="font-semibold">Access to Lead Marketplace</div>
               <p className="text-sm text-muted-foreground">
-                Purchase qualified leads for just $0.01 each
+                Purchase qualified leads for just $0.05 each
               </p>
             </div>
           </div>
