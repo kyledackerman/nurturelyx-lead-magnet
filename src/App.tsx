@@ -37,6 +37,13 @@ import BlogPostPage from "./pages/BlogPostPage";
 import IndustryReportsPage from "./pages/IndustryReportsPage";
 import TopCompaniesPage from "./pages/TopCompaniesPage";
 import SubmitSupportTicket from "./pages/SubmitSupportTicket";
+import AmbassadorDashboard from "./pages/AmbassadorDashboard";
+import AmbassadorMarketplace from "./pages/AmbassadorMarketplace";
+import AmbassadorDomains from "./pages/AmbassadorDomains";
+import AmbassadorSubmitDomain from "./pages/AmbassadorSubmitDomain";
+import AmbassadorCommissions from "./pages/AmbassadorCommissions";
+import AmbassadorSettings from "./pages/AmbassadorSettings";
+import AmbassadorApplication from "./pages/AmbassadorApplication";
 
 const queryClient = new QueryClient();
 
@@ -94,6 +101,16 @@ const App = () => (
             <Route path="/blog/:slug" element={<BlogPostPage />} />
             <Route path="/reports/:industry" element={<IndustryReportsPage />} />
             <Route path="/top-companies-losing-revenue" element={<TopCompaniesPage />} />
+            
+            {/* Ambassador Routes */}
+            <Route path="/ambassador/apply" element={<AmbassadorApplication />} />
+            <Route path="/ambassador" element={<AmbassadorDashboard />} />
+            <Route path="/ambassador/marketplace" element={<AmbassadorMarketplace />} />
+            <Route path="/ambassador/domains" element={<AmbassadorDomains />} />
+            <Route path="/ambassador/submit" element={<AmbassadorSubmitDomain />} />
+            <Route path="/ambassador/commissions" element={<AmbassadorCommissions />} />
+            <Route path="/ambassador/settings" element={<AmbassadorSettings />} />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
             </Routes>
