@@ -75,7 +75,7 @@ const ComparePage = () => {
       idRate: "35%",
       contactInfo: true,
       setup: "Simple",
-      price: "$99/mo",
+      price: "$100/mo + $1/lead",
       crm: true,
       bestFor: "B2B Lead Generation",
       highlight: true,
@@ -254,7 +254,7 @@ const ComparePage = () => {
     },
     {
       question: "Which tool is best for small businesses?",
-      answer: "Identity Resolution tools like NurturelyX ($99/mo) offer the best ROI for small businesses because they provide actual contact information at an affordable price. IP-based tools require expensive research time, and ABM platforms are overkill for companies without large sales teams.",
+      answer: "Identity Resolution tools like NurturelyX ($100/month + $1/lead) offer the best ROI for small businesses because they provide actual contact information at an affordable price. IP-based tools require expensive research time, and ABM platforms are overkill for companies without large sales teams.",
     },
   ];
 
@@ -597,7 +597,7 @@ const ComparePage = () => {
                   <div className="space-y-4 border-l-2 border-primary pl-8">
                     <h3 className="font-semibold text-lg flex items-center gap-2">
                       <User className="h-5 w-5 text-green-500" />
-                      With Identity Resolution ($99/mo)
+                      With Identity Resolution ($100/mo + $1/lead)
                     </h3>
                     <div className="space-y-2 text-sm">
                       <p>• 3,500 contacts identified (35%)</p>
@@ -607,10 +607,10 @@ const ComparePage = () => {
                       <p>• 35 demos booked (7% - better timing)</p>
                       <p>• 7 deals closed = <strong>$70k revenue</strong></p>
                       <p className="pt-2 border-t">
-                        <strong>Cost:</strong> $99 (no labor)
+                        <strong>Cost:</strong> $100 + $3,500 (3,500 leads) = $3,600 total (no labor)
                       </p>
                       <p>
-                        <strong>ROI:</strong> <span className="text-primary font-bold">707:1</span>
+                        <strong>ROI:</strong> <span className="text-primary font-bold">19:1</span>
                       </p>
                     </div>
                   </div>
@@ -619,7 +619,7 @@ const ComparePage = () => {
                 <div className="mt-8 p-4 bg-primary/10 rounded-lg">
                   <p className="text-center font-semibold">
                     <TrendingUp className="inline h-5 w-5 mr-2" />
-                    <strong className="text-primary">3.5x more revenue</strong> at half the cost with identity resolution
+                    <strong className="text-primary">3.5x more revenue</strong> at 15% of the cost with identity resolution
                   </p>
                 </div>
               </CardContent>

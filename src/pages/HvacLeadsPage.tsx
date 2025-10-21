@@ -125,7 +125,7 @@ const HvacLeadsPage = () => {
     },
     {
       question: "How much does this cost?",
-      answer: "Pricing varies by website traffic volume, but most HVAC companies pay $200-$800/month. Given that a single furnace replacement ($4K-$8K) or AC install ($3K-$7K) pays for months of service, the ROI math is compelling. Start by calculating how many leads you're currently losing—that's your opportunity cost."
+      answer: "Our pricing is simple and transparent: $100/month platform fee plus $1 per identified lead. For example, if you identify 200 leads per month, your total cost is $300 ($100 + 200 leads × $1). Given that a single furnace replacement ($4K-$8K) or AC install ($3K-$7K) pays for months of service, the ROI is compelling."
     }
   ];
 

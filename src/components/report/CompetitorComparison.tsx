@@ -32,7 +32,7 @@ const CompetitorComparison = ({ data }: CompetitorComparisonProps) => {
       contactInfo: true,
       installComplexity: "Simple",
       crmIntegration: true,
-      startingPrice: "$99/mo",
+      startingPrice: "$100/mo + $1/lead",
       highlight: true,
     },
     {
