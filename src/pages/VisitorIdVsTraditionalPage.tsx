@@ -666,8 +666,12 @@ const VisitorIdVsTraditionalPage = () => {
                 </CardHeader>
                 <CardContent className="pt-6 space-y-4">
                   <div className="flex justify-between items-center pb-3 border-b">
-                    <span className="text-sm">Visitor identification platform</span>
-                    <span className="font-bold">$499-$1,999/mo</span>
+                    <span className="text-sm">Platform fee (unlimited tracking)</span>
+                    <span className="font-bold">$100/mo</span>
+                  </div>
+                  <div className="flex justify-between items-center pb-3 border-b">
+                    <span className="text-sm">Identity resolution ($1/lead)</span>
+                    <span className="font-bold">Pay as you go</span>
                   </div>
                   <div className="flex justify-between items-center pb-3 border-b">
                     <span className="text-sm">Implementation & setup</span>
@@ -686,8 +690,8 @@ const VisitorIdVsTraditionalPage = () => {
                     <span className="font-bold text-primary">$0</span>
                   </div>
                   <div className="flex justify-between items-center pt-4 text-lg font-bold border-t-2 border-primary">
-                    <span>Total Monthly Cost</span>
-                    <span className="text-primary">$499-$1,999</span>
+                    <span>Example: 3,700 leads/mo</span>
+                    <span className="text-primary">$3,800</span>
                   </div>
                   <div className="bg-primary/10 rounded-lg p-4 mt-4">
                     <div className="text-sm font-semibold mb-1">Cost Per Lead</div>

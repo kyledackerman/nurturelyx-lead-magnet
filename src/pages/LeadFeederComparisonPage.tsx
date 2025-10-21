@@ -30,11 +30,11 @@ const LeadFeederComparisonPage = () => {
   const faqItems = [
     {
       question: "Is NurturelyX a good alternative to LeadFeeder?",
-      answer: "Yes. NurturelyX offers similar visitor identification capabilities to LeadFeeder but at a significantly lower price point. While LeadFeeder starts at $139/month and quickly scales to $800+/month, NurturelyX provides comparable identification rates, contact data, and behavioral tracking starting at just $499/month with unlimited users and leads. Many companies switching from LeadFeeder report 60-70% cost savings while maintaining or improving lead quality."
+      answer: "Yes. NurturelyX offers similar visitor identification capabilities to LeadFeeder but at a significantly lower price point. While LeadFeeder starts at $139/month and quickly scales to $800+/month, NurturelyX provides simple transparent pricing at just $100/month platform fee + $1 per identified lead. Many companies switching from LeadFeeder report 60-80% cost savings while maintaining or improving lead quality."
     },
     {
       question: "How does NurturelyX pricing compare to LeadFeeder pricing?",
-      answer: "LeadFeeder uses tiered pricing that increases based on identified companies and user seats. Their Basic plan starts at $139/month (limited features, 1 user), Professional at $479/month, and Premium at $800+/month. NurturelyX offers flat-rate pricing at $499-$1,999/month with unlimited users, unlimited identified leads, and all features included. For most B2B companies, NurturelyX costs 40-70% less than comparable LeadFeeder plans."
+      answer: "LeadFeeder uses tiered pricing that increases based on identified companies and user seats. Their Basic plan starts at $139/month (limited features, 1 user), Professional at $479/month, and Premium at $800+/month. NurturelyX offers simple transparent pricing: $100/month platform fee + $1 per identified lead, with unlimited users and all features included. For most B2B companies, NurturelyX costs 40-80% less than comparable LeadFeeder plans."
     },
     {
       question: "What are the main differences between LeadFeeder and NurturelyX?",
@@ -58,7 +58,7 @@ const LeadFeederComparisonPage = () => {
     },
     {
       question: "Does NurturelyX offer a free trial like LeadFeeder?",
-      answer: "Yes! NurturelyX offers a 14-day free trial with full access to all features (LeadFeeder offers 14 days as well). Additionally, we provide a free instant report showing companies currently visiting your website, so you can see real data before committing. No credit card required for either the instant report or trial period."
+      answer: "Yes! NurturelyX offers a risk-free start where you can install your tracking pixel and view anonymous analytics. You only pay the $100/month platform fee + $1 per lead when you're ready to start identifying visitors. Additionally, we provide a free instant report showing companies currently visiting your website. No credit card required to get started."
     }
   ];
 
@@ -228,8 +228,8 @@ const LeadFeederComparisonPage = () => {
                         <div className="flex items-start">
                           <Check className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
                           <div>
-                            <div className="font-semibold text-foreground">Flat-Rate Pricing</div>
-                            <div className="text-sm text-muted-foreground">$499-$1,999/month, unlimited everything</div>
+                            <div className="font-semibold text-foreground">Simple Transparent Pricing</div>
+                            <div className="text-sm text-muted-foreground">$100/month + $1/lead, unlimited everything</div>
                           </div>
                         </div>
                         <div className="flex items-start">
@@ -461,9 +461,9 @@ const LeadFeederComparisonPage = () => {
                     <Card className="border-2 border-primary/30">
                       <CardHeader>
                         <Badge className="w-fit mb-2">Most Popular</Badge>
-                        <CardTitle className="text-lg">Growth Plan</CardTitle>
-                        <div className="text-3xl font-bold text-primary">$499/month</div>
-                        <div className="text-sm text-muted-foreground">flat rate</div>
+                        <CardTitle className="text-lg">Simple Transparent Pricing</CardTitle>
+                        <div className="text-3xl font-bold text-primary">$100</div>
+                        <div className="text-sm text-muted-foreground">per month + $1/lead</div>
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <div className="flex items-center text-sm">
@@ -472,7 +472,7 @@ const LeadFeederComparisonPage = () => {
                         </div>
                         <div className="flex items-center text-sm">
                           <Check className="h-4 w-4 text-primary mr-2" />
-                          <span>Unlimited identified companies</span>
+                          <span>Unlimited visitor tracking</span>
                         </div>
                         <div className="flex items-center text-sm">
                           <Check className="h-4 w-4 text-primary mr-2" />
@@ -491,8 +491,8 @@ const LeadFeederComparisonPage = () => {
                           <span>90-day history</span>
                         </div>
                         <div className="bg-primary/10 rounded p-3 mt-4">
-                          <div className="text-sm font-semibold mb-1 text-primary">Total Cost:</div>
-                          <div className="text-2xl font-bold text-primary">$499/month</div>
+                          <div className="text-sm font-semibold mb-1 text-primary">Example: 1,000 leads/mo</div>
+                          <div className="text-2xl font-bold text-primary">$1,100/month</div>
                           <div className="text-xs text-muted-foreground mt-1">Everything included. No hidden fees.</div>
                         </div>
                       </CardContent>
@@ -500,14 +500,14 @@ const LeadFeederComparisonPage = () => {
 
                     <Card className="border-2 border-primary/30">
                       <CardHeader>
-                        <CardTitle className="text-lg">Scale Plan</CardTitle>
-                        <div className="text-3xl font-bold text-primary">$999/month</div>
-                        <div className="text-sm text-muted-foreground">flat rate</div>
+                        <CardTitle className="text-lg">White Glove (Custom Volume)</CardTitle>
+                        <div className="text-3xl font-bold text-primary">Custom</div>
+                        <div className="text-sm text-muted-foreground">contact us</div>
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <div className="flex items-center text-sm">
                           <Check className="h-4 w-4 text-primary mr-2" />
-                          <span>Everything in Growth</span>
+                          <span>Everything included</span>
                         </div>
                         <div className="flex items-center text-sm">
                           <Check className="h-4 w-4 text-primary mr-2" />
@@ -650,7 +650,7 @@ const LeadFeederComparisonPage = () => {
                     </CardHeader>
                     <CardContent>
                       <blockquote className="text-muted-foreground mb-4">
-                        "We were paying LeadFeeder $800/month for 3 user seats plus LinkedIn Sales Navigator for contact data (another $240/month). With NurturelyX at $499/month, we get unlimited users AND verified contacts included. Same identification rate, way better price."
+                        "We were paying LeadFeeder $800/month for 3 user seats plus LinkedIn Sales Navigator for contact data (another $240/month). With NurturelyX at $100/month + $1/lead, we get unlimited users AND verified contacts included. Same identification rate, way better price."
                       </blockquote>
                       <div className="font-semibold text-foreground">- Michael R., VP of Marketing</div>
                       <div className="text-sm text-muted-foreground">CloudTech Solutions</div>
