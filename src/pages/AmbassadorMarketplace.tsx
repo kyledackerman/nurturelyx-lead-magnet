@@ -132,6 +132,10 @@ export default function AmbassadorMarketplace() {
                     <span className="text-muted-foreground">Monthly Traffic</span>
                     <span className="font-semibold">{traffic.toLocaleString()}</span>
                   </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Contacts Found</span>
+                    <span className="font-semibold">{lead.contact_count || 0} contacts</span>
+                  </div>
                 </div>
 
                 <div className="pt-4 border-t">
