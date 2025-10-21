@@ -15,6 +15,30 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: 'why-website-not-getting-leads',
+    title: 'Why Is My Website Not Getting Leads? [2025 Complete Guide]',
+    metaDescription: 'Your website gets traffic but no leads? Discover the hidden reason 98% of visitors leave without converting and how to identify them automatically.',
+    author: 'NurturelyX Team',
+    publishedAt: '2025-01-15',
+    readTime: '15 min',
+    category: 'Lead Generation',
+    featuredImage: 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png',
+    content: `# Why Is My Website Not Getting Leads?
+
+Visit the [complete guide](/why-website-not-getting-leads) to discover why 98% of your website visitors leave without converting and the proven solution to identify them automatically.
+
+This comprehensive guide covers:
+- The brutal truth about visitor anonymity
+- Why traditional lead generation fails in 2025
+- The hidden revenue leak in your business
+- How identity resolution technology works
+- Real-world examples and ROI calculations
+
+[Read the full guide →](/why-website-not-getting-leads)`,
+    relatedReports: ['hvac', 'legal', 'healthcare'],
+    relatedArticles: ['identify-anonymous-website-visitors', 'visitor-identification-for-hvac-contractors']
+  },
+  {
     slug: 'identify-anonymous-website-visitors',
     title: 'How to Identify Anonymous Website Visitors in 2025',
     metaDescription: 'Learn how to identify anonymous website visitors and turn them into qualified leads. Complete guide to visitor identification technology and B2B lead generation.',

@@ -19,6 +19,7 @@ import { AdminAuthGuard } from "./components/admin/AdminAuthGuard";
 import UserDashboard from "./pages/UserDashboard";
 import LearnPage from "./pages/LearnPage";
 import HvacLeadsPage from "./pages/HvacLeadsPage";
+import WhyNoLeadsPage from "./pages/WhyNoLeadsPage";
 import PricingPage from "./pages/PricingPage";
 import ComparePage from "./pages/ComparePage";
 import HVACIndustryPage from "./pages/industries/HVACIndustryPage";
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/compare" element={<ComparePage />} />
             <Route path="/generate-leads-hvac" element={<HvacLeadsPage />} />
+            <Route path="/why-website-not-getting-leads" element={<WhyNoLeadsPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/dashboard" element={<UserDashboard />} />
