@@ -24,6 +24,7 @@ import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm"
 import AdminManual from "@/components/admin/AdminManual";
 import { ReportCategorizationTool } from "@/components/admin/ReportCategorizationTool";
 import { BackfillUseCasesButton } from "@/components/admin/BackfillUseCasesButton";
+import { BackfillWarmInboundButton } from "@/components/admin/BackfillWarmInboundButton";
 import { FormData, ReportData } from "@/types/report";
 import { fetchDomainData, calculateReportMetrics } from "@/services/spyfuService";
 import { reportService } from "@/services/reportService";
@@ -2171,8 +2172,9 @@ const AdminDashboard = () => {
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
+                    <BackfillWarmInboundButton />
                     <BackfillUseCasesButton variant="compact" />
-                    <Button 
+                    <Button
                       size="sm" 
                       variant="outline" 
                       onClick={handleCleanupStuckJobs}

@@ -267,7 +267,7 @@ serve(async (req) => {
             .from('prospect_activities')
             .insert({
               report_id: reportId,
-              activity_type: (isAdmin && userId) ? 'assignment' : 'inbound_self_service',
+              activity_type: 'assignment',
               assigned_to: userId || null,
               assigned_by: userId || null,
               assigned_at: userId ? new Date().toISOString() : null,
