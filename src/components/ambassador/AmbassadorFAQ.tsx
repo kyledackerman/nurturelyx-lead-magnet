@@ -20,12 +20,12 @@ const faqs = [
     answer: "No. This is a brand new program and Gold tier (1,000 signups) is aspirational. It's designed for elite performers who build this into a real business. Most ambassadors should focus on reaching Silver first—that's where income truly scales.",
   },
   {
-    question: "What's the difference between platform fee and per-lead tiers?",
-    answer: "Platform fee tier is based on total lifetime signups (everyone you've ever closed). Per-lead tier is based on currently active domains (retention bonus). Both unlock at 100 and 1,000.",
+    question: "How do the tier rates work?",
+    answer: "Your commission rate is based on total lifetime signups (everyone you've ever closed). Bronze (0-99) = 5% per lead, Silver (100-999) = 10% per lead, Gold (1000+) = 15% per lead. Once you hit a tier, that rate applies to ALL your clients.",
   },
   {
     question: "Do I lose commissions if a client cancels?",
-    answer: "You stop earning platform fees for that client, but you keep all previously earned commissions. This is why retention rate matters (tracked on the leaderboard).",
+    answer: "You keep all commissions already earned on leads they purchased. If they cancel, you only stop earning on future lead purchases. This is why retention matters—active clients = ongoing income.",
   },
   {
     question: "How do I get paid?",
@@ -43,7 +43,7 @@ const faqs = [
   },
   {
     question: "What if I only refer a few businesses and never hit Silver?",
-    answer: "That's perfectly fine! Even 10 referrals earning you $550/month is $6,600/year in passive income. There are no quotas or penalties for staying in Bronze.",
+    answer: "That's perfectly fine! Even 10 referrals processing 500 leads/month at $0.50/lead = $125/month passive income (Bronze 5%). There are no quotas or penalties for staying in Bronze.",
   },
 ];
 

@@ -32,65 +32,72 @@ NurturelyX identifies anonymous website visitors by name, company, and contact i
 
 **Why this matters for ambassadors**: B2B SaaS with recurring monthly revenue means you earn passive income every month, not just one-time commissions.
 
-## The Real Commission Structure (2025)
+## The Real Commission Structure (Per-Lead Only)
 
-### Bronze Tier (0-99 Active Clients)
-- **$30/month per client** (Small Business Plan: $99/mo)
-- **$50/month per client** (Professional Plan: $299/mo or Enterprise: $499/mo)
-- **Per-lead commission**: $3-$5 per purchased lead (when your clients buy extra leads)
-- **Setup**: One-time $100 bonus per new client onboarded
+You earn a percentage of what YOUR clients pay for leads. No monthly platform fees, no subscriptions—100% based on lead sales.
 
-### Silver Tier (100-999 Active Clients)
-- **$35/month per client** (Small Business Plan)
-- **$60/month per client** (Professional/Enterprise Plans)
-- **Per-lead commission**: $4-$6 per purchased lead
-- **Priority support** from NurturelyX team
-- **Early access** to new features
+### Tier Rates Based on Total Lifetime Signups:
+- **Bronze Tier (0-99 signups)**: 5% per lead
+- **Silver Tier (100-999 signups)**: 10% per lead  
+- **Gold Tier (1,000+ signups)**: 15% per lead
 
-### Gold Tier (1,000+ Active Clients)
-- **$40/month per client** (Small Business Plan)
-- **$70/month per client** (Professional/Enterprise Plans)
-- **Per-lead commission**: $5-$8 per purchased lead
-- **Dedicated account manager**
-- **Custom marketing materials**
-- **Quarterly performance bonuses**
+### Lead Pricing:
+- Clients can set their own per-lead price (minimum $0.20/lead)
+- Typical range: $0.50 - $2.00 per lead
+- You get your tier % of whatever THEY pay
 
-**Important**: "Active client" means they're paying and using the service. If a client cancels, their recurring commission stops (but you keep what you already earned).
+### Real Income Math:
+
+**Example 1: Bronze Tier (5%)**
+- 10 clients × 500 leads/mo × $0.50/lead × 5% = **$125/month**
+- Annual: $1,500
+
+**Example 2: Silver Tier (10%)**  
+- 150 clients × 1,000 leads/mo × $1.00/lead × 10% = **$15,000/month**
+- Annual: $180,000
+
+**Example 3: Gold Tier (15%)**
+- 1,000 clients × 2,000 leads/mo × $1.00/lead × 15% = **$300,000/month**
+- Annual: $3,600,000
+
+**Important**: These are projections, not guarantees. Income depends entirely on:
+1. How many businesses you refer (and keep active)
+2. How much they pay per lead
+3. How many leads they process monthly
 
 ## Real Income Scenarios (2025 Reality Check)
 
 ### Scenario 1: Side Hustle Sarah (Year 1)
 - **Effort**: 5-10 hours/week
-- **Referrals**: 15 active clients by month 12
-- **Mix**: 12 Small Business ($99/mo), 3 Professional ($299/mo)
-- **Monthly income by month 12**: $510/month (($30 × 12) + ($50 × 3))
-- **Annual total year 1**: ~$3,000 (ramping up)
+- **Referrals**: 10 active clients by month 12
+- **Lead pricing**: $0.50/lead average, 500 leads/client/month
+- **Monthly income by month 12** (Bronze 5%): $125/month
+- **Annual total year 1**: ~$750 (ramping up)
 
 ### Scenario 2: Focused Frank (Year 1-2)
 - **Effort**: 20 hours/week
 - **Referrals**: 80 active clients by end of year 2
-- **Mix**: 60 Small Business, 20 Professional
-- **Monthly income at 80 clients**: $2,800/month (Bronze tier)
+- **Lead pricing**: $0.75/lead average, 1,000 leads/client/month
+- **Monthly income at 80 clients** (Bronze 5%): $3,000/month
 - **Annual income year 2**: ~$30,000
-- **Path to Silver**: 20 more clients unlocks $35/$60 rates
+- **Path to Silver**: 20 more signups unlocks 10% rate
 
 ### Scenario 3: Networked Nancy (Years 1-3)
 - **Effort**: Full-time focus (40+ hours/week)
-- **Referrals**: 150 active clients by end of year 3
-- **Mix**: 100 Small Business, 50 Professional (Silver tier unlocked)
-- **Monthly income at 150 clients**: $6,500/month (($35 × 100) + ($60 × 50))
-- **Annual income year 3**: $78,000+
-- **Bonus income**: Per-lead commissions add $500-$1,500/month
+- **Referrals**: 150 active clients by end of year 3 (Silver tier unlocked)
+- **Lead pricing**: $1.00/lead average, 1,500 leads/client/month
+- **Monthly income at 150 clients** (Silver 10%): $22,500/month
+- **Annual income year 3**: $270,000
 
 ### Scenario 4: Empire Builder Eric (Years 1-5+)
 - **Effort**: Built systems, hired help
 - **Referrals**: 1,000+ active clients (Gold tier)
-- **Mix**: 700 Small Business, 300 Professional
-- **Monthly income at 1,000 clients**: $49,000/month (($40 × 700) + ($70 × 300))
-- **Annual income**: $588,000+
+- **Lead pricing**: $1.00/lead average, 2,000 leads/client/month
+- **Monthly income at 1,000 clients** (Gold 15%): $300,000/month
+- **Annual income**: $3,600,000
 - **Reality**: Requires team, CRM, marketing budget
 
-**Honest talk**: Most ambassadors will be in Scenario 1-2 range. Reaching Silver (100 clients) is realistic over 2-3 years. Gold tier (1,000 clients) requires treating this as a full-time business.
+**Honest talk**: Most ambassadors will be in Scenario 1-2 range. Reaching Silver (100 signups) is realistic over 2-3 years. Gold tier (1,000 signups) requires treating this as a full-time business.
 
 ## Who Should Apply?
 
@@ -138,21 +145,21 @@ Fill out the [ambassador application form](/ambassador/apply) with:
 
 ### Step 6: Close & Earn (Ongoing)
 - Typical sales cycle: 1-4 weeks from first contact to signup
-- Client signs up → You get $100 setup bonus
-- Client stays active → You earn $30-$50/month forever
+- Client signs up → You start earning commission on every lead they purchase
+- Client buys 1,000 leads at $1.00/lead → You earn 5%/10%/15% based on your tier
 - Track everything in your ambassador dashboard
 
 ## Income Potential Reality Check
 
-| Timeframe | Active Clients | Monthly Income (Bronze) | Cumulative Earnings |
-|-----------|---------------|------------------------|-------------------|
-| Month 3 | 2-5 | $60-$150 | $150-$400 |
-| Month 6 | 8-12 | $240-$480 | $800-$2,000 |
-| Month 12 | 15-25 | $450-$1,000 | $3,000-$8,000 |
-| Year 2 | 40-80 | $1,200-$3,200 | $18,000-$35,000 |
-| Year 3 | 80-150 | $2,800-$7,500 | $50,000-$100,000+ |
+| Timeframe | Active Clients | Avg Leads/Client/Mo | Monthly Income (Bronze 5%) | Cumulative Earnings |
+|-----------|---------------|---------------------|---------------------------|-------------------|
+| Month 3 | 2-5 | 500 | $25-$125 | $75-$300 |
+| Month 6 | 8-12 | 750 | $300-$675 | $1,200-$3,000 |
+| Month 12 | 15-25 | 1,000 | $750-$1,875 | $6,000-$15,000 |
+| Year 2 | 40-80 | 1,000 | $2,000-$4,000 | $30,000-$60,000 |
+| Year 3 | 100-150 | 1,500 | $15,000-$22,500 | $150,000-$250,000+ |
 
-*Assumes 70-80% client retention, mix of Small Business and Professional plans, Bronze-Silver tier rates*
+*Assumes $1.00/lead average pricing, 70-80% client retention, Bronze tier (5%) ramping to Silver (10%) at 100 signups*
 
 ## Frequently Asked Questions
 
@@ -163,7 +170,7 @@ We provide full training, scripts, and support. Many successful ambassadors come
 First referral: 2-8 weeks (depends on your network). First payment: 30-45 days after client signup. This isn't fast money—it's building an asset.
 
 ### 3. What if my referral cancels after 2 months?
-You keep the commissions you already earned. Future commissions stop. Focus on quality referrals who need the product (not just anyone with a website).
+You keep all commissions you already earned on leads they purchased. If they cancel, you only stop earning on future leads. Focus on quality referrals who need the product (not just anyone with a website).
 
 ### 4. Can I be an ambassador if I live outside the US?
 Yes! Our platform works globally. However, most clients are US-based businesses, so having connections in the US market helps.
@@ -172,7 +179,7 @@ Yes! Our platform works globally. However, most clients are US-based businesses,
 No. Once a client signs up, our team handles onboarding, support, billing, and retention. You get paid even if you never talk to them again.
 
 ### 6. What happens if NurturelyX changes commission rates?
-Your existing clients are grandfathered at your current rate. New clients after a rate change would follow new terms. We're incentivized to keep ambassadors happy.
+Your tier rates are locked based on when you joined. New ambassadors after a rate change would follow new terms. We're incentivized to keep ambassadors happy.
 
 ### 7. Can I hire sub-ambassadors to help me scale?
 Not yet, but we're building a team/agency program for Gold tier ambassadors. You'd be among the first to know.
@@ -197,7 +204,7 @@ Ask: "Do you currently advertise online?" and "What happens to visitors who don'
 Your first 10 referrals should be people who already trust you. Don't cold call strangers until you've mastered the pitch on warm prospects.
 
 ### 2. Focus on Quality Over Quantity
-One $299/mo Professional client = three $99/mo Small Business clients. Target businesses with bigger budgets and higher transaction values.
+Clients who process more leads = higher commissions for you. Target businesses with bigger budgets and higher transaction values (HVAC, legal, real estate) who will process 1,000+ leads/month.
 
 ### 3. Think Like a Consultant, Not a Salesperson
 Your job is to identify businesses losing money from anonymous traffic. If NurturelyX isn't the right fit, don't force it. You'll build trust for future opportunities.
@@ -227,7 +234,7 @@ If you made it this far, you're serious. Here's what happens next:
 3. **If approved**, you get dashboard access + onboarding call
 4. **Start referring** and earn your first commission in 30-45 days
 
-**Still have questions?** Email us at ambassadors@nurturelyx.com or schedule a 15-minute info call.
+**Still have questions?** Email us at hi@nurturely.io or schedule a 15-minute info call.
 
 [Apply Now - 2 Minutes](/ambassador/apply)
 

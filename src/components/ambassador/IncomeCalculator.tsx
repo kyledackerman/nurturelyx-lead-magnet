@@ -6,44 +6,40 @@ import { Badge } from "@/components/ui/badge";
 
 export function IncomeCalculator() {
   const [referrals, setReferrals] = useState(50);
+  const [avgLeadPrice, setAvgLeadPrice] = useState(1.00);
   const [leadsPerClient, setLeadsPerClient] = useState(1000);
 
-  // Determine tiers based on referral count
-  let platformFeeTier = 'Bronze';
-  let platformFeeRate = 30;
-  let perLeadTier = 'Bronze';
-  let perLeadRate = 0.05;
+  // Determine tier and commission rate based on signups
+  let tier = 'Bronze';
+  let commissionRate = 0.05; // 5%
 
   if (referrals >= 1000) {
-    platformFeeTier = 'Gold';
-    platformFeeRate = 50;
-    perLeadTier = 'Gold';
-    perLeadRate = 0.15;
+    tier = 'Gold';
+    commissionRate = 0.15; // 15%
   } else if (referrals >= 100) {
-    platformFeeTier = 'Silver';
-    platformFeeRate = 40;
-    perLeadTier = 'Silver';
-    perLeadRate = 0.10;
+    tier = 'Silver';
+    commissionRate = 0.10; // 10%
   }
 
-  // Calculate income
-  const platformFeeIncome = referrals * platformFeeRate;
-  const perLeadIncome = referrals * leadsPerClient * perLeadRate;
-  const totalMonthly = platformFeeIncome + perLeadIncome;
-  const totalYearly = totalMonthly * 12;
+  // Calculate per-lead income only
+  const monthlyLeads = referrals * leadsPerClient;
+  const clientRevenue = monthlyLeads * avgLeadPrice;
+  const yourCommission = clientRevenue * commissionRate;
+  const totalYearly = yourCommission * 12;
 
   // Calculate next tier
   let nextTierMessage = '';
   if (referrals < 100) {
-    nextTierMessage = `${100 - referrals} more referrals unlock Silver tier → $40/mo per client + $0.10/lead`;
+    nextTierMessage = `${100 - referrals} more signups unlock Silver tier → 10% per lead`;
   } else if (referrals < 1000) {
-    nextTierMessage = `${1000 - referrals} more referrals unlock Gold tier → $50/mo per client + $0.15/lead`;
+    nextTierMessage = `${1000 - referrals} more signups unlock Gold tier → 15% per lead`;
   } else {
     nextTierMessage = 'You\'re at the highest tier! 🏆';
   }
 
   const referralOptions = [5, 10, 25, 50, 100, 150, 250, 500, 1000, 1500];
   const leadsOptions = [100, 500, 1000, 1500, 2000, 5000];
+  const priceOptions = [0.20, 0.50, 0.75, 1.00, 1.25, 1.50, 2.00];
 
   return (
     <Card className="border-primary/20 shadow-lg">
@@ -73,6 +69,25 @@ export function IncomeCalculator() {
           </div>
         </div>
 
+        {/* Average Lead Price Slider */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <Label className="text-base font-semibold">Average lead price?</Label>
+            <Badge variant="secondary" className="text-lg font-bold">${avgLeadPrice.toFixed(2)}</Badge>
+          </div>
+          <Slider
+            value={[priceOptions.indexOf(avgLeadPrice) !== -1 ? priceOptions.indexOf(avgLeadPrice) : 3]}
+            max={priceOptions.length - 1}
+            step={1}
+            onValueChange={(value) => setAvgLeadPrice(priceOptions[value[0]])}
+            className="py-2"
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>$0.20</span>
+            <span>$2.00</span>
+          </div>
+        </div>
+
         {/* Leads Per Client Slider */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
@@ -97,7 +112,8 @@ export function IncomeCalculator() {
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-1">
               If you refer <strong className="text-foreground">{referrals}</strong> businesses averaging{' '}
-              <strong className="text-foreground">{leadsPerClient.toLocaleString()}</strong> leads/month...
+              <strong className="text-foreground">{leadsPerClient.toLocaleString()}</strong> leads/month at{' '}
+              <strong className="text-foreground">${avgLeadPrice.toFixed(2)}/lead</strong>...
             </p>
           </div>
 
@@ -105,22 +121,28 @@ export function IncomeCalculator() {
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-medium">Your Tier:</span>
               <Badge variant="default" className="font-bold">
-                {platformFeeTier} (0-{platformFeeTier === 'Bronze' ? '99' : platformFeeTier === 'Silver' ? '999' : '∞'} referrals)
+                {tier} ({commissionRate * 100}% per lead)
               </Badge>
             </div>
           </div>
 
           <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Monthly Recurring Income:</span>
-              <span className="font-mono text-sm">
-                {referrals} × ${platformFeeRate} = <strong className="text-foreground">${platformFeeIncome.toLocaleString()}/mo</strong>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Total Leads/Month:</span>
+              <span className="font-mono font-semibold text-foreground">
+                {monthlyLeads.toLocaleString()}
               </span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Per-Lead Income:</span>
-              <span className="font-mono text-sm">
-                {referrals} × {leadsPerClient.toLocaleString()} × ${perLeadRate} = <strong className="text-foreground">${perLeadIncome.toLocaleString()}/mo</strong>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Client Revenue:</span>
+              <span className="font-mono font-semibold text-foreground">
+                ${clientRevenue.toLocaleString()}/mo
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Your Commission ({(commissionRate * 100).toFixed(0)}%):</span>
+              <span className="font-mono font-semibold text-primary">
+                ${yourCommission.toLocaleString()}/mo
               </span>
             </div>
           </div>
@@ -128,7 +150,7 @@ export function IncomeCalculator() {
           <div className="border-t border-border pt-4 mt-4">
             <div className="flex justify-between items-center text-lg md:text-xl font-bold">
               <span>TOTAL MONTHLY:</span>
-              <span className="text-primary">${totalMonthly.toLocaleString()}/month</span>
+              <span className="text-primary">${yourCommission.toLocaleString()}/month</span>
             </div>
             <div className="flex justify-between items-center text-base text-muted-foreground mt-1">
               <span>ANNUAL PROJECTION:</span>

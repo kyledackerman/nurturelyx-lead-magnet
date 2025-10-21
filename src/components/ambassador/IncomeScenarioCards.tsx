@@ -5,11 +5,11 @@ import { TrendingUp, Target, Star, Trophy } from "lucide-react";
 interface Scenario {
   title: string;
   subtitle: string;
-  referrals: number;
+  signups: number;
   tier: string;
   tierBadge: string;
-  platformFeeRate: number;
-  perLeadRate: number;
+  commissionRate: number;
+  avgLeadPrice: number;
   leadsPerClient: number;
   monthlyTotal: number;
   annualTotal: number;
@@ -21,55 +21,55 @@ const scenarios: Scenario[] = [
   {
     title: "Getting Started",
     subtitle: "Testing the waters with your network",
-    referrals: 10,
+    signups: 10,
     tier: "Bronze",
     tierBadge: "🥉",
-    platformFeeRate: 30,
-    perLeadRate: 0.05,
+    commissionRate: 0.05,
+    avgLeadPrice: 0.50,
     leadsPerClient: 500,
-    monthlyTotal: 550,
-    annualTotal: 6600,
+    monthlyTotal: 125, // 10 × 500 × 0.50 × 0.05
+    annualTotal: 1500,
     icon: TrendingUp,
   },
   {
     title: "Building Momentum",
     subtitle: "Side income from existing connections",
-    referrals: 50,
+    signups: 50,
     tier: "Bronze",
     tierBadge: "🥉",
-    platformFeeRate: 30,
-    perLeadRate: 0.05,
+    commissionRate: 0.05,
+    avgLeadPrice: 0.75,
     leadsPerClient: 1000,
-    monthlyTotal: 4000,
-    annualTotal: 48000,
+    monthlyTotal: 1875, // 50 × 1000 × 0.75 × 0.05
+    annualTotal: 22500,
     icon: Target,
-    nextMilestone: "50 more referrals unlocks Silver 🚀",
+    nextMilestone: "50 more signups unlocks Silver (10%) 🚀",
   },
   {
     title: "Silver Tier Achiever",
     subtitle: "Serious focus on recurring income",
-    referrals: 150,
+    signups: 150,
     tier: "Silver",
     tierBadge: "🥈",
-    platformFeeRate: 40,
-    perLeadRate: 0.10,
+    commissionRate: 0.10,
+    avgLeadPrice: 1.00,
     leadsPerClient: 1500,
-    monthlyTotal: 28500,
-    annualTotal: 342000,
+    monthlyTotal: 22500, // 150 × 1500 × 1.00 × 0.10
+    annualTotal: 270000,
     icon: Star,
-    nextMilestone: "Silver unlocked at 100 referrals!",
+    nextMilestone: "Silver unlocked at 100 signups!",
   },
   {
     title: "Gold Tier - The Summit",
     subtitle: "The ultimate goal—will you be first?",
-    referrals: 1000,
+    signups: 1000,
     tier: "Gold",
     tierBadge: "🏆",
-    platformFeeRate: 50,
-    perLeadRate: 0.15,
+    commissionRate: 0.15,
+    avgLeadPrice: 1.00,
     leadsPerClient: 2000,
-    monthlyTotal: 350000,
-    annualTotal: 4200000,
+    monthlyTotal: 300000, // 1000 × 2000 × 1.00 × 0.15
+    annualTotal: 3600000,
     icon: Trophy,
     nextMilestone: "No one has reached this yet—Elite Status",
   },
@@ -88,8 +88,8 @@ export function IncomeScenarioCards() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {scenarios.map((scenario) => {
           const Icon = scenario.icon;
-          const platformFeeIncome = scenario.referrals * scenario.platformFeeRate;
-          const perLeadIncome = scenario.referrals * scenario.leadsPerClient * scenario.perLeadRate;
+          const totalLeads = scenario.signups * scenario.leadsPerClient;
+          const totalRevenue = totalLeads * scenario.avgLeadPrice;
 
           return (
             <Card
@@ -105,7 +105,7 @@ export function IncomeScenarioCards() {
                     </Badge>
                   </div>
                   <Badge variant="secondary" className="text-xs">
-                    {scenario.referrals} referrals
+                    {scenario.signups} signups
                   </Badge>
                 </div>
                 <CardTitle className="text-xl">{scenario.title}</CardTitle>
@@ -114,17 +114,25 @@ export function IncomeScenarioCards() {
               <CardContent className="space-y-3">
                 <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Platform fees:</span>
+                    <span className="text-muted-foreground">Clients × Leads/Mo:</span>
                     <span className="font-mono">
-                      {scenario.referrals} × ${scenario.platformFeeRate} = ${platformFeeIncome.toLocaleString()}/mo
+                      {scenario.signups} × {scenario.leadsPerClient.toLocaleString()} = {totalLeads.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Per-lead ({scenario.leadsPerClient.toLocaleString()}/client):</span>
-                    <span className="font-mono">${perLeadIncome.toLocaleString()}/mo</span>
+                    <span className="text-muted-foreground">Lead price:</span>
+                    <span className="font-mono">${scenario.avgLeadPrice.toFixed(2)}/lead</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Client revenue:</span>
+                    <span className="font-mono">${totalRevenue.toLocaleString()}/mo</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Your rate:</span>
+                    <span className="font-mono">{(scenario.commissionRate * 100).toFixed(0)}%</span>
                   </div>
                   <div className="border-t border-border pt-2 mt-2 flex justify-between items-center font-bold text-base">
-                    <span>Monthly Total:</span>
+                    <span>Your Commission:</span>
                     <span className="text-primary">${scenario.monthlyTotal.toLocaleString()}/mo</span>
                   </div>
                   <div className="flex justify-between items-center text-muted-foreground">
