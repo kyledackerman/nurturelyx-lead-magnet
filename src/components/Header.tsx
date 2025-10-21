@@ -150,7 +150,7 @@ const Header = () => {
                     <DropdownMenuSeparator />
                   </>
                 )}
-                {isAmbassador && (
+                {(isAdmin || isAmbassador) && (
                   <>
                     <DropdownMenuItem asChild>
                       <Link to="/ambassador" className="flex items-center gap-2">
