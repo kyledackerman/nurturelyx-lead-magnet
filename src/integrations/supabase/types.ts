@@ -14,6 +14,149 @@ export type Database = {
   }
   public: {
     Tables: {
+      ambassador_applications: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          linkedin_url: string | null
+          location: string | null
+          phone: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sales_experience: string | null
+          status: string
+          submitted_at: string
+          updated_at: string
+          user_id: string | null
+          why_join: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          linkedin_url?: string | null
+          location?: string | null
+          phone?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sales_experience?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          user_id?: string | null
+          why_join: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          linkedin_url?: string | null
+          location?: string | null
+          phone?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sales_experience?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          user_id?: string | null
+          why_join?: string
+        }
+        Relationships: []
+      }
+      ambassador_profiles: {
+        Row: {
+          active_domains_count: number
+          application_id: string | null
+          created_at: string
+          eligible_commission: number
+          email: string
+          full_name: string
+          id: string
+          lifetime_commission_paid: number
+          location: string | null
+          payment_details: Json | null
+          payment_method: string | null
+          pending_commission: number
+          per_lead_tier: string
+          phone: string | null
+          platform_fee_tier: string
+          status: string
+          total_domains_purchased: number
+          total_leads_processed: number
+          total_revenue_generated: number
+          total_signups_lifetime: number
+          total_spent_on_leads: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_domains_count?: number
+          application_id?: string | null
+          created_at?: string
+          eligible_commission?: number
+          email: string
+          full_name: string
+          id?: string
+          lifetime_commission_paid?: number
+          location?: string | null
+          payment_details?: Json | null
+          payment_method?: string | null
+          pending_commission?: number
+          per_lead_tier?: string
+          phone?: string | null
+          platform_fee_tier?: string
+          status?: string
+          total_domains_purchased?: number
+          total_leads_processed?: number
+          total_revenue_generated?: number
+          total_signups_lifetime?: number
+          total_spent_on_leads?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_domains_count?: number
+          application_id?: string | null
+          created_at?: string
+          eligible_commission?: number
+          email?: string
+          full_name?: string
+          id?: string
+          lifetime_commission_paid?: number
+          location?: string | null
+          payment_details?: Json | null
+          payment_method?: string | null
+          pending_commission?: number
+          per_lead_tier?: string
+          phone?: string | null
+          platform_fee_tier?: string
+          status?: string
+          total_domains_purchased?: number
+          total_leads_processed?: number
+          total_revenue_generated?: number
+          total_signups_lifetime?: number
+          total_spent_on_leads?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ambassador_profiles_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "ambassador_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action_type: string
@@ -219,6 +362,159 @@ export type Database = {
           },
         ]
       }
+      client_pricing: {
+        Row: {
+          activation_date: string | null
+          ambassador_id: string
+          churn_date: string | null
+          created_at: string
+          domain: string
+          first_lead_delivered_at: string | null
+          id: string
+          last_payment_date: string | null
+          per_lead_price: number
+          platform_fee_monthly: number
+          prospect_activity_id: string
+          report_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          activation_date?: string | null
+          ambassador_id: string
+          churn_date?: string | null
+          created_at?: string
+          domain: string
+          first_lead_delivered_at?: string | null
+          id?: string
+          last_payment_date?: string | null
+          per_lead_price?: number
+          platform_fee_monthly?: number
+          prospect_activity_id: string
+          report_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          activation_date?: string | null
+          ambassador_id?: string
+          churn_date?: string | null
+          created_at?: string
+          domain?: string
+          first_lead_delivered_at?: string | null
+          id?: string
+          last_payment_date?: string | null
+          per_lead_price?: number
+          platform_fee_monthly?: number
+          prospect_activity_id?: string
+          report_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_pricing_prospect_activity_id_fkey"
+            columns: ["prospect_activity_id"]
+            isOneToOne: true
+            referencedRelation: "prospect_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_pricing_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commissions: {
+        Row: {
+          ambassador_id: string
+          base_amount: number
+          billing_period_end: string | null
+          billing_period_start: string | null
+          commission_amount: number
+          commission_rate: number
+          commission_type: string
+          created_at: string
+          domain: string
+          eligible_for_payout_at: string | null
+          first_lead_delivered_at: string | null
+          id: string
+          leads_processed: number | null
+          paid_at: string | null
+          payout_batch_id: string | null
+          per_lead_price: number | null
+          per_lead_tier_at_time: string | null
+          platform_fee_tier_at_time: string | null
+          prospect_activity_id: string
+          report_id: string
+          status: string
+        }
+        Insert: {
+          ambassador_id: string
+          base_amount: number
+          billing_period_end?: string | null
+          billing_period_start?: string | null
+          commission_amount: number
+          commission_rate: number
+          commission_type: string
+          created_at?: string
+          domain: string
+          eligible_for_payout_at?: string | null
+          first_lead_delivered_at?: string | null
+          id?: string
+          leads_processed?: number | null
+          paid_at?: string | null
+          payout_batch_id?: string | null
+          per_lead_price?: number | null
+          per_lead_tier_at_time?: string | null
+          platform_fee_tier_at_time?: string | null
+          prospect_activity_id: string
+          report_id: string
+          status?: string
+        }
+        Update: {
+          ambassador_id?: string
+          base_amount?: number
+          billing_period_end?: string | null
+          billing_period_start?: string | null
+          commission_amount?: number
+          commission_rate?: number
+          commission_type?: string
+          created_at?: string
+          domain?: string
+          eligible_for_payout_at?: string | null
+          first_lead_delivered_at?: string | null
+          id?: string
+          leads_processed?: number | null
+          paid_at?: string | null
+          payout_batch_id?: string | null
+          per_lead_price?: number | null
+          per_lead_tier_at_time?: string | null
+          platform_fee_tier_at_time?: string | null
+          prospect_activity_id?: string
+          report_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commissions_prospect_activity_id_fkey"
+            columns: ["prospect_activity_id"]
+            isOneToOne: false
+            referencedRelation: "prospect_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrichment_job_items: {
         Row: {
           completed_at: string | null
@@ -405,6 +701,60 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_purchases: {
+        Row: {
+          ambassador_id: string
+          created_at: string
+          domain: string
+          id: string
+          payment_status: string
+          prospect_activity_id: string
+          purchase_price: number
+          purchased_at: string
+          report_id: string
+          source: string
+        }
+        Insert: {
+          ambassador_id: string
+          created_at?: string
+          domain: string
+          id?: string
+          payment_status?: string
+          prospect_activity_id: string
+          purchase_price?: number
+          purchased_at?: string
+          report_id: string
+          source?: string
+        }
+        Update: {
+          ambassador_id?: string
+          created_at?: string
+          domain?: string
+          id?: string
+          payment_status?: string
+          prospect_activity_id?: string
+          purchase_price?: number
+          purchased_at?: string
+          report_id?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_purchases_prospect_activity_id_fkey"
+            columns: ["prospect_activity_id"]
+            isOneToOne: true
+            referencedRelation: "prospect_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_purchases_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       password_reset_requests: {
         Row: {
           approved_at: string | null
@@ -444,6 +794,51 @@ export type Database = {
         }
         Relationships: []
       }
+      payout_batches: {
+        Row: {
+          batch_name: string
+          batch_number: number
+          completed_at: string | null
+          created_at: string
+          id: string
+          payout_period_end: string
+          payout_period_start: string
+          processed_by: string
+          status: string
+          total_ambassadors: number
+          total_commission_amount: number
+          total_commissions_count: number
+        }
+        Insert: {
+          batch_name: string
+          batch_number?: number
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          payout_period_end: string
+          payout_period_start: string
+          processed_by: string
+          status?: string
+          total_ambassadors: number
+          total_commission_amount: number
+          total_commissions_count: number
+        }
+        Update: {
+          batch_name?: string
+          batch_number?: number
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          payout_period_end?: string
+          payout_period_start?: string
+          processed_by?: string
+          status?: string
+          total_ambassadors?: number
+          total_commission_amount?: number
+          total_commissions_count?: number
+        }
+        Relationships: []
+      }
       prospect_activities: {
         Row: {
           activity_type: string
@@ -472,6 +867,8 @@ export type Database = {
           next_follow_up: string | null
           notes: string | null
           priority: string
+          purchased_at: string | null
+          purchased_by_ambassador: string | null
           report_id: string
           status: string
           updated_at: string
@@ -503,6 +900,8 @@ export type Database = {
           next_follow_up?: string | null
           notes?: string | null
           priority?: string
+          purchased_at?: string | null
+          purchased_by_ambassador?: string | null
           report_id: string
           status?: string
           updated_at?: string
@@ -534,6 +933,8 @@ export type Database = {
           next_follow_up?: string | null
           notes?: string | null
           priority?: string
+          purchased_at?: string | null
+          purchased_by_ambassador?: string | null
           report_id?: string
           status?: string
           updated_at?: string
@@ -1178,6 +1579,10 @@ export type Database = {
         Args: { user_uuid?: string }
         Returns: boolean
       }
+      is_ambassador: {
+        Args: { user_uuid?: string }
+        Returns: boolean
+      }
       is_super_admin: {
         Args: { user_uuid?: string }
         Returns: boolean
@@ -1217,7 +1622,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user" | "super_admin"
+      app_role: "admin" | "user" | "super_admin" | "ambassador"
       client_status: "onboarding" | "active" | "at_risk" | "churned" | "paused"
       implementation_status:
         | "not_started"
@@ -1358,7 +1763,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user", "super_admin"],
+      app_role: ["admin", "user", "super_admin", "ambassador"],
       client_status: ["onboarding", "active", "at_risk", "churned", "paused"],
       implementation_status: [
         "not_started",

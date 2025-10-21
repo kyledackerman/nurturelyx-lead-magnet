@@ -138,5 +138,20 @@ verify_jwt = true
 [functions.regenerate-icebreakers]
 verify_jwt = true
 
+[functions.approve-ambassador-application]
+verify_jwt = true
 
+[functions.purchase-lead]
+verify_jwt = true
 
+[functions.submit-ambassador-domain]
+verify_jwt = true
+
+[functions.calculate-commissions]
+verify_jwt = true
+
+[functions.process-monthly-payouts]
+verify_jwt = true
+
+[functions.get-ambassador-dashboard-stats]
+verify_jwt = true
