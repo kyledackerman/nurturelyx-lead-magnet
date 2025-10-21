@@ -14,8 +14,9 @@ import { User, LogOut, BarChart3, Shield, Users, Award } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const Header = () => {
-  const { user, signOut, checkIsAdmin } = useAuth();
+  const { user, signOut, checkIsAdmin, checkIsAmbassador } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAmbassador, setIsAmbassador] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -35,12 +36,27 @@ const Header = () => {
       }
     };
 
+    const checkAmbassadorStatus = async () => {
+      if (!user) {
+        if (mounted) setIsAmbassador(false);
+        return;
+      }
+      
+      try {
+        const ambassadorStatus = await checkIsAmbassador();
+        if (mounted) setIsAmbassador(ambassadorStatus);
+      } catch (error) {
+        console.warn('Ambassador check failed in Header:', error);
+      }
+    };
+
     checkAdminStatus();
+    checkAmbassadorStatus();
     
     return () => {
       mounted = false;
     };
-  }, [user, checkIsAdmin]);
+  }, [user, checkIsAdmin, checkIsAmbassador]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -129,6 +145,29 @@ const Header = () => {
                       <Link to="/admin/clients" className="flex items-center gap-2">
                         <Users className="h-4 w-4" />
                         Client Management
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                {isAmbassador && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/ambassador" className="flex items-center gap-2">
+                        <Award className="h-4 w-4" />
+                        Ambassador Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/ambassador/marketplace" className="flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4" />
+                        Lead Marketplace
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/ambassador/domains" className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        My Clients
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
