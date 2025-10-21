@@ -6,6 +6,9 @@ import { PasswordManagement } from "@/components/admin/PasswordManagement";
 import LeaderboardTab from "@/components/admin/LeaderboardTab";
 import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
 import { ProspectImporter } from "@/components/admin/ProspectImporter";
+import { AmbassadorApplicationsManager } from "@/components/admin/AmbassadorApplicationsManager";
+import { AmbassadorManagementTable } from "@/components/admin/AmbassadorManagementTable";
+import { PayoutProcessor } from "@/components/admin/PayoutProcessor";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -1838,7 +1841,7 @@ const AdminDashboard = () => {
 
             <TabsContent value="admin" className="space-y-6">
               <Tabs defaultValue="management" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-6">
+                <TabsList className="grid w-full grid-cols-6 mb-6">
                   <TabsTrigger value="management">
                     <Shield className="h-4 w-4 mr-2" />
                     Management
@@ -1850,6 +1853,18 @@ const AdminDashboard = () => {
                   <TabsTrigger value="password">
                     <Key className="h-4 w-4 mr-2" />
                     Password
+                  </TabsTrigger>
+                  <TabsTrigger value="ambassador-apps">
+                    <UsersIcon className="h-4 w-4 mr-2" />
+                    Applications
+                  </TabsTrigger>
+                  <TabsTrigger value="ambassadors">
+                    <Award className="h-4 w-4 mr-2" />
+                    Ambassadors
+                  </TabsTrigger>
+                  <TabsTrigger value="payouts">
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Payouts
                   </TabsTrigger>
                 </TabsList>
 
@@ -2155,6 +2170,18 @@ const AdminDashboard = () => {
 
                 <TabsContent value="password">
                   <PasswordManagement />
+                </TabsContent>
+
+                <TabsContent value="ambassador-apps" className="space-y-6">
+                  <AmbassadorApplicationsManager />
+                </TabsContent>
+
+                <TabsContent value="ambassadors" className="space-y-6">
+                  <AmbassadorManagementTable />
+                </TabsContent>
+
+                <TabsContent value="payouts" className="space-y-6">
+                  <PayoutProcessor />
                 </TabsContent>
               </Tabs>
             </TabsContent>
