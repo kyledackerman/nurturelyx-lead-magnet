@@ -17,6 +17,15 @@ export const ambassadorService = {
     return data;
   },
 
+  // Bulk purchase leads from marketplace
+  async bulkPurchaseLeads(prospectActivityIds: string[]) {
+    const { data, error } = await supabase.functions.invoke('bulk-purchase-leads', {
+      body: { prospect_activity_ids: prospectActivityIds }
+    });
+    if (error) throw error;
+    return data;
+  },
+
   // Submit a new domain
   async submitDomain(domain: string, industryHint?: string, estimatedTraffic?: number) {
     const { data, error } = await supabase.functions.invoke('submit-ambassador-domain', {

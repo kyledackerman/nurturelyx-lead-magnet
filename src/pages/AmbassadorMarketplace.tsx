@@ -4,14 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useState } from "react";
-import { ShoppingCart, TrendingUp, DollarSign, Search, MapPin } from "lucide-react";
+import { ShoppingCart, TrendingUp, DollarSign, Search, MapPin, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
 
 export default function AmbassadorMarketplace() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
 
   const { data: leads, isLoading } = useQuery({
@@ -32,11 +34,57 @@ export default function AmbassadorMarketplace() {
     },
   });
 
+  const bulkPurchaseMutation = useMutation({
+    mutationFn: (prospectIds: string[]) => ambassadorService.bulkPurchaseLeads(prospectIds),
+    onSuccess: (data: any) => {
+      setSelectedLeads(new Set());
+      toast.success(data.message || `Successfully purchased ${data.purchased} leads!`);
+      queryClient.invalidateQueries({ queryKey: ['marketplace-leads'] });
+      queryClient.invalidateQueries({ queryKey: ['ambassador-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['my-domains'] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to purchase leads');
+    },
+  });
+
   const filteredLeads = leads?.filter(lead =>
     lead.reports.domain.toLowerCase().includes(searchTerm.toLowerCase()) ||
     lead.reports.extracted_company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     lead.reports.industry?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked && filteredLeads) {
+      setSelectedLeads(new Set(filteredLeads.map(l => l.id)));
+    } else {
+      setSelectedLeads(new Set());
+    }
+  };
+
+  const handleSelectLead = (leadId: string, checked: boolean) => {
+    const newSelected = new Set(selectedLeads);
+    if (checked) {
+      newSelected.add(leadId);
+    } else {
+      newSelected.delete(leadId);
+    }
+    setSelectedLeads(newSelected);
+  };
+
+  const handleBulkPurchase = () => {
+    if (selectedLeads.size === 0) return;
+    
+    const totalCost = (selectedLeads.size * 0.01).toFixed(2);
+    const confirmMessage = `Purchase ${selectedLeads.size} lead${selectedLeads.size !== 1 ? 's' : ''} for $${totalCost}?`;
+    
+    if (window.confirm(confirmMessage)) {
+      bulkPurchaseMutation.mutate(Array.from(selectedLeads));
+    }
+  };
+
+  const allSelected = filteredLeads && filteredLeads.length > 0 && selectedLeads.size === filteredLeads.length;
+  const totalCost = (selectedLeads.size * 0.01).toFixed(2);
 
   if (isLoading) {
     return (
@@ -72,6 +120,52 @@ export default function AmbassadorMarketplace() {
         </CardContent>
       </Card>
 
+      {/* Bulk Selection Toolbar */}
+      {filteredLeads && filteredLeads.length > 0 && (
+        <Card className="sticky top-0 z-10 shadow-md">
+          <CardContent className="py-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="select-all"
+                  checked={allSelected}
+                  onCheckedChange={handleSelectAll}
+                />
+                <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+                  Select All
+                </label>
+              </div>
+              
+              <div className="text-sm text-muted-foreground">
+                {selectedLeads.size} of {filteredLeads.length} selected
+              </div>
+
+              {selectedLeads.size > 0 && (
+                <>
+                  <Button
+                    onClick={handleBulkPurchase}
+                    disabled={bulkPurchaseMutation.isPending}
+                    className="ml-auto"
+                  >
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Purchase Selected ({selectedLeads.size} leads - ${totalCost})
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedLeads(new Set())}
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Clear
+                  </Button>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {filteredLeads && filteredLeads.length === 0 && (
         <Card>
           <CardContent className="py-12 text-center">
@@ -86,16 +180,27 @@ export default function AmbassadorMarketplace() {
           const monthlyRevenue = reportData?.monthlyRevenueLost || 0;
           const missedLeads = reportData?.missedLeads || 0;
           const traffic = reportData?.organicTraffic || 0;
+          const isSelected = selectedLeads.has(lead.id);
 
           return (
-            <Card key={lead.id} className="hover:shadow-lg transition-shadow">
+            <Card 
+              key={lead.id} 
+              className={`hover:shadow-lg transition-all ${isSelected ? 'ring-2 ring-primary' : ''}`}
+            >
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{lead.reports.domain}</CardTitle>
-                    <CardDescription>
-                      {lead.reports.extracted_company_name || 'Company Name TBD'}
-                    </CardDescription>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-3 flex-1">
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={(checked) => handleSelectLead(lead.id, checked as boolean)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{lead.reports.domain}</CardTitle>
+                      <CardDescription>
+                        {lead.reports.extracted_company_name || 'Company Name TBD'}
+                      </CardDescription>
+                    </div>
                   </div>
                   <Badge variant={lead.priority === 'hot' ? 'destructive' : 'secondary'}>
                     {lead.priority}
@@ -149,10 +254,11 @@ export default function AmbassadorMarketplace() {
                   <Button 
                     className="w-full" 
                     onClick={() => purchaseMutation.mutate(lead.id)}
-                    disabled={purchaseMutation.isPending}
+                    disabled={purchaseMutation.isPending || isSelected}
+                    variant={isSelected ? "secondary" : "default"}
                   >
                     <ShoppingCart className="h-4 w-4 mr-2" />
-                    Purchase Lead
+                    {isSelected ? 'Selected' : 'Purchase Lead'}
                   </Button>
                 </div>
               </CardContent>

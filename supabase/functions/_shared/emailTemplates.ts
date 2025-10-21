@@ -253,3 +253,74 @@ export function generateDomainSubmissionEmail(
 </html>
   `;
 }
+
+export function generateBulkPurchaseConfirmationEmail(
+  domains: string[],
+  totalCost: number,
+  purchaseCount: number
+): string {
+  const domainList = domains.slice(0, 50).map(d => `<li style="padding: 4px 0;">${d}</li>`).join('');
+  const hasMore = domains.length > 50;
+  
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lead Purchase Confirmation</title>
+</head>
+<body style="margin: 0; padding: 20px; background-color: #f5f5f5; ${baseStyles}">
+  <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+      <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Bulk Purchase Confirmed!</h1>
+    </div>
+    
+    <div style="padding: 40px 30px;">
+      <p style="margin: 0 0 20px; font-size: 16px;">
+        Great news! You've successfully purchased <strong>${purchaseCount} lead${purchaseCount !== 1 ? 's' : ''}</strong> for <strong>$${totalCost.toFixed(2)}</strong>.
+      </p>
+      
+      <div style="background-color: #f0f4ff; border: 2px solid #667eea; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <h3 style="margin: 0 0 15px; color: #667eea;">Purchase Summary</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;"><strong>Leads Purchased:</strong></td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0; text-align: right;">${purchaseCount}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;"><strong>Price Per Lead:</strong></td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0; text-align: right;">$0.01</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Total Cost:</strong></td>
+            <td style="padding: 8px 0; text-align: right; color: #667eea; font-size: 18px;"><strong>$${totalCost.toFixed(2)}</strong></td>
+          </tr>
+        </table>
+      </div>
+      
+      <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <h3 style="margin: 0 0 15px; color: #333;">Domains Purchased</h3>
+        <ul style="list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto;">
+          ${domainList}
+        </ul>
+        ${hasMore ? `<p style="margin-top: 10px; color: #666; font-style: italic;">...and ${domains.length - 50} more</p>` : ''}
+      </div>
+      
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="https://x1.nurturely.io/ambassador/domains" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">View My Domains</a>
+      </div>
+      
+      <p style="margin-top: 30px; color: #666; font-size: 14px; text-align: center;">
+        These leads are now exclusively assigned to you. Start reaching out to turn them into clients!
+      </p>
+    </div>
+    
+    <div style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; color: #666; font-size: 12px;">
+      <p style="margin: 0;">© 2025 Nurturely. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+}
