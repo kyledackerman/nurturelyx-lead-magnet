@@ -76,6 +76,7 @@ export const ambassadorService = {
       .is('purchased_by_ambassador', null)
       .is('assigned_to', null)
       .eq('reports.is_public', true)
+      .eq('reports.is_usa_based', true)
       .order('created_at', { ascending: false })
       .limit(limit);
 

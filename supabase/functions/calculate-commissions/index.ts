@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
+import { sendEmail } from '../_shared/emailService.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -163,6 +164,30 @@ Deno.serve(async (req) => {
             pending_commission: profile.pending_commission + platformFeeCommission,
           })
           .eq('user_id', prospect.purchased_by_ambassador);
+        
+        // Send email notification for significant commissions (>$10)
+        if (platformFeeCommission > 10) {
+          try {
+            await sendEmail({
+              to: profile.email,
+              subject: 'New Platform Fee Commission Earned!',
+              html: `
+                <h2>Congratulations, ${profile.full_name}!</h2>
+                <p>You've earned a new platform fee commission:</p>
+                <ul>
+                  <li><strong>Domain:</strong> ${prospect.reports.domain}</li>
+                  <li><strong>Commission Amount:</strong> $${platformFeeCommission.toFixed(2)}</li>
+                  <li><strong>Status:</strong> Pending (60-day hold)</li>
+                </ul>
+                <p>This commission will become eligible for payout 60 days after the first lead is delivered to the client.</p>
+                <p><a href="https://nurturely.io/ambassador/commissions">View all commissions →</a></p>
+              `,
+            });
+            console.log(`✅ Commission email sent to ${profile.email}`);
+          } catch (emailError) {
+            console.error('Failed to send commission email:', emailError);
+          }
+        }
       }
     }
 
@@ -208,6 +233,29 @@ Deno.serve(async (req) => {
             total_revenue_generated: profile.total_revenue_generated + (total_payment_amount || perLeadBase),
           })
           .eq('user_id', prospect.purchased_by_ambassador);
+        
+        // Send email notification for per-lead commissions
+        try {
+          await sendEmail({
+            to: profile.email,
+            subject: 'Per-Lead Commission Earned!',
+            html: `
+              <h2>Great news, ${profile.full_name}!</h2>
+              <p>You've earned a per-lead commission:</p>
+              <ul>
+                <li><strong>Domain:</strong> ${prospect.reports.domain}</li>
+                <li><strong>Leads Processed:</strong> ${leads_processed}</li>
+                <li><strong>Commission Amount:</strong> $${perLeadCommission.toFixed(2)}</li>
+                <li><strong>Status:</strong> Immediately Eligible</li>
+              </ul>
+              <p>This commission is immediately eligible for payout (minimum $100 threshold).</p>
+              <p><a href="https://nurturely.io/ambassador/commissions">View all commissions →</a></p>
+            `,
+          });
+          console.log(`✅ Per-lead commission email sent to ${profile.email}`);
+        } catch (emailError) {
+          console.error('Failed to send per-lead commission email:', emailError);
+        }
       }
     }
 

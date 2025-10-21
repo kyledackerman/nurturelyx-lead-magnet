@@ -15,6 +15,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const validatePaymentMethod = (method: string, details: string): boolean => {
+  if (!details || details.trim() === '') {
+    return false;
+  }
+
+  switch (method) {
+    case 'paypal':
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(details);
+    
+    case 'venmo':
+      const venmoRegex = /^@?[a-zA-Z0-9_-]{5,30}$/;
+      return venmoRegex.test(details);
+    
+    case 'bank_transfer':
+      return details.length >= 10;
+    
+    case 'check':
+      return details.length >= 15;
+    
+    default:
+      return true;
+  }
+};
+
 export default function AmbassadorSettings() {
   const queryClient = useQueryClient();
 
@@ -158,6 +183,9 @@ export default function AmbassadorSettings() {
                 value={formData.payment_details}
                 onChange={(e) => setFormData({ ...formData, payment_details: e.target.value })}
               />
+              <p className="text-xs text-muted-foreground">
+                Enter the email address associated with your PayPal account
+              </p>
             </div>
           )}
 
@@ -170,20 +198,23 @@ export default function AmbassadorSettings() {
                 value={formData.payment_details}
                 onChange={(e) => setFormData({ ...formData, payment_details: e.target.value })}
               />
+              <p className="text-xs text-muted-foreground">
+                Enter your Venmo username (with or without @). Must be 5-30 characters.
+              </p>
             </div>
           )}
 
           {formData.payment_method === 'bank_transfer' && (
             <div className="space-y-2">
-              <Label htmlFor="payment_details">Bank Account Details</Label>
+              <Label htmlFor="payment_details">Bank Account Info</Label>
               <Input
                 id="payment_details"
-                placeholder="Account number and routing number"
+                placeholder="Routing: 123456789, Account: 9876543210"
                 value={formData.payment_details}
                 onChange={(e) => setFormData({ ...formData, payment_details: e.target.value })}
               />
               <p className="text-xs text-muted-foreground">
-                We'll contact you separately for full bank details
+                Enter routing (9 digits) and account numbers. Full verification will be done separately.
               </p>
             </div>
           )}
@@ -197,10 +228,42 @@ export default function AmbassadorSettings() {
                 value={formData.payment_details}
                 onChange={(e) => setFormData({ ...formData, payment_details: e.target.value })}
               />
+              <p className="text-xs text-muted-foreground">
+                Enter your complete mailing address (minimum 15 characters)
+              </p>
             </div>
           )}
 
-          <Button onClick={handleSubmit} disabled={updateMutation.isPending}>
+          <Button 
+            onClick={(e) => {
+              e.preventDefault();
+              
+              if (formData.payment_method && !validatePaymentMethod(formData.payment_method, formData.payment_details)) {
+                let errorMsg = 'Invalid payment details';
+                
+                switch (formData.payment_method) {
+                  case 'paypal':
+                    errorMsg = 'Please enter a valid PayPal email address';
+                    break;
+                  case 'venmo':
+                    errorMsg = 'Please enter a valid Venmo username (5-30 characters, alphanumeric)';
+                    break;
+                  case 'bank_transfer':
+                    errorMsg = 'Please enter routing and account numbers (minimum 10 characters)';
+                    break;
+                  case 'check':
+                    errorMsg = 'Please enter a complete mailing address (minimum 15 characters)';
+                    break;
+                }
+                
+                toast.error(errorMsg);
+                return;
+              }
+              
+              handleSubmit(e);
+            }} 
+            disabled={updateMutation.isPending}
+          >
             {updateMutation.isPending ? 'Saving...' : 'Save Payment Info'}
           </Button>
         </CardContent>
