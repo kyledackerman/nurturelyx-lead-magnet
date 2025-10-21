@@ -22,14 +22,33 @@ export function generateWelcomeEmail(fullName: string, userId: string): string {
     <div style="padding: 40px 30px;">
       <h2 style="color: #333; margin: 0 0 20px;">Hi ${fullName},</h2>
       <p style="margin: 0 0 15px;">Congratulations! Your ambassador application has been approved. We're excited to have you join our program.</p>
-      <p style="margin: 0 0 15px;">As an ambassador, you'll earn commissions by:</p>
+      
+      <div style="background-color: #fff4e6; border: 3px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 25px 0;">
+        <h3 style="margin: 0 0 12px; color: #d97706; font-size: 18px;">⚠️ IMPORTANT: Complete Your Account Setup</h3>
+        <p style="margin: 0 0 12px; font-weight: 600; color: #333;">You will receive TWO separate emails:</p>
+        <ol style="margin: 0 0 15px; padding-left: 20px; color: #333;">
+          <li style="margin-bottom: 8px;"><strong>This welcome email</strong> (you're reading it now)</li>
+          <li style="margin-bottom: 8px;"><strong>A separate account setup email from Supabase Auth</strong><br/>
+          <span style="font-size: 14px; color: #666;">Subject: "You have been invited"</span></li>
+        </ol>
+        <div style="background-color: #fef3c7; padding: 15px; border-radius: 6px; margin-top: 15px;">
+          <p style="margin: 0 0 10px; font-weight: 600; color: #92400e;">📋 Next Steps:</p>
+          <ol style="margin: 0; padding-left: 20px; color: #92400e;">
+            <li style="margin-bottom: 5px;">Check your inbox for "You have been invited"</li>
+            <li style="margin-bottom: 5px;">Click "Accept Invite" to set your password</li>
+            <li style="margin-bottom: 5px;">Once complete, use the button below to access your dashboard</li>
+          </ol>
+        </div>
+      </div>
+
+      <p style="margin: 20px 0 15px;">As an ambassador, you'll earn commissions by:</p>
       <ul style="margin: 0 0 20px; padding-left: 20px;">
         <li>Submitting new domains to the marketplace</li>
         <li>Earning platform fees when clients sign up (5-10% based on tier)</li>
         <li>Earning per-lead commissions as clients process leads (15-25% based on tier)</li>
       </ul>
       <div style="text-align: center; margin: 30px 0;">
-        <a href="https://nurturely.io/ambassador/dashboard" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">Go to Dashboard</a>
+        <a href="https://x1.nurturely.io/ambassador/dashboard" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">Already Set Up? Go to Dashboard →</a>
       </div>
       <p style="margin: 20px 0 0; color: #666; font-size: 14px;">Questions? Reply to this email and we'll be happy to help.</p>
     </div>
@@ -101,7 +120,7 @@ export function generatePurchaseConfirmationEmail(
       </div>
       <p style="margin: 20px 0 0;">This lead is now exclusively assigned to you. View it in your dashboard to start outreach.</p>
       <div style="text-align: center; margin: 30px 0;">
-        <a href="https://nurturely.io/ambassador/domains" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">View My Domains</a>
+        <a href="https://x1.nurturely.io/ambassador/domains" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">View My Domains</a>
       </div>
     </div>
     <div style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; color: #666; font-size: 12px;">
@@ -139,7 +158,7 @@ export function generateCommissionEligibleEmail(
       </div>
       <p style="margin: 20px 0 0;">This commission will be included in the next monthly payout (minimum $100 threshold).</p>
       <div style="text-align: center; margin: 30px 0;">
-        <a href="https://nurturely.io/ambassador/commissions" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">View Commissions</a>
+        <a href="https://x1.nurturely.io/ambassador/commissions" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">View Commissions</a>
       </div>
     </div>
     <div style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; color: #666; font-size: 12px;">
@@ -185,7 +204,7 @@ export function generatePayoutProcessedEmail(
       </div>
       <p style="margin: 20px 0 0;">The funds should arrive within 3-5 business days depending on your payment method.</p>
       <div style="text-align: center; margin: 30px 0;">
-        <a href="https://nurturely.io/ambassador/commissions" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">View Full History</a>
+        <a href="https://x1.nurturely.io/ambassador/commissions" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">View Full History</a>
       </div>
     </div>
     <div style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; color: #666; font-size: 12px;">
@@ -223,7 +242,7 @@ export function generateDomainSubmissionEmail(
       </div>
       <p style="margin: 20px 0 0;">This domain has been auto-assigned to you. When a client signs up, you'll earn platform fee commissions and per-lead commissions as they process leads.</p>
       <div style="text-align: center; margin: 30px 0;">
-        <a href="https://nurturely.io/ambassador/domains" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">View My Domains</a>
+        <a href="https://x1.nurturely.io/ambassador/domains" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">View My Domains</a>
       </div>
     </div>
     <div style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; color: #666; font-size: 12px;">
