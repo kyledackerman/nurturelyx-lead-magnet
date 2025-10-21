@@ -97,18 +97,42 @@ const VisitorIdVsTraditionalPage = () => {
       <BreadcrumbSchema items={breadcrumbs} />
       <FAQSchema questions={faqItems} />
       <ComparisonSchema
-        itemA={{
-          name: "Visitor Identification",
-          description: "Technology that identifies companies visiting your website even if they don't fill out forms",
-          rating: 4.8,
-          price: "499"
-        }}
-        itemB={{
-          name: "Traditional Lead Generation",
-          description: "Contact forms, gated content, and other methods requiring visitor action",
-          rating: 3.5,
-          price: "Variable"
-        }}
+        items={[
+          {
+            name: "Visitor Identification",
+            description: "Technology that identifies companies visiting your website even if they don't fill out forms",
+            pros: [
+              "Identifies 20-40% of anonymous visitors",
+              "No form friction for users",
+              "Automated contact information",
+              "Works on all traffic sources",
+              "85-95% lower cost per lead",
+              "Setup in 5 minutes"
+            ],
+            cons: [
+              "Requires third-party service",
+              "Monthly subscription cost",
+              "Identification rate varies by traffic type"
+            ]
+          },
+          {
+            name: "Traditional Lead Generation",
+            description: "Contact forms, gated content, and other methods requiring visitor action",
+            pros: [
+              "Direct opt-in from interested visitors",
+              "Full control over data collection",
+              "Established best practices"
+            ],
+            cons: [
+              "Only captures 2-3% of visitors",
+              "High friction process",
+              "Requires ongoing content creation",
+              "Expensive paid advertising needed",
+              "Long implementation timeline",
+              "Misses 97% of website traffic"
+            ]
+          }
+        ]}
       />
 
       <div className="min-h-screen bg-background">
