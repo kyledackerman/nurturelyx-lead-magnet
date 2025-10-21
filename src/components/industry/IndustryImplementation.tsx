@@ -152,10 +152,9 @@ export const IndustryImplementation = ({ industryName }: IndustryImplementationP
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-2">Can I test this before committing?</h4>
+              <h4 className="font-semibold mb-2">How do I know this will work for my business?</h4>
               <p className="text-sm text-muted-foreground">
-                Yes. We offer a 14-day trial to see real identified visitors from your website. Most companies see dozens 
-                of qualified leads in the first week, which makes the ROI decision straightforward.
+                Start with our free report to see actual people visiting your website right now - no credit card required. This shows you real data from your site so you can evaluate the quality before making any commitment. Most businesses see dozens of qualified leads in their free report, which makes the decision straightforward.
               </p>
             </div>
           </div>

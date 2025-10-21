@@ -58,7 +58,7 @@ const PricingComparison = () => {
           </Button>
           
           <p className="text-xs text-center text-muted-foreground">
-            No credit card required for trial
+            Free report available
           </p>
         </CardContent>
       </Card>
@@ -111,7 +111,7 @@ const PricingComparison = () => {
           </Button>
           
           <p className="text-xs text-center text-muted-foreground">
-            Ideal for 1,000+ leads/month
+            Ideal for high-volume needs
           </p>
         </CardContent>
       </Card>

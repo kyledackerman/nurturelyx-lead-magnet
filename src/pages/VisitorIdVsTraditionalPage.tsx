@@ -883,7 +883,7 @@ const VisitorIdVsTraditionalPage = () => {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <p className="text-sm text-muted-foreground">
-                No credit card required • See results in 60 seconds • 10,000+ companies trust us
+                No credit card required • See results in 60 seconds • Trusted by 115+ businesses
               </p>
             </div>
 

@@ -58,7 +58,7 @@ const LeadFeederComparisonPage = () => {
     },
     {
       question: "Does NurturelyX offer a free trial like LeadFeeder?",
-      answer: "Yes! NurturelyX offers a risk-free start where you can install your tracking pixel and view anonymous analytics. You only pay the $100/month platform fee + $1 per lead when you're ready to start identifying visitors. Additionally, we provide a free instant report showing companies currently visiting your website. No credit card required to get started."
+      answer: "No, we don't offer a free trial. However, you can get a free instant report showing the actual people currently visiting your website - no credit card required for the report. Once you're ready to start identifying visitors, pricing is straightforward: $100/month platform fee + $1 per identified lead."
     }
   ];
 
@@ -66,14 +66,14 @@ const LeadFeederComparisonPage = () => {
     <>
       <MetaTags
         title="LeadFeeder vs NurturelyX: Detailed Comparison & Better Alternative [2025] | NurturelyX"
-        description="Comparing LeadFeeder and NurturelyX? See detailed pricing, features, and why 1,000+ companies switched to NurturelyX. Save 60-70% with better contact data and unlimited users."
+        description="Comparing LeadFeeder and NurturelyX? See detailed pricing, features, and why businesses switched to NurturelyX. Save 60-70% with better contact data and unlimited users."
         canonical="https://x1.nurturely.io/compare/leadfeeder-alternative"
         keywords="LeadFeeder alternative, LeadFeeder vs NurturelyX, LeadFeeder pricing, LeadFeeder competitor, visitor identification comparison, B2B lead generation tools, LeadFeeder review"
       />
 
       <WebPageSchema
         name="LeadFeeder vs NurturelyX: Detailed Comparison & Better Alternative"
-        description="Comparing LeadFeeder and NurturelyX? See detailed pricing, features, and why 1,000+ companies switched to NurturelyX. Save 60-70% with better contact data."
+        description="Comparing LeadFeeder and NurturelyX? See detailed pricing, features, and why businesses switched to NurturelyX. Save 60-70% with better contact data."
         url="https://x1.nurturely.io/compare/leadfeeder-alternative"
         breadcrumbs={breadcrumbs}
         datePublished="2025-01-15T10:00:00Z"
@@ -134,7 +134,7 @@ const LeadFeederComparisonPage = () => {
                 <span className="text-primary">Better Features, Lower Cost</span>
               </h1>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-8">
-                Considering LeadFeeder? See why 1,000+ companies chose NurturelyX instead. Get the same visitor identification capabilities with verified contact data, unlimited users, and save 60-70% on costs.
+                Considering LeadFeeder? See why businesses chose NurturelyX instead. Get the same visitor identification capabilities with verified contact data, unlimited users, and save 60-70% on costs.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -156,7 +156,7 @@ const LeadFeederComparisonPage = () => {
               </div>
 
               <p className="text-sm text-muted-foreground mt-4">
-                No credit card required • See results in 60 seconds • 14-day free trial available
+                Free report requires no credit card • See results in 60 seconds
               </p>
             </div>
 
@@ -561,7 +561,7 @@ const LeadFeederComparisonPage = () => {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                   <p className="text-sm text-muted-foreground mt-3">
-                    No credit card required • Cancel anytime • Full feature access
+                    Free report available • Transparent pricing • No hidden fees
                   </p>
                 </div>
               </TabsContent>
@@ -735,7 +735,7 @@ const LeadFeederComparisonPage = () => {
                     size="lg"
                     className="text-lg px-8"
                   >
-                    Join 1,000+ Companies Who Switched
+                    Get Your Free Report Now
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </div>
@@ -762,7 +762,7 @@ const LeadFeederComparisonPage = () => {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground">
-                        Start your 14-day free trial. No credit card required. Takes 2 minutes.
+                        Get your free report showing actual people visiting your site. No credit card required. Takes 2 minutes.
                       </p>
                     </CardContent>
                   </Card>
@@ -881,11 +881,11 @@ const LeadFeederComparisonPage = () => {
                     size="lg"
                     className="text-lg px-8"
                   >
-                    Start Free Trial - Compare Side-by-Side
+                    Get Free Report - Compare Side-by-Side
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                   <p className="text-sm text-muted-foreground mt-3">
-                    14-day trial • No credit card • Keep running LeadFeeder during trial
+                    Free report • No credit card • See real visitor data
                   </p>
                 </div>
               </TabsContent>
