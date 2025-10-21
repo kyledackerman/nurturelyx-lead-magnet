@@ -153,6 +153,38 @@ export default function AmbassadorApplication() {
                   <Input id="email" type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input id="phone" type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="location">Location</Label>
+                  <Input id="location" placeholder="City, State/Country" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="linkedin_url">LinkedIn Profile</Label>
+                  <Input id="linkedin_url" type="url" placeholder="https://linkedin.com/in/yourprofile" value={formData.linkedin_url} onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="how_heard">How did you hear about this program?</Label>
+                  <Select value={formData.how_heard} onValueChange={(value) => setFormData({ ...formData, how_heard: value })}>
+                    <SelectTrigger id="how_heard">
+                      <SelectValue placeholder="Select an option" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="linkedin">LinkedIn</SelectItem>
+                      <SelectItem value="referral">Referral</SelectItem>
+                      <SelectItem value="website">Website</SelectItem>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="social">Social Media</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sales_experience">Sales/Business Experience</Label>
+                  <Textarea id="sales_experience" placeholder="Tell us about your relevant experience" rows={3} value={formData.sales_experience} onChange={(e) => setFormData({ ...formData, sales_experience: e.target.value })} />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="your_network">Your Network *</Label>
                   <Textarea id="your_network" required placeholder="What types of businesses do you have access to?" rows={4} value={formData.your_network} onChange={(e) => setFormData({ ...formData, your_network: e.target.value })} />
                 </div>
