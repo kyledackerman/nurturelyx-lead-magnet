@@ -13,6 +13,7 @@ interface AuthContextType {
   requestPasswordReset: (userId: string, reason?: string) => Promise<{ error: any }>;
   checkIsAdmin: () => Promise<boolean>;
   checkIsSuperAdmin: () => Promise<boolean>;
+  checkIsAmbassador: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,9 +25,16 @@ const adminCacheByUser: Record<string, {
   timestamp: number;
 }> = {};
 
+// Per-user ambassador cache
+const ambassadorCacheByUser: Record<string, {
+  isAmbassador: boolean | null;
+  timestamp: number;
+}> = {};
+
 // Track in-flight admin check promises per user to deduplicate concurrent calls
 const adminPromiseByUser: Record<string, Promise<boolean> | null> = {};
 const superAdminPromiseByUser: Record<string, Promise<boolean> | null> = {};
+const ambassadorPromiseByUser: Record<string, Promise<boolean> | null> = {};
 
 const ADMIN_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
@@ -36,6 +44,14 @@ export const invalidateAdminCache = (userId?: string) => {
     delete adminCacheByUser[userId];
     adminPromiseByUser[userId] = null;
     superAdminPromiseByUser[userId] = null;
+  }
+};
+
+// Helper to invalidate ambassador cache
+export const invalidateAmbassadorCache = (userId?: string) => {
+  if (userId) {
+    delete ambassadorCacheByUser[userId];
+    ambassadorPromiseByUser[userId] = null;
   }
 };
 
@@ -211,6 +227,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   }, [user?.id]);
 
+  const checkIsAmbassador = useCallback(async (): Promise<boolean> => {
+    // No user = no ambassador access
+    if (!user?.id) return false;
+
+    const userId = user.id;
+    
+    // If already checking for this user, return the same promise
+    if (ambassadorPromiseByUser[userId]) return ambassadorPromiseByUser[userId]!;
+
+    const now = Date.now();
+    const cached = ambassadorCacheByUser[userId];
+    
+    // Safe cache check with proper guards
+    if (cached && cached.isAmbassador !== null && (now - cached.timestamp) < ADMIN_CACHE_TTL) {
+      console.debug('Using cached ambassador status:', cached.isAmbassador);
+      return cached.isAmbassador;
+    }
+
+    // Start new check and store promise for deduplication
+    ambassadorPromiseByUser[userId] = (async () => {
+      try {
+        const { data, error } = await supabase.rpc('is_ambassador');
+        
+        if (error) throw error;
+        
+        const result = !!data;
+        console.debug('Ambassador check result:', result);
+        
+        // Update cache for this user
+        ambassadorCacheByUser[userId] = {
+          isAmbassador: result,
+          timestamp: Date.now()
+        };
+        
+        return result;
+      } catch (error) {
+        console.error('Ambassador check failed; preserving cache if available:', error);
+        // On error, return cached value if available (don't demote to false)
+        if (cached && cached.isAmbassador !== null) {
+          return cached.isAmbassador;
+        }
+        return false;
+      } finally {
+        ambassadorPromiseByUser[userId] = null;
+      }
+    })();
+
+    return ambassadorPromiseByUser[userId]!;
+  }, [user?.id]);
+
   const value = useMemo(() => ({
     user,
     session,
@@ -222,7 +288,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     requestPasswordReset,
     checkIsAdmin,
     checkIsSuperAdmin,
-  }), [user, session, loading, signUp, signIn, signOut, updatePassword, requestPasswordReset, checkIsAdmin, checkIsSuperAdmin]);
+    checkIsAmbassador,
+  }), [user, session, loading, signUp, signIn, signOut, updatePassword, requestPasswordReset, checkIsAdmin, checkIsSuperAdmin, checkIsAmbassador]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

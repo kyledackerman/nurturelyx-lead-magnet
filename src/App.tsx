@@ -16,6 +16,7 @@ import CRMDashboard from "./pages/CRMDashboard";
 import ClientsDashboard from "./pages/ClientsDashboard";
 import AuthPage from "./pages/AuthPage";
 import { AdminAuthGuard } from "./components/admin/AdminAuthGuard";
+import { AmbassadorAuthGuard } from "./components/ambassador/AmbassadorAuthGuard";
 import UserDashboard from "./pages/UserDashboard";
 import LearnPage from "./pages/LearnPage";
 import HvacLeadsPage from "./pages/HvacLeadsPage";
@@ -104,12 +105,36 @@ const App = () => (
             
             {/* Ambassador Routes */}
             <Route path="/ambassador/apply" element={<AmbassadorApplication />} />
-            <Route path="/ambassador" element={<AmbassadorDashboard />} />
-            <Route path="/ambassador/marketplace" element={<AmbassadorMarketplace />} />
-            <Route path="/ambassador/domains" element={<AmbassadorDomains />} />
-            <Route path="/ambassador/submit" element={<AmbassadorSubmitDomain />} />
-            <Route path="/ambassador/commissions" element={<AmbassadorCommissions />} />
-            <Route path="/ambassador/settings" element={<AmbassadorSettings />} />
+            <Route path="/ambassador" element={
+              <AmbassadorAuthGuard>
+                <AmbassadorDashboard />
+              </AmbassadorAuthGuard>
+            } />
+            <Route path="/ambassador/marketplace" element={
+              <AmbassadorAuthGuard>
+                <AmbassadorMarketplace />
+              </AmbassadorAuthGuard>
+            } />
+            <Route path="/ambassador/domains" element={
+              <AmbassadorAuthGuard>
+                <AmbassadorDomains />
+              </AmbassadorAuthGuard>
+            } />
+            <Route path="/ambassador/submit" element={
+              <AmbassadorAuthGuard>
+                <AmbassadorSubmitDomain />
+              </AmbassadorAuthGuard>
+            } />
+            <Route path="/ambassador/commissions" element={
+              <AmbassadorAuthGuard>
+                <AmbassadorCommissions />
+              </AmbassadorAuthGuard>
+            } />
+            <Route path="/ambassador/settings" element={
+              <AmbassadorAuthGuard>
+                <AmbassadorSettings />
+              </AmbassadorAuthGuard>
+            } />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
