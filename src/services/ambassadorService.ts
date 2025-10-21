@@ -113,18 +113,57 @@ export const ambassadorService = {
 
   // Update client pricing
   async updateClientPricing(prospectActivityId: string, platformFee: number, perLeadPrice: number) {
-    const { data, error } = await supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    // Check if pricing record exists
+    const { data: existing } = await supabase
       .from('client_pricing')
-      .update({
-        platform_fee_monthly: platformFee,
-        per_lead_price: perLeadPrice,
-      })
+      .select('id')
       .eq('prospect_activity_id', prospectActivityId)
-      .select()
       .single();
 
-    if (error) throw error;
-    return data;
+    if (existing) {
+      // Update existing record
+      const { data, error } = await supabase
+        .from('client_pricing')
+        .update({
+          platform_fee_monthly: platformFee,
+          per_lead_price: perLeadPrice,
+        })
+        .eq('prospect_activity_id', prospectActivityId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } else {
+      // Create new record - fetch report_id and domain
+      const { data: prospect } = await supabase
+        .from('prospect_activities')
+        .select('id, report_id, reports!inner(domain)')
+        .eq('id', prospectActivityId)
+        .single();
+
+      if (!prospect) throw new Error('Prospect not found');
+
+      const { data, error } = await supabase
+        .from('client_pricing')
+        .insert({
+          prospect_activity_id: prospectActivityId,
+          report_id: prospect.report_id,
+          ambassador_id: user.id,
+          domain: prospect.reports.domain,
+          platform_fee_monthly: platformFee,
+          per_lead_price: perLeadPrice,
+          status: 'active',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
   },
 
   // Update ambassador profile

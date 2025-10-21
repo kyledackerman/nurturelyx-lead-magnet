@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, BarChart3, Shield, Users } from 'lucide-react';
+import { User, LogOut, BarChart3, Shield, Users, Award } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const Header = () => {
@@ -94,6 +94,12 @@ const Header = () => {
           <Link to="/learn">
             <Button variant="ghost" size="sm" className="text-foreground">
               Learn More
+            </Button>
+          </Link>
+          <Link to="/ambassador/apply" className="hidden lg:block">
+            <Button variant="ghost" size="sm" className="text-foreground flex items-center gap-2">
+              <Award className="h-4 w-4" />
+              Become an Ambassador
             </Button>
           </Link>
           {user ? (

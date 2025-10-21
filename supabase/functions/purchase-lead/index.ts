@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     // Get prospect and report
     let query = supabaseClient
       .from('prospect_activities')
-      .select('*, reports!inner(domain, is_usa_based)');
+      .select('*, reports!inner(domain)');
 
     if (prospect_activity_id) {
       query = query.eq('id', prospect_activity_id);
