@@ -12,9 +12,10 @@ interface AmbassadorAuthGuardProps {
 
 export const AmbassadorAuthGuard = ({ children }: AmbassadorAuthGuardProps) => {
   const [isAmbassador, setIsAmbassador] = useState<boolean | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [verificationError, setVerificationError] = useState(false);
-  const { user, signOut, checkIsAmbassador } = useAuth();
+  const { user, signOut, checkIsAmbassador, checkIsAdmin } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,6 +25,7 @@ export const AmbassadorAuthGuard = ({ children }: AmbassadorAuthGuardProps) => {
   const checkAmbassadorStatus = async () => {
     if (!user) {
       setIsAmbassador(false);
+      setIsAdmin(false);
       setLoading(false);
       setVerificationError(false);
       return;
@@ -32,8 +34,14 @@ export const AmbassadorAuthGuard = ({ children }: AmbassadorAuthGuardProps) => {
     try {
       setLoading(true);
       setVerificationError(false);
-      const isAmbassadorStatus = await checkIsAmbassador();
+      
+      const [isAmbassadorStatus, isAdminStatus] = await Promise.all([
+        checkIsAmbassador(),
+        checkIsAdmin()
+      ]);
+      
       setIsAmbassador(isAmbassadorStatus);
+      setIsAdmin(isAdminStatus);
     } catch (error) {
       console.error('Error verifying ambassador status:', error);
       setVerificationError(true);
@@ -117,7 +125,7 @@ export const AmbassadorAuthGuard = ({ children }: AmbassadorAuthGuardProps) => {
     );
   }
 
-  if (!isAmbassador) {
+  if (!isAmbassador && !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <Card className="w-full max-w-md">
