@@ -63,6 +63,7 @@ export const ambassadorService = {
         priority,
         contact_count,
         created_at,
+        lead_source,
         reports!inner(
           id,
           domain,
@@ -76,8 +77,8 @@ export const ambassadorService = {
       `)
       .is('purchased_by_ambassador', null)
       .is('assigned_to', null)
+      .neq('lead_source', 'warm_inbound')
       .eq('reports.is_public', true)
-      .not('reports.state', 'is', null)
       .order('created_at', { ascending: false })
       .limit(limit);
 
