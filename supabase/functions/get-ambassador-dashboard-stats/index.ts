@@ -3,14 +3,14 @@ import { corsHeaders } from '../_shared/cors.ts';
 
 const TIER_THRESHOLDS = {
   platform_fee: {
-    bronze: 10,
-    silver: 100,
-    gold: 1000,
+    bronze: 100,
+    silver: 1000,
+    gold: Infinity,
   },
   per_lead: {
-    bronze: 10,
-    silver: 100,
-    gold: 1000,
+    bronze: 100,
+    silver: 1000,
+    gold: Infinity,
   },
 };
 

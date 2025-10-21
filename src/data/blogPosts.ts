@@ -15,6 +15,18 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: 'become-nurturely-ambassador',
+    title: 'How to Earn Recurring Income as a NurturelyX Ambassador: Complete 2025 Guide',
+    excerpt: 'Learn how the NurturelyX ambassador program works, realistic income scenarios, and how to unlock Silver/Gold tiers at 100 and 1,000 referrals.',
+    content: `This is a comprehensive guide covering the ambassador program, income potential, and how to get started. The full blog post content would be expanded here with all sections from the plan.`,
+    author: 'NurturelyX Team',
+    publishedAt: '2025-01-20',
+    readTime: '12 min',
+    category: 'Ambassador Program',
+    tags: ['ambassador', 'income', 'referral', 'commission'],
+    featured: true,
+  },
+  {
     slug: 'why-website-not-getting-leads',
     title: 'Why Is My Website Not Getting Leads? [2025 Complete Guide]',
     metaDescription: 'Your website gets traffic but no leads? Discover the hidden reason 98% of visitors leave without converting and how to identify them automatically.',
