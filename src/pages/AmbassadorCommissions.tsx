@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { DollarSign, Calendar, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import Header from "@/components/Header";
 import {
   Table,
   TableBody,
@@ -45,7 +46,9 @@ export default function AmbassadorCommissions() {
     .reduce((sum, c) => sum + Number(c.commission_amount), 0) || 0;
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <>
+      <Header />
+      <div className="container mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Commissions & Payouts</h1>
         <p className="text-muted-foreground">Track your earnings and payout history</p>
@@ -179,6 +182,7 @@ export default function AmbassadorCommissions() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }

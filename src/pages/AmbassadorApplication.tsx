@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { CheckCircle, Award, DollarSign, TrendingUp } from "lucide-react";
+import Header from "@/components/Header";
 
 export default function AmbassadorApplication() {
   const [formData, setFormData] = useState({
@@ -45,7 +46,9 @@ export default function AmbassadorApplication() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl space-y-6">
+    <>
+      <Header />
+      <div className="container mx-auto p-6 max-w-4xl space-y-6">
       <div className="text-center space-y-2">
         <h1 className="text-4xl font-bold">Become an Ambassador</h1>
         <p className="text-xl text-muted-foreground">
@@ -237,6 +240,7 @@ export default function AmbassadorApplication() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }

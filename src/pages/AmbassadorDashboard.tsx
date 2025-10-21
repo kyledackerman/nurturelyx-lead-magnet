@@ -7,6 +7,7 @@ import { TrendingUp, DollarSign, Users, Target, ArrowRight } from "lucide-react"
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
+import Header from "@/components/Header";
 
 export default function AmbassadorDashboard() {
   const navigate = useNavigate();
@@ -32,7 +33,9 @@ export default function AmbassadorDashboard() {
   const tiers = stats?.tiers || {};
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <>
+      <Header />
+      <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Ambassador Dashboard</h1>
@@ -287,6 +290,7 @@ export default function AmbassadorDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </>
   );
 }

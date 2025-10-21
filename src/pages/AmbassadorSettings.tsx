@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import Header from "@/components/Header";
 import {
   Select,
   SelectContent,
@@ -84,7 +85,9 @@ export default function AmbassadorSettings() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-2xl space-y-6">
+    <>
+      <Header />
+      <div className="container mx-auto p-6 max-w-2xl space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Settings & Profile</h1>
         <p className="text-muted-foreground">Manage your personal information and payment settings</p>
@@ -290,6 +293,7 @@ export default function AmbassadorSettings() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }

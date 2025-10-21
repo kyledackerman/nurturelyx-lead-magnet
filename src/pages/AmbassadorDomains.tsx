@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Globe, TrendingUp, DollarSign, Calendar, ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import Header from "@/components/Header";
 import {
   Dialog,
   DialogContent,
@@ -67,7 +68,9 @@ export default function AmbassadorDomains() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <>
+      <Header />
+      <div className="container mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">My Domains</h1>
         <p className="text-muted-foreground">Manage your assigned domains and customize pricing</p>
@@ -222,6 +225,7 @@ export default function AmbassadorDomains() {
           );
         })}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { ShoppingCart, TrendingUp, DollarSign, Search, MapPin } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import Header from "@/components/Header";
 
 export default function AmbassadorMarketplace() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -49,7 +50,9 @@ export default function AmbassadorMarketplace() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <>
+      <Header />
+      <div className="container mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Lead Marketplace</h1>
         <p className="text-muted-foreground">Purchase unassigned leads for $0.01 each</p>
@@ -153,6 +156,7 @@ export default function AmbassadorMarketplace() {
           );
         })}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

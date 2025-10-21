@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowRight, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import Header from "@/components/Header";
 
 export default function AmbassadorSubmitDomain() {
   const [domain, setDomain] = useState("");
@@ -52,7 +53,9 @@ export default function AmbassadorSubmitDomain() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-2xl space-y-6">
+    <>
+      <Header />
+      <div className="container mx-auto p-6 max-w-2xl space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Submit New Domain</h1>
         <p className="text-muted-foreground">Submit a new USA-based domain and get it assigned to you for free</p>
@@ -175,6 +178,7 @@ export default function AmbassadorSubmitDomain() {
           International domains (.co.uk, .ca, .au, etc.) and government/educational domains (.gov, .edu) will be rejected.
         </AlertDescription>
       </Alert>
-    </div>
+      </div>
+    </>
   );
 }
