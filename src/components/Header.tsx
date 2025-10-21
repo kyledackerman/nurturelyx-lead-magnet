@@ -112,12 +112,6 @@ const Header = () => {
               Learn More
             </Button>
           </Link>
-          <Link to="/ambassador/apply" className="hidden lg:block">
-            <Button variant="ghost" size="sm" className="text-foreground flex items-center gap-2">
-              <Award className="h-4 w-4" />
-              Become an Ambassador
-            </Button>
-          </Link>
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

@@ -155,6 +155,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><Link to="/" className="text-sm text-gray-300 hover:text-white">Home</Link></li>
               <li><Link to="/auth" className="text-sm text-gray-300 hover:text-white">Sign In</Link></li>
+              <li><Link to="/ambassador/apply" className="text-sm text-gray-300 hover:text-white">Become an Ambassador</Link></li>
               <li><a href="https://nurturely.io/post/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-300 hover:text-white">Privacy Policy</a></li>
               <li><a href="https://nurturely.io/post/terms" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-300 hover:text-white">Terms of Service</a></li>
             </ul>
