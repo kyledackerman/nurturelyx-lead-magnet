@@ -43,7 +43,7 @@ const WhyNoLeadsPage = () => {
     },
     {
       question: "Is identity resolution legal and compliant?",
-      answer: "Yes. Identity resolution uses business IP addresses and publicly available business data, which is fully compliant with GDPR, CCPA, and other privacy regulations. You're identifying companies visiting your site, not tracking individual consumer behavior."
+      answer: "Yes. You're identifying individual consumers who visit your site and providing their contact information (names, emails, phones, addresses) - not tracking anonymous browsing behavior. This is consumer identity resolution, not corporate IP tracking. All data comes from verified public records and opt-in databases, fully compliant with GDPR, CCPA, and privacy regulations."
     }
   ];
 

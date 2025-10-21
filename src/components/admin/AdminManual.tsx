@@ -104,7 +104,7 @@ const AdminManual = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-3">How Visitor Identification Works</h3>
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  Modern visitor identification technology uses multiple data signals to determine which companies are visiting a website:
+                  Modern visitor identification technology uses multiple data signals to determine which individuals are visiting a website and their contact details:
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
                   <li><strong>IP Address Resolution:</strong> Corporate IP addresses are mapped to company databases</li>
@@ -138,7 +138,7 @@ const AdminManual = () => {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground">
-                        Know exactly which companies are researching your solutions, what they're interested in, and when to reach out with perfect timing.
+                        Know exactly which people are researching your solutions - their names, how to reach them directly - and when to contact them with perfect timing.
                       </p>
                     </CardContent>
                   </Card>
@@ -652,7 +652,7 @@ const AdminManual = () => {
                         </p>
                         <p>
                           We've helped companies like [Similar Company] recover this invisible pipeline using visitor identification technology. 
-                          I'd love to show you exactly which companies are visiting your site and what they're interested in.
+                          I'd love to show you exactly which people are visiting your site and how to contact them.
                         </p>
                         <p>
                           Would you be open to a quick 15-minute call next week?

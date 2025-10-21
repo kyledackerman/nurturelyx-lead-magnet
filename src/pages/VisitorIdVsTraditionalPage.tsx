@@ -61,7 +61,7 @@ const VisitorIdVsTraditionalPage = () => {
     },
     {
       question: "What's the typical identification rate for visitor identification technology?",
-      answer: "Industry average is 20-40% identification rate for B2B websites. This means if you get 10,000 monthly visitors, you can expect to identify 2,000-4,000 companies. Identification rates are higher for: B2B traffic (vs B2C), corporate IP addresses (vs residential), and return visitors (vs first-time visitors)."
+      answer: "Industry average is 20-40% identification rate for websites. This means if you get 10,000 monthly visitors, you can expect to identify 2,000-4,000 individuals with their contact information. Identification rates are higher for: B2B traffic (vs B2C), high-intent visitors, and return visitors (vs first-time visitors)."
     },
     {
       question: "How does visitor identification compare in cost to paid advertising?",
@@ -69,7 +69,7 @@ const VisitorIdVsTraditionalPage = () => {
     },
     {
       question: "Is visitor identification compliant with GDPR and privacy regulations?",
-      answer: "Yes, when implemented correctly. Visitor identification for B2B purposes identifies companies visiting your website, not individual personal data. It uses business IP addresses and publicly available firmographic data. This falls under legitimate business interest (GDPR Article 6(1)(f)). However, always work with compliant vendors who provide proper data processing agreements."
+      answer: "Yes, when implemented correctly. Identity resolution identifies actual individuals with their contact information from verified public records and opt-in databases. All data is sourced ethically and complies with GDPR, CCPA, and privacy regulations. This falls under legitimate business interest (GDPR Article 6(1)(f)). Always work with compliant vendors who provide proper data processing agreements."
     },
     {
       question: "What happens to my traditional lead gen forms if I add visitor identification?",
@@ -100,7 +100,7 @@ const VisitorIdVsTraditionalPage = () => {
         items={[
           {
             name: "Visitor Identification",
-            description: "Technology that identifies companies visiting your website even if they don't fill out forms",
+            description: "Technology that identifies individuals visiting your website and provides their contact information",
             pros: [
               "Identifies 20-40% of anonymous visitors",
               "No form friction for users",
@@ -203,6 +203,20 @@ const VisitorIdVsTraditionalPage = () => {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Differentiation Callout */}
+        <section className="py-12 px-4 bg-primary/5">
+          <div className="container mx-auto max-w-6xl">
+            <div className="bg-primary/10 border-l-4 border-primary p-8 rounded-lg">
+              <h3 className="font-bold text-2xl mb-4 text-foreground">🚫 Not Another "Company Visitor" Tool</h3>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Old B2B tools like Leadfeeder and Clearbit show you "Acme Corp visited" - but no way to contact anyone. 
+                <strong className="text-foreground"> We give you the actual person</strong>: John Smith, john@email.com, (555) 123-4567, 
+                123 Main St. That's the difference between a company name and a lead you can actually call.
+              </p>
             </div>
           </div>
         </section>
@@ -352,7 +366,7 @@ const VisitorIdVsTraditionalPage = () => {
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
                       <p className="text-sm text-muted-foreground mt-3">
-                        See the actual companies visiting your website right now
+                        See the actual people visiting your website - names, emails, phones
                       </p>
                     </div>
                   </TabsContent>

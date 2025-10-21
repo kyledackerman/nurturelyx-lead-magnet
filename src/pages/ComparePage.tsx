@@ -48,7 +48,7 @@ const ComparePage = () => {
     {
       name: "IP-Based Tracking",
       icon: Building2,
-      description: "Identify companies visiting your site (no individual contact info)",
+      description: "Old-school: Only shows company names, no individual contact info",
       color: "text-blue-500",
       bestFor: "Enterprise ABM teams tracking account engagement",
     },

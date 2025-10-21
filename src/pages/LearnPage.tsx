@@ -595,7 +595,7 @@ const LearnPage = () => {
                     <Card className="p-4 bg-muted">
                       <p className="text-sm font-medium mb-2">B2B Example:</p>
                       <p className="text-sm text-muted-foreground">
-                        An enterprise software company identified 63 Fortune 500 companies visiting their site anonymously. 
+                        An enterprise software company identified 63 Fortune 500 decision-makers visiting their site anonymously. 
                         Their sales team launched targeted campaigns and closed <strong>$2.1M in deals</strong> within 90 days.
                       </p>
                     </Card>

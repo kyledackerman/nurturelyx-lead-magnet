@@ -64,7 +64,7 @@ const getFaqItems = (data: ReportData): Array<{ question: string; answer: string
         <p>
           When someone visits your website, that's YOUR first-party data under 
           GDPR Article 6(1)(f) legitimate interest principles. You have the legal 
-          right to identify business visitors engaging with your services.
+          right to identify visitors engaging with your services.
         </p>
         
         <p className="font-semibold">How It Works</p>

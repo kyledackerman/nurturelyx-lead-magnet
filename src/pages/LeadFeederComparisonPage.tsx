@@ -143,7 +143,7 @@ const LeadFeederComparisonPage = () => {
                   size="lg"
                   className="text-lg px-8"
                 >
-                  Get Free Report - See Companies Visiting Now
+                  Get Free Report - See Individual Visitors' Contact Info
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
                 <Button 
@@ -186,6 +186,20 @@ const LeadFeederComparisonPage = () => {
                   <div className="text-sm text-muted-foreground">Verified contact data</div>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Differentiation Callout */}
+        <section className="py-12 px-4 bg-primary/5">
+          <div className="container mx-auto max-w-6xl">
+            <div className="bg-primary/10 border-l-4 border-primary p-8 rounded-lg">
+              <h3 className="font-bold text-2xl mb-4 text-foreground">🚫 Not Another "Company Visitor" Tool</h3>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Old B2B tools like Leadfeeder and Clearbit show you "Acme Corp visited" - but no way to contact anyone. 
+                <strong className="text-foreground"> We give you the actual person</strong>: John Smith, john@email.com, (555) 123-4567, 
+                123 Main St. That's the difference between a company name and a lead you can actually call.
+              </p>
             </div>
           </div>
         </section>
@@ -574,7 +588,7 @@ const LeadFeederComparisonPage = () => {
                     </thead>
                     <tbody>
                       {[
-                        { feature: "Company identification", nurturely: true, leadfeeder: true },
+                        { feature: "Individual contact identification", nurturely: true, leadfeeder: true },
                         { feature: "Verified contact data included", nurturely: true, leadfeeder: false },
                         { feature: "Real-time alerts", nurturely: true, leadfeeder: "Premium+" },
                         { feature: "Unlimited team members", nurturely: true, leadfeeder: false },

@@ -28,7 +28,7 @@ const GoogleAnalyticsLyingPage = () => {
     },
     {
       question: "How does visitor identification solve this problem?",
-      answer: "Visitor identification technology (also called de-anonymization or visitor intelligence) uses reverse IP lookup, digital fingerprinting, and proprietary databases to identify companies visiting your website - even if they never fill out a form. You can see company names, employee contacts, pages viewed, and visit history for that previously invisible 97%."
+      answer: "Visitor identification technology (also called identity resolution) identifies the actual individuals visiting your website - even if they never fill out a form. You get real people's names, direct emails, phone numbers, and addresses - not just company names. This gives you verified contact information for the previously invisible 97%."
     },
     {
       question: "Can I use visitor identification alongside Google Analytics?",
@@ -36,11 +36,11 @@ const GoogleAnalyticsLyingPage = () => {
     },
     {
       question: "Is visitor identification legal and compliant?",
-      answer: "Yes. Visitor identification for B2B purposes uses publicly available business data and does not collect or process personal data of individual website visitors. It identifies companies visiting your site, not individuals, making it fully compliant with GDPR, CCPA, and other privacy regulations when implemented correctly."
+      answer: "Yes. Identity resolution identifies actual individual visitors with their personal contact information - names, emails, phone numbers, and addresses. We provide consumer data, not just business/company identification. All data is sourced from verified public records and opt-in databases, fully compliant with GDPR, CCPA, and privacy regulations when implemented correctly."
     },
     {
       question: "How much revenue am I losing to the 97% problem?",
-      answer: "The average B2B website converts 2-3% of visitors. If you're getting 10,000 monthly visitors and converting at 3%, that's 300 leads. But what about the other 9,700 visitors? Even if just 5% of them are qualified prospects (485 companies), and your average deal is $10,000, you're potentially missing $4.85M in pipeline every month."
+      answer: "The average B2B website converts 2-3% of visitors. If you're getting 10,000 monthly visitors and converting at 3%, that's 300 leads. But what about the other 9,700 visitors? Even if just 5% of them are qualified prospects (485 people), and your average deal is $10,000, you're potentially missing $4.85M in pipeline every month."
     }
   ];
 
@@ -221,6 +221,20 @@ const GoogleAnalyticsLyingPage = () => {
                 Get My Free Visitor Intelligence Report
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Differentiation Callout */}
+        <section className="py-12 px-4 bg-primary/5">
+          <div className="container mx-auto max-w-4xl">
+            <div className="bg-primary/10 border-l-4 border-primary p-8 rounded-lg">
+              <h4 className="font-bold text-2xl mb-4 text-foreground">🚫 Not Another "Company Visitor" Tool</h4>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Old B2B tools like Leadfeeder and Clearbit show you "Acme Corp visited" - but no way to contact anyone. 
+                <strong className="text-foreground"> We give you the actual person</strong>: John Smith, john@email.com, (555) 123-4567, 
+                123 Main St. That's the difference between a company name and a lead you can actually call.
+              </p>
             </div>
           </div>
         </section>
@@ -428,7 +442,7 @@ const GoogleAnalyticsLyingPage = () => {
                 Ready To See Your Hidden Visitors?
               </h3>
               <p className="text-lg text-muted-foreground mb-6">
-                Get a free custom report showing the companies visiting your website, complete with contacts and estimated deal value
+                Get a free custom report showing the actual people visiting your website - their names, emails, phone numbers, and what they're worth to your business
               </p>
               <Button 
                 onClick={() => navigate("/")}
