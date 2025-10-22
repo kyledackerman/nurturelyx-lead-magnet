@@ -1499,41 +1499,54 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      ambassador_dashboard_stats: {
+        Row: {
+          active_domains_count: number | null
+          conversion_rate: number | null
+          eligible_commission: number | null
+          email: string | null
+          full_name: string | null
+          lifetime_commission_paid: number | null
+          next_payout_date: string | null
+          pending_commission: number | null
+          per_lead_tier: string | null
+          platform_fee_tier: string | null
+          total_leads_processed: number | null
+          total_signups_lifetime: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       acquire_enrichment_lock: {
         Args: { p_prospect_id: string; p_source: string }
         Returns: boolean
       }
-      cleanup_old_audit_logs: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
+      cleanup_old_audit_logs: { Args: never; Returns: undefined }
+      generate_report_slug: { Args: { domain_name: string }; Returns: string }
+      get_admin_dashboard_stats: { Args: never; Returns: Json }
+      get_ambassador_leaderboard_optimized: {
+        Args: { p_limit?: number; p_metric?: string }
+        Returns: {
+          active_domains: number
+          ambassador_email: string
+          ambassador_id: string
+          ambassador_name: string
+          badges: string[]
+          composite_score: number
+          estimated_revenue_recovered: number
+          leads_per_domain: number
+          rank: number
+          retention_rate: number
+          total_leads_processed: number
+          total_signups: number
+        }[]
       }
-      generate_report_slug: {
-        Args: { domain_name: string }
-        Returns: string
-      }
-      get_admin_dashboard_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_average_deal_size: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_chart_data: {
-        Args: { period?: string }
-        Returns: Json
-      }
-      get_crm_funnel_metrics: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_crm_metrics: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_average_deal_size: { Args: never; Returns: Json }
+      get_chart_data: { Args: { period?: string }; Returns: Json }
+      get_crm_funnel_metrics: { Args: never; Returns: Json }
+      get_crm_metrics: { Args: never; Returns: Json }
       get_crm_prospects_with_stats: {
         Args: {
           p_assigned_filter?: string
@@ -1565,10 +1578,7 @@ export type Database = {
           updated_at: string
         }[]
       }
-      get_crm_sidebar_counts: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_crm_sidebar_counts: { Args: never; Returns: Json }
       get_daily_unique_domains_contacted: {
         Args: { days?: number }
         Returns: Json
@@ -1578,60 +1588,30 @@ export type Database = {
         Returns: Json
       }
       get_domain_contact_counts: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           contact_count: number
           domain: string
         }[]
       }
-      get_hot_streak: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_peak_performance_day: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_hot_streak: { Args: never; Returns: Json }
+      get_peak_performance_day: { Args: never; Returns: Json }
       get_pipeline_status_domain_counts: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           domain_count: number
           status: string
           total_value: number
         }[]
       }
-      get_quality_score: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_top_leads_domain: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_top_revenue_domain: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_total_market_opportunity: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_views_chart_data: {
-        Args: { period?: string }
-        Returns: Json
-      }
-      is_admin: {
-        Args: { user_uuid?: string }
-        Returns: boolean
-      }
-      is_ambassador: {
-        Args: { user_uuid?: string }
-        Returns: boolean
-      }
-      is_super_admin: {
-        Args: { user_uuid?: string }
-        Returns: boolean
-      }
+      get_quality_score: { Args: never; Returns: Json }
+      get_top_leads_domain: { Args: never; Returns: Json }
+      get_top_revenue_domain: { Args: never; Returns: Json }
+      get_total_market_opportunity: { Args: never; Returns: Json }
+      get_views_chart_data: { Args: { period?: string }; Returns: Json }
+      is_admin: { Args: { user_uuid?: string }; Returns: boolean }
+      is_ambassador: { Args: { user_uuid?: string }; Returns: boolean }
+      is_super_admin: { Args: { user_uuid?: string }; Returns: boolean }
       log_business_context: {
         Args: {
           p_context: string
@@ -1659,7 +1639,7 @@ export type Database = {
         Returns: undefined
       }
       validate_prospect_email_contacts: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           moved_count: number
           moved_prospect_ids: string[]

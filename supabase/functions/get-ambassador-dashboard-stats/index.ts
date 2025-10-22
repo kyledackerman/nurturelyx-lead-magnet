@@ -56,35 +56,43 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get ambassador profile
+    // Get ambassador profile from materialized view (pre-calculated stats)
     const { data: profile, error: profileError } = await supabaseClient
-      .from('ambassador_profiles')
+      .from('ambassador_dashboard_stats')
       .select('*')
       .eq('user_id', user.id)
       .single();
 
     if (profileError || !profile) {
-      return new Response(JSON.stringify({ error: 'Ambassador profile not found' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      // Fallback to regular profile table if materialized view not ready
+      const { data: fallbackProfile, error: fallbackError } = await supabaseClient
+        .from('ambassador_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (fallbackError || !fallbackProfile) {
+        return new Response(JSON.stringify({ error: 'Ambassador profile not found' }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      // Use fallback profile with manual calculations
+      const conversionRate = fallbackProfile.total_domains_purchased > 0
+        ? (fallbackProfile.total_signups_lifetime / fallbackProfile.total_domains_purchased) * 100
+        : 0;
+      
+      Object.assign(fallbackProfile, { 
+        conversion_rate: conversionRate,
+        next_payout_date: null 
       });
+      
+      // Replace profile reference
+      Object.assign(profile, fallbackProfile);
     }
 
-    // Calculate conversion rate
-    const conversionRate = profile.total_domains_purchased > 0
-      ? (profile.total_signups_lifetime / profile.total_domains_purchased) * 100
-      : 0;
-
-    // Get next payout date (find earliest eligible commission after 60 days)
-    const { data: nextPayout } = await supabaseClient
-      .from('commissions')
-      .select('eligible_for_payout_at')
-      .eq('ambassador_id', user.id)
-      .eq('status', 'pending')
-      .not('eligible_for_payout_at', 'is', null)
-      .order('eligible_for_payout_at', { ascending: true })
-      .limit(1)
-      .single();
+    const conversionRate = profile.conversion_rate || 0;
 
     // Calculate next tier requirements
     const getNextTierInfo = (current: string, metric: number) => {
@@ -128,9 +136,9 @@ Deno.serve(async (req) => {
         pending_commission: profile.pending_commission,
         eligible_commission: profile.eligible_commission,
         lifetime_paid: profile.lifetime_commission_paid,
-        total_spent_on_leads: profile.total_spent_on_leads,
-        total_revenue_generated: profile.total_revenue_generated,
-        next_payout_date: nextPayout?.eligible_for_payout_at || null,
+        total_spent_on_leads: profile.total_spent_on_leads || 0,
+        total_revenue_generated: profile.total_revenue_generated || 0,
+        next_payout_date: profile.next_payout_date || null,
         estimated_next_payout: profile.pending_commission,
       },
       tiers: {
