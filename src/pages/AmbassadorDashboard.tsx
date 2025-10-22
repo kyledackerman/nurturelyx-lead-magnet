@@ -19,6 +19,7 @@ export default function AmbassadorDashboard() {
     staleTime: 2 * 60 * 1000, // 2 minutes
     gcTime: 5 * 60 * 1000, // 5 minutes (renamed from cacheTime)
     refetchOnWindowFocus: false,
+    retry: false, // Disable retries - fail fast if edge function errors
   });
 
   if (isLoading) {

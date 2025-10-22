@@ -61,15 +61,17 @@ Deno.serve(async (req) => {
       .from('ambassador_dashboard_stats')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (profileError || !profile) {
+    let effectiveProfile = profile;
+
+    if (!effectiveProfile) {
       // Fallback to regular profile table if materialized view not ready
       const { data: fallbackProfile, error: fallbackError } = await supabaseClient
         .from('ambassador_profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
       if (fallbackError || !fallbackProfile) {
         return new Response(JSON.stringify({ error: 'Ambassador profile not found' }), {
@@ -83,16 +85,14 @@ Deno.serve(async (req) => {
         ? (fallbackProfile.total_signups_lifetime / fallbackProfile.total_domains_purchased) * 100
         : 0;
       
-      Object.assign(fallbackProfile, { 
+      effectiveProfile = {
+        ...fallbackProfile,
         conversion_rate: conversionRate,
-        next_payout_date: null 
-      });
-      
-      // Replace profile reference
-      Object.assign(profile, fallbackProfile);
+        next_payout_date: null
+      };
     }
 
-    const conversionRate = profile.conversion_rate || 0;
+    const conversionRate = effectiveProfile.conversion_rate || 0;
 
     // Calculate next tier requirements
     const getNextTierInfo = (current: string, metric: number) => {
@@ -110,40 +110,40 @@ Deno.serve(async (req) => {
     };
 
     const perLeadNextTier = getNextTierInfo(
-      profile.per_lead_tier,
-      profile.total_signups_lifetime
+      effectiveProfile.per_lead_tier,
+      effectiveProfile.total_signups_lifetime
     );
 
     const stats = {
       profile: {
-        id: profile.id,
-        user_id: profile.user_id,
-        full_name: profile.full_name,
-        email: profile.email,
-        phone: profile.phone,
-        location: profile.location,
-        status: profile.status,
-        payment_method: profile.payment_method,
+        id: effectiveProfile.id,
+        user_id: effectiveProfile.user_id,
+        full_name: effectiveProfile.full_name,
+        email: effectiveProfile.email,
+        phone: effectiveProfile.phone,
+        location: effectiveProfile.location,
+        status: effectiveProfile.status,
+        payment_method: effectiveProfile.payment_method,
       },
       performance: {
-        active_domains: profile.active_domains_count,
-        total_signups_lifetime: profile.total_signups_lifetime,
-        total_leads_processed: profile.total_leads_processed,
-        total_domains_purchased: profile.total_domains_purchased,
+        active_domains: effectiveProfile.active_domains_count,
+        total_signups_lifetime: effectiveProfile.total_signups_lifetime,
+        total_leads_processed: effectiveProfile.total_leads_processed,
+        total_domains_purchased: effectiveProfile.total_domains_purchased,
         conversion_rate: Math.round(conversionRate * 10) / 10,
       },
       financials: {
-        pending_commission: profile.pending_commission,
-        eligible_commission: profile.eligible_commission,
-        lifetime_paid: profile.lifetime_commission_paid,
-        total_spent_on_leads: profile.total_spent_on_leads || 0,
-        total_revenue_generated: profile.total_revenue_generated || 0,
-        next_payout_date: profile.next_payout_date || null,
-        estimated_next_payout: profile.pending_commission,
+        pending_commission: effectiveProfile.pending_commission,
+        eligible_commission: effectiveProfile.eligible_commission,
+        lifetime_paid: effectiveProfile.lifetime_commission_paid,
+        total_spent_on_leads: effectiveProfile.total_spent_on_leads || 0,
+        total_revenue_generated: effectiveProfile.total_revenue_generated || 0,
+        next_payout_date: effectiveProfile.next_payout_date || null,
+        estimated_next_payout: effectiveProfile.pending_commission,
       },
       tiers: {
-        per_lead_tier: profile.per_lead_tier,
-        per_lead_rate: TIER_RATES.per_lead[profile.per_lead_tier as keyof typeof TIER_RATES.per_lead],
+        per_lead_tier: effectiveProfile.per_lead_tier,
+        per_lead_rate: TIER_RATES.per_lead[effectiveProfile.per_lead_tier as keyof typeof TIER_RATES.per_lead],
         next_tier_requirements: {
           per_lead: perLeadNextTier,
         },
