@@ -57,6 +57,7 @@ export const ambassadorService = {
         priority,
         created_at,
         lead_source,
+        contact_count,
         reports!inner(
           id,
           domain,

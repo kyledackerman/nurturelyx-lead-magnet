@@ -19,6 +19,9 @@ export default function AmbassadorMarketplace() {
   const { data: leads, isLoading } = useQuery({
     queryKey: ['marketplace-leads'],
     queryFn: () => ambassadorService.getMarketplaceLeads(100),
+    staleTime: 30 * 1000, // 30 seconds (marketplace should be fresh)
+    gcTime: 2 * 60 * 1000, // 2 minutes
+    refetchOnWindowFocus: true, // Refresh when user returns to check for new leads
   });
 
   const purchaseMutation = useMutation({

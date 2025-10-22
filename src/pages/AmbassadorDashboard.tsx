@@ -16,6 +16,9 @@ export default function AmbassadorDashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['ambassador-stats'],
     queryFn: () => ambassadorService.getDashboardStats(),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes (renamed from cacheTime)
+    refetchOnWindowFocus: false,
   });
 
   if (isLoading) {

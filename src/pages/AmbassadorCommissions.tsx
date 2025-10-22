@@ -18,11 +18,17 @@ export default function AmbassadorCommissions() {
   const { data: commissions, isLoading } = useQuery({
     queryKey: ['my-commissions'],
     queryFn: () => ambassadorService.getMyCommissions(),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 
   const { data: stats } = useQuery({
     queryKey: ['ambassador-stats'],
     queryFn: () => ambassadorService.getDashboardStats(),
+    staleTime: 2 * 60 * 1000, // 2 minutes (reuse from dashboard)
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 
   if (isLoading) {

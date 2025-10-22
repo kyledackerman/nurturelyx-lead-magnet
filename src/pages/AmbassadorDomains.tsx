@@ -29,6 +29,9 @@ export default function AmbassadorDomains() {
   const { data: domains, isLoading } = useQuery({
     queryKey: ['my-domains'],
     queryFn: () => ambassadorService.getMyDomains(),
+    staleTime: 1 * 60 * 1000, // 1 minute
+    gcTime: 3 * 60 * 1000, // 3 minutes
+    refetchOnWindowFocus: true, // Refresh on focus to show latest enrichment status
   });
 
   const updatePricingMutation = useMutation({

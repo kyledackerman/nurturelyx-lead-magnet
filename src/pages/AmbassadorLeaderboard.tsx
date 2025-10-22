@@ -18,7 +18,9 @@ export default function AmbassadorLeaderboard() {
   const { data: leaderboard, isLoading, error } = useQuery({
     queryKey: ['ambassador-leaderboard', selectedMetric],
     queryFn: () => ambassadorService.getLeaderboard(selectedMetric),
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
   });
 
   return (

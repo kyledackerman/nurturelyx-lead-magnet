@@ -13,7 +13,9 @@ export function LeaderboardPreview() {
   const { data: leaderboard, isLoading } = useQuery({
     queryKey: ['ambassador-leaderboard', 'overall'],
     queryFn: () => ambassadorService.getLeaderboard('overall', 50),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes (leaderboard changes slowly)
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
   });
 
   const myRank = leaderboard?.find((entry: any) => entry.ambassador_id === user?.id);
