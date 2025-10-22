@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { HelmetProvider } from "react-helmet-async";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { EnforcedThemeProvider } from "@/components/EnforcedThemeProvider";
 import { ScrollToTopOnRouteChange } from "@/components/ScrollToTopOnRouteChange";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -55,7 +55,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <HelmetProvider>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <EnforcedThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <TooltipProvider>
             <Sonner />
             <BrowserRouter>
@@ -159,7 +159,7 @@ const App = () => (
             </Routes>
           </BrowserRouter>
           </TooltipProvider>
-        </ThemeProvider>
+        </EnforcedThemeProvider>
       </HelmetProvider>
     </AuthProvider>
   </QueryClientProvider>
