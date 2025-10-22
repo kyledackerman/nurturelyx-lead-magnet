@@ -148,6 +148,36 @@ export default function AmbassadorDashboard() {
                 <div className="text-xs text-muted-foreground text-left">View and customize pricing</div>
                 <ArrowRight className="h-4 w-4 mt-2" />
               </Button>
+
+              <Button 
+                variant="outline" 
+                className="h-auto flex-col items-start p-4"
+                onClick={() => navigate('/ambassador/my-clients')}
+              >
+                <div className="font-semibold mb-1">My Clients</div>
+                <div className="text-xs text-muted-foreground text-left">Track client onboarding</div>
+                <ArrowRight className="h-4 w-4 mt-2" />
+              </Button>
+
+              <Button 
+                variant="outline" 
+                className="h-auto flex-col items-start p-4"
+                onClick={() => navigate('/ambassador/resources')}
+              >
+                <div className="font-semibold mb-1">📚 Sales Resources</div>
+                <div className="text-xs text-muted-foreground text-left">Scripts, videos & battlecards</div>
+                <ArrowRight className="h-4 w-4 mt-2" />
+              </Button>
+
+              <Button 
+                variant="outline" 
+                className="h-auto flex-col items-start p-4"
+                onClick={() => navigate('/ambassador/leaderboard')}
+              >
+                <div className="font-semibold mb-1">Leaderboard</div>
+                <div className="text-xs text-muted-foreground text-left">See how you rank</div>
+                <ArrowRight className="h-4 w-4 mt-2" />
+              </Button>
             </CardContent>
           </Card>
 

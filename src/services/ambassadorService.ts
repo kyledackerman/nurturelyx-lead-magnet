@@ -228,4 +228,37 @@ export const ambassadorService = {
     if (error) throw error;
     return data;
   },
+
+  // Log activity
+  async logActivity(prospectActivityId: string, activityType: string, notes: string) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    // Update prospect activity with notes
+    const timestamp = new Date().toISOString();
+    const activityLog = `[${timestamp}] ${activityType.toUpperCase()}: ${notes}`;
+    
+    const { data: existing } = await supabase
+      .from('prospect_activities')
+      .select('notes')
+      .eq('id', prospectActivityId)
+      .single();
+
+    const updatedNotes = existing?.notes 
+      ? `${existing.notes}\n\n${activityLog}`
+      : activityLog;
+
+    const { data, error } = await supabase
+      .from('prospect_activities')
+      .update({
+        notes: updatedNotes,
+        updated_at: timestamp,
+      })
+      .eq('id', prospectActivityId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
 };

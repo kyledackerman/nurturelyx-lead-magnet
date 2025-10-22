@@ -46,6 +46,8 @@ import AmbassadorCommissions from "./pages/AmbassadorCommissions";
 import AmbassadorSettings from "./pages/AmbassadorSettings";
 import AmbassadorApplication from "./pages/AmbassadorApplication";
 import AmbassadorLeaderboard from "./pages/AmbassadorLeaderboard";
+import AmbassadorResources from "./pages/AmbassadorResources";
+import AmbassadorMyClients from "./pages/AmbassadorMyClients";
 
 const queryClient = new QueryClient();
 
@@ -139,6 +141,16 @@ const App = () => (
             <Route path="/ambassador/leaderboard" element={
               <AmbassadorAuthGuard>
                 <AmbassadorLeaderboard />
+              </AmbassadorAuthGuard>
+            } />
+            <Route path="/ambassador/resources" element={
+              <AmbassadorAuthGuard>
+                <AmbassadorResources />
+              </AmbassadorAuthGuard>
+            } />
+            <Route path="/ambassador/my-clients" element={
+              <AmbassadorAuthGuard>
+                <AmbassadorMyClients />
               </AmbassadorAuthGuard>
             } />
             
