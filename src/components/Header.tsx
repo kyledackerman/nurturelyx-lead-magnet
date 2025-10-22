@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, BarChart3, Shield, Users, Award } from 'lucide-react';
+import { User, LogOut, BarChart3, Shield, Users, Award, BookOpen } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const Header = () => {
@@ -24,11 +24,19 @@ const Header = () => {
     const checkAdminStatus = async () => {
       if (!user) {
         if (mounted) setIsAdmin(false);
+        sessionStorage.removeItem('isAdmin');
         return;
+      }
+      
+      // Try cache first for instant render
+      const cachedAdmin = sessionStorage.getItem('isAdmin');
+      if (cachedAdmin !== null) {
+        if (mounted) setIsAdmin(cachedAdmin === 'true');
       }
       
       try {
         const adminStatus = await checkIsAdmin();
+        sessionStorage.setItem('isAdmin', String(adminStatus));
         if (mounted) setIsAdmin(adminStatus);
       } catch (error) {
         console.warn('Admin check failed in Header, keeping previous state:', error);
@@ -39,11 +47,19 @@ const Header = () => {
     const checkAmbassadorStatus = async () => {
       if (!user) {
         if (mounted) setIsAmbassador(false);
+        sessionStorage.removeItem('isAmbassador');
         return;
+      }
+      
+      // Try cache first for instant render
+      const cachedAmbassador = sessionStorage.getItem('isAmbassador');
+      if (cachedAmbassador !== null) {
+        if (mounted) setIsAmbassador(cachedAmbassador === 'true');
       }
       
       try {
         const ambassadorStatus = await checkIsAmbassador();
+        sessionStorage.setItem('isAmbassador', String(ambassadorStatus));
         if (mounted) setIsAmbassador(ambassadorStatus);
       } catch (error) {
         console.warn('Ambassador check failed in Header:', error);
@@ -59,6 +75,9 @@ const Header = () => {
   }, [user, checkIsAdmin, checkIsAmbassador]);
 
   const handleSignOut = async () => {
+    // Clear cached auth status
+    sessionStorage.removeItem('isAdmin');
+    sessionStorage.removeItem('isAmbassador');
     await signOut();
   };
 
@@ -162,6 +181,12 @@ const Header = () => {
                       <Link to="/ambassador/domains" className="flex items-center gap-2">
                         <Users className="h-4 w-4" />
                         My Clients
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/ambassador/resources" className="flex items-center gap-2">
+                        <BookOpen className="h-4 w-4" />
+                        Sales Resources
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
