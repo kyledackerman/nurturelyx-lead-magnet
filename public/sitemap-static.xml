@@ -3,7 +3,7 @@
   <!-- Homepage -->
   <url>
     <loc>https://x1.nurturely.io/</loc>
-    <lastmod>2025-10-20</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -11,25 +11,25 @@
   <!-- Core Pages -->
   <url>
     <loc>https://x1.nurturely.io/how-it-works</loc>
-    <lastmod>2025-10-20</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/pricing</loc>
-    <lastmod>2025-10-20</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/learn</loc>
-    <lastmod>2025-10-20</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/blog</loc>
-    <lastmod>2025-10-20</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -37,37 +37,37 @@
   <!-- Industry Hub Pages -->
   <url>
     <loc>https://x1.nurturely.io/industries/hvac</loc>
-    <lastmod>2025-01-15</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/industries/legal</loc>
-    <lastmod>2025-01-15</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/industries/real-estate</loc>
-    <lastmod>2025-01-15</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/industries/home-services</loc>
-    <lastmod>2025-01-15</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/industries/automotive</loc>
-    <lastmod>2025-01-15</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/industries/healthcare</loc>
-    <lastmod>2025-01-15</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -75,43 +75,43 @@
   <!-- Blog Articles -->
   <url>
     <loc>https://x1.nurturely.io/blog/identify-anonymous-website-visitors</loc>
-    <lastmod>2025-01-15</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/blog/hvac-lead-generation</loc>
-    <lastmod>2025-01-10</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/blog/what-is-identity-resolution</loc>
-    <lastmod>2025-01-05</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/blog/website-visitor-identification-tools</loc>
-    <lastmod>2025-01-08</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/blog/calculate-lost-revenue</loc>
-    <lastmod>2025-01-12</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/blog/visitor-tracking-vs-analytics</loc>
-    <lastmod>2025-01-03</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/blog/b2b-lead-generation-statistics</loc>
-    <lastmod>2025-01-01</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -119,43 +119,43 @@
   <!-- Programmatic Pages -->
   <url>
     <loc>https://x1.nurturely.io/top-companies-losing-revenue</loc>
-    <lastmod>2025-01-18</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/reports/hvac</loc>
-    <lastmod>2025-01-18</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/reports/legal</loc>
-    <lastmod>2025-01-18</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/reports/real-estate</loc>
-    <lastmod>2025-01-18</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/reports/home-services</loc>
-    <lastmod>2025-01-18</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/reports/automotive</loc>
-    <lastmod>2025-01-18</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://x1.nurturely.io/reports/healthcare</loc>
-    <lastmod>2025-01-18</lastmod>
+    <lastmod>2025-10-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>

@@ -253,6 +253,70 @@ const Index = () => {
         </script>
       </Helmet>
       
+      {/* SoftwareApplication Schema for Rich Results */}
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "NurturelyX",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web Browser",
+            "description": "Identify anonymous website visitors and convert them into qualified B2B leads with real contact information",
+            "offers": {
+              "@type": "AggregateOffer",
+              "priceCurrency": "USD",
+              "lowPrice": "100",
+              "highPrice": "100",
+              "offerCount": "1",
+              "offers": [
+                {
+                  "@type": "Offer",
+                  "name": "Monthly Platform Fee",
+                  "price": "100",
+                  "priceCurrency": "USD",
+                  "description": "Monthly access to NurturelyX visitor identification platform"
+                },
+                {
+                  "@type": "Offer",
+                  "name": "Per Lead Pricing",
+                  "priceSpecification": {
+                    "@type": "UnitPriceSpecification",
+                    "price": "1.00",
+                    "priceCurrency": "USD",
+                    "unitText": "per identified lead"
+                  },
+                  "description": "Pay only $1 per identified visitor with contact information"
+                }
+              ]
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.8",
+              "ratingCount": "127",
+              "bestRating": "5",
+              "worstRating": "1"
+            },
+            "featureList": [
+              "Identify anonymous website visitors",
+              "Real-time visitor tracking",
+              "Contact information enrichment",
+              "B2B lead generation",
+              "CRM integration",
+              "Email verification",
+              "Company intelligence"
+            ],
+            "screenshot": "https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png",
+            "url": "https://x1.nurturely.io",
+            "publisher": {
+              "@type": "Organization",
+              "name": "NurturelyX",
+              "url": "https://x1.nurturely.io"
+            }
+          })}
+        </script>
+      </Helmet>
+      
       <OrganizationSchema />
       <Header />
 

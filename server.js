@@ -254,6 +254,26 @@ app.get(["/sitemap-reports", "/sitemap-reports.xml"], async (req, res) => {
   }
 });
 
+app.get(["/sitemap-blog", "/sitemap-blog.xml"], async (req, res) => {
+  try {
+    console.log("Sitemap blog endpoint called");
+    const response = await fetch('https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/sitemap-blog');
+    
+    if (!response.ok) {
+      console.error(`Sitemap blog fetch failed: ${response.status}`);
+      return res.status(response.status).send('Error fetching sitemap blog');
+    }
+    
+    const xml = await response.text();
+    res.setHeader('Content-Type', 'application/xml');
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    res.send(xml);
+  } catch (error) {
+    console.error("Sitemap blog fetch error:", error);
+    res.status(500).send('Error generating sitemap blog');
+  }
+});
+
 // ----- END OF API ROUTES SECTION -----
 
 // Log the dist directory contents
