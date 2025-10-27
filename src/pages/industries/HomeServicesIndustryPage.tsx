@@ -41,7 +41,7 @@ export default function HomeServicesIndustryPage() {
   return (
     <>
       <MetaTags
-        title="Home Services Visitor Identification | HVAC, Plumbing Leads - NurturelyX"
+        title="Home Services Visitor Identification 2025 | HVAC, Plumbing Leads - NurturelyX"
         description="Identify anonymous home services website visitors researching plumbing, HVAC & contractors. Convert browsers into booked jobs—get your free lead report today."
         canonical="https://x1.nurturely.io/industries/home-services"
         keywords="home services lead generation, HVAC leads, plumbing visitor tracking, contractor marketing"

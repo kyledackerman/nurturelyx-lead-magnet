@@ -17,7 +17,7 @@ export default function BlogPage() {
   return (
     <>
       <MetaTags
-        title="Blog - Lead Generation & Visitor Identification Insights | NurturelyX"
+        title="B2B Lead Generation Blog 2025 | Visitor ID Strategies - NurturelyX"
         description="Expert insights on B2B lead generation, visitor identification, and converting anonymous website traffic into qualified leads."
         canonical="https://x1.nurturely.io/blog"
         keywords="B2B lead generation blog, visitor identification insights, anonymous traffic conversion, lead gen best practices"

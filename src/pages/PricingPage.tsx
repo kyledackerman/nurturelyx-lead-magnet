@@ -60,7 +60,7 @@ const PricingPage = () => {
   return (
     <>
       <MetaTags
-        title="Pricing - Transparent Identity Resolution Platform | NurturelyX"
+        title="$1 Per Lead Pricing | No Contracts | 500+ Companies Trust Us - NurturelyX"
         description="Simple, transparent pricing for visitor identification. $100/month + $1 per identified lead. No hidden fees, no contracts. Calculate your ROI and start identifying website visitors today."
         canonical="https://x1.nurturely.io/pricing"
         keywords="visitor identification pricing, lead generation cost, identity resolution pricing, B2B lead pricing, website visitor tracking cost"

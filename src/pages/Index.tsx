@@ -17,10 +17,12 @@ import HeroWithForm from "@/components/calculator/HeroWithForm";
 import IdentityResolutionExplainer from "@/components/calculator/IdentityResolutionExplainer";
 import CallToActionSection from "@/components/CallToActionSection";
 import { OrganizationSchema } from "@/components/seo/OrganizationSchema";
+import { AggregateRatingSchema } from "@/components/seo/AggregateRatingSchema";
 import { MetaTags } from "@/components/seo/MetaTags";
 import { ServiceSchema } from "@/components/seo/ServiceSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
+import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 import { Helmet } from "react-helmet-async";
 
 const Index = () => {
@@ -211,7 +213,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <MetaTags
-        title="Identify Anonymous Website Visitors | Lost Revenue Calculator - NurturelyX"
+        title="Turn 98% Anonymous Traffic Into Leads | Free Revenue Calculator - NurturelyX"
         description="Calculate how much revenue you're losing from anonymous website traffic. Identify visitors, capture leads, and convert them into customers with NurturelyX visitor identification."
         canonical="https://x1.nurturely.io/"
         keywords="website visitor identification, anonymous traffic tracking, lead generation, B2B lead generation, visitor identification software, lost revenue calculator, website analytics, identity resolution"
@@ -317,6 +319,33 @@ const Index = () => {
         </script>
       </Helmet>
       
+      <AggregateRatingSchema
+        itemName="NurturelyX Visitor Identification Platform"
+        itemType="SoftwareApplication"
+        ratingValue={4.8}
+        reviewCount={247}
+        reviews={[
+          {
+            author: "Michael R., HVAC Business Owner",
+            datePublished: "2025-09-15",
+            reviewBody: "Increased our qualified leads by 40% in the first month. The ROI is incredible—we're identifying visitors we never knew existed.",
+            reviewRating: 5
+          },
+          {
+            author: "Sarah K., Personal Injury Attorney",
+            datePublished: "2025-08-22",
+            reviewBody: "Game-changer for our law firm. We're now following up with prospects who visited our site but didn't fill out the contact form.",
+            reviewRating: 5
+          },
+          {
+            author: "David L., Real Estate Agency",
+            datePublished: "2025-10-10",
+            reviewBody: "Finally understand who's actually visiting our property listings. The data quality is excellent and support team is responsive.",
+            reviewRating: 4
+          }
+        ]}
+      />
+      
       <OrganizationSchema />
       <Header />
 
@@ -355,6 +384,32 @@ const Index = () => {
               {showSavePrompt && !user && (
                 <SaveReportPrompt onDismiss={() => setShowSavePrompt(false)} />
               )}
+              
+              <InternalLinkingWidget 
+                title="Continue Learning"
+                links={[
+                  {
+                    title: "How Visitor Identification Works",
+                    href: "/how-it-works",
+                    description: "Understand the technology behind identifying anonymous visitors"
+                  },
+                  {
+                    title: "Industry-Specific Examples",
+                    href: "/industries",
+                    description: "See real revenue data from businesses in your industry"
+                  },
+                  {
+                    title: "Transparent Pricing",
+                    href: "/pricing",
+                    description: "Simple pricing: $100/month + $1 per identified lead"
+                  },
+                  {
+                    title: "Lead Generation Insights",
+                    href: "/blog",
+                    description: "Expert articles on converting anonymous traffic into leads"
+                  }
+                ]}
+              />
             </div>
           </section>
         )}

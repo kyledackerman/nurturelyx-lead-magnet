@@ -8,6 +8,7 @@ import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { TableOfContents } from "@/components/blog/TableOfContents";
+import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -148,6 +149,32 @@ export default function BlogPostPage() {
               {post.content}
             </ReactMarkdown>
           </div>
+
+          <InternalLinkingWidget 
+            title="Continue Learning"
+            links={[
+              {
+                title: "Calculate Your Lost Revenue",
+                href: "/",
+                description: "Get a free report showing your missed opportunities"
+              },
+              {
+                title: "Industry-Specific Examples",
+                href: "/industries",
+                description: "See real data from businesses like yours"
+              },
+              {
+                title: "How It Works",
+                href: "/how-it-works",
+                description: "Understand visitor identification technology"
+              },
+              {
+                title: "Transparent Pricing",
+                href: "/pricing",
+                description: "Simple pricing: $1 per identified lead"
+              }
+            ]}
+          />
 
           <RelatedArticles relatedSlugs={post.relatedArticles} />
 

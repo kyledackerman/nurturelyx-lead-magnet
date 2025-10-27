@@ -41,7 +41,7 @@ export default function AutomotiveIndustryPage() {
   return (
     <>
       <MetaTags
-        title="Automotive Visitor Identification | Dealership Lead Generation - NurturelyX"
+        title="Automotive Visitor Identification 2025 | Dealership Lead Generation - NurturelyX"
         description="Identify anonymous dealership website visitors & convert them into vehicle buyers. Track fleet managers researching cars—calculate your lost revenue today."
         canonical="https://x1.nurturely.io/industries/automotive"
         keywords="automotive lead generation, dealership visitor tracking, fleet sales leads, automotive marketing"

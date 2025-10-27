@@ -17,6 +17,7 @@ import { MetaTags } from "@/components/seo/MetaTags";
 import { HowToSchema } from "@/components/seo/HowToSchema";
 import { ServiceSchema } from "@/components/seo/ServiceSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 
 export default function HowItWorksPage() {
@@ -131,6 +132,32 @@ export default function HowItWorksPage() {
             }} />
           </div>
         </section>
+
+        <InternalLinkingWidget 
+          title="Learn More About Visitor Identification"
+          links={[
+            {
+              title: "Calculate Your Lost Revenue",
+              href: "/",
+              description: "Get a free analysis of your missed opportunities"
+            },
+            {
+              title: "Industry Examples",
+              href: "/industries",
+              description: "See real revenue loss examples from your industry"
+            },
+            {
+              title: "Pricing & ROI",
+              href: "/pricing",
+              description: "Transparent pricing: $100/month + $1 per lead"
+            },
+            {
+              title: "Lead Generation Blog",
+              href: "/blog",
+              description: "Expert insights on converting anonymous traffic"
+            }
+          ]}
+        />
 
         <section className="py-16 bg-gradient-to-br from-primary/10 to-accent/10">
           <div className="container max-w-4xl text-center">

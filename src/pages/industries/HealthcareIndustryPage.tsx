@@ -41,7 +41,7 @@ export default function HealthcareIndustryPage() {
   return (
     <>
       <MetaTags
-        title="Healthcare B2B Visitor Identification | Medical Device Lead Generation - NurturelyX"
+        title="Healthcare B2B Visitor Identification 2025 | Medical Device Lead Generation - NurturelyX"
         description="Identify hospitals & clinics researching your medical devices. Turn anonymous healthcare visitors into qualified leads—get your free B2B lead report now."
         canonical="https://x1.nurturely.io/industries/healthcare"
         keywords="healthcare lead generation, medical device leads, hospital visitor tracking, B2B healthcare marketing"

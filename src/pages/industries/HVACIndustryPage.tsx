@@ -41,7 +41,7 @@ export default function HVACIndustryPage() {
   return (
     <>
       <MetaTags
-        title="HVAC Visitor Identification | Heating & Cooling Lead Generation - NurturelyX"
+        title="HVAC Visitor Identification 2025 | Heating & Cooling Lead Generation - NurturelyX"
         description="Identify anonymous HVAC website visitors & convert them into heating/cooling customers. Get your free lead report—see how many prospects you're missing today."
         canonical="https://x1.nurturely.io/industries/hvac"
         keywords="HVAC lead generation, heating cooling leads, HVAC visitor tracking, HVAC marketing"
