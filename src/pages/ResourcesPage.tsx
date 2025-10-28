@@ -8,7 +8,8 @@ import { HowToSchema } from "@/components/seo/HowToSchema";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, FileText, Calculator, TrendingUp, Users, Building2, HeartPulse, Home, Car, Scale, Briefcase } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { BookOpen, FileText, Calculator, TrendingUp, Users, Building2, HeartPulse, Home, Car, Scale, Briefcase, Key, Wrench } from "lucide-react";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import { getAllBlogPosts } from "@/data/blogPosts";
 import { useState } from "react";
@@ -18,6 +19,25 @@ const ResourcesPage = () => {
   usePageViewTracking("marketing");
   const blogPosts = getAllBlogPosts();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const getCategoryCount = (category: string) => {
+    if (category === "all") {
+      return educationalGuides.length + industryResources.length + 
+             freeTools.length + comparisonGuides.length + blogPosts.length;
+    }
+    if (category === "guide") return educationalGuides.length;
+    if (category === "industry") return industryResources.length;
+    if (category === "tool") return freeTools.length;
+    if (category === "comparison") return comparisonGuides.length;
+    if (category === "blog") return blogPosts.length;
+    return 0;
+  };
+
+  const trackResourceClick = (resourceTitle: string, category: string, url: string) => {
+    // Analytics tracking placeholder - can be implemented with your analytics solution
+    console.log('Resource clicked:', { resourceTitle, category, url, searchQuery, selectedCategory });
+  };
 
   const educationalGuides = [
     {
@@ -69,7 +89,7 @@ const ResourcesPage = () => {
       title: "Real Estate Lead Generation",
       description: "Identify property buyers and sellers visiting your listings and convert them into clients.",
       url: "/industries/real-estate",
-      icon: Home,
+      icon: Key,
       category: "industry"
     },
     {
@@ -83,7 +103,7 @@ const ResourcesPage = () => {
       title: "Home Services Lead Generation",
       description: "Identify homeowners seeking repairs and maintenance services before they book competitors.",
       url: "/industries/home-services",
-      icon: Home,
+      icon: Wrench,
       category: "industry"
     },
     {
@@ -211,6 +231,19 @@ const ResourcesPage = () => {
             </Button>
           </section>
 
+          {/* Search Bar */}
+          <section className="mb-8">
+            <div className="max-w-md mx-auto">
+              <Input
+                type="text"
+                placeholder="Search resources, guides, tools..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </section>
+
           {/* Category Filter */}
           <section className="mb-12">
             <div className="flex flex-wrap gap-2 justify-center">
@@ -221,7 +254,7 @@ const ResourcesPage = () => {
                   className="cursor-pointer px-4 py-2"
                   onClick={() => setSelectedCategory(category.value)}
                 >
-                  {category.label}
+                  {category.label} ({getCategoryCount(category.value)})
                 </Badge>
               ))}
             </div>
@@ -261,11 +294,11 @@ const ResourcesPage = () => {
                   value: "0"
                 }}
               />
-              <Card className="border-primary bg-gradient-to-br from-primary/5 to-transparent">
+              <Card className="border-2 border-primary bg-gradient-to-br from-primary/5 to-transparent hover:shadow-xl hover:scale-[1.01] transition-all duration-300">
                 <CardHeader>
                   <div className="flex items-center gap-2 mb-2">
                     <BookOpen className="h-6 w-6 text-primary" />
-                    <Badge>Featured Guide</Badge>
+                    <Badge className="bg-primary text-primary-foreground">⭐ Start Here</Badge>
                   </div>
                   <CardTitle className="text-3xl">Complete Guide to Visitor Identification</CardTitle>
                   <CardDescription className="text-base">
@@ -273,7 +306,7 @@ const ResourcesPage = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button asChild size="lg">
+                  <Button asChild size="lg" className="text-lg px-8">
                     <Link to="/learn">Start Learning →</Link>
                   </Button>
                 </CardContent>
@@ -289,7 +322,13 @@ const ResourcesPage = () => {
                 <h2 className="text-3xl font-bold">Educational Guides</h2>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
-                {educationalGuides.map((guide) => (
+                {educationalGuides
+                  .filter(guide => 
+                    searchQuery === "" || 
+                    guide.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    guide.description.toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+                  .map((guide) => (
                   <Card key={guide.url} className="hover:border-primary transition-colors">
                     <CardHeader>
                       <div className="flex items-start gap-3">
@@ -301,7 +340,11 @@ const ResourcesPage = () => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <Button asChild variant="outline">
+                      <Button 
+                        asChild 
+                        variant="outline"
+                        onClick={() => trackResourceClick(guide.title, 'guide', guide.url)}
+                      >
                         <Link to={guide.url}>Read Guide</Link>
                       </Button>
                     </CardContent>
@@ -318,8 +361,14 @@ const ResourcesPage = () => {
                 <Briefcase className="h-8 w-8 text-primary" />
                 <h2 className="text-3xl font-bold">Industry-Specific Resources</h2>
               </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {industryResources.map((resource) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {industryResources
+                  .filter(resource => 
+                    searchQuery === "" || 
+                    resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    resource.description.toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+                  .map((resource) => (
                   <Card key={resource.url} className="hover:border-primary transition-colors">
                     <CardHeader>
                       <div className="flex items-start gap-3">
@@ -331,7 +380,12 @@ const ResourcesPage = () => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <Button asChild variant="outline" size="sm">
+                      <Button 
+                        asChild 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => trackResourceClick(resource.title, 'industry', resource.url)}
+                      >
                         <Link to={resource.url}>View Industry Guide</Link>
                       </Button>
                     </CardContent>
@@ -348,8 +402,14 @@ const ResourcesPage = () => {
                 <Calculator className="h-8 w-8 text-primary" />
                 <h2 className="text-3xl font-bold">Free Tools & Calculators</h2>
               </div>
-              <div className="grid md:grid-cols-3 gap-6">
-                {freeTools.map((tool) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {freeTools
+                  .filter(tool => 
+                    searchQuery === "" || 
+                    tool.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    tool.description.toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+                  .map((tool) => (
                   <Card key={tool.url} className="hover:border-primary transition-colors">
                     <CardHeader>
                       <div className="flex items-start gap-3">
@@ -361,7 +421,12 @@ const ResourcesPage = () => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <Button asChild variant="outline" size="sm">
+                      <Button 
+                        asChild 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => trackResourceClick(tool.title, 'tool', tool.url)}
+                      >
                         <Link to={tool.url}>Use Tool</Link>
                       </Button>
                     </CardContent>
@@ -379,7 +444,13 @@ const ResourcesPage = () => {
                 <h2 className="text-3xl font-bold">Comparison Guides</h2>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
-                {comparisonGuides.map((guide) => (
+                {comparisonGuides
+                  .filter(guide => 
+                    searchQuery === "" || 
+                    guide.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    guide.description.toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+                  .map((guide) => (
                   <Card key={guide.url} className="hover:border-primary transition-colors">
                     <CardHeader>
                       <div className="flex items-start gap-3">
@@ -391,7 +462,11 @@ const ResourcesPage = () => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <Button asChild variant="outline">
+                      <Button 
+                        asChild 
+                        variant="outline"
+                        onClick={() => trackResourceClick(guide.title, 'comparison', guide.url)}
+                      >
                         <Link to={guide.url}>Compare Now</Link>
                       </Button>
                     </CardContent>
@@ -413,8 +488,14 @@ const ResourcesPage = () => {
                   <Link to="/blog">View All Posts</Link>
                 </Button>
               </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {blogPosts.slice(0, 6).map((post) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {blogPosts
+                  .filter(post => 
+                    searchQuery === "" || 
+                    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    post.metaDescription.toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+                  .slice(0, 6).map((post) => (
                   <Card key={post.slug} className="hover:border-primary transition-colors">
                     <CardHeader>
                       <Badge className="w-fit mb-2">{post.category}</Badge>
@@ -430,7 +511,12 @@ const ResourcesPage = () => {
                     <CardContent>
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span>{post.readTime}</span>
-                        <Button asChild variant="ghost" size="sm">
+                        <Button 
+                          asChild 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => trackResourceClick(post.title, 'blog', `/blog/${post.slug}`)}
+                        >
                           <Link to={`/blog/${post.slug}`}>Read More</Link>
                         </Button>
                       </div>
@@ -443,13 +529,18 @@ const ResourcesPage = () => {
 
           {/* CTA Section */}
           <section className="text-center bg-gradient-to-br from-primary/10 to-transparent rounded-lg p-12">
-            <h2 className="text-3xl font-bold mb-4">Ready to Stop Losing Leads?</h2>
+            <h2 className="text-3xl font-bold mb-4">Not Sure Where to Start?</h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Calculate how much revenue you're losing from anonymous visitors and discover how visitor identification can transform your lead generation.
+              Talk to our team for personalized recommendations based on your industry, company size, and lead generation goals.
             </p>
-            <Button asChild size="lg">
-              <Link to="/">Get Your Free Report →</Link>
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild size="lg" variant="outline">
+                <Link to="/compare">Compare Solutions</Link>
+              </Button>
+              <Button asChild size="lg">
+                <Link to="/">Calculate Lost Revenue</Link>
+              </Button>
+            </div>
           </section>
         </main>
 
