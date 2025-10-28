@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import { scrollToTopIfHomeLink } from "@/lib/scroll";
+import { scrollToTop } from "@/lib/scroll";
 
 interface StickyIndustryCTAProps {
   industryName: string;
@@ -49,7 +49,7 @@ export const StickyIndustryCTA = ({ industryName }: StickyIndustryCTAProps) => {
           </div>
         </div>
         
-        <Button asChild size="lg" className="gradient-bg" onClick={scrollToTopIfHomeLink}>
+        <Button asChild size="lg" className="gradient-bg" onClick={scrollToTop}>
           <Link to="/">
             See How Many Leads You're Missing
             <ArrowRight className="ml-2 h-4 w-4" />

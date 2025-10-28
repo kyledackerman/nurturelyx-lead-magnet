@@ -23,9 +23,6 @@ import {
 } from "lucide-react";
 
 const HvacLeadsPage = () => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
   const problems = [
     {

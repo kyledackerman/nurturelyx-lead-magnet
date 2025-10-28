@@ -10,7 +10,7 @@ import { MetaTags } from "@/components/seo/MetaTags";
 import { ItemListSchema } from "@/components/seo/ItemListSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
-import { scrollToTopIfHomeLink } from "@/lib/scroll";
+import { scrollToTop } from "@/lib/scroll";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 
 export default function TopCompaniesPage() {
@@ -119,7 +119,7 @@ export default function TopCompaniesPage() {
                   These companies are losing an average of ${Math.round(totalRevenueLost / 25).toLocaleString()} per year. 
                   Find out how much your business is losing and how to fix it.
                 </p>
-                <Button asChild size="lg" className="gradient-bg" onClick={scrollToTopIfHomeLink}>
+                <Button asChild size="lg" className="gradient-bg" onClick={scrollToTop}>
                   <Link to="/">
                     Calculate Your Lost Revenue Now
                     <ArrowRight className="ml-2 h-5 w-5" />

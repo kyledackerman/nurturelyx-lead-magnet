@@ -12,7 +12,7 @@ import { ServiceSchema } from "@/components/seo/ServiceSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { getIndustryData } from "@/data/industryData";
-import { scrollToTopIfHomeLink } from "@/lib/scroll";
+import { scrollToTop } from "@/lib/scroll";
 
 export default function IndustryReportsPage() {
   const { industry } = useParams<{ industry: string }>();
@@ -99,7 +99,7 @@ export default function IndustryReportsPage() {
           ) : !reports || reports.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">No reports available yet for this industry.</p>
-              <Button asChild onClick={scrollToTopIfHomeLink}>
+              <Button asChild onClick={scrollToTop}>
                 <Link to="/">Generate Your Report</Link>
               </Button>
             </div>
@@ -120,7 +120,7 @@ export default function IndustryReportsPage() {
                 <p className="text-muted-foreground mb-6">
                   Calculate your lost revenue and discover how many leads you're missing
                 </p>
-                <Button asChild size="lg" className="gradient-bg" onClick={scrollToTopIfHomeLink}>
+                <Button asChild size="lg" className="gradient-bg" onClick={scrollToTop}>
                   <Link to="/">
                     Get Your Free Report
                     <ArrowRight className="ml-2 h-5 w-5" />

@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
-import { scrollToTopIfHomeLink } from "@/lib/scroll";
+import { scrollToTop } from "@/lib/scroll";
 
 interface IndustryROICalculatorProps {
   industryName: string;
@@ -150,7 +150,7 @@ export const IndustryROICalculator = ({
           </div>
         </div>
 
-        <Button asChild className="w-full gradient-bg" onClick={scrollToTopIfHomeLink}>
+        <Button asChild className="w-full gradient-bg" onClick={scrollToTop}>
           <Link to="/">Get My Custom Lead Loss Report</Link>
         </Button>
         <p className="text-xs text-center text-muted-foreground mt-2">

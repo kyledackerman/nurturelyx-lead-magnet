@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink, Users, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useRelatedReports } from "@/hooks/useRelatedReports";
-import { scrollToTopIfHomeLink } from "@/lib/scroll";
+import { scrollToTop } from "@/lib/scroll";
 
 interface RelatedReportsProps {
   currentReportId: string;
@@ -103,7 +103,7 @@ export const RelatedReports = ({
         </div>
 
         <div className="text-center mt-12">
-          <Button asChild size="lg" className="gradient-bg" onClick={scrollToTopIfHomeLink}>
+          <Button asChild size="lg" className="gradient-bg" onClick={scrollToTop}>
             <Link to="/">
               Calculate Your Own Lost Revenue
             </Link>

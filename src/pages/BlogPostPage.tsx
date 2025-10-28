@@ -12,7 +12,7 @@ import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { scrollToTopIfHomeLink } from "@/lib/scroll";
+import { scrollToTop } from "@/lib/scroll";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import { RelatedArticles } from "@/components/blog/RelatedArticles";
 
@@ -179,7 +179,7 @@ export default function BlogPostPage() {
           <RelatedArticles relatedSlugs={post.relatedArticles} />
 
           <div className="mt-12 pt-8 border-t">
-            <Button asChild size="lg" className="gradient-bg" onClick={scrollToTopIfHomeLink}>
+            <Button asChild size="lg" className="gradient-bg" onClick={scrollToTop}>
               <Link to="/">Calculate Your Lost Revenue</Link>
             </Button>
           </div>
