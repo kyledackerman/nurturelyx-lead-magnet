@@ -131,6 +131,11 @@ const Header = () => {
               How It Works
             </Button>
           </Link>
+          <Link to="/learn">
+            <Button variant="ghost" size="sm" className="text-foreground h-10">
+              Learn
+            </Button>
+          </Link>
           <Link to="/resources">
             <Button variant="ghost" size="sm" className="text-foreground h-10">
               Resources

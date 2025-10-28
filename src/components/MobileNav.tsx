@@ -89,6 +89,12 @@ const MobileNav = ({ user, isAdmin, isAmbassador, onSignOut }: MobileNavProps) =
           </SheetClose>
 
           <SheetClose asChild>
+            <Link to="/learn" className="py-4 text-base font-medium hover:text-accent">
+              Learn
+            </Link>
+          </SheetClose>
+
+          <SheetClose asChild>
             <Link to="/resources" className="py-4 text-base font-medium hover:text-accent">
               Resources
             </Link>
