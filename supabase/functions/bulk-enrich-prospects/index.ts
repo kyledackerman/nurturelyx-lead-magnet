@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import { rateLimiter, RATE_LIMITS } from "../_shared/rateLimiter.ts";
+import { ENRICHMENT_CONFIG } from "../_shared/enrichmentConfig.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -609,8 +610,15 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
               const foundEmails = await googleSearchEmails(domain, companyName, lovableApiKey);
               
               if (foundEmails.length > 0) {
-                console.log(`✅ Multi-source search found ${foundEmails.length} emails for ${domain}`);
-                contacts = foundEmails.map(email => ({
+                const limitedEmails = foundEmails.slice(0, ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN);
+                
+                if (foundEmails.length > ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN) {
+                  console.log(`⚠️ ${domain}: Multi-source search found ${foundEmails.length} emails, limiting to ${ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN}`);
+                } else {
+                  console.log(`✅ Multi-source search found ${foundEmails.length} emails for ${domain}`);
+                }
+                
+                contacts = limitedEmails.map((email, index) => ({
                   first_name: "Office",
                   last_name: null,
                   email: email,
@@ -618,7 +626,9 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
                   title: "Contact Found via Search",
                   linkedin_url: null,
                   facebook_url: null,
-                  notes: "Email found via multi-source Google Search"
+                  notes: index === limitedEmails.length - 1 && foundEmails.length > ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN
+                    ? `Email found via multi-source Google Search. [${foundEmails.length} total emails found, showing first ${ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN}]`
+                    : "Email found via multi-source Google Search"
                 }));
               }
             }
@@ -656,7 +666,13 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
           if (filteredContacts.length === 0) {
             console.log(`⚠️ All contacts filtered out for ${domain} (gov/edu or legal emails)`);
           } else {
-            const contactsToInsert = filteredContacts.map((contact: any) => ({
+            const limitedContacts = filteredContacts.slice(0, ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN);
+            
+            if (filteredContacts.length > ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN) {
+              console.log(`⚠️ ${domain}: Found ${filteredContacts.length} contacts, limiting to ${ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN}`);
+            }
+            
+            const contactsToInsert = limitedContacts.map((contact: any, index: number) => ({
               prospect_activity_id: prospectId,
               report_id: prospect.report_id,
               first_name: contact.first_name,
@@ -666,7 +682,9 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
               title: contact.title || null,
               linkedin_url: contact.linkedin_url || null,
               facebook_url: contact.facebook_url || null,
-              notes: contact.notes || null,
+              notes: index === limitedContacts.length - 1 && filteredContacts.length > ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN
+                ? `${contact.notes || ''} [${filteredContacts.length} total contacts found, showing first ${ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN}]`.trim()
+                : contact.notes || null,
               is_primary: false,
             }));
 
@@ -695,15 +713,23 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
           const searchedEmails = await googleSearchEmails(domain, companyName, lovableApiKey);
           
           if (searchedEmails.length > 0) {
-            console.log(`✅ Google Search found ${searchedEmails.length} email(s)`);
+            const limitedEmails = searchedEmails.slice(0, ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN);
             
-            const contactsToInsert = searchedEmails.map((email: string) => ({
+            if (searchedEmails.length > ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN) {
+              console.log(`⚠️ ${domain}: Google Search found ${searchedEmails.length} emails, limiting to ${ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN}`);
+            } else {
+              console.log(`✅ Google Search found ${searchedEmails.length} email(s)`);
+            }
+            
+            const contactsToInsert = limitedEmails.map((email: string, index: number) => ({
               prospect_activity_id: prospectId,
               report_id: prospect.report_id,
               first_name: "Office",
               email: email,
               title: "Contact Found via Search",
-              notes: "Email found via Google Search (AI extraction found no valid emails)",
+              notes: index === limitedEmails.length - 1 && searchedEmails.length > ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN
+                ? `Email found via Google Search (AI extraction found no valid emails). [${searchedEmails.length} total emails found, showing first ${ENRICHMENT_CONFIG.MAX_CONTACTS_PER_DOMAIN}]`
+                : "Email found via Google Search (AI extraction found no valid emails)",
               is_primary: false,
             }));
 
