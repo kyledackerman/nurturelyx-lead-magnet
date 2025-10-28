@@ -88,7 +88,10 @@ const Header = () => {
           <img 
             src="/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png" 
             alt="NurturelyX - Visitor Identification and Lead Generation Platform Logo" 
-            className="h-8 mr-2" 
+            className="h-8 mr-2"
+            width="120"
+            height="32"
+            loading="lazy"
           />
           <p className="text-xs text-gray-400">Turn anonymous website visitors into qualified leads</p>
         </Link>

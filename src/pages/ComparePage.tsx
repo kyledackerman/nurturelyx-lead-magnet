@@ -26,6 +26,7 @@ import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { FAQSchema } from "@/components/seo/FAQSchema";
 import { ComparisonSchema } from "@/components/seo/ComparisonSchema";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
+import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 import {
   Accordion,
   AccordionContent,
@@ -765,6 +766,11 @@ const ComparePage = () => {
               </Button>
             </div>
           </div>
+        </section>
+
+        {/* Internal Linking Widget */}
+        <section className="container mx-auto px-4 pb-16">
+          <InternalLinkingWidget />
         </section>
 
         <Footer />

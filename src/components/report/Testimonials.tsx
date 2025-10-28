@@ -84,6 +84,9 @@ const Testimonials = () => {
                   src={testimonial.image} 
                   alt={`${testimonial.author}, ${testimonial.position} at ${testimonial.company} - NurturelyX customer testimonial`}
                   className="w-12 h-12 rounded-full object-cover"
+                  width="48"
+                  height="48"
+                  loading="lazy"
                 />
                 <div>
                   <p className="font-semibold text-foreground">

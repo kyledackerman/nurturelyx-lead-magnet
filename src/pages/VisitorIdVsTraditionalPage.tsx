@@ -17,6 +17,7 @@ import { FAQSchema } from "@/components/seo/FAQSchema";
 import { ComparisonSchema } from "@/components/seo/ComparisonSchema";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import { useNavigate } from "react-router-dom";
+import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 
 const VisitorIdVsTraditionalPage = () => {
   usePageViewTracking("marketing");
@@ -906,6 +907,14 @@ const VisitorIdVsTraditionalPage = () => {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Final CTA */}
+        <CallToActionSection />
+
+        {/* Internal Linking Widget */}
+        <section className="container mx-auto px-4 pb-16">
+          <InternalLinkingWidget />
         </section>
 
         <Footer />

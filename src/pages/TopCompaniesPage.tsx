@@ -11,6 +11,7 @@ import { ItemListSchema } from "@/components/seo/ItemListSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { scrollToTopIfHomeLink } from "@/lib/scroll";
+import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 
 export default function TopCompaniesPage() {
   const { data: reports, isLoading } = useQuery({
@@ -43,7 +44,7 @@ export default function TopCompaniesPage() {
       <MetaTags
         title="Top 25 Companies Losing Revenue to Anonymous Traffic | NurturelyX"
         description="Discover the top 25 companies losing the most revenue from anonymous website visitors. Real examples of missed lead generation opportunities and revenue benchmarks."
-        canonical="https://x1.nurturely.io/top-companies"
+        canonical="https://x1.nurturely.io/top-companies-losing-revenue"
         keywords="revenue loss rankings, anonymous traffic cost, B2B lead generation benchmarks, visitor tracking statistics"
       />
 
@@ -62,9 +63,9 @@ export default function TopCompaniesPage() {
       <WebPageSchema
         name="Top 25 Companies Losing Revenue to Anonymous Traffic"
         description="Rankings of companies losing the most revenue from unidentified website visitors"
-        url="https://x1.nurturely.io/top-companies"
+        url="https://x1.nurturely.io/top-companies-losing-revenue"
         breadcrumbs={[
-          { name: "Top Companies", url: "/top-companies" }
+          { name: "Top Companies", url: "/top-companies-losing-revenue" }
         ]}
         keywords={["revenue loss rankings", "anonymous traffic statistics", "lead generation benchmarks"]}
       />
@@ -150,6 +151,11 @@ export default function TopCompaniesPage() {
           )}
         </div>
       </main>
+
+      {/* Internal Linking Widget */}
+      <div className="container mx-auto px-4 pb-16">
+        <InternalLinkingWidget />
+      </div>
 
       <Footer />
     </>

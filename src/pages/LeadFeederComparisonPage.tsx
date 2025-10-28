@@ -15,6 +15,13 @@ import { FAQSchema } from "@/components/seo/FAQSchema";
 import { ComparisonSchema } from "@/components/seo/ComparisonSchema";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import { useNavigate } from "react-router-dom";
+import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const LeadFeederComparisonPage = () => {
   usePageViewTracking("marketing");
@@ -920,10 +927,15 @@ const LeadFeederComparisonPage = () => {
           </div>
         </section>
 
-        {/* Final CTA */}
-        <CallToActionSection />
+      {/* Final CTA */}
+      <CallToActionSection />
+      
+      {/* Internal Linking Widget */}
+      <div className="container mx-auto px-4 pb-16">
+        <InternalLinkingWidget />
+      </div>
 
-        <Footer />
+      <Footer />
       </div>
     </>
   );

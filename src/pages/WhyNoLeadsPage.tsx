@@ -10,6 +10,13 @@ import { ArticleSchema } from "@/components/seo/ArticleSchema";
 import { FAQSchema } from "@/components/seo/FAQSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
+import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const WhyNoLeadsPage = () => {
   usePageViewTracking('marketing');
@@ -524,26 +531,39 @@ const WhyNoLeadsPage = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* FAQ Section */}
-            <section className="mt-16 mb-12">
-              <h2 className="text-3xl font-bold mb-8 text-foreground">Frequently Asked Questions</h2>
-              <div className="space-y-6">
-                {faqItems.map((faq, index) => (
-                  <Card key={index}>
-                    <CardHeader>
-                      <CardTitle className="text-xl">{faq.question}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">{faq.answer}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </section>
           </article>
-        </main>
 
+          {/* FAQ Section */}
+          <div className="container mx-auto px-4 py-16">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-3xl font-bold text-center">
+                  Frequently Asked Questions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Accordion type="single" collapsible className="w-full">
+                  {faqItems.map((item, index) => (
+                    <AccordionItem key={index} value={`item-${index}`}>
+                      <AccordionTrigger className="text-left">
+                        {item.question}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        {item.answer}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Internal Linking Widget */}
+          <div className="container mx-auto px-4 pb-16">
+            <InternalLinkingWidget />
+          </div>
+        </main>
+        
         <Footer />
       </div>
     </>

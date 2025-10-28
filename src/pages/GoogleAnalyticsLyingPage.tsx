@@ -12,6 +12,13 @@ import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { FAQSchema } from "@/components/seo/FAQSchema";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import { useNavigate } from "react-router-dom";
+import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const GoogleAnalyticsLyingPage = () => {
   usePageViewTracking("marketing");
@@ -459,32 +466,40 @@ const GoogleAnalyticsLyingPage = () => {
           </div>
         </section>
 
-        {/* FAQ Section */}
-        <section className="py-16 px-4">
-          <div className="container mx-auto max-w-4xl">
-            <h2 className="text-4xl font-bold mb-12 text-center text-foreground">
+      {/* FAQ Section */}
+      <div className="container mx-auto px-4 py-16">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-3xl font-bold text-center">
               Frequently Asked Questions
-            </h2>
-
-            <div className="space-y-6">
-              {faqItems.map((faq, index) => (
-                <Card key={index}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{faq.question}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{faq.answer}</p>
-                  </CardContent>
-                </Card>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single" collapsible className="w-full">
+              {faqItems.map((item, index) => (
+                <AccordionItem key={index} value={`item-${index}`}>
+                  <AccordionTrigger className="text-left">
+                    {item.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground">
+                    {item.answer}
+                  </AccordionContent>
+                </AccordionItem>
               ))}
-            </div>
-          </div>
-        </section>
+            </Accordion>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Final CTA */}
-        <CallToActionSection />
+      {/* Final CTA */}
+      <CallToActionSection />
 
-        <Footer />
+      {/* Internal Linking Widget */}
+      <div className="container mx-auto px-4 pb-16">
+        <InternalLinkingWidget />
+      </div>
+
+      <Footer />
       </div>
     </>
   );
