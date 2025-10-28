@@ -207,14 +207,14 @@ const PricingPage = () => {
             title="Learn More About Visitor Identification"
             links={[
               {
+                title: "All Resources & Guides",
+                href: "/resources",
+                description: "Access our complete library of lead generation guides and tools"
+              },
+              {
                 title: "How It Works",
                 href: "/how-it-works",
                 description: "Understand the technology behind visitor identification"
-              },
-              {
-                title: "Industry Examples",
-                href: "/industries",
-                description: "See real revenue loss examples from your industry"
               },
               {
                 title: "Calculate Your ROI",

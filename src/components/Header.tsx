@@ -126,9 +126,9 @@ const Header = () => {
               How It Works
             </Button>
           </Link>
-          <Link to="/learn">
+          <Link to="/resources">
             <Button variant="ghost" size="sm" className="text-foreground">
-              Learn More
+              Resources
             </Button>
           </Link>
           {user ? (

@@ -21,6 +21,7 @@ import { LocalBusinessSchema } from "@/components/seo/LocalBusinessSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { RelatedIndustries } from "@/components/seo/RelatedIndustries";
+import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -191,6 +192,32 @@ export default function RealEstateIndustryPage() {
         <FAQSchema questions={industry.faqs} />
 
         <RelatedIndustries currentIndustry="real-estate" />
+
+        <InternalLinkingWidget 
+          title="Helpful Resources"
+          links={[
+            {
+              title: "All Resources & Guides",
+              href: "/resources",
+              description: "Access our complete library of lead generation guides and tools"
+            },
+            {
+              title: "Calculate Your Lost Revenue",
+              href: "/",
+              description: "Get a free analysis of your missed real estate opportunities"
+            },
+            {
+              title: "How It Works",
+              href: "/how-it-works",
+              description: "Understand visitor identification technology"
+            },
+            {
+              title: "Transparent Pricing",
+              href: "/pricing",
+              description: "Simple pricing: $1 per identified lead"
+            }
+          ]}
+        />
 
         <CallToActionSection />
         

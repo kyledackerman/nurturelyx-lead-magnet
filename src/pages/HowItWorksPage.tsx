@@ -137,14 +137,14 @@ export default function HowItWorksPage() {
           title="Learn More About Visitor Identification"
           links={[
             {
+              title: "All Resources & Guides",
+              href: "/resources",
+              description: "Access our complete library of lead generation guides and tools"
+            },
+            {
               title: "Calculate Your Lost Revenue",
               href: "/",
               description: "Get a free analysis of your missed opportunities"
-            },
-            {
-              title: "Industry Examples",
-              href: "/industries",
-              description: "See real revenue loss examples from your industry"
             },
             {
               title: "Pricing & ROI",

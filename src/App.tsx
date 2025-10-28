@@ -48,6 +48,7 @@ import AmbassadorApplication from "./pages/AmbassadorApplication";
 import AmbassadorLeaderboard from "./pages/AmbassadorLeaderboard";
 import AmbassadorResources from "./pages/AmbassadorResources";
 import AmbassadorMyClients from "./pages/AmbassadorMyClients";
+import ResourcesPage from "./pages/ResourcesPage";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ const App = () => (
               <ScrollToTopOnRouteChange />
               <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/resources" element={<ResourcesPage />} />
             <Route path="/learn" element={<LearnPage />} />
             <Route path="/learn/google-analytics-lying" element={<GoogleAnalyticsLyingPage />} />
             <Route path="/pricing" element={<PricingPage />} />

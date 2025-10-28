@@ -154,14 +154,14 @@ export default function BlogPostPage() {
             title="Continue Learning"
             links={[
               {
+                title: "All Resources & Guides",
+                href: "/resources",
+                description: "Access our complete library of lead generation guides and tools"
+              },
+              {
                 title: "Calculate Your Lost Revenue",
                 href: "/",
                 description: "Get a free report showing your missed opportunities"
-              },
-              {
-                title: "Industry-Specific Examples",
-                href: "/industries",
-                description: "See real data from businesses like yours"
               },
               {
                 title: "How It Works",

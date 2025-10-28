@@ -389,6 +389,11 @@ const Index = () => {
                 title="Continue Learning"
                 links={[
                   {
+                    title: "All Resources & Guides",
+                    href: "/resources",
+                    description: "Access our complete library of lead generation guides and tools"
+                  },
+                  {
                     title: "How Visitor Identification Works",
                     href: "/how-it-works",
                     description: "Understand the technology behind identifying anonymous visitors"
@@ -402,11 +407,6 @@ const Index = () => {
                     title: "Transparent Pricing",
                     href: "/pricing",
                     description: "Simple pricing: $100/month + $1 per identified lead"
-                  },
-                  {
-                    title: "Lead Generation Insights",
-                    href: "/blog",
-                    description: "Expert articles on converting anonymous traffic into leads"
                   }
                 ]}
               />
