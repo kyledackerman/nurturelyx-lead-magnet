@@ -19,73 +19,73 @@ const HeroWithForm = ({
   isCalculating,
 }: HeroWithFormProps) => {
   return (
-    <section className="relative bg-black py-16 md:py-20 lg:py-24 overflow-hidden" data-form-section="true">
+    <section className="relative bg-black py-12 md:py-16 lg:py-20 overflow-hidden" data-form-section="true">
       {/* Background accent elements */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
       
-      <div className="container mx-auto px-5 md:px-6 lg:px-4 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-12 lg:gap-16 items-start max-w-7xl mx-auto">
+      <div className="container mx-auto px-4 md:px-6 lg:px-4 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-start max-w-7xl mx-auto">
           
           {/* Hero Content - Left Side */}
-          <div className="space-y-7 md:space-y-8 lg:space-y-10">
+          <div className="space-y-5 md:space-y-7 lg:space-y-10">
             {/* Main headline with visual emphasis */}
             <div className="relative animate-fade-in">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-tight md:leading-tight lg:leading-tight relative">
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-tight md:leading-tight lg:leading-tight relative">
                 Your Website Is Leaking
-                <span className="block text-5xl md:text-6xl lg:text-7xl mt-2 md:mt-3 text-transparent bg-gradient-to-r from-red-500 to-red-400 bg-clip-text">
+                <span className="block text-4xl md:text-6xl lg:text-7xl mt-2 md:mt-3 text-transparent bg-gradient-to-r from-red-500 to-red-400 bg-clip-text">
                   Cash.
                 </span>
               </h1>
-              <div className="absolute -top-3 -right-3 md:-top-2 md:-right-2 lg:-top-4 lg:-right-4 text-red-500">
-                <TrendingDown className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 animate-pulse" />
+              <div className="absolute -top-2 -right-2 md:-top-2 md:-right-2 lg:-top-4 lg:-right-4 text-red-500">
+                <TrendingDown className="w-7 h-7 md:w-10 md:h-10 lg:w-12 lg:h-12 animate-pulse" />
               </div>
             </div>
             
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-semibold text-gray-300 leading-relaxed animate-fade-in animation-delay-200">
+            <h2 className="text-lg md:text-2xl lg:text-3xl font-semibold text-gray-300 leading-relaxed animate-fade-in animation-delay-200">
               What if you could find out—in just 10 seconds—exactly how much?
             </h2>
             
-            <p className="text-lg md:text-xl text-accent font-medium leading-relaxed animate-fade-in animation-delay-300">
+            <p className="text-base md:text-xl text-accent font-medium leading-relaxed animate-fade-in animation-delay-300">
               This free report runs your real traffic data and shows:
             </p>
             
             {/* Enhanced bullet points with icons */}
-            <div className="space-y-5 md:space-y-5 animate-fade-in animation-delay-400 my-8 md:my-10">
-              <div className="bg-card/50 border border-accent/10 rounded-xl p-5 md:p-5 lg:p-6 hover:bg-card/70 active:bg-card/80 transition-all duration-200 touch-manipulation">
-                <div className="flex items-start md:items-center gap-4 md:gap-5">
-                  <div className="bg-accent/20 p-3 md:p-3 rounded-full flex-shrink-0 mt-0.5 md:mt-0">
-                    <Target className="w-5 h-5 lg:w-5 lg:h-5 text-blue-400" />
+            <div className="space-y-4 md:space-y-5 animate-fade-in animation-delay-400 my-6 md:my-10">
+              <div className="bg-card/50 border border-accent/10 rounded-xl p-4 md:p-5 lg:p-6 hover:bg-card/70 active:bg-card/80 transition-all duration-200 touch-manipulation">
+                <div className="flex items-start md:items-center gap-3 md:gap-5">
+                  <div className="bg-accent/20 p-2.5 md:p-3 rounded-full flex-shrink-0 mt-0.5 md:mt-0">
+                    <Target className="w-5 h-5 text-blue-400" />
                   </div>
-                  <span className="text-base md:text-lg lg:text-lg text-gray-300 font-medium leading-relaxed">
+                  <span className="text-sm md:text-lg text-gray-300 font-medium leading-relaxed">
                     How many buyers are slipping through your fingers
                   </span>
                 </div>
               </div>
               
-              <div className="bg-card/50 border border-accent/10 rounded-xl p-5 md:p-5 lg:p-6 hover:bg-card/70 active:bg-card/80 transition-all duration-200 touch-manipulation">
-                <div className="flex items-start md:items-center gap-4 md:gap-5">
-                  <div className="bg-accent/20 p-3 md:p-3 rounded-full flex-shrink-0 mt-0.5 md:mt-0">
-                    <DollarSign className="w-5 h-5 lg:w-5 lg:h-5 text-blue-400" />
+              <div className="bg-card/50 border border-accent/10 rounded-xl p-4 md:p-5 lg:p-6 hover:bg-card/70 active:bg-card/80 transition-all duration-200 touch-manipulation">
+                <div className="flex items-start md:items-center gap-3 md:gap-5">
+                  <div className="bg-accent/20 p-2.5 md:p-3 rounded-full flex-shrink-0 mt-0.5 md:mt-0">
+                    <DollarSign className="w-5 h-5 text-blue-400" />
                   </div>
-                  <span className="text-base md:text-lg lg:text-lg text-gray-300 font-medium leading-relaxed">
+                  <span className="text-sm md:text-lg text-gray-300 font-medium leading-relaxed">
                     What those lost sales are worth in $$$
                   </span>
                 </div>
               </div>
               
-              <div className="bg-card/50 border border-accent/10 rounded-xl p-5 md:p-5 lg:p-6 hover:bg-card/70 active:bg-card/80 transition-all duration-200 touch-manipulation">
-                <div className="flex items-start md:items-center gap-4 md:gap-5">
-                  <div className="bg-accent/20 p-3 md:p-3 rounded-full flex-shrink-0 mt-0.5 md:mt-0">
-                    <Zap className="w-5 h-5 lg:w-5 lg:h-5 text-blue-400" />
+              <div className="bg-card/50 border border-accent/10 rounded-xl p-4 md:p-5 lg:p-6 hover:bg-card/70 active:bg-card/80 transition-all duration-200 touch-manipulation">
+                <div className="flex items-start md:items-center gap-3 md:gap-5">
+                  <div className="bg-accent/20 p-2.5 md:p-3 rounded-full flex-shrink-0 mt-0.5 md:mt-0">
+                    <Zap className="w-5 h-5 text-blue-400" />
                   </div>
-                  <span className="text-base md:text-lg lg:text-lg text-gray-300 font-medium leading-relaxed">
+                  <span className="text-sm md:text-lg text-gray-300 font-medium leading-relaxed">
                     How to fix it starting today
                   </span>
                 </div>
               </div>
             </div>
             
-            <p className="text-lg md:text-xl font-semibold text-red-500 leading-relaxed animate-fade-in animation-delay-500">
+            <p className="text-base md:text-xl font-semibold text-red-500 leading-relaxed animate-fade-in animation-delay-500">
               Don't spend another dollar on ads until you see this.
             </p>
           </div>

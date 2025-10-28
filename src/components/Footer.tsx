@@ -115,56 +115,56 @@ const Footer = () => {
         </script>
       </Helmet>
       
-      <footer className="bg-black border-t border-gray-800">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+      <footer className="bg-black border-t border-gray-800 pb-20 md:pb-0">
+      <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8">
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Industries</h3>
+            <h3 className="text-base md:text-lg font-semibold text-white mb-3 md:mb-4">Industries</h3>
             <ul className="space-y-2">
-              <li><Link to="/industries/hvac" className="text-sm text-gray-300 hover:text-white">HVAC</Link></li>
-              <li><Link to="/industries/legal" className="text-sm text-gray-300 hover:text-white">Legal Services</Link></li>
-              <li><Link to="/industries/real-estate" className="text-sm text-gray-300 hover:text-white">Real Estate</Link></li>
-              <li><Link to="/industries/home-services" className="text-sm text-gray-300 hover:text-white">Home Services</Link></li>
-              <li><Link to="/industries/automotive" className="text-sm text-gray-300 hover:text-white">Automotive</Link></li>
-              <li><Link to="/industries/healthcare" className="text-sm text-gray-300 hover:text-white">Healthcare</Link></li>
+              <li><Link to="/industries/hvac" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">HVAC</Link></li>
+              <li><Link to="/industries/legal" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Legal Services</Link></li>
+              <li><Link to="/industries/real-estate" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Real Estate</Link></li>
+              <li><Link to="/industries/home-services" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Home Services</Link></li>
+              <li><Link to="/industries/automotive" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Automotive</Link></li>
+              <li><Link to="/industries/healthcare" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Healthcare</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Resources</h3>
+            <h3 className="text-base md:text-lg font-semibold text-white mb-3 md:mb-4">Resources</h3>
             <ul className="space-y-2">
-              <li><Link to="/resources" className="text-sm text-gray-300 hover:text-white">Resource Hub</Link></li>
-              <li><Link to="/how-it-works" className="text-sm text-gray-300 hover:text-white">How It Works</Link></li>
-              <li><Link to="/blog" className="text-sm text-gray-300 hover:text-white">Blog</Link></li>
-              <li><Link to="/pricing" className="text-sm text-gray-300 hover:text-white">Pricing</Link></li>
-              <li><Link to="/learn" className="text-sm text-gray-300 hover:text-white">Learn More</Link></li>
+              <li><Link to="/resources" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Resource Hub</Link></li>
+              <li><Link to="/how-it-works" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">How It Works</Link></li>
+              <li><Link to="/blog" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Blog</Link></li>
+              <li><Link to="/pricing" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Pricing</Link></li>
+              <li><Link to="/learn" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Learn More</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Top Reports</h3>
+            <h3 className="text-base md:text-lg font-semibold text-white mb-3 md:mb-4">Top Reports</h3>
             <ul className="space-y-2">
-              <li><Link to="/top-companies-losing-revenue" className="text-sm text-gray-300 hover:text-white">Top 25 Companies</Link></li>
-              <li><Link to="/reports/hvac" className="text-sm text-gray-300 hover:text-white">HVAC Reports</Link></li>
-              <li><Link to="/reports/legal" className="text-sm text-gray-300 hover:text-white">Legal Reports</Link></li>
-              <li><Link to="/reports/real-estate" className="text-sm text-gray-300 hover:text-white">Real Estate Reports</Link></li>
+              <li><Link to="/top-companies-losing-revenue" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Top 25 Companies</Link></li>
+              <li><Link to="/reports/hvac" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">HVAC Reports</Link></li>
+              <li><Link to="/reports/legal" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Legal Reports</Link></li>
+              <li><Link to="/reports/real-estate" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Real Estate Reports</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Company</h3>
+            <h3 className="text-base md:text-lg font-semibold text-white mb-3 md:mb-4">Company</h3>
             <ul className="space-y-2">
-              <li><Link to="/" className="text-sm text-gray-300 hover:text-white">Home</Link></li>
-              <li><Link to="/auth" className="text-sm text-gray-300 hover:text-white">Sign In</Link></li>
-              <li><Link to="/ambassador/apply" className="text-sm text-gray-300 hover:text-white">Become an Ambassador</Link></li>
-              <li><a href="https://nurturely.io/post/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-300 hover:text-white">Privacy Policy</a></li>
-              <li><a href="https://nurturely.io/post/terms" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-300 hover:text-white">Terms of Service</a></li>
+              <li><Link to="/" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Home</Link></li>
+              <li><Link to="/auth" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Sign In</Link></li>
+              <li><Link to="/ambassador/apply" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Become an Ambassador</Link></li>
+              <li><a href="https://nurturely.io/post/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Privacy Policy</a></li>
+              <li><a href="https://nurturely.io/post/terms" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-gray-300 hover:text-white inline-block py-1">Terms of Service</a></li>
             </ul>
           </div>
         </div>
         
-        <div className="border-t border-gray-800 pt-8 text-center">
-          <p className="text-sm text-gray-400 mb-2">
+        <div className="border-t border-gray-800 pt-6 md:pt-8 text-center">
+          <p className="text-xs md:text-sm text-gray-400 mb-2">
             © {new Date().getFullYear()} NurturelyX. All rights reserved.
           </p>
           <p className="text-xs text-gray-500">

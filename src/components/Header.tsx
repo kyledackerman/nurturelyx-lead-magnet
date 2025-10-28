@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { User, LogOut, BarChart3, Shield, Users, Award, BookOpen } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import MobileNav from '@/components/MobileNav';
 
 const Header = () => {
   const { user, signOut, checkIsAdmin, checkIsAmbassador } = useAuth();
@@ -82,24 +83,25 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-black border-b border-border sticky top-0 z-10">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="flex items-center">
+    <header className="bg-black border-b border-border sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-2">
+        <Link to="/" className="flex items-center min-w-0 flex-shrink">
           <img 
             src="/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png" 
             alt="NurturelyX - Visitor Identification and Lead Generation Platform Logo" 
-            className="h-8 mr-2"
+            className="h-6 md:h-8 mr-2 flex-shrink-0"
             width="120"
             height="32"
             loading="lazy"
           />
-          <p className="text-xs text-gray-400">Turn anonymous website visitors into qualified leads</p>
+          <p className="text-xs text-gray-400 hidden lg:block">Turn anonymous website visitors into qualified leads</p>
         </Link>
         
-        <div className="flex items-center gap-4">
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-3 lg:gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-foreground">
+              <Button variant="ghost" size="sm" className="text-foreground h-10">
                 Industries
               </Button>
             </DropdownMenuTrigger>
@@ -125,21 +127,22 @@ const Header = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           <Link to="/how-it-works">
-            <Button variant="ghost" size="sm" className="text-foreground">
+            <Button variant="ghost" size="sm" className="text-foreground h-10">
               How It Works
             </Button>
           </Link>
           <Link to="/resources">
-            <Button variant="ghost" size="sm" className="text-foreground">
+            <Button variant="ghost" size="sm" className="text-foreground h-10">
               Resources
             </Button>
           </Link>
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="flex items-center gap-2 h-10">
                   <User className="h-4 w-4" />
-                  {user.email}
+                  <span className="hidden lg:inline">{user.email}</span>
+                  <span className="lg:hidden">Account</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-background z-50">
@@ -209,11 +212,19 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild variant="outline" size="sm">
+            <Button asChild variant="outline" size="sm" className="h-10">
               <Link to="/auth">Sign In</Link>
             </Button>
           )}
         </div>
+
+        {/* Mobile Navigation */}
+        <MobileNav 
+          user={user} 
+          isAdmin={isAdmin} 
+          isAmbassador={isAmbassador} 
+          onSignOut={handleSignOut} 
+        />
       </div>
     </header>
   );
