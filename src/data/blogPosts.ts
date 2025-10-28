@@ -245,54 +245,6 @@ If you made it this far, you're serious. Here's what happens next:
     relatedArticles: [],
   },
   {
-    slug: 'why-website-not-getting-leads',
-    title: 'Why Is My Website Not Getting Leads? [2025 Complete Guide]',
-    metaDescription: 'Your website gets traffic but no leads? Discover the hidden reason 98% of visitors leave without converting and how to identify them automatically.',
-    author: 'NurturelyX Team',
-    publishedAt: '2025-01-15',
-    readTime: '15 min',
-    category: 'Lead Generation',
-    featuredImage: 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png',
-    content: `# Why Is My Website Not Getting Leads?
-
-Visit the [complete guide](/why-website-not-getting-leads) to discover why 98% of your website visitors leave without converting and the proven solution to identify them automatically.
-
-This comprehensive guide covers:
-- The brutal truth about visitor anonymity
-- Why traditional lead generation fails in 2025
-- The hidden revenue leak in your business
-- How identity resolution technology works
-- Real-world examples and ROI calculations
-
-[Read the full guide →](/why-website-not-getting-leads)`,
-    relatedReports: ['hvac', 'legal', 'healthcare'],
-    relatedArticles: ['identify-anonymous-website-visitors', 'visitor-identification-for-hvac-contractors']
-  },
-  {
-    slug: 'google-analytics-lying',
-    title: 'Google Analytics Is Lying To You: The Hidden 97% Problem',
-    metaDescription: 'Your Google Analytics dashboard looks healthy, but you\'re only seeing 3% of the story. Discover why 97% of your website visitors are invisible and what it\'s costing you.',
-    author: 'NurturelyX Team',
-    publishedAt: '2025-01-15',
-    readTime: '10 min',
-    category: 'Analytics & Tracking',
-    featuredImage: 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png',
-    content: `# Google Analytics Is Lying To You: The Hidden 97% Problem
-
-Visit the [complete article](/learn/google-analytics-lying) to discover the uncomfortable truth about your web analytics and why 97% of your website visitors are completely invisible.
-
-This controversial guide reveals:
-- Why Google Analytics only shows 3% of your visitors
-- The real cost of the 97% blind spot
-- How visitor identification solves this problem
-- Real calculations showing lost revenue
-- Why this matters more for B2B companies
-
-[Read the full article →](/learn/google-analytics-lying)`,
-    relatedReports: ['legal', 'healthcare', 'hvac'],
-    relatedArticles: ['identify-anonymous-website-visitors', 'why-website-not-getting-leads']
-  },
-  {
     slug: 'identify-anonymous-website-visitors',
     title: 'How to Identify Anonymous Website Visitors in 2025',
     metaDescription: 'Learn how to identify anonymous website visitors and turn them into qualified leads. Complete guide to visitor identification technology and B2B lead generation.',

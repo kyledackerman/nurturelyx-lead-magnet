@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import { MetaTags } from "@/components/seo/MetaTags";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { ItemListSchema } from "@/components/seo/ItemListSchema";
+import { HowToSchema } from "@/components/seo/HowToSchema";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -229,6 +230,37 @@ const ResourcesPage = () => {
           {/* Featured Resource */}
           {(selectedCategory === "all" || selectedCategory === "guide") && (
             <section className="mb-16">
+              <HowToSchema
+                name="Complete Guide to Visitor Identification"
+                description="Master visitor identification technology, identity resolution, and lead generation strategies for B2B companies. Learn how to identify anonymous website visitors and convert them into qualified leads."
+                steps={[
+                  {
+                    name: "Understand Identity Resolution",
+                    text: "Learn the fundamentals of visitor identification technology and how identity resolution works to match anonymous visitors to real businesses.",
+                    url: "https://x1.nurturely.io/learn#what-is-identity-resolution"
+                  },
+                  {
+                    name: "Install Tracking Code",
+                    text: "Set up the NurturelyX tracking pixel on your website to start capturing visitor data and behavior patterns.",
+                    url: "https://x1.nurturely.io/learn#setup"
+                  },
+                  {
+                    name: "Configure Lead Enrichment",
+                    text: "Connect data sources and configure enrichment settings to automatically identify companies and contacts visiting your site.",
+                    url: "https://x1.nurturely.io/learn#enrichment"
+                  },
+                  {
+                    name: "Start Converting Leads",
+                    text: "Use the identified visitor data to reach out to prospects, personalize outreach, and convert anonymous traffic into qualified leads.",
+                    url: "https://x1.nurturely.io/learn#conversion"
+                  }
+                ]}
+                totalTime="PT30M"
+                estimatedCost={{
+                  currency: "USD",
+                  value: "0"
+                }}
+              />
               <Card className="border-primary bg-gradient-to-br from-primary/5 to-transparent">
                 <CardHeader>
                   <div className="flex items-center gap-2 mb-2">
