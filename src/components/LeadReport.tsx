@@ -24,7 +24,7 @@ import CallToAction from "./report/CallToAction";
 import PrintStyles from "./report/PrintStyles";
 import ShareReportButton from "./report/ShareReportButton";
 import { EditTransactionValueDialog } from "./dialog/EditTransactionValueDialog";
-import FloatingCTABar from "./report/FloatingCTABar";
+
 import TrustSignals from "./report/TrustSignals";
 import ExitIntentPopup from "./report/ExitIntentPopup";
 import CaseStudyCard from "./report/CaseStudyCard";
@@ -185,7 +185,6 @@ const LeadReport = ({ data, onReset, onEditData, isPublicView = false, onUpdate 
         revenueLost={data.yearlyRevenueLost}
       />
 
-      <FloatingCTABar />
       <ExitIntentPopup yearlyRevenueLost={data.yearlyRevenueLost} />
 
       <PrintStyles />
