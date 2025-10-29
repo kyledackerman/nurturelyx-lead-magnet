@@ -33,7 +33,7 @@ export function EnforcedThemeProvider({ children, ...props }: ThemeProviderProps
 
   // For authenticated users: allow full theme control
   return (
-    <ThemeProvider {...props} defaultTheme="system" enableSystem>
+    <ThemeProvider {...props} defaultTheme="dark" enableSystem>
       <ThemeEnforcer>{children}</ThemeEnforcer>
     </ThemeProvider>
   )
