@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportData } from '@/types/report';
 import { reportService } from '@/services/reportService';
-import { Eye, Share2, ExternalLink, Search, Calendar, Trash2 } from 'lucide-react';
+import { Eye, Share2, ExternalLink, Search, Calendar, Trash2, UserPlus, Loader2 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import Header from '@/components/Header';
 import { EditTransactionValueDialog } from '@/components/dialog/EditTransactionValueDialog';
@@ -30,12 +30,32 @@ const UserDashboard = () => {
   const [reports, setReports] = useState<UserReport[]>([]);
   const [loadingReports, setLoadingReports] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [addingToCRM, setAddingToCRM] = useState<string | null>(null);
+  const [crmReportIds, setCrmReportIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (user) {
       fetchUserReports();
+      fetchCRMReports();
     }
   }, [user]);
+
+  const fetchCRMReports = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('prospect_activities')
+        .select('report_id');
+      
+      if (error) throw error;
+      
+      const reportIds = new Set(data?.map(item => item.report_id) || []);
+      setCrmReportIds(reportIds);
+    } catch (error) {
+      console.error('Error fetching CRM reports:', error);
+    }
+  };
 
   const fetchUserReports = async () => {
     try {
@@ -89,6 +109,50 @@ const UserDashboard = () => {
     } catch (error) {
       console.error('Error deleting report:', error);
       toast.error('Failed to delete report');
+    }
+  };
+
+  const handleAddToCRM = async (reportId: string, domain: string) => {
+    if (!user) {
+      toast.error('You must be logged in to add reports to CRM');
+      return;
+    }
+
+    setAddingToCRM(reportId);
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (!sessionData.session) {
+        toast.error('Session expired. Please log in again.');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('add-to-crm', {
+        body: { reportId, domain },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      setCrmReportIds(prev => new Set([...prev, reportId]));
+      
+      toast.success(`${domain} added to CRM successfully!`, {
+        description: 'View it in your CRM Dashboard',
+        action: {
+          label: 'Go to CRM',
+          onClick: () => window.location.href = '/crm'
+        }
+      });
+    } catch (error: any) {
+      console.error('Error adding to CRM:', error);
+      toast.error('Failed to add to CRM', {
+        description: error.message || 'Please try again'
+      });
+    } finally {
+      setAddingToCRM(null);
     }
   };
 
@@ -274,6 +338,19 @@ const UserDashboard = () => {
                             >
                               <Share2 className="h-4 w-4" />
                               Share
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAddToCRM(report.id, report.domain)}
+                              disabled={crmReportIds.has(report.id) || addingToCRM === report.id}
+                            >
+                              {addingToCRM === report.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <UserPlus className="h-4 w-4" />
+                              )}
+                              {crmReportIds.has(report.id) ? 'In CRM' : 'Add to CRM'}
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
