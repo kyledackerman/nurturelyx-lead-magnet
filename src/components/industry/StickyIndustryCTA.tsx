@@ -49,7 +49,7 @@ export const StickyIndustryCTA = ({ industryName }: StickyIndustryCTAProps) => {
           </div>
         </div>
         
-        <Button asChild size="lg" className="gradient-bg" onClick={scrollToTop}>
+        <Button asChild size="lg" className="gradient-bg">
           <Link to="/">
             See How Many Leads You're Missing
             <ArrowRight className="ml-2 h-4 w-4" />

@@ -76,7 +76,7 @@ export const IntegrationSteps = () => {
         </div>
 
         <div className="mt-12 text-center">
-          <Button asChild size="lg" className="gradient-bg" onClick={scrollToTop}>
+          <Button asChild size="lg" className="gradient-bg">
             <Link to="/">Get Started Now - Free Report</Link>
           </Button>
           <p className="text-sm text-muted-foreground mt-4">

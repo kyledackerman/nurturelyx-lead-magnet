@@ -179,7 +179,7 @@ export default function BlogPostPage() {
           <RelatedArticles relatedSlugs={post.relatedArticles} />
 
           <div className="mt-12 pt-8 border-t">
-            <Button asChild size="lg" className="gradient-bg" onClick={scrollToTop}>
+            <Button asChild size="lg" className="gradient-bg">
               <Link to="/">Calculate Your Lost Revenue</Link>
             </Button>
           </div>

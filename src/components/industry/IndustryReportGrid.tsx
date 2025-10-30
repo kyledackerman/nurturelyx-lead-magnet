@@ -74,7 +74,7 @@ export const IndustryReportGrid = ({ industry }: IndustryReportGridProps) => {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">No reports available yet for this industry.</p>
-        <Button asChild className="mt-4" onClick={scrollToTop}>
+        <Button asChild className="mt-4">
           <Link to="/">Generate Your First Report</Link>
         </Button>
       </div>

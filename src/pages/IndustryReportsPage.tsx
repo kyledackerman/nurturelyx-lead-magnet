@@ -99,7 +99,7 @@ export default function IndustryReportsPage() {
           ) : !reports || reports.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">No reports available yet for this industry.</p>
-              <Button asChild onClick={scrollToTop}>
+              <Button asChild>
                 <Link to="/">Generate Your Report</Link>
               </Button>
             </div>
@@ -120,7 +120,7 @@ export default function IndustryReportsPage() {
                 <p className="text-muted-foreground mb-6">
                   Calculate your lost revenue and discover how many leads you're missing
                 </p>
-                <Button asChild size="lg" className="gradient-bg" onClick={scrollToTop}>
+                <Button asChild size="lg" className="gradient-bg">
                   <Link to="/">
                     Get Your Free Report
                     <ArrowRight className="ml-2 h-5 w-5" />

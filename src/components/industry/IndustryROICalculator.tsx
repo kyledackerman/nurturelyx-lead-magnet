@@ -150,7 +150,7 @@ export const IndustryROICalculator = ({
           </div>
         </div>
 
-        <Button asChild className="w-full gradient-bg" onClick={scrollToTop}>
+        <Button asChild className="w-full gradient-bg">
           <Link to="/">Get My Custom Lead Loss Report</Link>
         </Button>
         <p className="text-xs text-center text-muted-foreground mt-2">

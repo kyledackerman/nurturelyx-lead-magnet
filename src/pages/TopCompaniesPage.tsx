@@ -119,7 +119,7 @@ export default function TopCompaniesPage() {
                   These companies are losing an average of ${Math.round(totalRevenueLost / 25).toLocaleString()} per year. 
                   Find out how much your business is losing and how to fix it.
                 </p>
-                <Button asChild size="lg" className="gradient-bg" onClick={scrollToTop}>
+                <Button asChild size="lg" className="gradient-bg">
                   <Link to="/">
                     Calculate Your Lost Revenue Now
                     <ArrowRight className="ml-2 h-5 w-5" />

@@ -103,7 +103,7 @@ export const RelatedReports = ({
         </div>
 
         <div className="text-center mt-12">
-          <Button asChild size="lg" className="gradient-bg" onClick={scrollToTop}>
+          <Button asChild size="lg" className="gradient-bg">
             <Link to="/">
               Calculate Your Own Lost Revenue
             </Link>

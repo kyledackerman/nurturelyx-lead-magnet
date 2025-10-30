@@ -97,7 +97,7 @@ export default function HowItWorksPage() {
               Discover who's visiting your website, what they're interested in, and how to reach them - 
               even if they never fill out a form.
             </p>
-            <Button asChild size="lg" className="gradient-bg" onClick={scrollToTop}>
+            <Button asChild size="lg" className="gradient-bg">
               <Link to="/">
                 Get Your Free Report
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -167,7 +167,7 @@ export default function HowItWorksPage() {
             <p className="text-lg text-muted-foreground mb-8">
               Get a free report showing exactly how much revenue you're losing to anonymous traffic
             </p>
-            <Button asChild size="lg" className="gradient-bg" onClick={scrollToTop}>
+            <Button asChild size="lg" className="gradient-bg">
               <Link to="/">
                 Calculate Your Lost Revenue Now
                 <ArrowRight className="ml-2 h-5 w-5" />

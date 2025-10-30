@@ -39,7 +39,7 @@ export const IndustryHero = ({ name, headline, subheadline }: IndustryHeroProps)
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-            <Button asChild size="lg" className="gradient-bg" onClick={scrollToTop}>
+            <Button asChild size="lg" className="gradient-bg">
               <Link to="/">
                 See How Many Leads You're Missing (Free)
                 <ArrowRight className="ml-2 h-5 w-5" />
