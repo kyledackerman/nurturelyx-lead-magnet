@@ -53,66 +53,73 @@ export function UniqueDomainsTrendChart() {
   const fetchComparisonStats = async () => {
     try {
       const now = new Date();
-      const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString();
-      const yesterdayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1)).toISOString();
-      const yesterdayEnd = todayStart;
       
-      const weekStart = new Date(now);
-      weekStart.setDate(now.getDate() - now.getDay());
-      const thisWeekStart = new Date(Date.UTC(weekStart.getUTCFullYear(), weekStart.getUTCMonth(), weekStart.getUTCDate())).toISOString();
+      // Rolling 24-hour windows
+      const last24hStart = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+      const prev24hStart = new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString();
+      const prev24hEnd = last24hStart;
       
-      const lastWeekStart = new Date(Date.UTC(weekStart.getUTCFullYear(), weekStart.getUTCMonth(), weekStart.getUTCDate() - 7)).toISOString();
-      const lastWeekEnd = thisWeekStart;
+      // Rolling 7-day windows
+      const last7dStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const prev7dStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+      const prev7dEnd = last7dStart;
       
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const thisMonthStart = new Date(Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth(), 1)).toISOString();
-      
-      const lastMonthStart = new Date(Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth() - 1, 1)).toISOString();
-      const lastMonthEnd = thisMonthStart;
+      // Rolling 30-day windows
+      const last30dStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const prev30dStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000).toISOString();
+      const prev30dEnd = last30dStart;
 
       const countUniqueDomains = async (start: string, end?: string) => {
         let query = supabase
+          .from("audit_logs")
+          .select(`
+            record_id,
+            new_value
+          `)
+          .eq("table_name", "prospect_activities")
+          .eq("field_name", "enriched")
+          .eq("new_value", "true")
+          .gte("changed_at", start);
+        
+        if (end) {
+          query = query.lt("changed_at", end);
+        }
+
+        const { data: auditData } = await query;
+        
+        const prospectIds = auditData?.map(a => a.record_id) || [];
+        const { data: prospectsData } = await supabase
           .from("prospect_activities")
           .select(`
             id,
-            updated_at,
             reports!inner(domain)
           `)
-          .gte("updated_at", start);
-        
-        if (end) {
-          query = query.lt("updated_at", end);
-        }
+          .in("id", prospectIds);
 
-        const { data } = await query;
-        
-        // Get enriched prospect IDs
-        const { data: contactsData } = await supabase
-          .from("prospect_contacts")
-          .select("prospect_activity_id")
-          .not('email', 'is', null)
-          .neq('email', '');
-
-        const enrichedIds = new Set(contactsData?.map(c => c.prospect_activity_id) || []);
-        
-        // Count unique domains that are enriched
         const uniqueDomains = new Set(
-          data?.filter((item: any) => enrichedIds.has(item.id)).map((item: any) => item.reports.domain) || []
+          prospectsData?.map((p: any) => p.reports.domain) || []
         );
         
         return uniqueDomains.size;
       };
 
-      const [today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth] = await Promise.all([
-        countUniqueDomains(todayStart),
-        countUniqueDomains(yesterdayStart, yesterdayEnd),
-        countUniqueDomains(thisWeekStart),
-        countUniqueDomains(lastWeekStart, lastWeekEnd),
-        countUniqueDomains(thisMonthStart),
-        countUniqueDomains(lastMonthStart, lastMonthEnd),
+      const [last24h, prev24h, last7d, prev7d, last30d, prev30d] = await Promise.all([
+        countUniqueDomains(last24hStart),
+        countUniqueDomains(prev24hStart, prev24hEnd),
+        countUniqueDomains(last7dStart),
+        countUniqueDomains(prev7dStart, prev7dEnd),
+        countUniqueDomains(last30dStart),
+        countUniqueDomains(prev30dStart, prev30dEnd),
       ]);
 
-      setStats({ today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth });
+      setStats({ 
+        today: last24h, 
+        yesterday: prev24h, 
+        thisWeek: last7d, 
+        lastWeek: prev7d, 
+        thisMonth: last30d, 
+        lastMonth: prev30d 
+      });
     } catch (error) {
       console.error("Error fetching comparison stats:", error);
     }
@@ -182,9 +189,9 @@ export function UniqueDomainsTrendChart() {
       <CardContent>
         {stats && (
           <div className="grid grid-cols-3 gap-2 mb-4">
-            {renderComparisonCard("Today", stats.today, stats.yesterday)}
-            {renderComparisonCard("This Week", stats.thisWeek, stats.lastWeek)}
-            {renderComparisonCard("This Month", stats.thisMonth, stats.lastMonth)}
+            {renderComparisonCard("Last 24h", stats.today, stats.yesterday)}
+            {renderComparisonCard("Last 7 Days", stats.thisWeek, stats.lastWeek)}
+            {renderComparisonCard("Last 30 Days", stats.thisMonth, stats.lastMonth)}
           </div>
         )}
         
