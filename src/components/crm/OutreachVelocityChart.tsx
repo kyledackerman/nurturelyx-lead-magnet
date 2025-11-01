@@ -35,97 +35,52 @@ export function OutreachVelocityChart() {
 
       if (error) throw error;
 
-      // Format the data for the chart
-      const formattedData = Array.isArray(chartData) ? chartData.map((item: any) => ({
-        date: format(new Date(item.date), "MMM dd"),
+      // Keep raw data for calculations
+      const rawDaily = Array.isArray(chartData) ? chartData.map((item: any) => ({
+        date: new Date(item.date),
         count: item.count
       })) : [];
 
+      // Format for chart display
+      const formattedData = rawDaily.map(item => ({
+        date: format(item.date, "MMM dd"),
+        count: item.count
+      }));
+
       setData(formattedData);
-      await fetchComparisonStats();
+
+      // Calculate rolling window stats from the data
+      const now = new Date();
+      const sumWindow = (days: number, offsetDays: number = 0): number => {
+        const endTime = now.getTime() - (offsetDays * 24 * 60 * 60 * 1000);
+        const startTime = endTime - (days * 24 * 60 * 60 * 1000);
+        return rawDaily
+          .filter(item => {
+            const itemTime = item.date.getTime();
+            return itemTime >= startTime && itemTime < endTime;
+          })
+          .reduce((sum, item) => sum + item.count, 0);
+      };
+
+      const last24h = sumWindow(1, 0);
+      const prev24h = sumWindow(1, 1);
+      const last7d = sumWindow(7, 0);
+      const prev7d = sumWindow(7, 7);
+      const last30d = sumWindow(30, 0);
+      const prev30d = sumWindow(30, 30);
+
+      setStats({
+        today: last24h,
+        yesterday: prev24h,
+        thisWeek: last7d,
+        lastWeek: prev7d,
+        thisMonth: last30d,
+        lastMonth: prev30d
+      });
     } catch (error) {
       console.error("Error fetching outreach velocity:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchComparisonStats = async () => {
-    try {
-      const now = new Date();
-      
-      // Rolling 24-hour windows
-      const last24hStart = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-      const prev24hStart = new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString();
-      const prev24hEnd = last24hStart;
-      
-      // Rolling 7-day windows
-      const last7dStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      const prev7dStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
-      const prev7dEnd = last7dStart;
-      
-      // Rolling 30-day windows
-      const last30dStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-      const prev30dStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000).toISOString();
-      const prev30dEnd = last30dStart;
-
-      const countContactedDomains = async (start: string, end?: string) => {
-        let query = supabase
-          .from("audit_logs")
-          .select(`
-            record_id,
-            new_value
-          `)
-          .eq("table_name", "prospect_activities")
-          .eq("field_name", "status")
-          .in("new_value", ["contacted", "interested", "proposal", "closed_won"])
-          .gte("changed_at", start);
-        
-        if (end) {
-          query = query.lt("changed_at", end);
-        }
-
-        const { data: auditData } = await query;
-        
-        if (!auditData || auditData.length === 0) {
-          return 0;
-        }
-        
-        const prospectIds = auditData.map(a => a.record_id);
-        const { data: prospectsData } = await supabase
-          .from("prospect_activities")
-          .select(`
-            id,
-            reports!inner(domain)
-          `)
-          .in("id", prospectIds);
-
-        const uniqueDomains = new Set(
-          prospectsData?.map((p: any) => p.reports.domain) || []
-        );
-        
-        return uniqueDomains.size;
-      };
-
-      const [last24h, prev24h, last7d, prev7d, last30d, prev30d] = await Promise.all([
-        countContactedDomains(last24hStart),
-        countContactedDomains(prev24hStart, prev24hEnd),
-        countContactedDomains(last7dStart),
-        countContactedDomains(prev7dStart, prev7dEnd),
-        countContactedDomains(last30dStart),
-        countContactedDomains(prev30dStart, prev30dEnd),
-      ]);
-
-      setStats({ 
-        today: last24h, 
-        yesterday: prev24h, 
-        thisWeek: last7d, 
-        lastWeek: prev7d, 
-        thisMonth: last30d, 
-        lastMonth: prev30d 
-      });
-    } catch (error) {
-      console.error("Error fetching comparison stats:", error);
     }
   };
 
