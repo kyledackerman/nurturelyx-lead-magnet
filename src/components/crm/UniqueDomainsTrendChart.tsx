@@ -74,11 +74,12 @@ export function UniqueDomainsTrendChart() {
           .from("audit_logs")
           .select(`
             record_id,
-            new_value
+            new_value,
+            old_value
           `)
           .eq("table_name", "prospect_activities")
-          .eq("field_name", "enriched")
-          .eq("new_value", "true")
+          .eq("field_name", "enrichment_source")
+          .not("new_value", "is", null)
           .gte("changed_at", start);
         
         if (end) {
@@ -87,7 +88,11 @@ export function UniqueDomainsTrendChart() {
 
         const { data: auditData } = await query;
         
-        const prospectIds = auditData?.map(a => a.record_id) || [];
+        if (!auditData || auditData.length === 0) {
+          return 0;
+        }
+        
+        const prospectIds = auditData.map(a => a.record_id);
         const { data: prospectsData } = await supabase
           .from("prospect_activities")
           .select(`

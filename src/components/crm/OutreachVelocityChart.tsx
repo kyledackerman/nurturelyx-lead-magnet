@@ -87,7 +87,11 @@ export function OutreachVelocityChart() {
 
         const { data: auditData } = await query;
         
-        const prospectIds = auditData?.map(a => a.record_id) || [];
+        if (!auditData || auditData.length === 0) {
+          return 0;
+        }
+        
+        const prospectIds = auditData.map(a => a.record_id);
         const { data: prospectsData } = await supabase
           .from("prospect_activities")
           .select(`
