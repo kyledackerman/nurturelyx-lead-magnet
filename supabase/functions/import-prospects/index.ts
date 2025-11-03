@@ -89,18 +89,12 @@ Deno.serve(async (req) => {
 
     console.log(`Job ${job.id} queued with ${totalRows} rows (${totalBatches} batches)`);
 
-    // Trigger background processing
-    const processUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/process-import-batch`;
-    EdgeRuntime.waitUntil(
-      fetch(processUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': req.headers.get('Authorization')!,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ jobId: job.id }),
-      }).catch(err => console.error('Background processing failed:', err))
-    );
+    // Trigger background processing without blocking
+    supabaseClient.functions
+      .invoke('process-import-batch', {
+        body: { jobId: job.id },
+      })
+      .catch((err) => console.error('Background processing failed:', err));
 
     // Return job details immediately
     return new Response(
