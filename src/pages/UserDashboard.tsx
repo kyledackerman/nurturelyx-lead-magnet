@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportData } from '@/types/report';
 import { reportService } from '@/services/reportService';
-import { Eye, Share2, ExternalLink, Search, Calendar, Trash2, UserPlus, Loader2 } from 'lucide-react';
+import { Eye, Share2, ExternalLink, Search, Calendar, Trash2, UserPlus, Loader2, Coins } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import Header from '@/components/Header';
 import { EditTransactionValueDialog } from '@/components/dialog/EditTransactionValueDialog';
@@ -32,13 +32,33 @@ const UserDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [addingToCRM, setAddingToCRM] = useState<string | null>(null);
   const [crmReportIds, setCrmReportIds] = useState<Set<string>>(new Set());
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
 
   useEffect(() => {
     if (user) {
       fetchUserReports();
       fetchCRMReports();
+      fetchCreditBalance();
     }
   }, [user]);
+
+  const fetchCreditBalance = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('subscriber_profiles')
+        .select('credit_balance')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (!error && data) {
+        setCreditBalance(data.credit_balance);
+      }
+    } catch (error) {
+      console.error('Error fetching credit balance:', error);
+    }
+  };
 
   const fetchCRMReports = async () => {
     if (!user?.id) return;
@@ -200,6 +220,26 @@ const UserDashboard = () => {
             Track and manage your lead estimation reports
           </p>
         </div>
+
+        {/* Credit Balance Widget */}
+        {creditBalance !== null && (
+          <Card className="mb-6 bg-gradient-to-r from-primary/10 to-primary/5">
+            <CardContent className="flex items-center justify-between p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-full bg-primary/20">
+                  <Coins className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Available Credits</p>
+                  <p className="text-3xl font-bold">{creditBalance.toLocaleString()}</p>
+                </div>
+              </div>
+              <Button asChild>
+                <Link to="/buy-credits">Buy More Credits</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

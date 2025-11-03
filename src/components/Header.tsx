@@ -209,6 +209,12 @@ const Header = () => {
                     My Reports
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/buy-credits" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Buy Credits
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2">
                   <LogOut className="h-4 w-4" />

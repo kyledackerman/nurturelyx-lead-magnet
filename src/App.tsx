@@ -49,6 +49,9 @@ import AmbassadorLeaderboard from "./pages/AmbassadorLeaderboard";
 import AmbassadorResources from "./pages/AmbassadorResources";
 import AmbassadorMyClients from "./pages/AmbassadorMyClients";
 import ResourcesPage from "./pages/ResourcesPage";
+import SubscribeCheckout from "./pages/SubscribeCheckout";
+import SubscribeThankYou from "./pages/SubscribeThankYou";
+import BuyCredits from "./pages/BuyCredits";
 
 const queryClient = new QueryClient();
 
@@ -155,6 +158,11 @@ const App = () => (
                 <AmbassadorMyClients />
               </AmbassadorAuthGuard>
             } />
+            
+            {/* Subscription Routes */}
+            <Route path="/subscribe" element={<SubscribeCheckout />} />
+            <Route path="/subscribe/thank-you" element={<SubscribeThankYou />} />
+            <Route path="/buy-credits" element={<BuyCredits />} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
