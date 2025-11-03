@@ -164,3 +164,9 @@ verify_jwt = false
 
 [functions.get-ambassador-leaderboard]
 verify_jwt = false
+
+[functions.handle-subscription-payment]
+verify_jwt = false
+
+[functions.handle-credit-purchase]
+verify_jwt = false

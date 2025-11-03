@@ -274,8 +274,7 @@ export function generateBulkPurchaseConfirmationEmail(
   purchaseCount: number,
   newCreditBalance: number
 ): string {
-  const domainList = domains.slice(0, 50).map(d => `<li style="padding: 4px 0;">${d}</li>`).join('');
-  const hasMore = domains.length > 50;
+  const domainsList = domains.map(d => `<li style="margin: 5px 0;">${d}</li>`).join('');
   
   return `
 <!DOCTYPE html>
@@ -283,63 +282,135 @@ export function generateBulkPurchaseConfirmationEmail(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lead Purchase Confirmation</title>
 </head>
 <body style="margin: 0; padding: 20px; background-color: #f5f5f5; ${baseStyles}">
   <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
-      <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Bulk Purchase Confirmed!</h1>
+      <h1 style="color: white; margin: 0; font-size: 28px;">Bulk Purchase Confirmed!</h1>
     </div>
-    
     <div style="padding: 40px 30px;">
-      <p style="margin: 0 0 20px; font-size: 16px;">
-        Great news! You've successfully purchased <strong>${purchaseCount} lead${purchaseCount !== 1 ? 's' : ''}</strong> for <strong>$${totalCost.toFixed(2)}</strong>.
-      </p>
-      
-      <div style="background-color: #f0f4ff; border: 2px solid #667eea; border-radius: 8px; padding: 20px; margin: 20px 0;">
-        <h3 style="margin: 0 0 15px; color: #667eea;">Purchase Summary</h3>
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr>
-            <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;"><strong>Leads Purchased:</strong></td>
-            <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0; text-align: right;">${purchaseCount}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;"><strong>Price Per Lead:</strong></td>
-            <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0; text-align: right;">$0.05</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;"><strong>Total Cost:</strong></td>
-            <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0; text-align: right; color: #667eea; font-size: 18px;"><strong>$${totalCost.toFixed(2)}</strong></td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0;"><strong>Current Credit Balance:</strong></td>
-            <td style="padding: 8px 0; text-align: right; font-size: 16px;"><strong>$${newCreditBalance.toFixed(2)}</strong></td>
-          </tr>
-        </table>
+      <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 20px; margin: 0 0 25px;">
+        <h2 style="margin: 0 0 10px; color: #166534; font-size: 20px;">✅ Purchase Complete</h2>
+        <p style="margin: 0; color: #166534;"><strong>${purchaseCount} leads</strong> purchased for <strong>$${totalCost.toFixed(2)}</strong></p>
       </div>
       
-      <div style="background-color: #e7f3ff; padding: 15px; border-left: 4px solid #2196F3; margin: 20px 0;">
-        <p style="margin: 0;"><strong>💡 How Credit Works:</strong></p>
-        <p style="margin: 10px 0 0 0;">Your credit balance will be automatically settled against your monthly commission payouts. No upfront payment required!</p>
+      <div style="background-color: #fef3c7; padding: 15px; border-radius: 6px; margin: 20px 0;">
+        <p style="margin: 0; color: #92400e;">💳 <strong>New Credit Balance:</strong> ${newCreditBalance.toLocaleString()} credits</p>
       </div>
-      
-      <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
-        <h3 style="margin: 0 0 15px; color: #333;">Domains Purchased</h3>
-        <ul style="list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto;">
-          ${domainList}
+
+      <h3 style="color: #333; margin: 25px 0 15px;">Purchased Domains:</h3>
+      <div style="background-color: #f8f9fa; padding: 15px; border-radius: 6px;">
+        <ul style="margin: 0; padding-left: 20px; color: #666;">
+          ${domainsList}
         </ul>
-        ${hasMore ? `<p style="margin-top: 10px; color: #666; font-style: italic;">...and ${domains.length - 50} more</p>` : ''}
       </div>
-      
+
       <div style="text-align: center; margin: 30px 0;">
-        <a href="https://x1.nurturely.io/ambassador/domains" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">View My Domains</a>
+        <a href="https://x1.nurturely.io/ambassador/domains" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">View Your Domains →</a>
       </div>
-      
-      <p style="margin-top: 30px; color: #666; font-size: 14px; text-align: center;">
-        These leads are now exclusively assigned to you. Start reaching out to turn them into clients!
-      </p>
+
+      <p style="margin: 20px 0 0; color: #666; font-size: 14px;">Questions? Reply to this email.</p>
     </div>
-    
+    <div style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; color: #666; font-size: 12px;">
+      <p style="margin: 0;">© 2025 Nurturely. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+}
+
+export function generateSubscriptionWelcomeEmail(
+  fullName: string,
+  creditsAwarded: number,
+  planName: string
+): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 20px; background-color: #f5f5f5; ${baseStyles}">
+  <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+      <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Welcome to Nurturely!</h1>
+    </div>
+    <div style="padding: 40px 30px;">
+      <h2 style="color: #333; margin: 0 0 20px;">Hi ${fullName},</h2>
+      <p style="margin: 0 0 15px;">Your subscription is now active and you're all set to start purchasing leads!</p>
+      
+      <div style="background-color: #f0fdf4; border: 3px solid #22c55e; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center;">
+        <h3 style="margin: 0 0 10px; color: #166534; font-size: 22px;">✨ ${creditsAwarded.toLocaleString()} Credits Awarded</h3>
+        <p style="margin: 0; color: #166534; font-size: 14px;">Your ${planName} plan is ready to use!</p>
+      </div>
+
+      <h3 style="color: #333; margin: 25px 0 15px;">Next Steps:</h3>
+      <ol style="margin: 0 0 25px; padding-left: 20px; color: #666;">
+        <li style="margin-bottom: 10px;">Browse the marketplace for high-quality leads</li>
+        <li style="margin-bottom: 10px;">Use your credits to purchase leads that match your needs</li>
+        <li style="margin-bottom: 10px;">Access contact details and start reaching out</li>
+      </ol>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="https://x1.nurturely.io/buy-credits" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">Start Purchasing Leads →</a>
+      </div>
+
+      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 6px; margin: 20px 0;">
+        <p style="margin: 0 0 10px; color: #666; font-weight: 600;">💡 Pro Tip:</p>
+        <p style="margin: 0; color: #666; font-size: 14px;">Your monthly credits roll over, so you can accumulate them for larger purchases.</p>
+      </div>
+
+      <p style="margin: 20px 0 0; color: #666; font-size: 14px;">Questions? Our support team is here to help – just reply to this email.</p>
+    </div>
+    <div style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; color: #666; font-size: 12px;">
+      <p style="margin: 0;">© 2025 Nurturely. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+}
+
+export function generateCreditPurchaseConfirmationEmail(
+  fullName: string,
+  creditsPurchased: number,
+  amountPaid: number,
+  newBalance: number
+): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 20px; background-color: #f5f5f5; ${baseStyles}">
+  <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+      <h1 style="color: white; margin: 0; font-size: 28px;">💳 Purchase Confirmed</h1>
+    </div>
+    <div style="padding: 40px 30px;">
+      <h2 style="color: #333; margin: 0 0 20px;">Hi ${fullName},</h2>
+      <p style="margin: 0 0 15px;">Your credit purchase was successful!</p>
+      
+      <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 20px; margin: 25px 0;">
+        <h3 style="margin: 0 0 10px; color: #166534; font-size: 18px;">Purchase Details</h3>
+        <p style="margin: 0 0 8px; color: #166534;"><strong>Credits Purchased:</strong> ${creditsPurchased.toLocaleString()}</p>
+        <p style="margin: 0; color: #166534;"><strong>Amount Paid:</strong> $${amountPaid.toFixed(2)}</p>
+      </div>
+
+      <div style="background-color: #fef3c7; padding: 15px; border-radius: 6px; margin: 20px 0;">
+        <p style="margin: 0; color: #92400e;">💰 <strong>New Balance:</strong> ${newBalance.toLocaleString()} credits</p>
+      </div>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="https://x1.nurturely.io/ambassador/marketplace" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-weight: 600;">Browse Marketplace →</a>
+      </div>
+
+      <p style="margin: 20px 0 0; color: #666; font-size: 14px;">Questions? Reply to this email and we'll help you out.</p>
+    </div>
     <div style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; color: #666; font-size: 12px;">
       <p style="margin: 0;">© 2025 Nurturely. All rights reserved.</p>
     </div>
