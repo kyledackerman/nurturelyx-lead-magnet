@@ -539,6 +539,9 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
       }
     }
 
+    // Determine the final industry value (either newly updated or existing)
+    const finalIndustry = updateData.industry || currentIndustry;
+
     // Check if we found any contacts with email addresses
     const contactsWithEmail = contacts.filter((c: any) => c.email && c.email.trim() !== '');
     const hasValidContacts = contactsWithEmail.length > 0;
@@ -627,7 +630,7 @@ Extract the proper company name and all contact information. BE AGGRESSIVE in fi
         .eq("id", prospect_id);
       
       // Generate personalized use cases if we have company name and industry
-      if (companyName && industryValue) {
+      if (companyName && finalIndustry) {
         console.log("🎯 Generating personalized use cases...");
         try {
           const { error: useCasesError } = await supabase.functions.invoke(
