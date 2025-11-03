@@ -518,6 +518,33 @@ export type Database = {
           },
         ]
       }
+      credit_purchases: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          credits_purchased: number
+          id: string
+          stripe_payment_id: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string
+          credits_purchased: number
+          id?: string
+          stripe_payment_id: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          credits_purchased?: number
+          id?: string
+          stripe_payment_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       credit_transactions: {
         Row: {
           ambassador_id: string
@@ -1343,6 +1370,42 @@ export type Database = {
           use_cases_approved?: boolean | null
           use_cases_generated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      subscriber_profiles: {
+        Row: {
+          created_at: string
+          credit_balance: number
+          id: string
+          monthly_platform_fee: number
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credit_balance?: number
+          id?: string
+          monthly_platform_fee?: number
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credit_balance?: number
+          id?: string
+          monthly_platform_fee?: number
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
