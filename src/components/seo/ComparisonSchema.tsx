@@ -24,6 +24,10 @@ export const ComparisonSchema = ({ items }: ComparisonSchemaProps) => {
         "description": item.description,
         "review": {
           "@type": "Review",
+          "author": {
+            "@type": "Organization",
+            "name": "NurturelyX"
+          },
           "reviewBody": `Pros: ${item.pros.join(", ")}. Cons: ${item.cons.join(", ")}`,
         }
       }
