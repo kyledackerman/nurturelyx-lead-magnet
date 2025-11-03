@@ -5,8 +5,7 @@ import { MetaTags } from "@/components/seo/MetaTags";
 
 const SubscribeCheckout = () => {
   const handleSubscribe = () => {
-    // Replace this URL with your actual Stripe checkout link
-    window.open("YOUR_STRIPE_SUBSCRIPTION_LINK_HERE", "_blank");
+    window.open("https://link.nurturely.io/payment-link/68b9eb412197091d91e19a17", "_blank");
   };
 
   return (
