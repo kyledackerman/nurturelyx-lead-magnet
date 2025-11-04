@@ -1608,6 +1608,7 @@ export type Database = {
       }
       get_average_deal_size: { Args: never; Returns: Json }
       get_chart_data: { Args: { period?: string }; Returns: Json }
+      get_conversion_health: { Args: never; Returns: Json }
       get_crm_funnel_metrics: { Args: never; Returns: Json }
       get_crm_metrics: { Args: never; Returns: Json }
       get_crm_prospects_with_stats: {

@@ -1021,29 +1021,16 @@ const AdminDashboard = () => {
 
   const fetchConversionRate = async () => {
     try {
-      // Get total count of all reports (not limited to 1000)
-      const { count: totalReportsCount, error: reportsError } = await supabase
-        .from('reports')
-        .select('*', { count: 'exact', head: true });
+      const { data, error } = await supabase.rpc('get_conversion_health');
       
-      if (reportsError) throw reportsError;
-
-      // Get unique report_ids in CRM
-      const { data: crmReports, error: crmError } = await supabase
-        .from('prospect_activities')
-        .select('report_id')
-        .range(0, 50000);
+      if (error) throw error;
       
-      if (crmError) throw crmError;
-
-      const totalReports = totalReportsCount || 0;
-      const reportsInCRM = new Set(crmReports?.map(p => p.report_id) || []).size;
-      const conversionRate = totalReports > 0 ? (reportsInCRM / totalReports) * 100 : 0;
-
+      const result = data as { totalReports: number; reportsInCRM: number; conversionRate: number };
+      
       setConversionHealth({
-        conversionRate: Math.round(conversionRate),
-        reportsInCRM,
-        totalReports
+        totalReports: result.totalReports,
+        reportsInCRM: result.reportsInCRM,
+        conversionRate: result.conversionRate,
       });
     } catch (error) {
       console.error('Error fetching conversion rate:', error);
