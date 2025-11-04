@@ -1031,7 +1031,8 @@ const AdminDashboard = () => {
       // Get unique report_ids in CRM
       const { data: crmReports, error: crmError } = await supabase
         .from('prospect_activities')
-        .select('report_id');
+        .select('report_id')
+        .range(0, 50000);
       
       if (crmError) throw crmError;
 
