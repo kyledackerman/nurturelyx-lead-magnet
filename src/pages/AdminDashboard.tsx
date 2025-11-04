@@ -853,7 +853,7 @@ const AdminDashboard = () => {
       setQualityScore({
         highImpactCount: (data as any)?.highImpactCount || 0,
         totalCount: (data as any)?.totalCount || 0,
-        percentage: Math.round((data as any)?.percentage || 0)
+        percentage: (data as any)?.percentage || 0
       });
     } catch (error) {
       console.error('Error fetching quality score:', error);
