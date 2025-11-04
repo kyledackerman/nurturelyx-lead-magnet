@@ -1400,7 +1400,7 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent className="p-3 pt-0">
                   <div className={`text-4xl font-bold ${qualityScore.percentage > 30 ? 'text-green-500' : qualityScore.percentage > 20 ? 'text-yellow-500' : 'text-orange-500'}`}>
-                    {qualityScore.percentage}%
+                    {qualityScore.percentage.toFixed(2)}%
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {qualityScore.highImpactCount} of {qualityScore.totalCount} are high-impact
