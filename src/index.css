@@ -238,4 +238,37 @@
       -moz-osx-font-smoothing: grayscale;
     }
   }
+
+  /* Markdown table styles */
+  .markdown-table-wrapper {
+    margin: 1.5rem 0;
+  }
+  
+  .markdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  
+  .markdown-th, .markdown-td {
+    min-width: 100px;
+    text-align: left;
+    vertical-align: top;
+  }
+  
+  .markdown-thead .markdown-th {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  
+  @media (max-width: 768px) {
+    .markdown-table {
+      font-size: 0.8rem;
+    }
+    
+    .markdown-th, .markdown-td {
+      min-width: 80px;
+      padding: 0.5rem !important;
+    }
+  }
 }

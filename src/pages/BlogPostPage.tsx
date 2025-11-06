@@ -12,6 +12,7 @@ import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { scrollToTop } from "@/lib/scroll";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import { RelatedArticles } from "@/components/blog/RelatedArticles";
@@ -138,12 +139,30 @@ export default function BlogPostPage() {
 
           <div className="prose prose-lg max-w-none">
             <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
               components={{
                 h2: ({ children, ...props }) => {
                   const text = children?.toString() || '';
                   const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
                   return <h2 id={id} {...props}>{children}</h2>;
                 },
+                table: ({ children }) => (
+                  <div className="markdown-table-wrapper overflow-x-auto my-6">
+                    <table className="markdown-table w-full border-collapse">{children}</table>
+                  </div>
+                ),
+                thead: ({ children }) => (
+                  <thead className="markdown-thead">{children}</thead>
+                ),
+                th: ({ children, ...props }) => (
+                  <th className="markdown-th border border-border bg-muted p-3 text-left font-semibold" {...props}>{children}</th>
+                ),
+                td: ({ children, ...props }) => (
+                  <td className="markdown-td border border-border p-3 align-top" {...props}>{children}</td>
+                ),
+                tr: ({ children, ...props }) => (
+                  <tr className="markdown-tr even:bg-accent/5" {...props}>{children}</tr>
+                ),
               }}
             >
               {post.content}
