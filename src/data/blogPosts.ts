@@ -2242,8 +2242,8 @@ According to recent industry research and analyst reports:
 | **Job Titles/Seniority** | ✓ Yes | ✗ No | ⚠️ Partial | ✗ No | ⚠️ Account level | ✗ No |
 | **Behavioral Tracking** | ✓ Complete journey | ✓ Page views | ✓ Page views | ✓ Page views | ✓ Advanced | ✓ Product usage |
 | **Real-Time Alerts** | ✓ < 60 seconds | ⚠️ Daily digest | ⚠️ Batch | ✓ Real-time | ✓ Real-time | ✓ Real-time |
-| **CRM Integration** | ✓ Native | ✓ Native | ✓ Native | ✓ Native | ✓ Native | ✓ Native |
-| **API Access** | ✓ Included | ⚠️ $500/mo extra | ⚠️ Separate product | ✓ Included | ✓ Included | ✓ Included |
+| **CRM Integration** | ✓ GHL native | ✓ Native | ✓ Native | ✓ Native | ✓ Native | ✓ Native |
+| **Data Integration** | ✓ GHL + CSV exports | ⚠️ $500/mo extra | ⚠️ Separate product | ✓ Included | ✓ Included | ✓ Included |
 | **Data Export** | ✓ Daily CSV | ✓ Yes | ✓ Yes | ✓ Yes | ⚠️ Limited | ✓ Yes |
 | **Mobile App** | ✓ iOS & Android | ✗ No | ✗ No | ⚠️ Basic | ✓ Yes | ✗ No |
 | **Setup Time** | 5 minutes | 15 minutes | 1-2 hours | 20 minutes | 3-6 months | 2-3 days |
@@ -2258,6 +2258,34 @@ According to recent industry research and analyst reports:
 | **GDPR Compliant** | ✓ Yes | ✓ Yes | ✓ Yes | ✓ Yes | ✓ Yes | ✓ Yes |
 | **Data Freshness** | Real-time | Daily | Batch | Daily | Near real-time | Real-time |
 | **Remote Worker Accuracy** | ✓ High | ⚠️ Low | ⚠️ Low | ⚠️ Low | ⚠️ Moderate | ⚠️ Moderate |
+
+**Note about NurturelyX Data Integration:** Go High Level (GHL) native integration included. Full CSV data export available every 24 hours. No API rate limits on CSV exports.
+
+## Understanding Data Integration Options
+
+**NurturelyX offers two ways to access your identified visitor data:**
+
+1. **Go High Level (GHL) Integration** (Included)
+   - Native integration with GHL platform
+   - Real-time sync of identified visitors
+   - Automatically creates contacts in GHL
+   - Includes full contact profiles and behavioral data
+   - Connect HubSpot through GHL workflows
+
+2. **Daily CSV Exports** (Included)
+   - Complete data dump every 24 hours
+   - Includes all identified visitors from previous day
+   - Full profile data: names, emails, phones, behavioral tracking
+   - Import into any CRM or database
+   - No export limits or additional charges
+
+**What we DON'T offer:**
+- Direct REST API access (not needed for most businesses)
+- Real-time API webhooks (use GHL integration instead)
+- Direct integrations with Salesforce, Pipedrive, etc. (use GHL as middleware)
+
+**Why this approach works:**
+Most businesses need data in their CRM (via GHL) or exported for custom workflows (via CSV). Complex API integrations add cost and maintenance burden. Our model keeps pricing transparent and simple.
 
 ## ROI Comparison: What Really Matters
 
@@ -2413,7 +2441,7 @@ Most visitor identification tools advertise low base prices but charge separatel
 - Base platform: $199-$999/month (company names only)
 - Add email lookups: $0.50-$2.00 per contact
 - Add phone lookups: $1.00-$3.00 per contact (when available)
-- Add API access: $500-$2,000/month extra
+- Add data exports/integrations: $500-$2,000/month extra
 - Add CRM integration: $200-$500/month premium
 
 **Real-world example**: Clearbit for 500 contacts/month:
@@ -2425,8 +2453,8 @@ Most visitor identification tools advertise low base prices but charge separatel
 **NurturelyX All-Inclusive Model**:
 - Platform: $100/month
 - Complete profiles: $1 per identified visitor (includes name, email, phone, demographics, firmographics, browsing history)
-- API access: included
-- CRM integration: included
+- Go High Level (GHL) integration: included
+- Daily CSV exports (24-hour full data dump): included
 - **Total: $600/month for 500 complete profiles**
 
 💡 **You get MORE data for LESS money** with zero surprise charges.
@@ -2618,7 +2646,15 @@ This is why identity resolution has become the preferred technology in the remot
 
 ### Q: Can I export the identified visitor data?
 
-**A:** Most tools allow CSV exports. NurturelyX provides daily CSV reports and API access. Enterprise tools like 6sense and Demandbase offer data warehouse integration. Check export capabilities before purchasing - some tools restrict exports to force platform dependency.
+**A:** Most tools allow CSV exports. NurturelyX provides daily CSV reports (full data export every 24 hours) and Go High Level (GHL) native integration. Enterprise tools like 6sense and Demandbase offer data warehouse integration. Check export capabilities before purchasing - some tools restrict exports to force platform dependency.
+
+### Q: Do you integrate with my CRM?
+
+**A:** Yes, through Go High Level (GHL). GHL is a powerful marketing automation platform that connects to virtually every major CRM including HubSpot, Salesforce, Pipedrive, and dozens more. When you connect NurturelyX to GHL, identified visitors automatically flow into your CRM of choice. Additionally, you can export all data via CSV daily for custom integrations or database imports. This approach gives you maximum flexibility without the complexity of maintaining dozens of direct integrations.
+
+### Q: Why Go High Level instead of direct CRM integrations?
+
+**A:** Three reasons: (1) GHL connects to 50+ CRMs, so one integration serves everyone. (2) GHL adds powerful automation workflows - you can trigger emails, SMS, tasks when visitors are identified. (3) It keeps our costs down, which means lower prices for you ($100/mo vs $500-$1000/mo for direct integrations). Most of our customers actually prefer the GHL approach because it adds capabilities beyond simple contact syncing.
 
 ## Real Customer Success Stories (2025)
 
@@ -2775,9 +2811,9 @@ We're the only vendor with truly transparent pricing:
 - Real-time visitor identification
 - Complete contact profiles (name, email, phone, title)
 - Behavioral tracking and intent scoring
-- CRM integration (Salesforce, HubSpot, Pipedrive)
-- API access
-- Daily CSV exports
+- Go High Level (GHL) integration
+- Daily CSV exports (full data dump every 24 hours)
+- HubSpot integration (via GHL)
 - Mobile app access
 - Email deliverability verification
 - Phone number validation
@@ -2791,8 +2827,8 @@ We're the only vendor with truly transparent pricing:
 **No Additional Charges For:**
 - Email lookups (included)
 - Phone numbers (included)
-- API calls (included)
-- CRM syncs (included)
+- CSV exports (unlimited, 24-hour refresh)
+- GHL syncs (included)
 - Team members (included)
 - Traffic volume (included)
 
