@@ -124,6 +124,13 @@ const ResourcesPage = () => {
       category: "tool"
     },
     {
+      title: "Sales Call ROI Calculator",
+      description: "Calculate the true cost and return on investment of your sales calling efforts. Understand cost per conversion, revenue per hour, and optimize your sales team's time.",
+      url: "/tools/sales-call-roi-calculator",
+      icon: Calculator,
+      category: "tool"
+    },
+    {
       title: "Visitor ID vs Traditional Forms",
       description: "Compare visitor identification technology to traditional lead capture methods side-by-side.",
       url: "/compare/visitor-id-vs-traditional",
