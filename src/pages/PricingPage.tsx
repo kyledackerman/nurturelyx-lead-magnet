@@ -54,6 +54,14 @@ const PricingPage = () => {
     {
       question: "Is my data secure and compliant?",
       answer: "Absolutely. We're fully GDPR, CCPA, and TCPA compliant. All data is encrypted at rest and in transit. We follow SOC 2 security standards and never sell your data to third parties."
+    },
+    {
+      question: "Do I get charged for visitors who fill out forms?",
+      answer: "Yes, because you're getting much more than just their form data. Identity resolution connects that form submission to their complete browsing history, intent signals, and engagement patterns. For example, knowing someone visited your pricing page 4 times over 2 weeks before filling out a form tells your sales team they're a hot lead. That context is worth far more than the $1 charge and results in 3x higher close rates."
+    },
+    {
+      question: "How is this different from form enrichment tools?",
+      answer: "Form enrichment tools (like Clearbit Enrichment) only add firmographic data to leads you already captured via forms. Identity resolution identifies ALL visitors - including the 95% who never fill out forms - and tracks their complete journey. You get contact information for anonymous visitors PLUS the full context for everyone who engages with your site."
     }
   ];
   

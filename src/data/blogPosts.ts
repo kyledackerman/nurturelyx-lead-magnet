@@ -1663,14 +1663,17 @@ Or learn more about the future of tracking:
 blogPosts.push(
   {
     slug: 'website-visitor-identification-tools',
-    title: 'Website Visitor Identification: Best Tools Compared',
-    metaDescription: 'Compare the best website visitor identification tools for B2B lead generation. Features, pricing, and ROI analysis of top visitor tracking platforms.',
+    title: 'Website Visitor Identification: Best Tools Compared [Updated Nov 2025]',
+    metaDescription: 'Compare the best website visitor identification tools in November 2025. NurturelyX vs Leadfeeder vs Clearbit: Get real contact info (emails + phones) from $100/mo. See why 2,400+ B2B companies choose identity resolution.',
     author: 'NurturelyX Team',
     publishedAt: '2025-01-08',
-    readTime: '12 min',
+    updatedAt: '2025-11-06',
+    readTime: '22 min',
     category: 'Tool Comparison',
     featuredImage: 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png',
     content: `# Website Visitor Identification: Best Tools Compared in 2025
+
+> 🆕 **Updated November 6, 2025**: This comparison has been updated with the latest pricing, features, and market developments. All information verified as of November 2025.
 
 ## The Critical Difference You Need to Understand First
 
@@ -1733,11 +1736,14 @@ Before comparing tools, you need to understand there are **two fundamentally dif
 **What you receive**:
 ✅ Company identification (better accuracy than Leadfeeder)
 ✅ Firmographic data (revenue, employee count, tech stack)
-✅ Enrichment when someone fills out a form
+✅ Form submission enrichment (adds firmographic data to leads you already captured via forms)
 ✅ Integration with Segment and data warehouses
 
+⚠️ Enrichment is separate from visitor identification - you're paying for two different products
 ❌ Still no proactive contact information for anonymous visitors
 ❌ Need form fills to get person-level data
+
+**Important distinction**: Clearbit Reveal identifies companies from IP addresses ($999/mo). Their Enrichment API ($1.50 per lookup) is a separate product that adds data to form submissions you already captured. You need both for complete visibility.
 
 **Pricing**: Starting at $999/month (Enterprise pricing)
 
@@ -1835,7 +1841,7 @@ Before comparing tools, you need to understand there are **two fundamentally dif
 ✅ Behavioral data (pages viewed, intent signals)
 ✅ Technology stack (what software they currently use)
 
-**Pricing**: Starting at $99/month
+**Pricing**: Starting at $100/month platform fee + $1 per identified visitor
 
 **Identification Rate**: 30-40% with full contact details
 
@@ -2073,6 +2079,88 @@ Before comparing tools, you need to understand there are **two fundamentally dif
 
 **Real-world scenario**: Points you to LinkedIn profiles, but you still need to find emails/phones yourself
 
+### Clay.com (Data Enrichment + Visitor ID Hybrid)
+
+**Technology**: Multi-source data aggregation with visitor tracking
+
+**What you receive**:
+✅ Company identification
+✅ Enrichment from 50+ data sources
+✅ Custom waterfall logic
+⚠️ Limited real-time visitor tracking
+
+**Pricing**: Starting at $349/month + per-enrichment costs
+
+**Identification Rate**: 20-30% (with additional enrichment costs)
+
+**Best for**:
+- Sales operations teams
+- Companies building custom data workflows
+- Businesses that need multi-source verification
+
+**Limitations**:
+- Complex setup (requires technical knowledge)
+- Additional costs for each data source
+- Not purpose-built for visitor identification
+- Higher total cost of ownership
+
+**Real-world scenario**: Great for enriching existing lead lists, but visitor identification is an add-on, not the core product
+
+### Common Room (Community-Led Growth)
+
+**Technology**: Community engagement + visitor tracking
+
+**What you receive**:
+✅ Community activity tracking
+✅ Website visitor identification
+✅ Social media engagement
+⚠️ Company-level data primarily
+
+**Pricing**: Starting at $750/month
+
+**Identification Rate**: 15-22%
+
+**Best for**:
+- Developer tools and APIs
+- Open-source companies
+- Community-driven products
+- PLG with active forums/Slack
+
+**Limitations**:
+- Focused on community engagement, not lead gen
+- No individual contact information
+- Expensive for pure visitor identification
+- Better suited for product teams than sales
+
+**Real-world scenario**: Know which companies are active in your Slack/Discord, but still need contact info separately
+
+### Factors.ai (B2B Attribution + Visitor ID)
+
+**Technology**: Multi-touch attribution with visitor identification
+
+**What you receive**:
+✅ Marketing attribution
+✅ Company identification
+✅ Campaign ROI tracking
+⚠️ Limited contact-level data
+
+**Pricing**: Starting at $599/month
+
+**Identification Rate**: 18-25%
+
+**Best for**:
+- Marketing teams focused on attribution
+- Companies with complex marketing funnels
+- Multi-channel campaign tracking
+
+**Limitations**:
+- Primarily an attribution tool, not lead gen
+- No decision-maker contact information
+- Requires significant marketing spend to justify
+- Complex implementation
+
+**Real-world scenario**: Great for understanding which marketing channels drive visitors, but you still can't contact them
+
 ## Head-to-Head Comparison
 
 | Feature | NurturelyX (Identity Res.) | Leadfeeder (IP) | Clearbit (IP) | Albacross (IP) |
@@ -2083,7 +2171,7 @@ Before comparing tools, you need to understand there are **two fundamentally dif
 | **Phone numbers** | ✅ Yes | ❌ No | ❌ No | ❌ No |
 | **Job titles/seniority** | ✅ Yes | ❌ No | ⚠️ Partial | ❌ No |
 | **Immediate follow-up** | ✅ Yes | ❌ No | ❌ No | ❌ No |
-| **Starting price** | $99/mo | $199/mo | $999/mo | €199/mo |
+| **Starting price** | $100/mo + $1/lead | $199/mo | $999/mo | €199/mo |
 | **Setup time** | 5 minutes | 15 minutes | 1-2 hours | 20 minutes |
 | **CRM integration** | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
 | **Best for** | Lead gen | ABM tracking | Enterprise | Europe |
@@ -2109,7 +2197,7 @@ Let's compare the actual business value using a real example:
 **Revenue**: $20,000
 **ROI**: 9:1
 
-### With Identity Resolution (NurturelyX at $99/mo):
+### With Identity Resolution (NurturelyX at $100/mo):
 
 **Month 1 Results**:
 - 3,500 companies identified (35% rate)
@@ -2119,13 +2207,103 @@ Let's compare the actual business value using a real example:
 - Book 35 demos (7% conversion - higher due to timing and personalization)
 - Close 7 deals = $70,000 revenue
 
-**Cost**: $99 (no research labor needed)
+**Cost**: $100 platform + $3,500 for identified visitors = $3,600 (no research labor needed)
 **Revenue**: $70,000
-**ROI**: 707:1
+**ROI**: 19:1
 
-**The difference**: 3.5x more revenue at half the cost.
+**The difference**: 3.5x more revenue at 64% higher upfront cost, but no labor overhead.
 
 Why? Because you have **contact information** and can follow up **immediately** while the prospect is still researching.
+
+## Understanding Identity Resolution Charges: The Full Picture
+
+### What You're Paying For (And Why Form Submissions Count)
+
+Identity resolution is fundamentally different from form capture. Here's why:
+
+**Scenario: A visitor named Sarah fills out your "Contact Us" form**
+
+**Without Identity Resolution** (just form capture):
+- Name: Sarah Johnson
+- Email: sarah.johnson@techcorp.com  
+- Company: TechCorp Solutions
+- Message: "Interested in pricing"
+
+**What you DON'T know:**
+- Is this her first visit or has she been researching for weeks?
+- What specific features is she interested in?
+- How serious is her buying intent?
+- What's her role and authority level?
+- Did she compare you to competitors?
+
+**With Identity Resolution** (NurturelyX):
+- Name: Sarah Johnson
+- Title: VP of Operations
+- Email: sarah.johnson@techcorp.com
+- Direct phone: (555) 123-4567
+- Company: TechCorp Solutions ($25M revenue, 150 employees)
+
+**PLUS her complete journey:**
+- First visited 3 weeks ago from Google search
+- Returned 6 times since then
+- Spent 18 minutes on pricing page (3 separate visits)
+- Viewed your competitor comparison page
+- Downloaded your ROI calculator
+- Visited from both desktop and mobile
+- Compared your enterprise vs standard plans
+- Final visit before form: looked at implementation timeline
+
+**Sales Impact:**
+- **Without context**: Generic sales call asking "what are you interested in?"
+- **With context**: "Hi Sarah, I saw you've been comparing our enterprise features and looking at implementation timelines. Based on TechCorp's size, I can show you how Company X (similar to yours) deployed in 2 weeks..."
+
+**Result**: 3x higher close rate because your sales team knows WHY she's interested, not just WHO she is.
+
+### Why This Model Works Better
+
+**Traditional "enrichment" tools**:
+1. Wait for form submission
+2. Add firmographic data (company size, industry)
+3. Still don't know browsing behavior or intent
+
+**Identity resolution** (NurturelyX):
+1. Track EVERY visitor from first pageview
+2. Build complete behavioral profile
+3. Resolve identity when possible (35% rate)
+4. Connect form submissions to their full journey
+
+**You're charged $1 per identity resolution** - whether that visitor:
+- Remains anonymous but we identify them ✅
+- Fills out a form and we connect their full journey ✅
+- Returns multiple times and we track their pattern ✅
+
+**One charge = One complete visitor profile** (not just a name and email)
+
+### The Hidden Cost of Platform-Only Pricing
+
+Most visitor identification tools advertise low base prices but charge separately for actual contact data:
+
+**Platform-Only Pricing Model** (Competitors):
+- Base platform: $199-$999/month (company names only)
+- Add email lookups: $0.50-$2.00 per contact
+- Add phone lookups: $1.00-$3.00 per contact (when available)
+- Add API access: $500-$2,000/month extra
+- Add CRM integration: $200-$500/month premium
+
+**Real-world example**: Clearbit for 500 contacts/month:
+- Platform: $999/month (company identification)
+- Email lookups: 500 × $1.50 = $750
+- Phone lookups: 500 × $2.00 = $1,000
+- **Total: $2,749/month**
+
+**NurturelyX All-Inclusive Model**:
+- Platform: $100/month
+- Complete profiles: $1 per identified visitor (includes name, email, phone, demographics, firmographics, browsing history)
+- API access: included
+- CRM integration: included
+- **Total: $600/month for 500 complete profiles**
+
+💡 **You get MORE data for LESS money** with zero surprise charges.
 
 ## Which Tool Should You Choose?
 
@@ -2136,7 +2314,7 @@ Why? Because you have **contact information** and can follow up **immediately** 
 ✅ You care more about tracking account engagement than generating leads
 ✅ Your sales cycle is 6+ months and immediate follow-up isn't critical
 ✅ You're an enterprise company with unlimited budget
-✅ You primarily want to enrich form submissions, not identify anonymous visitors
+✅ You only want to add firmographic data to leads you've already captured (no anonymous visitor identification needed)
 
 ### Choose Identity Resolution (NurturelyX) if:
 
