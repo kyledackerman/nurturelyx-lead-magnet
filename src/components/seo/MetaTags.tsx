@@ -17,6 +17,8 @@ interface MetaTagsProps {
   publishedTime?: string;
   modifiedTime?: string;
   robots?: string;
+  preconnect?: string[];
+  dnsPrefetch?: string[];
 }
 
 export const MetaTags = ({
@@ -36,9 +38,19 @@ export const MetaTags = ({
   publishedTime,
   modifiedTime,
   robots = "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+  preconnect = [],
+  dnsPrefetch = [],
 }: MetaTagsProps) => {
   return (
     <Helmet>
+      {/* Resource hints for performance */}
+      {preconnect.map((url) => (
+        <link key={`preconnect-${url}`} rel="preconnect" href={url} />
+      ))}
+      {dnsPrefetch.map((url) => (
+        <link key={`dns-prefetch-${url}`} rel="dns-prefetch" href={url} />
+      ))}
+      
       {/* Basic Meta Tags */}
       <title>{title}</title>
       <meta name="description" content={description} />

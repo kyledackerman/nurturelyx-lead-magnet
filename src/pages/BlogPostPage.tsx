@@ -6,6 +6,8 @@ import { getBlogPost, BlogPost } from "@/data/blogPosts";
 import { ArticleSchema } from "@/components/seo/ArticleSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { PersonSchema } from "@/components/seo/PersonSchema";
+import { SpeakableSchema } from "@/components/seo/SpeakableSchema";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
@@ -16,6 +18,9 @@ import remarkGfm from "remark-gfm";
 import { scrollToTop } from "@/lib/scroll";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import { RelatedArticles } from "@/components/blog/RelatedArticles";
+import { getAuthorById } from "@/data/authors";
+import { AuthorBio } from "@/components/blog/AuthorBio";
+import { KeyTakeaways } from "@/components/blog/KeyTakeaways";
 
 export default function BlogPostPage() {
   usePageViewTracking('marketing');
@@ -38,6 +43,19 @@ export default function BlogPostPage() {
       </>
     );
   }
+
+  const author = getAuthorById(post.author);
+  const canonicalUrl = `https://x1.nurturely.io/blog/${post.slug}`;
+  
+  // Convert read time to ISO 8601 duration (e.g., "12 min" -> "PT12M")
+  const readTimeMinutes = parseInt(post.readTime.match(/\d+/)?.[0] || "5");
+  const timeRequired = `PT${readTimeMinutes}M`;
+  
+  // Calculate word count from content
+  const wordCount = post.content.split(/\s+/).length;
+  
+  // Generate abstract from meta description
+  const abstract = post.metaDescription;
 
   return (
     <>
@@ -68,7 +86,7 @@ export default function BlogPostPage() {
       <WebPageSchema
         name={post.title}
         description={post.metaDescription}
-        url={`https://x1.nurturely.io/blog/${post.slug}`}
+        url={canonicalUrl}
         datePublished={post.publishedAt}
         dateModified={post.updatedAt}
         image={post.featuredImage}
@@ -80,17 +98,32 @@ export default function BlogPostPage() {
         ]}
       />
       
+      <PersonSchema
+        name={author.name}
+        jobTitle={author.jobTitle}
+        url={`https://x1.nurturely.io/author/${author.id}`}
+        knowsAbout={author.expertise}
+        sameAs={author.socialLinks ? Object.values(author.socialLinks).filter(Boolean) : undefined}
+        description={author.bio}
+      />
+      
       <ArticleSchema
         title={post.title}
         description={post.metaDescription}
         publishedAt={post.publishedAt}
         updatedAt={post.updatedAt}
-        author={post.author}
-        url={`https://x1.nurturely.io/blog/${post.slug}`}
+        author={author.name}
+        authorUrl={`https://x1.nurturely.io/author/${author.id}`}
+        authorJobTitle={author.jobTitle}
+        url={canonicalUrl}
         imageUrl={post.featuredImage}
         category={post.category}
-        wordCount={post.content.split(/\s+/).length}
+        wordCount={wordCount}
+        timeRequired={timeRequired}
+        abstract={abstract}
       />
+      
+      <SpeakableSchema />
       
       <BreadcrumbSchema
         items={[
@@ -122,18 +155,35 @@ export default function BlogPostPage() {
           <div className="mb-8">
             <div className="text-sm text-primary font-semibold mb-2">{post.category}</div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">{post.title}</h1>
-            <div className="flex items-center gap-4 text-muted-foreground">
+            <div className="flex items-center gap-4 text-muted-foreground flex-wrap">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                {new Date(post.publishedAt).toLocaleDateString()}
+                <span className="text-sm">
+                  {new Date(post.publishedAt).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </span>
               </div>
+              {post.updatedAt && post.updatedAt !== post.publishedAt && (
+                <span className="text-xs px-2 py-1 bg-accent text-accent-foreground rounded-md font-medium">
+                  Updated: {new Date(post.updatedAt).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </span>
+              )}
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                {post.readTime}
+                <span className="text-sm">{post.readTime} read</span>
               </div>
-              <div>By {post.author}</div>
+              <div className="text-sm">By {author.name}</div>
             </div>
           </div>
+
+          {post.keyTakeaways && <KeyTakeaways takeaways={post.keyTakeaways} />}
 
           <TableOfContents content={post.content} />
 
@@ -169,7 +219,9 @@ export default function BlogPostPage() {
             </ReactMarkdown>
           </div>
 
-          <InternalLinkingWidget 
+          <AuthorBio author={author} />
+
+          <InternalLinkingWidget
             title="Continue Learning"
             links={[
               {

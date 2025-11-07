@@ -6,10 +6,18 @@ interface ArticleSchemaProps {
   publishedAt: string;
   updatedAt?: string;
   author: string;
+  authorUrl?: string;
+  authorJobTitle?: string;
   url: string;
   imageUrl?: string;
+  imageWidth?: number;
+  imageHeight?: number;
   category: string;
   wordCount?: number;
+  timeRequired?: string;
+  abstract?: string;
+  seriesName?: string;
+  seriesUrl?: string;
 }
 
 export const ArticleSchema = ({ 
@@ -17,30 +25,48 @@ export const ArticleSchema = ({
   description, 
   publishedAt, 
   updatedAt,
-  author, 
+  author,
+  authorUrl,
+  authorJobTitle,
   url,
   imageUrl,
+  imageWidth = 1200,
+  imageHeight = 630,
   category,
-  wordCount
+  wordCount,
+  timeRequired,
+  abstract,
+  seriesName,
+  seriesUrl,
 }: ArticleSchemaProps) => {
-  const schema = {
+  const defaultImage = "https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png";
+  
+  const schema: any = {
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": title,
     "description": description,
-    "image": imageUrl || "https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png",
+    "image": {
+      "@type": "ImageObject",
+      "url": imageUrl || defaultImage,
+      "width": imageWidth,
+      "height": imageHeight,
+      "caption": title,
+    },
     "datePublished": publishedAt,
     "dateModified": updatedAt || publishedAt,
     "author": {
-      "@type": "Organization",
-      "name": author
+      "@type": "Person",
+      "name": author,
+      ...(authorUrl && { "url": authorUrl }),
+      ...(authorJobTitle && { "jobTitle": authorJobTitle }),
     },
     "publisher": {
       "@type": "Organization",
       "name": "NurturelyX",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png"
+        "url": defaultImage,
       }
     },
     "mainEntityOfPage": {
@@ -48,9 +74,20 @@ export const ArticleSchema = ({
       "@id": url
     },
     "articleSection": category,
-    "wordCount": wordCount,
+    ...(wordCount && { "wordCount": wordCount }),
+    ...(timeRequired && { "timeRequired": timeRequired }),
+    ...(abstract && { "abstract": abstract }),
     "url": url
   };
+
+  // Add series information if available
+  if (seriesName && seriesUrl) {
+    schema.isPartOf = {
+      "@type": "CreativeWorkSeries",
+      "name": seriesName,
+      "url": seriesUrl,
+    };
+  }
 
   return (
     <Helmet>

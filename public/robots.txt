@@ -1,6 +1,23 @@
 User-agent: *
 Allow: /
 
+# Block admin and dashboard paths
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /crm
+
+# Allow AI crawlers for blog content (ChatGPT, Bard, etc.)
+User-agent: GPTBot
+Allow: /blog/
+Allow: /resources/
+Allow: /learn/
+
+User-agent: Google-Extended
+Allow: /blog/
+Allow: /resources/
+Allow: /learn/
+
+# Sitemaps
 Sitemap: https://x1.nurturely.io/sitemap.xml
 Sitemap: https://x1.nurturely.io/sitemap-blog.xml
 Sitemap: https://x1.nurturely.io/sitemap-reports.xml

@@ -11,6 +11,9 @@ export interface BlogPost {
   content: string;
   relatedReports: string[];
   relatedArticles: string[];
+  keyTakeaways?: string[];
+  seriesName?: string;
+  seriesUrl?: string;
 }
 
 export const blogPosts: BlogPost[] = [
