@@ -1,6 +1,6 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Download, X, Loader2, Target, CheckCircle, XCircle, AlertCircle, MessageSquare, FileCheck, RefreshCw, FileText, Eye, Sparkles } from "lucide-react";
+import { Download, X, Loader2, Target, CheckCircle, XCircle, AlertCircle, MessageSquare, FileCheck, RefreshCw, FileText, Eye, Sparkles, History } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 interface ExportToolbarProps {
@@ -20,6 +20,7 @@ interface ExportToolbarProps {
   enriching?: boolean;
   showEnrichAction?: boolean;
   showMarkContactedOption?: boolean;
+  onViewHistory?: () => void;
 }
 
 export default function ExportToolbar({
@@ -39,6 +40,7 @@ export default function ExportToolbar({
   enriching = false,
   showEnrichAction = false,
   showMarkContactedOption = true,
+  onViewHistory,
 }: ExportToolbarProps) {
   return (
     <div className="bg-card border rounded-lg p-4 mb-4 sticky top-0 z-10 shadow-sm">
@@ -183,6 +185,19 @@ export default function ExportToolbar({
               </>
             )}
           </Button>
+
+          {onViewHistory && (
+            <Button
+              onClick={onViewHistory}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled={exporting || updatingStatus}
+            >
+              <History className="h-4 w-4" />
+              Export History
+            </Button>
+          )}
 
           {selectedCount > 0 && (
             <Button

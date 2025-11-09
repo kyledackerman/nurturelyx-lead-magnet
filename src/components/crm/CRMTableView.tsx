@@ -20,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import ExportToolbar from "./ExportToolbar";
 import ExportConfirmationDialog from "./ExportConfirmationDialog";
+import ExportHistoryDialog from "./ExportHistoryDialog";
 import { LostReasonDialog } from "./LostReasonDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { auditService } from "@/services/auditService";
@@ -104,6 +105,7 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
   const [enrichmentProgress, setEnrichmentProgress] = useState<Map<string, any>>(new Map());
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
   const [processingMode, setProcessingMode] = useState<'parallel' | 'sequential'>('parallel');
+  const [showExportHistory, setShowExportHistory] = useState(false);
 
   // Performance optimization: Query caching (10 seconds)
   const cacheRef = useRef<{
@@ -1062,24 +1064,25 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
 
       {!compact && (
         <>
-            <ExportToolbar
-              selectedCount={selectedProspectIds.size}
-              totalCount={displayedProspects.length}
-              allSelected={selectedProspectIds.size === displayedProspects.length && displayedProspects.length > 0}
-              onSelectAll={handleSelectAll}
-              autoMarkContacted={autoMarkContacted}
-              onAutoMarkChange={setAutoMarkContacted}
-              onExport={handleExport}
-              onClear={() => setSelectedProspectIds(new Set())}
-              filterSummary={getFilterSummary()}
-              exporting={exporting}
-              onBulkStatusUpdate={handleBulkStatusUpdate}
-              updatingStatus={updatingBulkStatus}
-              onBulkEnrich={handleBulkEnrich}
-              enriching={bulkEnriching}
-              showEnrichAction={view === 'enriching-now'}
-              showMarkContactedOption={view === 'ready-outreach'}
-            />
+          <ExportToolbar
+            selectedCount={selectedProspectIds.size}
+            totalCount={displayedProspects.length}
+            allSelected={selectedProspectIds.size === displayedProspects.length && displayedProspects.length > 0}
+            onSelectAll={handleSelectAll}
+            autoMarkContacted={autoMarkContacted}
+            onAutoMarkChange={setAutoMarkContacted}
+            onExport={handleExport}
+            onClear={() => setSelectedProspectIds(new Set())}
+            filterSummary={getFilterSummary()}
+            exporting={exporting}
+            onBulkStatusUpdate={handleBulkStatusUpdate}
+            updatingStatus={updatingBulkStatus}
+            onBulkEnrich={handleBulkEnrich}
+            enriching={bulkEnriching}
+            showEnrichAction={view === 'enriching-now'}
+            showMarkContactedOption={view === 'ready-outreach'}
+            onViewHistory={() => setShowExportHistory(true)}
+          />
 
           <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
             <div className="relative flex-1 min-w-[200px]">
@@ -1463,6 +1466,11 @@ export default function CRMTableView({ onSelectProspect, compact = false, view =
         onOpenChange={setShowEnrichmentProgress}
         progress={enrichmentProgress}
         jobId={currentJobId}
+      />
+
+      <ExportHistoryDialog
+        open={showExportHistory}
+        onOpenChange={setShowExportHistory}
       />
     </div>
   );
