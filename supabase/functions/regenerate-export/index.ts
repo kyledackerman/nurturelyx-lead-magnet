@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
     console.log(`Regenerating export for ${prospectIds.length} prospects`);
 
     // Fetch prospects and contacts in batches to avoid URI Too Long errors
-    const BATCH_SIZE = 50;
+    const BATCH_SIZE = 75;
     let allProspects: any[] = [];
     let allContacts: any[] = [];
 
@@ -77,27 +77,7 @@ Deno.serve(async (req) => {
 
       const { data: prospects, error: prospectsError } = await supabase
         .from('prospect_activities')
-        .select(`
-          id,
-          status,
-          priority,
-          lead_source,
-          icebreaker_text,
-          contact_count,
-          assigned_to,
-          created_at,
-          updated_at,
-          report_id,
-          reports (
-            domain,
-            extracted_company_name,
-            report_data,
-            industry,
-            city,
-            state,
-            facebook_url
-          )
-        `)
+        .select('id, report_id, assigned_to, icebreaker_text, reports!inner(domain, slug, report_data, extracted_company_name)')
         .in('id', batch);
 
       if (prospectsError) {
@@ -108,7 +88,9 @@ Deno.serve(async (req) => {
       const { data: contacts, error: contactsError } = await supabase
         .from('prospect_contacts')
         .select('*')
-        .in('prospect_activity_id', batch);
+        .in('prospect_activity_id', batch)
+        .order('is_primary', { ascending: false })
+        .order('created_at', { ascending: true });
 
       if (contactsError) {
         console.error('Error fetching contacts batch:', contactsError);
@@ -118,96 +100,82 @@ Deno.serve(async (req) => {
       allContacts = [...allContacts, ...(contacts || [])];
     }
 
-    // Get admin details for assignment mapping
-    const { data: adminData } = await supabase.rpc('get_admins');
-    const adminMap = new Map(adminData?.map((a: any) => [a.id, { email: a.email, name: a.full_name }]) || []);
+    // Group contacts by prospect_activity_id
+    const contactsByProspect = new Map();
+    (allContacts || []).forEach((contact: any) => {
+      if (!contactsByProspect.has(contact.prospect_activity_id)) {
+        contactsByProspect.set(contact.prospect_activity_id, []);
+      }
+      contactsByProspect.get(contact.prospect_activity_id).push(contact);
+    });
 
-    // Generate CSV
+    // Generate CSV - EXACT format as export-prospects
     const csvRows: string[] = [];
-    const headers = [
-      'Domain',
-      'Company Name',
-      'Status',
-      'Priority',
-      'Lead Source',
-      'Monthly Revenue Lost',
-      'Missed Leads',
-      'Organic Traffic',
-      'Industry',
-      'City',
-      'State',
-      'Facebook URL',
-      'Icebreaker',
-      'Contact Count',
-      'Assigned To',
-      'Created At',
-      'Updated At',
-      'Contact 1 First Name',
-      'Contact 1 Last Name',
-      'Contact 1 Email',
-      'Contact 1 Phone',
-      'Contact 1 Title',
-      'Contact 1 LinkedIn',
-      'Contact 2 First Name',
-      'Contact 2 Last Name',
-      'Contact 2 Email',
-      'Contact 2 Phone',
-      'Contact 2 Title',
-      'Contact 2 LinkedIn',
-      'Contact 3 First Name',
-      'Contact 3 Last Name',
-      'Contact 3 Email',
-      'Contact 3 Phone',
-      'Contact 3 Title',
-      'Contact 3 LinkedIn'
-    ];
-    csvRows.push(headers.join(','));
+    csvRows.push('First Name,Company Name,Email,Domain,Icebreaker,Report URL,Monthly Traffic,Estimated Leads,Missed Sales,Monthly Revenue Loss');
+
+    const domains: string[] = [];
+    
+    const escapeCsv = (value: any): string => {
+      if (value === null || value === undefined) return '';
+      const stringValue = String(value);
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    };
 
     for (const prospect of allProspects) {
-      const report = prospect.reports;
-      const reportData = report?.report_data || {};
-      const prospectContacts = allContacts.filter(c => c.prospect_activity_id === prospect.id);
-
-      const assignedAdmin = prospect.assigned_to ? adminMap.get(prospect.assigned_to) : null;
-      const assignedName = assignedAdmin ? `${assignedAdmin.name || assignedAdmin.email}` : '';
-
-      const row = [
-        report?.domain || '',
-        report?.extracted_company_name || '',
-        prospect.status || '',
-        prospect.priority || '',
-        prospect.lead_source || '',
-        reportData.monthlyRevenueLost || 0,
-        reportData.missedLeads || 0,
-        reportData.organicTraffic || 0,
-        report?.industry || '',
-        report?.city || '',
-        report?.state || '',
-        report?.facebook_url || '',
-        (prospect.icebreaker_text || '').replace(/"/g, '""'),
-        prospect.contact_count || 0,
-        assignedName,
-        prospect.created_at || '',
-        prospect.updated_at || '',
-      ];
-
-      for (let i = 0; i < 3; i++) {
-        const contact = prospectContacts[i];
-        if (contact) {
-          row.push(
-            contact.first_name || '',
-            contact.last_name || '',
-            contact.email || '',
-            contact.phone || '',
-            contact.title || '',
-            contact.linkedin_url || ''
-          );
-        } else {
-          row.push('', '', '', '', '', '');
-        }
+      const reportData = prospect.reports.report_data as any;
+      const domain = prospect.reports.domain;
+      const companyName = prospect.reports.extracted_company_name || domain;
+      const reportUrl = `https://x1.nurturely.io/report/${prospect.reports.slug}`;
+      
+      if (!domains.includes(domain)) {
+        domains.push(domain);
       }
 
-      csvRows.push(row.map(field => `"${field}"`).join(','));
+      const icebreaker = escapeCsv(prospect.icebreaker_text || '');
+
+      const prospectContacts = contactsByProspect.get(prospect.id) || [];
+      
+      // Always export ALL contacts for regeneration (matches original behavior)
+      const contactsToExport = prospectContacts;
+
+      // If no contacts, still create one row with prospect data
+      if (contactsToExport.length === 0) {
+        const row = [
+          '', // No contact first name
+          companyName,
+          '', // No email
+          domain,
+          icebreaker,
+          reportUrl,
+          reportData.organicTraffic || '0',
+          reportData.missedLeads || '0',
+          reportData.estimatedSalesLost || '0',
+          reportData.monthlyRevenueLost || '0',
+        ];
+
+        csvRows.push(row.join(','));
+      } else {
+        // Create a row for each contact (EXACT same logic as export-prospects)
+        for (const contact of contactsToExport) {
+          const row = [
+            escapeCsv(contact.first_name || ''),
+            escapeCsv(companyName),
+            escapeCsv(contact.email || ''),
+            escapeCsv(domain),
+            icebreaker,
+            escapeCsv(reportUrl),
+            escapeCsv(reportData.organicTraffic || '0'),
+            escapeCsv(reportData.missedLeads || '0'),
+            escapeCsv(reportData.estimatedSalesLost || '0'),
+            escapeCsv(reportData.monthlyRevenueLost || '0'),
+          ];
+
+          csvRows.push(row.join(','));
+        }
+      }
     }
 
     const csv = csvRows.join('\n');
