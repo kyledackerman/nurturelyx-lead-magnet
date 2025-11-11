@@ -199,7 +199,18 @@ export function GeoDomainDiscovery() {
 
       toast({
         title: "Import Started",
-        description: `${totalSelected} domains queued (${selectedVerified.length} in location, ${selectedFiltered.length} nearby)`
+        description: `${totalSelected} domains queued (${selectedVerified.length} in location, ${selectedFiltered.length} nearby)`,
+        action: (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              window.location.href = '/admin?tab=reports';
+            }}
+          >
+            View Reports
+          </Button>
+        ),
       });
 
       // Reset form

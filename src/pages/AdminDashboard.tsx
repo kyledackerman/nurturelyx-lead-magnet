@@ -145,6 +145,7 @@ const AdminDashboard = () => {
   const [filteredReports, setFilteredReports] = useState<ReportSummary[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showOnlyMine, setShowOnlyMine] = useState(false);
   const [hotLeadsCount, setHotLeadsCount] = useState(0);
   const [stats, setStats] = useState<AdminStats>({
     totalReports: 0,
@@ -349,9 +350,13 @@ const AdminDashboard = () => {
     fetchViewsChartData(viewsTimePeriod);
   }, [viewsTimePeriod]);
   useEffect(() => {
-    const filtered = reports.filter(report => report.domain.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filtered = reports.filter(report => {
+      const matchesSearch = report.domain.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesOwnership = !showOnlyMine || report.user_id === user?.id;
+      return matchesSearch && matchesOwnership;
+    });
     setFilteredReports(filtered);
-  }, [searchTerm, reports]);
+  }, [searchTerm, reports, showOnlyMine, user]);
 
   // Helper function to convert month number (1-12) to full month name
   const getMonthName = (month: string | number): string => {
@@ -2208,9 +2213,23 @@ const AdminDashboard = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center space-x-2 mb-4">
-                    <Search className="h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search domains..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="max-w-sm" />
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="flex items-center space-x-2 flex-1">
+                      <Search className="h-4 w-4 text-muted-foreground" />
+                      <Input placeholder="Search domains..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="max-w-sm" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="only-mine" className="text-sm font-medium whitespace-nowrap">
+                        Only mine
+                      </label>
+                      <input
+                        id="only-mine"
+                        type="checkbox"
+                        checked={showOnlyMine}
+                        onChange={(e) => setShowOnlyMine(e.target.checked)}
+                        className="h-4 w-4 rounded border-border cursor-pointer"
+                      />
+                    </div>
                   </div>
                   
                   <AdminReportsTable reports={filteredReports} loading={loading} onReportUpdate={fetchReports} />

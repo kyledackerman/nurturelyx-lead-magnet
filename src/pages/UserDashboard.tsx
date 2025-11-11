@@ -79,12 +79,22 @@ const UserDashboard = () => {
 
   const fetchUserReports = async () => {
     try {
-      const { data, error } = await supabase
+      // Check if user is admin
+      const { data: isAdminData } = await supabase.rpc('is_admin');
+      const isAdmin = isAdminData === true;
+
+      // For admins, show all their reports including imports
+      // For regular users, exclude imported reports
+      let query = supabase
         .from('reports')
         .select('*')
-        .eq('user_id', user?.id)
-        .is('import_source', null) // Exclude admin CSV imports
-        .order('created_at', { ascending: false });
+        .eq('user_id', user?.id);
+      
+      if (!isAdmin) {
+        query = query.is('import_source', null);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching reports:', error);

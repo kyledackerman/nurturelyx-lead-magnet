@@ -426,6 +426,13 @@ Deno.serve(async (req) => {
       // Check if job has geo metadata
       const geoMetadata = job.error_log?.find((log: any) => log.type === 'geo_metadata')?.data;
       const isGeoImport = !!geoMetadata || !!(cityFromCSV || stateFromCSV);
+      
+      // Log import type detection
+      if (isGeoImport) {
+        console.log(`[GEO-IMPORT] Row ${rowNum} detected as geo-discovery import for ${domain}`);
+      } else {
+        console.log(`[CSV-IMPORT] Row ${rowNum} detected as CSV bulk import for ${domain}`);
+      }
 
       // Validate required fields
       if (!domain || !avgTransactionValue) {
@@ -555,14 +562,19 @@ Deno.serve(async (req) => {
             { domain_name: cleanedDomain }
           );
 
+          // Log tagging decision
+          const importSource = isGeoImport ? 'geo_discovery' : 'csv_bulk_import';
+          const leadSource = isGeoImport ? 'geo_discovery' : 'csv_import';
+          console.log(`[TAGGING] ${cleanedDomain} → import_source: "${importSource}", lead_source: "${leadSource}"`);
+          
           const { data: newReport } = await supabaseClient
             .from('reports')
             .insert({
               domain: cleanedDomain,
               slug: slugData,
               user_id: job.created_by,
-              import_source: isGeoImport ? 'geo_discovery' : 'csv_bulk_import',
-              lead_source: isGeoImport ? 'geo_discovery' : 'csv_import',
+              import_source: importSource,
+              lead_source: leadSource,
               report_data: {
                 domain: cleanedDomain,
                 avgTransactionValue: avgTransactionValue,
