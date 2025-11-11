@@ -4,9 +4,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Search } from "lucide-react";
+import { Loader2, MapPin, Search, AlertCircle, CheckCircle2, ChevronDown } from "lucide-react";
+
+interface VerifiedDomain {
+  domain: string;
+  name: string;
+  address?: string;
+  city: string;
+  state: string;
+  zip?: string;
+  confidence: 'high' | 'medium' | 'low';
+}
+
+interface FilteredDomain {
+  domain: string;
+  name?: string;
+  reason: string;
+  actual_location?: string;
+}
 
 export function GeoDomainDiscovery() {
   const [location, setLocation] = useState("");
@@ -14,8 +33,10 @@ export function GeoDomainDiscovery() {
   const [transactionValue, setTransactionValue] = useState("5000");
   const [isSearching, setIsSearching] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-  const [domains, setDomains] = useState<string[]>([]);
+  const [verifiedDomains, setVerifiedDomains] = useState<VerifiedDomain[]>([]);
+  const [filteredDomains, setFilteredDomains] = useState<FilteredDomain[]>([]);
   const [selectedDomains, setSelectedDomains] = useState<Set<string>>(new Set());
+  const [stats, setStats] = useState<any>(null);
   const { toast } = useToast();
 
   const handleSearch = async () => {
@@ -29,8 +50,10 @@ export function GeoDomainDiscovery() {
     }
 
     setIsSearching(true);
-    setDomains([]);
+    setVerifiedDomains([]);
+    setFilteredDomains([]);
     setSelectedDomains(new Set());
+    setStats(null);
 
     try {
       const { data, error } = await supabase.functions.invoke('discover-geo-domains', {
@@ -42,17 +65,20 @@ export function GeoDomainDiscovery() {
 
       if (error) throw error;
 
-      if (data.domains && data.domains.length > 0) {
-        setDomains(data.domains);
-        setSelectedDomains(new Set(data.domains));
+      if (data.verified && data.verified.length > 0) {
+        setVerifiedDomains(data.verified);
+        setFilteredDomains(data.filtered || []);
+        setStats(data.stats);
+        setSelectedDomains(new Set(data.verified.map((d: VerifiedDomain) => d.domain)));
+        
         toast({
           title: "Search Complete",
-          description: `Found ${data.count} domains in ${data.location}`
+          description: `✅ ${data.stats.verified_count} verified domains in ${data.location}. ${data.stats.filtered_count} filtered out.`
         });
       } else {
         toast({
           title: "No Results",
-          description: "No domains found for this location. Try different keywords or location.",
+          description: "No domains found in this exact location. Try different keywords or verify the location is correct.",
           variant: "destructive"
         });
       }
@@ -114,8 +140,10 @@ export function GeoDomainDiscovery() {
       });
 
       // Reset form
-      setDomains([]);
+      setVerifiedDomains([]);
+      setFilteredDomains([]);
       setSelectedDomains(new Set());
+      setStats(null);
       setLocation("");
       setKeywords("");
     } catch (error: any) {
@@ -199,53 +227,138 @@ export function GeoDomainDiscovery() {
         </CardContent>
       </Card>
 
-      {domains.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Found {domains.length} Domains</CardTitle>
-            <CardDescription>
-              Select domains to import into your CRM for enrichment
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="max-h-96 overflow-y-auto space-y-2 border rounded-lg p-4">
-              {domains.map((domain) => (
-                <div key={domain} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={domain}
-                    checked={selectedDomains.has(domain)}
-                    onCheckedChange={() => toggleDomain(domain)}
-                  />
-                  <label
-                    htmlFor={domain}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    {domain}
-                  </label>
+      {verifiedDomains.length > 0 && (
+        <>
+          {stats && (
+            <Card className="bg-muted/50">
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-primary">{stats.verified_count}</div>
+                    <div className="text-xs text-muted-foreground">Verified in {stats.search_location}</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-destructive">{stats.filtered_count}</div>
+                    <div className="text-xs text-muted-foreground">Filtered Out</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold">{stats.total_found}</div>
+                    <div className="text-xs text-muted-foreground">Total Found</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold">
+                      <Badge variant="outline">{stats.location_type}</Badge>
+                    </div>
+                    <div className="text-xs text-muted-foreground">Location Type</div>
+                  </div>
                 </div>
-              ))}
-            </div>
+              </CardContent>
+            </Card>
+          )}
 
-            <div className="flex items-center justify-between pt-4 border-t">
-              <p className="text-sm text-muted-foreground">
-                {selectedDomains.size} of {domains.length} selected
-              </p>
-              <Button
-                onClick={handleImport}
-                disabled={isImporting || selectedDomains.size === 0}
-              >
-                {isImporting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Importing...
-                  </>
-                ) : (
-                  `Import ${selectedDomains.size} to CRM`
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                {verifiedDomains.length} Verified Domains
+              </CardTitle>
+              <CardDescription>
+                All domains confirmed to be physically located in {location}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="max-h-96 overflow-y-auto space-y-3 border rounded-lg p-4">
+                {verifiedDomains.map((item) => (
+                  <div key={item.domain} className="flex items-start space-x-3 p-2 rounded hover:bg-muted/50">
+                    <Checkbox
+                      id={item.domain}
+                      checked={selectedDomains.has(item.domain)}
+                      onCheckedChange={() => toggleDomain(item.domain)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1 space-y-1">
+                      <label
+                        htmlFor={item.domain}
+                        className="text-sm font-medium leading-none cursor-pointer"
+                      >
+                        {item.domain}
+                      </label>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-xs text-muted-foreground">
+                          📍 {item.city}, {item.state} {item.zip || ''}
+                        </p>
+                        <Badge 
+                          variant={item.confidence === 'high' ? 'default' : item.confidence === 'medium' ? 'secondary' : 'outline'}
+                          className="text-xs"
+                        >
+                          {item.confidence} confidence
+                        </Badge>
+                      </div>
+                      {item.name && (
+                        <p className="text-xs text-muted-foreground">{item.name}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between pt-4 border-t">
+                <p className="text-sm text-muted-foreground">
+                  {selectedDomains.size} of {verifiedDomains.length} selected
+                </p>
+                <Button
+                  onClick={handleImport}
+                  disabled={isImporting || selectedDomains.size === 0}
+                >
+                  {isImporting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    `Import ${selectedDomains.size} to CRM`
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {filteredDomains.length > 0 && (
+            <Card className="border-destructive/50">
+              <CardHeader>
+                <Collapsible>
+                  <CollapsibleTrigger className="flex items-center gap-2 w-full hover:opacity-80">
+                    <AlertCircle className="h-5 w-5 text-destructive" />
+                    <CardTitle className="flex-1 text-left">
+                      {filteredDomains.length} Domains Filtered Out (Wrong Location)
+                    </CardTitle>
+                    <ChevronDown className="h-4 w-4" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-4">
+                    <CardDescription className="pb-4">
+                      These domains were excluded because they are not physically located in {location}
+                    </CardDescription>
+                    <div className="space-y-2 max-h-64 overflow-y-auto border rounded-lg p-3 bg-muted/30">
+                      {filteredDomains.map((item, idx) => (
+                        <div key={idx} className="text-sm p-2 bg-background rounded">
+                          <div className="font-medium">{item.domain || item.name}</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            ❌ {item.reason}
+                            {item.actual_location && (
+                              <span className="ml-2 text-destructive">
+                                (Actually in: {item.actual_location})
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </CardHeader>
+            </Card>
+          )}
+        </>
       )}
     </div>
   );

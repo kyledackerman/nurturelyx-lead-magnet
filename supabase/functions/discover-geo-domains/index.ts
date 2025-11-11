@@ -44,23 +44,121 @@ Deno.serve(async (req) => {
     }
 
     const { location, keywords } = await req.json();
-    console.log(`Searching for domains in ${location}${keywords ? ` (${keywords})` : ''}`);
+    console.log(`🔍 STRICT LOCATION SEARCH: ${location}${keywords ? ` (${keywords})` : ''}`);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Construct search prompt
-    const keywordText = keywords ? ` specializing in ${keywords}` : '';
-    const searchPrompt = `Find business websites and domains in ${location}${keywordText}. 
-Search for local businesses, companies, and service providers in this area.
-Extract ONLY the domain names (like example.com) from the search results.
-Return a simple list of unique domain names, one per line, without http/https or www.
-Focus on real, operational business websites.`;
-
-    console.log('Calling Lovable AI with Google Search...');
+    // Detect if location is a ZIP code
+    const isZipCode = /^\d{5}(-\d{4})?$/.test(location.trim());
+    const normalizedLocation = location.trim();
     
+    console.log(`📍 Location type: ${isZipCode ? 'ZIP CODE' : 'CITY/STATE'}`);
+
+    // Construct strict location-specific search prompt
+    const keywordText = keywords ? `${keywords} ` : '';
+    const locationConstraint = isZipCode 
+      ? `ZIP code ${normalizedLocation} ONLY. Do NOT include businesses from neighboring ZIP codes or cities.`
+      : `${normalizedLocation} (the exact city/area specified). Do NOT include businesses from nearby cities.`;
+
+    const searchPrompt = `Search Google for ${keywordText}businesses with PHYSICAL OFFICES located in ${locationConstraint}
+
+CRITICAL REQUIREMENTS:
+1. ONLY include businesses that are PHYSICALLY LOCATED in ${normalizedLocation}
+2. Do NOT include businesses that only SERVE the area but are located elsewhere
+3. Extract the business domain (website), name, and VERIFIED physical address
+4. For each business, confirm their address is within ${normalizedLocation}
+
+Search multiple queries:
+- "businesses with physical address in ${normalizedLocation}"
+- "companies located in ${normalizedLocation} office address"
+- "${keywordText}businesses headquarters ${normalizedLocation}"
+- "local ${keywordText}business address ${normalizedLocation}"
+
+For EACH business found, verify:
+- They have a physical office/location in ${normalizedLocation}
+- Extract their full address (street, city, state, ZIP)
+- Determine confidence level (high/medium/low) based on address clarity
+
+EXCLUDE:
+- Nationwide companies that only serve the area
+- Businesses in nearby cities/ZIPs
+- PO Box only addresses
+- Businesses without clear physical locations`;
+
+    console.log('🤖 Calling Lovable AI with structured verification...');
+    
+    // Define structured output schema
+    const tools = [{
+      type: "function",
+      function: {
+        name: "report_verified_businesses",
+        description: "Report businesses physically located in the target location with verified addresses",
+        parameters: {
+          type: "object",
+          properties: {
+            verified_businesses: {
+              type: "array",
+              description: "Businesses confirmed to be physically located in the target location",
+              items: {
+                type: "object",
+                properties: {
+                  domain: { 
+                    type: "string", 
+                    description: "Business domain without http/https/www (e.g., example.com)" 
+                  },
+                  name: { 
+                    type: "string", 
+                    description: "Business name" 
+                  },
+                  address: { 
+                    type: "string", 
+                    description: "Full street address" 
+                  },
+                  city: { 
+                    type: "string", 
+                    description: "City name" 
+                  },
+                  state: { 
+                    type: "string", 
+                    description: "State abbreviation (e.g., MI, FL)" 
+                  },
+                  zip: { 
+                    type: "string", 
+                    description: "ZIP code" 
+                  },
+                  confidence: { 
+                    type: "string", 
+                    enum: ["high", "medium", "low"],
+                    description: "Confidence in location verification" 
+                  }
+                },
+                required: ["domain", "name", "city", "state", "confidence"]
+              }
+            },
+            filtered_out: {
+              type: "array",
+              description: "Businesses excluded because they are not in the target location",
+              items: {
+                type: "object",
+                properties: {
+                  domain: { type: "string" },
+                  name: { type: "string" },
+                  reason: { type: "string", description: "Why it was filtered out" },
+                  actual_location: { type: "string", description: "Where it's actually located" }
+                },
+                required: ["domain", "reason"]
+              }
+            }
+          },
+          required: ["verified_businesses"],
+          additionalProperties: false
+        }
+      }
+    }];
+
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -72,7 +170,14 @@ Focus on real, operational business websites.`;
         messages: [
           {
             role: 'system',
-            content: 'You are a domain discovery assistant. Extract only valid domain names from search results. Return them as a clean list, one per line, without http/https or www prefixes.'
+            content: `You are a precise location verification assistant. Your job is to find businesses PHYSICALLY LOCATED in a specific location and EXCLUDE any businesses that are elsewhere.
+
+CRITICAL RULES:
+1. A business in ZIP 48906 is NOT the same as ZIP 48910 - they are different locations
+2. A business in "Miami" is NOT the same as "Fort Lauderdale" - verify exact city
+3. If a business only SERVES an area but is located elsewhere, EXCLUDE IT
+4. Only include businesses with confirmed physical addresses in the target location
+5. Be STRICT - when in doubt, exclude it`
           },
           {
             role: 'user',
@@ -87,45 +192,66 @@ Focus on real, operational business websites.`;
               dynamic_threshold: 0.7
             }
           }
-        }]
+        }],
+        tool_choice: { type: "function", function: { name: "report_verified_businesses" } }
       })
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error('Lovable AI error:', aiResponse.status, errorText);
+      console.error('❌ Lovable AI error:', aiResponse.status, errorText);
       throw new Error(`AI search failed: ${aiResponse.status}`);
     }
 
     const aiData = await aiResponse.json();
-    const aiContent = aiData.choices?.[0]?.message?.content || '';
     
-    console.log('AI Response:', aiContent);
-
-    // Extract domains from AI response
-    const domainRegex = /(?:[a-z0-9-]+\.)+[a-z]{2,}/gi;
-    const foundDomains = aiContent.match(domainRegex) || [];
+    // Extract structured data from function call
+    let verifiedBusinesses = [];
+    let filteredOut = [];
     
-    // Clean and deduplicate
-    const uniqueDomains = [...new Set(
-      foundDomains
-        .map((d: string) => d.toLowerCase().trim())
-        .filter((d: string) => {
-          // Filter out common non-business domains
-          const excluded = ['google.com', 'facebook.com', 'yelp.com', 'linkedin.com', 
-                          'instagram.com', 'twitter.com', 'youtube.com', 'example.com'];
-          return d.length > 3 && !excluded.includes(d);
-        })
-    )];
+    const toolCalls = aiData.choices?.[0]?.message?.tool_calls;
+    if (toolCalls && toolCalls.length > 0) {
+      const functionCall = toolCalls[0];
+      if (functionCall.function?.name === 'report_verified_businesses') {
+        const result = JSON.parse(functionCall.function.arguments);
+        verifiedBusinesses = result.verified_businesses || [];
+        filteredOut = result.filtered_out || [];
+      }
+    }
 
-    console.log(`Found ${uniqueDomains.length} unique domains`);
+    console.log(`✅ VERIFIED: ${verifiedBusinesses.length} businesses in ${normalizedLocation}`);
+    console.log(`❌ FILTERED: ${filteredOut.length} businesses (wrong location)`);
+    
+    // Log filtered domains for transparency
+    if (filteredOut.length > 0) {
+      console.log('📋 Filtered out domains:');
+      filteredOut.forEach((item: any) => {
+        console.log(`  - ${item.domain || item.name}: ${item.reason} (${item.actual_location || 'unknown location'})`);
+      });
+    }
+
+    // Clean domains and remove duplicates
+    const uniqueVerified = Array.from(
+      new Map(
+        verifiedBusinesses
+          .filter((b: any) => b.domain && b.domain.length > 3)
+          .map((b: any) => [b.domain.toLowerCase().trim(), b])
+      ).values()
+    );
 
     return new Response(
       JSON.stringify({
-        domains: uniqueDomains,
-        location,
-        keywords: keywords || null,
-        count: uniqueDomains.length
+        verified: uniqueVerified,
+        filtered: filteredOut,
+        stats: {
+          total_found: verifiedBusinesses.length + filteredOut.length,
+          verified_count: uniqueVerified.length,
+          filtered_count: filteredOut.length,
+          search_location: normalizedLocation,
+          location_type: isZipCode ? 'ZIP' : 'CITY'
+        },
+        location: normalizedLocation,
+        keywords: keywords || null
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
