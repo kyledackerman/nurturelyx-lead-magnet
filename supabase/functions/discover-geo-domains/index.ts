@@ -184,15 +184,18 @@ CRITICAL RULES:
             content: searchPrompt
           }
         ],
-        tools: [{
-          type: 'google_search_retrieval',
-          google_search_retrieval: {
-            dynamic_retrieval_config: {
-              mode: 'MODE_DYNAMIC',
-              dynamic_threshold: 0.7
+        tools: [
+          {
+            type: 'google_search_retrieval',
+            google_search_retrieval: {
+              dynamic_retrieval_config: {
+                mode: 'MODE_DYNAMIC',
+                dynamic_threshold: 0.7
+              }
             }
-          }
-        }],
+          },
+          tools[0]  // Include the report_verified_businesses function schema
+        ],
         tool_choice: { type: "function", function: { name: "report_verified_businesses" } }
       })
     });
