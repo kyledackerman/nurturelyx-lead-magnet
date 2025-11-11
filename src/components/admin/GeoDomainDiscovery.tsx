@@ -75,6 +75,16 @@ export function GeoDomainDiscovery() {
           title: "Search Complete",
           description: `✅ ${data.stats.verified_count} verified domains in ${data.location}. ${data.stats.filtered_count} filtered out.`
         });
+      } else if (data.filtered && data.filtered.length > 0) {
+        // No verified but some filtered
+        setVerifiedDomains([]);
+        setFilteredDomains(data.filtered);
+        setStats(data.stats);
+        
+        toast({
+          title: "Search Complete - Review Filtered",
+          description: `0 verified in ${data.location}, but ${data.stats.filtered_count} were found and filtered out (wrong location). Check below.`
+        });
       } else {
         toast({
           title: "No Results",
@@ -244,7 +254,7 @@ export function GeoDomainDiscovery() {
         </CardContent>
       </Card>
 
-      {verifiedDomains.length > 0 && (
+      {(verifiedDomains.length > 0 || filteredDomains.length > 0) && (
         <>
           {stats && (
             <Card className="bg-muted/50">

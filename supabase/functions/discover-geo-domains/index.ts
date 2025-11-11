@@ -190,11 +190,11 @@ CRITICAL RULES:
             google_search_retrieval: {
               dynamic_retrieval_config: {
                 mode: 'MODE_DYNAMIC',
-                dynamic_threshold: 0.7
+                dynamic_threshold: 0.3
               }
             }
           },
-          tools[0]  // Include the report_verified_businesses function schema
+          tools[0]
         ],
         tool_choice: { type: "function", function: { name: "report_verified_businesses" } }
       })
@@ -222,6 +222,11 @@ CRITICAL RULES:
       }
     }
 
+    console.log('🔍 AI returned:', {
+      hasToolCalls: !!toolCalls,
+      verifiedCount: verifiedBusinesses.length,
+      filteredCount: filteredOut.length
+    });
     console.log(`✅ VERIFIED: ${verifiedBusinesses.length} businesses in ${normalizedLocation}`);
     console.log(`❌ FILTERED: ${filteredOut.length} businesses (wrong location)`);
     
