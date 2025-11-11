@@ -9,6 +9,7 @@ import { ProspectImporter } from "@/components/admin/ProspectImporter";
 import { AmbassadorApplicationsManager } from "@/components/admin/AmbassadorApplicationsManager";
 import { AmbassadorManagementTable } from "@/components/admin/AmbassadorManagementTable";
 import { PayoutProcessor } from "@/components/admin/PayoutProcessor";
+import { GeoDomainDiscovery } from "@/components/admin/GeoDomainDiscovery";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon, Award, Crown, AlertTriangle, Briefcase, Flame, Filter, DollarSign, Upload, Copy, ExternalLink, Wrench, Loader2 } from "lucide-react";
+import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon, Award, Crown, AlertTriangle, Briefcase, Flame, Filter, DollarSign, Upload, Copy, ExternalLink, Wrench, Loader2, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { ComposedChart, Area, Line, Bar, BarChart, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
@@ -1686,7 +1687,7 @@ const AdminDashboard = () => {
 
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="generate">
                 <FileText className="h-4 w-4 mr-2" />
                 Generate
@@ -1702,6 +1703,10 @@ const AdminDashboard = () => {
               <TabsTrigger value="import">
                 <Upload className="h-4 w-4 mr-2" />
                 Import
+              </TabsTrigger>
+              <TabsTrigger value="geo-discovery">
+                <MapPin className="h-4 w-4 mr-2" />
+                Geo Search
               </TabsTrigger>
               <TabsTrigger value="admin">
                 <Shield className="h-4 w-4 mr-2" />
@@ -1825,6 +1830,10 @@ const AdminDashboard = () => {
 
             <TabsContent value="import" className="space-y-6">
               <ProspectImporter />
+            </TabsContent>
+
+            <TabsContent value="geo-discovery" className="space-y-6">
+              <GeoDomainDiscovery />
             </TabsContent>
 
             <TabsContent value="admin" className="space-y-6">
