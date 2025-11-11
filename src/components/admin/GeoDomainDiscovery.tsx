@@ -8,7 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Search, AlertCircle, CheckCircle2, ChevronDown } from "lucide-react";
+import { Loader2, MapPin, Search, CheckCircle2 } from "lucide-react";
 
 interface VerifiedDomain {
   domain: string;
@@ -25,6 +25,9 @@ interface FilteredDomain {
   name?: string;
   reason: string;
   actual_location?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
 }
 
 export function GeoDomainDiscovery() {
@@ -36,6 +39,7 @@ export function GeoDomainDiscovery() {
   const [verifiedDomains, setVerifiedDomains] = useState<VerifiedDomain[]>([]);
   const [filteredDomains, setFilteredDomains] = useState<FilteredDomain[]>([]);
   const [selectedDomains, setSelectedDomains] = useState<Set<string>>(new Set());
+  const [selectedFilteredDomains, setSelectedFilteredDomains] = useState<Set<string>>(new Set());
   const [stats, setStats] = useState<any>(null);
   const { toast } = useToast();
 
@@ -53,6 +57,7 @@ export function GeoDomainDiscovery() {
     setVerifiedDomains([]);
     setFilteredDomains([]);
     setSelectedDomains(new Set());
+    setSelectedFilteredDomains(new Set());
     setStats(null);
 
     try {
@@ -73,7 +78,7 @@ export function GeoDomainDiscovery() {
         
         toast({
           title: "Search Complete",
-          description: `✅ ${data.stats.verified_count} verified domains in ${data.location}. ${data.stats.filtered_count} filtered out.`
+          description: `✅ ${data.stats.verified_count} in location, ${data.stats.filtered_count} nearby/service area`
         });
       } else if (data.filtered && data.filtered.length > 0) {
         // No verified but some filtered
@@ -82,13 +87,13 @@ export function GeoDomainDiscovery() {
         setStats(data.stats);
         
         toast({
-          title: "Search Complete - Review Filtered",
-          description: `0 verified in ${data.location}, but ${data.stats.filtered_count} were found and filtered out (wrong location). Check below.`
+          title: "Search Complete - Nearby Results",
+          description: `${data.stats.filtered_count} businesses found in nearby areas that may service ${data.location}`
         });
       } else {
         toast({
           title: "No Results",
-          description: "No domains found in this exact location. Try different keywords or verify the location is correct.",
+          description: "No domains found. Try different keywords or location.",
           variant: "destructive"
         });
       }
@@ -114,8 +119,19 @@ export function GeoDomainDiscovery() {
     setSelectedDomains(newSelected);
   };
 
+  const toggleFilteredDomain = (domain: string) => {
+    const newSelected = new Set(selectedFilteredDomains);
+    if (newSelected.has(domain)) {
+      newSelected.delete(domain);
+    } else {
+      newSelected.add(domain);
+    }
+    setSelectedFilteredDomains(newSelected);
+  };
+
   const handleImport = async () => {
-    if (selectedDomains.size === 0) {
+    const totalSelected = selectedDomains.size + selectedFilteredDomains.size;
+    if (totalSelected === 0) {
       toast({
         title: "No Domains Selected",
         description: "Please select at least one domain to import",
@@ -127,13 +143,30 @@ export function GeoDomainDiscovery() {
     setIsImporting(true);
 
     try {
-      // Get selected domain objects with full geo data
-      const selected = verifiedDomains.filter(d => selectedDomains.has(d.domain));
+      // Get selected verified domains
+      const selectedVerified = verifiedDomains.filter(d => selectedDomains.has(d.domain)).map(d => ({
+        ...d,
+        proximity: 'in_location'
+      }));
+      
+      // Get selected filtered domains
+      const selectedFiltered = filteredDomains.filter(d => selectedFilteredDomains.has(d.domain)).map(d => ({
+        domain: d.domain,
+        name: d.name || d.domain,
+        city: d.city || '',
+        state: d.state || '',
+        zip: d.zip || '',
+        confidence: 'medium' as const,
+        proximity: 'nearby_service_area'
+      }));
+
+      // Combine all selections
+      const allSelected = [...selectedVerified, ...selectedFiltered];
       
       // Generate CSV with geo columns
-      const csvHeader = "domain,avg_transaction_value,city,state,zip";
-      const csvRows = selected.map(domain => 
-        `${domain.domain},${transactionValue},${domain.city},${domain.state},${domain.zip || ''}`
+      const csvHeader = "domain,avg_transaction_value,city,state,zip,proximity";
+      const csvRows = allSelected.map(domain => 
+        `${domain.domain},${transactionValue},${domain.city},${domain.state},${domain.zip || ''},${domain.proximity}`
       );
       const csvData = [csvHeader, ...csvRows].join('\n');
 
@@ -146,12 +179,15 @@ export function GeoDomainDiscovery() {
             searchLocation: location,
             isGeoDiscovery: true,
             searchedAt: new Date().toISOString(),
-            domainGeoData: selected.reduce((acc, d) => {
+            verifiedCount: selectedVerified.length,
+            nearbyCount: selectedFiltered.length,
+            domainGeoData: allSelected.reduce((acc, d) => {
               acc[d.domain] = {
                 city: d.city,
                 state: d.state,
                 zip: d.zip,
-                confidence: d.confidence
+                confidence: 'confidence' in d ? d.confidence : 'medium',
+                proximity: d.proximity
               };
               return acc;
             }, {} as Record<string, any>)
@@ -163,13 +199,14 @@ export function GeoDomainDiscovery() {
 
       toast({
         title: "Import Started",
-        description: `${selectedDomains.size} domains queued for enrichment (Job #${data.jobId})`
+        description: `${totalSelected} domains queued (${selectedVerified.length} in location, ${selectedFiltered.length} nearby)`
       });
 
       // Reset form
       setVerifiedDomains([]);
       setFilteredDomains([]);
       setSelectedDomains(new Set());
+      setSelectedFilteredDomains(new Set());
       setStats(null);
       setLocation("");
       setKeywords("");
@@ -265,8 +302,8 @@ export function GeoDomainDiscovery() {
                     <div className="text-xs text-muted-foreground">Verified in {stats.search_location}</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-destructive">{stats.filtered_count}</div>
-                    <div className="text-xs text-muted-foreground">Filtered Out</div>
+                    <div className="text-2xl font-bold text-orange-600">{stats.filtered_count}</div>
+                    <div className="text-xs text-muted-foreground">Nearby / Service Area</div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold">{stats.total_found}</div>
@@ -331,11 +368,11 @@ export function GeoDomainDiscovery() {
 
               <div className="flex items-center justify-between pt-4 border-t">
                 <p className="text-sm text-muted-foreground">
-                  {selectedDomains.size} of {verifiedDomains.length} selected
+                  {selectedDomains.size} verified selected
                 </p>
                 <Button
                   onClick={handleImport}
-                  disabled={isImporting || selectedDomains.size === 0}
+                  disabled={isImporting || (selectedDomains.size === 0 && selectedFilteredDomains.size === 0)}
                 >
                   {isImporting ? (
                     <>
@@ -343,7 +380,7 @@ export function GeoDomainDiscovery() {
                       Importing...
                     </>
                   ) : (
-                    `Import ${selectedDomains.size} to CRM`
+                    `Import ${selectedDomains.size + selectedFilteredDomains.size} to CRM`
                   )}
                 </Button>
               </div>
@@ -351,38 +388,57 @@ export function GeoDomainDiscovery() {
           </Card>
 
           {filteredDomains.length > 0 && (
-            <Card className="border-destructive/50">
+            <Card className="border-orange-500/50">
               <CardHeader>
-                <Collapsible>
-                  <CollapsibleTrigger className="flex items-center gap-2 w-full hover:opacity-80">
-                    <AlertCircle className="h-5 w-5 text-destructive" />
-                    <CardTitle className="flex-1 text-left">
-                      {filteredDomains.length} Domains Filtered Out (Wrong Location)
-                    </CardTitle>
-                    <ChevronDown className="h-4 w-4" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="pt-4">
-                    <CardDescription className="pb-4">
-                      These domains were excluded because they are not physically located in {location}
-                    </CardDescription>
-                    <div className="space-y-2 max-h-64 overflow-y-auto border rounded-lg p-3 bg-muted/30">
-                      {filteredDomains.map((item, idx) => (
-                        <div key={idx} className="text-sm p-2 bg-background rounded">
-                          <div className="font-medium">{item.domain || item.name}</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            ❌ {item.reason}
-                            {item.actual_location && (
-                              <span className="ml-2 text-destructive">
-                                (Actually in: {item.actual_location})
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-orange-600" />
+                  {filteredDomains.length} Nearby / Service Area
+                </CardTitle>
+                <CardDescription>
+                  These businesses are in surrounding areas but may service {location}
+                </CardDescription>
               </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="max-h-96 overflow-y-auto space-y-3 border rounded-lg p-4 bg-orange-50/50 dark:bg-orange-950/20">
+                  {filteredDomains.map((item, idx) => (
+                    <div key={idx} className="flex items-start space-x-3 p-2 rounded hover:bg-background/50">
+                      <Checkbox
+                        id={`filtered-${item.domain}`}
+                        checked={selectedFilteredDomains.has(item.domain)}
+                        onCheckedChange={() => toggleFilteredDomain(item.domain)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1 space-y-1">
+                        <label
+                          htmlFor={`filtered-${item.domain}`}
+                          className="text-sm font-medium leading-none cursor-pointer"
+                        >
+                          {item.domain || item.name}
+                        </label>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {item.city && item.state && (
+                            <p className="text-xs text-muted-foreground">
+                              🗺️ {item.city}, {item.state} {item.zip || ''}
+                            </p>
+                          )}
+                          <Badge variant="outline" className="text-xs border-orange-500 text-orange-700 dark:text-orange-400">
+                            Service Area
+                          </Badge>
+                        </div>
+                        {item.actual_location && (
+                          <p className="text-xs text-muted-foreground">{item.actual_location}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <p className="text-sm text-muted-foreground">
+                    {selectedFilteredDomains.size} nearby selected
+                  </p>
+                </div>
+              </CardContent>
             </Card>
           )}
         </>

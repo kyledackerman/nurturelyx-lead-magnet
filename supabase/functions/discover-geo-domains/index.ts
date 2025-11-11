@@ -57,36 +57,35 @@ Deno.serve(async (req) => {
     
     console.log(`📍 Location type: ${isZipCode ? 'ZIP CODE' : 'CITY/STATE'}`);
 
-    // Construct strict location-specific search prompt
+    // Construct service-area search prompt
     const keywordText = keywords ? `${keywords} ` : '';
-    const locationConstraint = isZipCode 
-      ? `ZIP code ${normalizedLocation} ONLY. Do NOT include businesses from neighboring ZIP codes or cities.`
-      : `${normalizedLocation} (the exact city/area specified). Do NOT include businesses from nearby cities.`;
 
-    const searchPrompt = `Search Google for ${keywordText}businesses with PHYSICAL OFFICES located in ${locationConstraint}
+    const searchPrompt = `Find ALL ${keywordText}businesses that could serve customers in ${normalizedLocation}:
 
-CRITICAL REQUIREMENTS:
-1. ONLY include businesses that are PHYSICALLY LOCATED in ${normalizedLocation}
-2. Do NOT include businesses that only SERVE the area but are located elsewhere
-3. Extract the business domain (website), name, and VERIFIED physical address
-4. For each business, confirm their address is within ${normalizedLocation}
+PRIMARY (most relevant):
+- Businesses with physical offices IN ${normalizedLocation}
+- Mark these as "verified" with high/medium/low confidence
+
+SECONDARY (service area):
+- Businesses in surrounding areas (within 15-20 mile radius) that service ${normalizedLocation}
+- Businesses in neighboring cities/ZIPs that explicitly serve ${normalizedLocation}
+- Mark these in "filtered_out" with reason "nearby_service_area" and their actual location
 
 Search multiple queries:
-- "businesses with physical address in ${normalizedLocation}"
-- "companies located in ${normalizedLocation} office address"
-- "${keywordText}businesses headquarters ${normalizedLocation}"
-- "local ${keywordText}business address ${normalizedLocation}"
+- "${keywordText}businesses in ${normalizedLocation}"
+- "${keywordText}serving ${normalizedLocation} area"
+- "${keywordText}near ${normalizedLocation}"
+- "local ${keywordText}${normalizedLocation}"
 
-For EACH business found, verify:
-- They have a physical office/location in ${normalizedLocation}
-- Extract their full address (street, city, state, ZIP)
-- Determine confidence level (high/medium/low) based on address clarity
+For EACH business found:
+- Extract domain (website), name, and physical address (street, city, state, ZIP)
+- Determine if they're IN the location (verified) or NEARBY but service it (filtered with reason "nearby_service_area")
+- Include confidence level for all businesses
 
-EXCLUDE:
-- Nationwide companies that only serve the area
-- Businesses in nearby cities/ZIPs
+EXCLUDE ONLY:
+- Nationwide companies with no local presence
 - PO Box only addresses
-- Businesses without clear physical locations`;
+- Businesses clearly too far away (50+ miles)`;
 
     console.log('🤖 Calling Lovable AI with structured verification...');
     
@@ -140,14 +139,17 @@ EXCLUDE:
             },
             filtered_out: {
               type: "array",
-              description: "Businesses excluded because they are not in the target location",
+              description: "Nearby businesses that may service the area but are not physically located in the exact target location",
               items: {
                 type: "object",
                 properties: {
                   domain: { type: "string" },
                   name: { type: "string" },
-                  reason: { type: "string", description: "Why it was filtered out" },
-                  actual_location: { type: "string", description: "Where it's actually located" }
+                  reason: { type: "string", description: "Why it's in filtered (e.g., 'nearby_service_area')" },
+                  actual_location: { type: "string", description: "Where it's actually located" },
+                  city: { type: "string", description: "City name" },
+                  state: { type: "string", description: "State abbreviation" },
+                  zip: { type: "string", description: "ZIP code" }
                 },
                 required: ["domain", "reason"]
               }
@@ -170,14 +172,13 @@ EXCLUDE:
         messages: [
           {
             role: 'system',
-            content: `You are a precise location verification assistant. Your job is to find businesses PHYSICALLY LOCATED in a specific location and EXCLUDE any businesses that are elsewhere.
+            content: `You are a business discovery assistant. Find businesses that can serve customers in the target location.
 
-CRITICAL RULES:
-1. A business in ZIP 48906 is NOT the same as ZIP 48910 - they are different locations
-2. A business in "Miami" is NOT the same as "Fort Lauderdale" - verify exact city
-3. If a business only SERVES an area but is located elsewhere, EXCLUDE IT
-4. Only include businesses with confirmed physical addresses in the target location
-5. Be STRICT - when in doubt, exclude it`
+CATEGORIZATION:
+1. VERIFIED: Businesses physically IN the target location (exact match)
+2. FILTERED (nearby_service_area): Businesses in surrounding areas that may service the location
+
+Be inclusive - businesses don't restrict service to exact ZIP boundaries. Include businesses within reasonable driving distance (15-20 miles).`
           },
           {
             role: 'user',
