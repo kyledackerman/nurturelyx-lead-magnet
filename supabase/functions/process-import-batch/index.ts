@@ -417,6 +417,15 @@ Deno.serve(async (req) => {
 
       const domain = row.domain;
       const avgTransactionValue = parseCurrencyToNumber(row.avg_transaction_value);
+      
+      // Extract geo data from CSV (if present)
+      const cityFromCSV = row.city?.trim() || null;
+      const stateFromCSV = row.state?.trim() || null;
+      const zipFromCSV = row.zip?.trim() || null;
+      
+      // Check if job has geo metadata
+      const geoMetadata = job.error_log?.find((log: any) => log.type === 'geo_metadata')?.data;
+      const isGeoImport = !!geoMetadata || !!(cityFromCSV || stateFromCSV);
 
       // Validate required fields
       if (!domain || !avgTransactionValue) {
@@ -535,6 +544,9 @@ Deno.serve(async (req) => {
               industry,
               monthly_traffic_tier: trafficTier,
               company_size: companySize,
+              // Update location if not already set (preserve existing data)
+              city: report.city || cityFromCSV,
+              state: report.state || stateFromCSV,
             })
             .eq('id', report.id);
         } else {
@@ -549,8 +561,8 @@ Deno.serve(async (req) => {
               domain: cleanedDomain,
               slug: slugData,
               user_id: job.created_by,
-              import_source: 'csv_bulk_import',
-              lead_source: 'csv_import',
+              import_source: isGeoImport ? 'geo_discovery' : 'csv_bulk_import',
+              lead_source: isGeoImport ? 'geo_discovery' : 'csv_import',
               report_data: {
                 domain: cleanedDomain,
                 avgTransactionValue: avgTransactionValue,
@@ -570,6 +582,9 @@ Deno.serve(async (req) => {
               industry,
               monthly_traffic_tier: trafficTier,
               company_size: companySize,
+              // Populate location fields for geo-discovery imports
+              city: cityFromCSV,
+              state: stateFromCSV,
               is_public: true,
             })
             .select('id')
@@ -586,16 +601,22 @@ Deno.serve(async (req) => {
 
         // Only create prospect_activity if there are missed leads (no zero-lead spam)
         if (!existingActivity && metrics.missedLeads > 0) {
+          const locationContext = isGeoImport && (cityFromCSV || stateFromCSV)
+            ? ` from ${geoMetadata?.searchLocation || `${cityFromCSV}, ${stateFromCSV}`}`
+            : '';
+            
           await supabaseClient
             .from('prospect_activities')
             .insert({
               report_id: report!.id,
               status: 'new',
               activity_type: 'note',
-              notes: `Bulk imported - ${metrics.missedLeads} leads/month detected`,
+              notes: isGeoImport 
+                ? `Geo-discovery import${locationContext} - ${metrics.missedLeads} leads/month detected`
+                : `Bulk imported - ${metrics.missedLeads} leads/month detected`,
               priority: metrics.missedLeads >= 1000 ? 'hot' : 
                         metrics.missedLeads >= 500 ? 'warm' : 'cold',
-              lead_source: 'import',
+              lead_source: isGeoImport ? 'geo_discovery' : 'import',
               created_by: job.created_by,
               assigned_to: job.created_by,
               assigned_by: job.created_by,

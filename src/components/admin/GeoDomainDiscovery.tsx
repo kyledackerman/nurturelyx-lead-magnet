@@ -117,18 +117,35 @@ export function GeoDomainDiscovery() {
     setIsImporting(true);
 
     try {
-      // Generate CSV
-      const csvHeader = "domain,avg_transaction_value";
-      const csvRows = Array.from(selectedDomains).map(
-        domain => `${domain},${transactionValue}`
+      // Get selected domain objects with full geo data
+      const selected = verifiedDomains.filter(d => selectedDomains.has(d.domain));
+      
+      // Generate CSV with geo columns
+      const csvHeader = "domain,avg_transaction_value,city,state,zip";
+      const csvRows = selected.map(domain => 
+        `${domain.domain},${transactionValue},${domain.city},${domain.state},${domain.zip || ''}`
       );
       const csvData = [csvHeader, ...csvRows].join('\n');
 
-      // Call import-prospects
+      // Call import-prospects with geo metadata
       const { data, error } = await supabase.functions.invoke('import-prospects', {
         body: {
           csvData,
-          fileName: `geo_${location.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.csv`
+          fileName: `geo_${location.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.csv`,
+          geoMetadata: {
+            searchLocation: location,
+            isGeoDiscovery: true,
+            searchedAt: new Date().toISOString(),
+            domainGeoData: selected.reduce((acc, d) => {
+              acc[d.domain] = {
+                city: d.city,
+                state: d.state,
+                zip: d.zip,
+                confidence: d.confidence
+              };
+              return acc;
+            }, {} as Record<string, any>)
+          }
         }
       });
 

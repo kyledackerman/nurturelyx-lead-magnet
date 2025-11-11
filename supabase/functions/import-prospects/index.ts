@@ -43,15 +43,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { csvData, fileName } = await req.json();
-    console.log(`Queueing import job for admin ${user.id}: ${fileName}`);
-
+    const { csvData, fileName, geoMetadata } = await req.json();
+    
     // Parse CSV and validate
     const rows = csvData.split('\n').map((line: string) => line.trim()).filter(Boolean);
     const headers = rows[0].split(',').map((h: string) => h.trim().toLowerCase());
     
     // Validate headers
     const requiredHeaders = ['domain', 'avg_transaction_value'];
+    const optionalHeaders = ['city', 'state', 'zip'];
     const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
     if (missingHeaders.length > 0) {
       return new Response(
@@ -59,6 +59,12 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Check if this is a geo-discovery import
+    const hasGeoColumns = optionalHeaders.every(h => headers.includes(h));
+    const isGeoImport = geoMetadata?.isGeoDiscovery || hasGeoColumns;
+    
+    console.log(`Queueing ${isGeoImport ? 'GEO-DISCOVERY' : 'standard CSV'} import for admin ${user.id}: ${fileName}`);
 
     const dataRows = rows.slice(1);
     const totalRows = dataRows.length;
@@ -75,6 +81,11 @@ Deno.serve(async (req) => {
         total_batches: totalBatches,
         csv_data: csvData,
         status: 'queued',
+        // Store geo metadata in error_log (repurposed as metadata storage)
+        error_log: geoMetadata ? [{ 
+          type: 'geo_metadata', 
+          data: geoMetadata 
+        }] : []
       })
       .select('id, total_rows, total_batches')
       .single();
