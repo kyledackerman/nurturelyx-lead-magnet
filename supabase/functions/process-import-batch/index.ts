@@ -557,17 +557,30 @@ Deno.serve(async (req) => {
             })
             .eq('id', report.id);
         } else {
-          const { data: slugData } = await supabaseClient.rpc(
+          console.log(`[REPORT-CREATE] Starting report creation for ${cleanedDomain}`);
+          
+          // Generate slug with error handling
+          const { data: slugData, error: slugError } = await supabaseClient.rpc(
             'generate_report_slug',
             { domain_name: cleanedDomain }
           );
+          
+          if (slugError) {
+            throw new Error(`Slug generation failed for ${cleanedDomain}: ${slugError.message}`);
+          }
+          if (!slugData) {
+            throw new Error(`Slug generation returned null for ${cleanedDomain}`);
+          }
+          
+          console.log(`[REPORT-CREATE] Generated slug: ${slugData} for ${cleanedDomain}`);
 
           // Log tagging decision
           const importSource = isGeoImport ? 'geo_discovery' : 'csv_bulk_import';
           const leadSource = isGeoImport ? 'geo_discovery' : 'csv_import';
           console.log(`[TAGGING] ${cleanedDomain} → import_source: "${importSource}", lead_source: "${leadSource}"`);
           
-          const { data: newReport } = await supabaseClient
+          // Insert report with error handling
+          const { data: newReport, error: insertError } = await supabaseClient
             .from('reports')
             .insert({
               domain: cleanedDomain,
@@ -602,6 +615,14 @@ Deno.serve(async (req) => {
             .select('id')
             .single();
 
+          if (insertError) {
+            throw new Error(`Failed to insert report for ${cleanedDomain}: ${insertError.message}`);
+          }
+          if (!newReport) {
+            throw new Error(`Report insert returned null for ${cleanedDomain}`);
+          }
+          
+          console.log(`[REPORT-CREATE] Successfully created report with ID: ${newReport.id} for ${cleanedDomain}`);
           report = newReport;
         }
 
