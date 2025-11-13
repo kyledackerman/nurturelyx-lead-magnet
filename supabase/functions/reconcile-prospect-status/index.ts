@@ -57,7 +57,7 @@ serve(async (req) => {
         report_id,
         reports!inner(domain)
       `)
-      .not('status', 'in', '("closed_won","closed_lost","not_viable")');
+      .not('status', 'in', '("interested","contacted","proposal","closed_won","closed_lost","not_viable")');
 
     if (fetchError) {
       throw new Error(`Failed to fetch prospects: ${fetchError.message}`);
