@@ -9,7 +9,9 @@ import { BarChart3, ArrowRight } from "lucide-react";
 import { MetaTags } from "@/components/seo/MetaTags";
 import { ArticleSchema } from "@/components/seo/ArticleSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { ReportData } from "@/types/report";
 import { reportService } from "@/services/reportService";
 import { formatCurrency } from "@/lib/utils";
@@ -73,6 +75,8 @@ const PublicReportPage = () => {
   
   return (
     <>
+      <GlobalSchemas />
+      
       {reportData && (
         <>
           <MetaTags
@@ -81,13 +85,23 @@ const PublicReportPage = () => {
             canonical={generateMetadata(reportData).url}
             keywords={`${reportData.domain} leads, ${reportData.domain} revenue loss, anonymous traffic analysis, lead generation report`}
             ogType="article"
+            publishedTime={reportData.created_at}
+            modifiedTime={reportData.updated_at || reportData.created_at}
+          />
+          
+          <BreadcrumbSchema
+            items={[
+              { name: "Home", url: "/" },
+              { name: "Reports", url: "/reports" },
+              { name: reportData.domain, url: `/report/${slug}` }
+            ]}
           />
 
           <ArticleSchema
             title={`${reportData.domain} Lead Loss Report`}
             description={generateMetadata(reportData).description}
-            publishedAt={new Date().toISOString()}
-            updatedAt={new Date().toISOString()}
+            publishedAt={reportData.created_at || new Date().toISOString()}
+            updatedAt={reportData.updated_at || reportData.created_at || new Date().toISOString()}
             author="NurturelyX"
             url={generateMetadata(reportData).url}
             category="Revenue Analysis"
