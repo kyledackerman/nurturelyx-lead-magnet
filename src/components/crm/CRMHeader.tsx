@@ -1,12 +1,21 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, RefreshCw, Search } from "lucide-react";
+import { ArrowLeft, RefreshCw, Search, Wrench } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import ActiveEnrichmentJobsIndicator from "./ActiveEnrichmentJobsIndicator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ReEnrichReviewProspects } from "@/components/admin/ReEnrichReviewProspects";
 
 interface CRMHeaderProps {
   onOpenProgressDialog?: (jobId: string) => void;
@@ -18,10 +27,17 @@ interface CRMHeaderProps {
 export default function CRMHeader({ onOpenProgressDialog, currentView, onRefreshData, onDomainSelect }: CRMHeaderProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { checkIsAdmin } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [showReEnrichDialog, setShowReEnrichDialog] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    checkIsAdmin().then(setIsAdmin);
+  }, [checkIsAdmin]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -132,6 +148,18 @@ export default function CRMHeader({ onOpenProgressDialog, currentView, onRefresh
             {onOpenProgressDialog && (
               <ActiveEnrichmentJobsIndicator onOpenProgressDialog={onOpenProgressDialog} />
             )}
+
+            {currentView === 'needs-attention' && isAdmin && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowReEnrichDialog(true)}
+                className="gap-2"
+              >
+                <Wrench className="h-4 w-4" />
+                <span className="hidden sm:inline">Re-Enrich Review Prospects</span>
+              </Button>
+            )}
             
             <Button
               variant="outline"
@@ -155,6 +183,18 @@ export default function CRMHeader({ onOpenProgressDialog, currentView, onRefresh
           </div>
         </div>
       </div>
+
+      <Dialog open={showReEnrichDialog} onOpenChange={setShowReEnrichDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Re-Enrich Review Prospects</DialogTitle>
+            <DialogDescription>
+              Process prospects in "review" status to find valid email addresses using enhanced search strategies
+            </DialogDescription>
+          </DialogHeader>
+          <ReEnrichReviewProspects />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

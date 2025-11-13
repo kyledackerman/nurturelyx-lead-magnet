@@ -173,3 +173,6 @@ verify_jwt = false
 
 [functions.discover-geo-domains]
 verify_jwt = true
+
+[functions.re-enrich-review-prospects]
+verify_jwt = true
