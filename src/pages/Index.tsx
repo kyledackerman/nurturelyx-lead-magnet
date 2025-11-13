@@ -21,6 +21,9 @@ import { AggregateRatingSchema } from "@/components/seo/AggregateRatingSchema";
 import { MetaTags } from "@/components/seo/MetaTags";
 import { ServiceSchema } from "@/components/seo/ServiceSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { FAQSchema } from "@/components/seo/FAQSchema";
+import { HowToSchema } from "@/components/seo/HowToSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 import { Helmet } from "react-helmet-async";
@@ -314,6 +317,66 @@ const Index = () => {
           })}
         </script>
       </Helmet>
+      
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "/" }
+        ]}
+      />
+      
+      <FAQSchema
+        questions={[
+          {
+            question: "How does visitor identification work?",
+            answer: "NurturelyX uses advanced identity resolution technology to match anonymous website visitors with real contact information from our B2B database. We identify company names, contact details, and visitor behavior patterns to help you convert anonymous traffic into qualified leads."
+          },
+          {
+            question: "How much does NurturelyX cost?",
+            answer: "NurturelyX pricing is simple and transparent: $100/month platform fee plus $1 per identified visitor with contact information. You only pay for leads we successfully identify, making it a risk-free investment."
+          },
+          {
+            question: "What information do you provide for each identified visitor?",
+            answer: "For each identified visitor, we provide company name, contact person details (name, title, email, phone), company size, industry, and browsing behavior on your website. This gives you everything needed to follow up effectively."
+          },
+          {
+            question: "How accurate is the revenue calculator?",
+            answer: "Our calculator uses real traffic data from SpyFu and industry-standard conversion rates (1% visitor-to-lead, 10% lead-to-sale) to estimate your lost revenue. Results are based on actual market data and proven conversion benchmarks."
+          },
+          {
+            question: "Can I try NurturelyX for free?",
+            answer: "Yes! Use our free revenue calculator to see exactly how much you're losing from anonymous traffic. Get a detailed report showing your potential revenue recovery before committing to the platform."
+          }
+        ]}
+      />
+      
+      <HowToSchema
+        name="How to Calculate Lost Revenue from Anonymous Website Traffic"
+        description="Step-by-step guide to calculating how much revenue you're losing from unidentified website visitors and how to recover it with visitor identification."
+        steps={[
+          {
+            name: "Enter Your Website Domain",
+            text: "Start by entering your business website URL. Our system will automatically fetch your traffic data to provide accurate revenue loss calculations."
+          },
+          {
+            name: "Review Your Traffic Analysis",
+            text: "We analyze your organic and paid traffic using real-time data from SpyFu, showing you exactly how many visitors are browsing your site anonymously each month."
+          },
+          {
+            name: "Set Your Average Transaction Value",
+            text: "Enter your typical sale value (e.g., $250 for HVAC service calls, $5,000 for legal cases). This helps calculate your potential revenue recovery accurately."
+          },
+          {
+            name: "Get Your Personalized Report",
+            text: "Receive a detailed breakdown showing missed leads, lost sales, and yearly revenue loss. See month-by-month projections of how much you could recover by identifying anonymous visitors."
+          },
+          {
+            name: "Start Identifying Visitors",
+            text: "Implement NurturelyX visitor identification to convert anonymous traffic into qualified leads with real contact information, recovering your lost revenue."
+          }
+        ]}
+        totalTime="PT5M"
+        estimatedCost={{ currency: "USD", value: "0" }}
+      />
       
       <AggregateRatingSchema
         itemName="NurturelyX Visitor Identification Platform"
