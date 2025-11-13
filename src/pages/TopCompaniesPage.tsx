@@ -9,6 +9,8 @@ import { ArrowRight, TrendingDown } from "lucide-react";
 import { MetaTags } from "@/components/seo/MetaTags";
 import { ItemListSchema } from "@/components/seo/ItemListSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { scrollToTop } from "@/lib/scroll";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
@@ -41,6 +43,13 @@ export default function TopCompaniesPage() {
 
   return (
     <>
+      <GlobalSchemas />
+      
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "/" },
+        { name: "Top Companies", url: "/top-companies-losing-revenue" }
+      ]} />
+      
       <MetaTags
         title="Top 25 Companies Losing Revenue to Anonymous Traffic | NurturelyX"
         description="Discover the top 25 companies losing the most revenue from anonymous website visitors. Real examples of missed lead generation opportunities and revenue benchmarks."

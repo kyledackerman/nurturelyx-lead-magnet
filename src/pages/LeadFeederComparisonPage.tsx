@@ -11,6 +11,7 @@ import CallToActionSection from "@/components/CallToActionSection";
 import { MetaTags } from "@/components/seo/MetaTags";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { FAQSchema } from "@/components/seo/FAQSchema";
 import { ComparisonSchema } from "@/components/seo/ComparisonSchema";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
@@ -71,11 +72,15 @@ const LeadFeederComparisonPage = () => {
 
   return (
     <>
+      <GlobalSchemas />
+      
       <MetaTags
         title="LeadFeeder vs NurturelyX: Detailed Comparison & Better Alternative [2025] | NurturelyX"
         description="Comparing LeadFeeder and NurturelyX? See detailed pricing, features, and why businesses switched to NurturelyX. Save 60-70% with better contact data and unlimited users."
         canonical="https://x1.nurturely.io/compare/leadfeeder-alternative"
         keywords="LeadFeeder alternative, LeadFeeder vs NurturelyX, LeadFeeder pricing, LeadFeeder competitor, visitor identification comparison, B2B lead generation tools, LeadFeeder review"
+        publishedTime="2025-01-15T10:00:00Z"
+        modifiedTime="2025-01-15T10:00:00Z"
       />
 
       <WebPageSchema

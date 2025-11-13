@@ -19,6 +19,8 @@ import { MetaTags } from "@/components/seo/MetaTags";
 import { ServiceSchema } from "@/components/seo/ServiceSchema";
 import { LocalBusinessSchema } from "@/components/seo/LocalBusinessSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { RelatedIndustries } from "@/components/seo/RelatedIndustries";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
@@ -41,6 +43,14 @@ export default function AutomotiveIndustryPage() {
 
   return (
     <>
+      <GlobalSchemas />
+      
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "/" },
+        { name: "Industries", url: "/industries" },
+        { name: "Automotive", url: "/industries/automotive" }
+      ]} />
+      
       <MetaTags
         title="Automotive Visitor Identification 2025 | Dealership Lead Generation - NurturelyX"
         description="Identify anonymous dealership website visitors & convert them into vehicle buyers. Track fleet managers researching cars—calculate your lost revenue today."

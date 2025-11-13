@@ -9,6 +9,7 @@ import { MetaTags } from "@/components/seo/MetaTags";
 import { ArticleSchema } from "@/components/seo/ArticleSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { FAQSchema } from "@/components/seo/FAQSchema";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import { useNavigate } from "react-router-dom";
@@ -59,11 +60,15 @@ const GoogleAnalyticsLyingPage = () => {
 
   return (
     <>
+      <GlobalSchemas />
+      
       <MetaTags
         title="Google Analytics Is Lying To You: The Hidden 97% Problem | NurturelyX"
         description="Your Google Analytics dashboard looks healthy, but you're only seeing 3% of the story. Discover why 97% of your website visitors are invisible and what it's costing you."
         canonical="https://x1.nurturely.io/learn/google-analytics-lying"
         keywords="google analytics limitations, website visitor tracking, anonymous website visitors, visitor identification, B2B lead generation, website analytics blind spots, de-anonymize website traffic, hidden website visitors"
+        publishedTime="2025-01-15T10:00:00Z"
+        modifiedTime="2025-01-15T10:00:00Z"
       />
 
       <ArticleSchema

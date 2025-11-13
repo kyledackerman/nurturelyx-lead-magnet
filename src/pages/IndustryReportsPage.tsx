@@ -10,6 +10,8 @@ import { MetaTags } from "@/components/seo/MetaTags";
 import { ItemListSchema } from "@/components/seo/ItemListSchema";
 import { ServiceSchema } from "@/components/seo/ServiceSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { getIndustryData } from "@/data/industryData";
 import { scrollToTop } from "@/lib/scroll";
@@ -38,6 +40,15 @@ export default function IndustryReportsPage() {
 
   return (
     <>
+      <GlobalSchemas />
+      
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "/" },
+        { name: "Industries", url: "/industries" },
+        { name: industryName || "", url: `/industries/${industry}` },
+        { name: "All Reports", url: `/industries/${industry}/all-reports` }
+      ]} />
+      
       <MetaTags
         title={`${industryName} Companies Losing Revenue - All Reports | NurturelyX`}
         description={`Browse all ${industryName} companies and see how much revenue they're losing from anonymous website visitors. Free lead generation reports and benchmarks.`}
