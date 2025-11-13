@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { getBlogPost, BlogPost } from "@/data/blogPosts";
 import { ArticleSchema } from "@/components/seo/ArticleSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { PersonSchema } from "@/components/seo/PersonSchema";
 import { SpeakableSchema } from "@/components/seo/SpeakableSchema";
@@ -59,9 +60,12 @@ export default function BlogPostPage() {
 
   return (
     <>
+      <GlobalSchemas />
+      
       <Helmet>
         <title>{post.title} | NurturelyX Blog</title>
         <meta name="description" content={post.metaDescription} />
+        <meta name="keywords" content={`${post.category}, visitor identification, lead generation, B2B marketing, anonymous visitors`} />
         
         {/* Canonical Tag */}
         <link rel="canonical" href={`https://x1.nurturely.io/blog/${post.slug}`} />

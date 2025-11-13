@@ -15,6 +15,7 @@ import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { FAQSchema } from "@/components/seo/FAQSchema";
 import { ComparisonSchema } from "@/components/seo/ComparisonSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import { useNavigate } from "react-router-dom";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
@@ -80,11 +81,17 @@ const VisitorIdVsTraditionalPage = () => {
 
   return (
     <>
+      <GlobalSchemas />
+      
+      <BreadcrumbSchema items={breadcrumbs} />
+      
       <MetaTags
         title="Visitor Identification vs Traditional Lead Generation: Complete ROI Comparison | NurturelyX"
         description="Compare visitor identification and traditional lead generation side-by-side. See exact ROI calculations, implementation costs, and why 10,000+ B2B companies are making the switch."
         canonical="https://x1.nurturely.io/compare/visitor-id-vs-traditional"
         keywords="visitor identification ROI, lead generation comparison, B2B lead gen, website visitor tracking, identity resolution vs forms, lead generation cost comparison"
+        publishedTime="2025-01-15T10:00:00Z"
+        modifiedTime="2025-01-15T10:00:00Z"
       />
 
       <WebPageSchema

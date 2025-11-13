@@ -7,6 +7,8 @@ import { Calendar, Clock } from "lucide-react";
 import { MetaTags } from "@/components/seo/MetaTags";
 import { ItemListSchema } from "@/components/seo/ItemListSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 
@@ -16,6 +18,13 @@ export default function BlogPage() {
 
   return (
     <>
+      <GlobalSchemas />
+      
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "/" },
+        { name: "Blog", url: "/blog" }
+      ]} />
+      
       <MetaTags
         title="B2B Lead Generation Blog 2025 | Visitor ID Strategies - NurturelyX"
         description="Expert insights on B2B lead generation, visitor identification, and converting anonymous website traffic into qualified leads."

@@ -5,6 +5,7 @@ import { MetaTags } from "@/components/seo/MetaTags";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { ItemListSchema } from "@/components/seo/ItemListSchema";
 import { HowToSchema } from "@/components/seo/HowToSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -192,10 +193,13 @@ const ResourcesPage = () => {
 
   return (
     <>
+      <GlobalSchemas />
+      
       <MetaTags
         title="Lead Generation Resources Hub 2025 | Visitor Identification Guides & Tools"
         description="Access comprehensive guides, industry-specific resources, free tools, and expert insights on visitor identification and lead generation. Everything you need to convert anonymous traffic into qualified leads."
         canonical="https://x1.nurturely.io/resources"
+        keywords="lead generation resources, visitor identification guides, B2B marketing tools, anonymous visitor tracking, identity resolution, lead gen strategies"
         ogImage="https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png"
       />
       

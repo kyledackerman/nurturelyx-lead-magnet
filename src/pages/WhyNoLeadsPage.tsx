@@ -9,6 +9,7 @@ import { ArrowRight, TrendingDown, Users, Eye, MousePointer, DollarSign, CheckCi
 import { ArticleSchema } from "@/components/seo/ArticleSchema";
 import { FAQSchema } from "@/components/seo/FAQSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 import {
@@ -56,6 +57,10 @@ const WhyNoLeadsPage = () => {
 
   return (
     <>
+      <GlobalSchemas />
+      
+      <BreadcrumbSchema items={breadcrumbs} />
+      
       <Helmet>
         <title>Why Is My Website Not Getting Leads? [2025 Complete Guide]</title>
         <meta 
@@ -63,15 +68,17 @@ const WhyNoLeadsPage = () => {
           content="Your website gets traffic but no leads? Discover the hidden reason 98% of visitors leave without converting and how to identify them automatically. Free lead loss calculator included." 
         />
         <link rel="canonical" href={canonicalUrl} />
+        <meta name="keywords" content="website not getting leads, low website conversion, increase website leads, anonymous visitors, visitor identification, identity resolution, B2B lead generation" />
         <meta property="og:title" content="Why Is My Website Not Getting Leads? [2025 Complete Guide]" />
         <meta property="og:description" content="Your website gets traffic but no leads? Discover the hidden reason 98% of visitors leave without converting and how to identify them automatically." />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content="https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png" />
+        <meta property="article:published_time" content={publishedDate} />
+        <meta property="article:modified_time" content={updatedDate} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Why Is My Website Not Getting Leads? [2025 Complete Guide]" />
         <meta name="twitter:description" content="Discover why 98% of your website visitors leave without converting and how to identify them automatically." />
-        <meta name="keywords" content="website not getting leads, low website conversion, increase website leads, anonymous visitors, visitor identification, identity resolution, B2B lead generation" />
       </Helmet>
 
       <ArticleSchema

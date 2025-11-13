@@ -25,6 +25,7 @@ import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { FAQSchema } from "@/components/seo/FAQSchema";
 import { ComparisonSchema } from "@/components/seo/ComparisonSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 import {
@@ -261,12 +262,15 @@ const ComparePage = () => {
 
   return (
     <>
+      <GlobalSchemas />
+      
       <Helmet>
         <title>Compare All Website Visitor Identification Tools (2025) | NurturelyX</title>
         <meta
           name="description"
           content="Compare 12+ visitor identification tools: Leadfeeder, Clearbit, Koala, Warmly, 6sense, OpenSend, Retention.com. See which gives you actual contact info vs just company names."
         />
+        <meta name="keywords" content="visitor identification comparison, leadfeeder alternatives, website visitor tracking tools, identity resolution comparison, B2B lead generation tools" />
         <link rel="canonical" href="https://x1.nurturely.io/compare" />
       </Helmet>
 

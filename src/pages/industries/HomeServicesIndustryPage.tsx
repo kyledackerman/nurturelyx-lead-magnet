@@ -19,6 +19,8 @@ import { MetaTags } from "@/components/seo/MetaTags";
 import { ServiceSchema } from "@/components/seo/ServiceSchema";
 import { LocalBusinessSchema } from "@/components/seo/LocalBusinessSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { RelatedIndustries } from "@/components/seo/RelatedIndustries";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
@@ -41,6 +43,14 @@ export default function HomeServicesIndustryPage() {
 
   return (
     <>
+      <GlobalSchemas />
+      
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "/" },
+        { name: "Industries", url: "/industries" },
+        { name: "Home Services", url: "/industries/home-services" }
+      ]} />
+      
       <MetaTags
         title="Home Services Visitor Identification 2025 | HVAC, Plumbing Leads - NurturelyX"
         description="Identify anonymous home services website visitors researching plumbing, HVAC & contractors. Convert browsers into booked jobs—get your free lead report today."

@@ -16,7 +16,7 @@ import LoadingState from "@/components/calculator/LoadingState";
 import HeroWithForm from "@/components/calculator/HeroWithForm";
 import IdentityResolutionExplainer from "@/components/calculator/IdentityResolutionExplainer";
 import CallToActionSection from "@/components/CallToActionSection";
-import { OrganizationSchema } from "@/components/seo/OrganizationSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { AggregateRatingSchema } from "@/components/seo/AggregateRatingSchema";
 import { MetaTags } from "@/components/seo/MetaTags";
 import { ServiceSchema } from "@/components/seo/ServiceSchema";
@@ -405,7 +405,7 @@ const Index = () => {
         ]}
       />
       
-      <OrganizationSchema />
+      <GlobalSchemas />
       <Header />
 
       <main role="main" className="flex-1 bg-background"

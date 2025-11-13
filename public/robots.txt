@@ -19,5 +19,5 @@ Allow: /learn/
 
 # Sitemaps
 Sitemap: https://x1.nurturely.io/sitemap.xml
-Sitemap: https://x1.nurturely.io/sitemap-blog.xml
-Sitemap: https://x1.nurturely.io/sitemap-reports.xml
+Sitemap: https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/sitemap-blog
+Sitemap: https://apjlauuidcbvuplfcshg.supabase.co/functions/v1/sitemap-reports

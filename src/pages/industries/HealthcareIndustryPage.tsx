@@ -19,6 +19,8 @@ import { MetaTags } from "@/components/seo/MetaTags";
 import { ServiceSchema } from "@/components/seo/ServiceSchema";
 import { LocalBusinessSchema } from "@/components/seo/LocalBusinessSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { RelatedIndustries } from "@/components/seo/RelatedIndustries";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
@@ -41,6 +43,14 @@ export default function HealthcareIndustryPage() {
 
   return (
     <>
+      <GlobalSchemas />
+      
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "/" },
+        { name: "Industries", url: "/industries" },
+        { name: "Healthcare", url: "/industries/healthcare" }
+      ]} />
+      
       <MetaTags
         title="Healthcare B2B Visitor Identification 2025 | Medical Device Lead Generation - NurturelyX"
         description="Identify hospitals & clinics researching your medical devices. Turn anonymous healthcare visitors into qualified leads—get your free B2B lead report now."

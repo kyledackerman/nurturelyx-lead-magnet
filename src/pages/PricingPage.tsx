@@ -16,6 +16,8 @@ import { MetaTags } from "@/components/seo/MetaTags";
 import { ProductSchema } from "@/components/seo/ProductSchema";
 import { FAQSchema } from "@/components/seo/FAQSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 
@@ -67,6 +69,8 @@ const PricingPage = () => {
   
   return (
     <>
+      <GlobalSchemas />
+      
       <MetaTags
         title="Transparent Pricing | $100/mo + $1 per lead - NurturelyX"
         description="Simple, transparent pricing: $100/month + $1 per identified lead. No contracts, no hidden fees. Turn anonymous website visitors into qualified leads with visitor identification."
@@ -74,6 +78,11 @@ const PricingPage = () => {
         keywords="visitor identification pricing, lead generation cost, identity resolution pricing, B2B lead pricing, website visitor tracking cost"
         ogType="website"
       />
+      
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "/" },
+        { name: "Pricing", url: "/pricing" }
+      ]} />
       
       <ProductSchema
         name="NurturelyX Visitor Identification Platform"

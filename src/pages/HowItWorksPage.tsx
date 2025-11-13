@@ -17,6 +17,8 @@ import { MetaTags } from "@/components/seo/MetaTags";
 import { HowToSchema } from "@/components/seo/HowToSchema";
 import { ServiceSchema } from "@/components/seo/ServiceSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 
@@ -48,6 +50,13 @@ export default function HowItWorksPage() {
   
   return (
     <>
+      <GlobalSchemas />
+      
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "/" },
+        { name: "How It Works", url: "/how-it-works" }
+      ]} />
+      
       <MetaTags
         title="How It Works - Visitor Identification Technology | NurturelyX"
         description="Learn how NurturelyX identifies anonymous website visitors and converts them into qualified leads. Step-by-step guide to our visitor identification technology and process."

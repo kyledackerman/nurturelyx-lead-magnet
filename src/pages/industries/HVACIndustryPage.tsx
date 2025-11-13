@@ -18,6 +18,8 @@ import { MetaTags } from "@/components/seo/MetaTags";
 import { ServiceSchema } from "@/components/seo/ServiceSchema";
 import { LocalBusinessSchema } from "@/components/seo/LocalBusinessSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { RelatedIndustries } from "@/components/seo/RelatedIndustries";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
@@ -41,6 +43,14 @@ export default function HVACIndustryPage() {
 
   return (
     <>
+      <GlobalSchemas />
+      
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "/" },
+        { name: "Industries", url: "/industries" },
+        { name: "HVAC", url: "/industries/hvac" }
+      ]} />
+      
       <MetaTags
         title="HVAC Visitor Identification 2025 | Heating & Cooling Lead Generation - NurturelyX"
         description="Identify anonymous HVAC website visitors & convert them into heating/cooling customers. Get your free lead report—see how many prospects you're missing today."

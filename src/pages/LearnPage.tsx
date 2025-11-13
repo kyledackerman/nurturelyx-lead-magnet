@@ -6,6 +6,8 @@ import { HowToSchema } from "@/components/seo/HowToSchema";
 import { ServiceSchema } from "@/components/seo/ServiceSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
 import { ArticleSchema } from "@/components/seo/ArticleSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { scrollToTop } from "@/lib/scroll";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
@@ -37,11 +39,20 @@ const LearnPage = () => {
 
   return (
     <>
+      <GlobalSchemas />
+      
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "/" },
+        { name: "Learn", url: "/learn" }
+      ]} />
+      
       <MetaTags
         title="Website Visitor Identification Guide 2025: Convert Anonymous Traffic"
         description="Learn how to identify anonymous website visitors and convert 98% of lost traffic into qualified leads. Complete guide to visitor identification technology and ROI."
         canonical="https://x1.nurturely.io/learn"
         keywords="website visitor identification, anonymous traffic conversion, identify website visitors, visitor tracking software, lead generation technology"
+        publishedTime="2025-01-10T10:00:00Z"
+        modifiedTime="2025-01-10T10:00:00Z"
       />
 
       <HowToSchema

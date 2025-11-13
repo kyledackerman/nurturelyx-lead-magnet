@@ -19,6 +19,8 @@ import { MetaTags } from "@/components/seo/MetaTags";
 import { ServiceSchema } from "@/components/seo/ServiceSchema";
 import { LocalBusinessSchema } from "@/components/seo/LocalBusinessSchema";
 import { WebPageSchema } from "@/components/seo/WebPageSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { RelatedIndustries } from "@/components/seo/RelatedIndustries";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
@@ -41,6 +43,14 @@ export default function RealEstateIndustryPage() {
 
   return (
     <>
+      <GlobalSchemas />
+      
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "/" },
+        { name: "Industries", url: "/industries" },
+        { name: "Real Estate", url: "/industries/real-estate" }
+      ]} />
+      
       <MetaTags
         title="Real Estate Visitor Identification 2025 | Property Lead Generation - NurturelyX"
         description="Identify anonymous real estate website visitors & convert property browsers into buyers. Track investors viewing your listings—get your free lead report now."
