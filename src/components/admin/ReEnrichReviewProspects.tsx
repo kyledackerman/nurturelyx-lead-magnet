@@ -4,8 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { PlayCircle, PauseCircle, RotateCcw } from "lucide-react";
+import { PlayCircle, PauseCircle, RotateCcw, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface BatchResult {
   enriched: number;
@@ -13,13 +16,22 @@ interface BatchResult {
   marked_not_viable: number;
 }
 
+interface DomainStatus {
+  domain: string;
+  status: string;
+  error?: string;
+}
+
 export const ReEnrichReviewProspects = () => {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [currentBatch, setCurrentBatch] = useState(0);
-  const [totalBatches, setTotalBatches] = useState(0);
+  const [currentDomain, setCurrentDomain] = useState<string>("");
+  const [processedCount, setProcessedCount] = useState(0);
+  const [maxDomains, setMaxDomains] = useState(100);
   const [stats, setStats] = useState<BatchResult>({ enriched: 0, failed: 0, marked_not_viable: 0 });
+  const [recentResults, setRecentResults] = useState<DomainStatus[]>([]);
+  const [lastError, setLastError] = useState<string>("");
 
   // Fetch count of review prospects
   const { data: reviewCount, refetch: refetchCount } = useQuery({
@@ -48,57 +60,116 @@ export const ReEnrichReviewProspects = () => {
 
     setIsProcessing(true);
     setIsPaused(false);
-    setCurrentBatch(0);
+    setProcessedCount(0);
     setStats({ enriched: 0, failed: 0, marked_not_viable: 0 });
+    setRecentResults([]);
+    setLastError("");
 
-    const BATCH_SIZE = 500;
-    const batches = Math.ceil(reviewCount / BATCH_SIZE);
-    setTotalBatches(batches);
+    const domainsToProcess = Math.min(maxDomains, reviewCount);
 
     toast({
       title: "Re-enrichment started",
-      description: `Processing ${reviewCount} prospects in ${batches} batches`,
+      description: `Processing up to ${domainsToProcess} prospects one-by-one`,
     });
 
     try {
-      for (let i = 0; i < batches; i++) {
+      for (let i = 0; i < domainsToProcess; i++) {
         if (isPaused) {
           toast({
             title: "Re-enrichment paused",
-            description: `Paused at batch ${i + 1} of ${batches}`,
+            description: `Paused after ${i} domains`,
           });
           break;
         }
 
-        setCurrentBatch(i + 1);
+        setCurrentDomain(`Processing domain ${i + 1} of ${domainsToProcess}...`);
+        setProcessedCount(i + 1);
 
         const { data, error } = await supabase.functions.invoke('re-enrich-review-prospects', {
           body: {
-            batch_size: BATCH_SIZE,
-            offset: i * BATCH_SIZE
+            batch_size: 1, // Process one at a time
+            offset: 0 // Always get the next prospect in review status
           }
         });
 
         if (error) {
-          console.error('Batch error:', error);
+          const errorMsg = error.message || 'Unknown error';
+          console.error('Processing error:', error);
+          setLastError(errorMsg);
+
+          // Check for rate limit or credit exhaustion
+          if (errorMsg.includes('429') || errorMsg.includes('rate limit')) {
+            toast({
+              title: "⚠️ Rate Limit Exceeded",
+              description: "Please wait before continuing. The system needs to cool down.",
+              variant: "destructive",
+            });
+            setIsProcessing(false);
+            break;
+          }
+
+          if (errorMsg.includes('402') || errorMsg.includes('credits')) {
+            toast({
+              title: "⚠️ AI Credits Exhausted",
+              description: "Please add credits to your workspace to continue.",
+              variant: "destructive",
+            });
+            setIsProcessing(false);
+            break;
+          }
+
           toast({
-            title: "Batch processing error",
-            description: `Error in batch ${i + 1}: ${error.message}`,
+            title: "Processing error",
+            description: errorMsg,
             variant: "destructive",
           });
           continue;
         }
 
         if (data) {
+          // Check for error codes in response
+          if (data.code === 429) {
+            setLastError(data.message);
+            toast({
+              title: "⚠️ Rate Limit Exceeded",
+              description: data.message,
+              variant: "destructive",
+            });
+            setIsProcessing(false);
+            break;
+          }
+
+          if (data.code === 402) {
+            setLastError(data.message);
+            toast({
+              title: "⚠️ AI Credits Exhausted",
+              description: data.message,
+              variant: "destructive",
+            });
+            setIsProcessing(false);
+            break;
+          }
+
+          // Update stats
           setStats(prev => ({
             enriched: prev.enriched + (data.enriched || 0),
             failed: prev.failed + (data.failed || 0),
             marked_not_viable: prev.marked_not_viable + (data.marked_not_viable || 0),
           }));
+
+          // Update recent results
+          if (data.results && Array.isArray(data.results)) {
+            setRecentResults(prev => [...data.results, ...prev].slice(0, 20));
+            
+            // Set current domain from results
+            if (data.results[0]?.domain) {
+              setCurrentDomain(`${data.results[0].domain} - ${data.results[0].status}`);
+            }
+          }
         }
 
-        // Small delay between batches to prevent overwhelming the system
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Delay between domains
+        await new Promise(resolve => setTimeout(resolve, 1500));
       }
 
       if (!isPaused) {
@@ -110,130 +181,195 @@ export const ReEnrichReviewProspects = () => {
       }
     } catch (error) {
       console.error('Re-enrichment error:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      setLastError(errorMsg);
       toast({
         title: "Re-enrichment error",
-        description: "An error occurred during processing",
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
       setIsProcessing(false);
+      setCurrentDomain("");
     }
   };
 
   const pauseReEnrichment = () => {
     setIsPaused(true);
-    toast({
-      title: "Pausing re-enrichment",
-      description: "Will pause after current batch completes",
-    });
   };
 
   const resetStats = () => {
-    setCurrentBatch(0);
-    setTotalBatches(0);
     setStats({ enriched: 0, failed: 0, marked_not_viable: 0 });
+    setProcessedCount(0);
+    setCurrentDomain("");
+    setRecentResults([]);
+    setLastError("");
     refetchCount();
   };
 
-  const progress = totalBatches > 0 ? (currentBatch / totalBatches) * 100 : 0;
+  const progress = reviewCount ? (processedCount / Math.min(maxDomains, reviewCount)) * 100 : 0;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <RotateCcw className="h-5 w-5" />
-          Re-Enrich Review Prospects
-        </CardTitle>
+        <CardTitle>Re-Enrich Review Prospects</CardTitle>
         <CardDescription>
-          Use enhanced Google search strategies to find valid emails for prospects in "review" status
+          Re-process prospects in "review" status using Lovable AI enrichment
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-muted/50 p-4 rounded-lg">
-            <div className="text-sm text-muted-foreground">Review Status</div>
-            <div className="text-2xl font-bold">{reviewCount || 0}</div>
-            <div className="text-xs text-muted-foreground">prospects to process</div>
-          </div>
-          <div className="bg-green-500/10 p-4 rounded-lg border border-green-500/20">
-            <div className="text-sm text-green-600 dark:text-green-400">Enriched</div>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.enriched}</div>
-            <div className="text-xs text-green-600/70 dark:text-green-400/70">emails found</div>
-          </div>
-          <div className="bg-red-500/10 p-4 rounded-lg border border-red-500/20">
-            <div className="text-sm text-red-600 dark:text-red-400">Not Viable</div>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.marked_not_viable}</div>
-            <div className="text-xs text-red-600/70 dark:text-red-400/70">after 3 attempts</div>
-          </div>
-          <div className="bg-yellow-500/10 p-4 rounded-lg border border-yellow-500/20">
-            <div className="text-sm text-yellow-600 dark:text-yellow-400">Pending</div>
-            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.failed}</div>
-            <div className="text-xs text-yellow-600/70 dark:text-yellow-400/70">needs retry</div>
-          </div>
-        </div>
+        <Tabs defaultValue="control" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="control">Control</TabsTrigger>
+            <TabsTrigger value="results">Results</TabsTrigger>
+          </TabsList>
 
-        {/* Progress Bar */}
-        {isProcessing && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">
-                Processing batch {currentBatch} of {totalBatches}
-              </span>
-              <span className="font-medium">{Math.round(progress)}%</span>
+          <TabsContent value="control" className="space-y-4">
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-muted p-4 rounded-lg">
+                <div className="text-sm text-muted-foreground">Available</div>
+                <div className="text-2xl font-bold">{reviewCount || 0}</div>
+              </div>
+              <div className="bg-green-500/10 p-4 rounded-lg border border-green-500/20">
+                <div className="text-sm text-muted-foreground">Enriched</div>
+                <div className="text-2xl font-bold text-green-600">{stats.enriched}</div>
+              </div>
+              <div className="bg-orange-500/10 p-4 rounded-lg border border-orange-500/20">
+                <div className="text-sm text-muted-foreground">Not Viable</div>
+                <div className="text-2xl font-bold text-orange-600">{stats.marked_not_viable}</div>
+              </div>
+              <div className="bg-red-500/10 p-4 rounded-lg border border-red-500/20">
+                <div className="text-sm text-muted-foreground">Failed</div>
+                <div className="text-2xl font-bold text-red-600">{stats.failed}</div>
+              </div>
             </div>
-            <Progress value={progress} className="h-2" />
-            <div className="text-xs text-muted-foreground">
-              Estimated time remaining: {Math.max(0, totalBatches - currentBatch)} batches (~{Math.max(0, (totalBatches - currentBatch) * 2)} minutes)
+
+            {/* Settings */}
+            <div className="space-y-2">
+              <Label htmlFor="maxDomains">Maximum Domains to Process</Label>
+              <Input
+                id="maxDomains"
+                type="number"
+                min={1}
+                max={1000}
+                value={maxDomains}
+                onChange={(e) => setMaxDomains(Number(e.target.value))}
+                disabled={isProcessing}
+              />
+              <p className="text-sm text-muted-foreground">
+                Limit processing to avoid quota issues. Default: 100 domains
+              </p>
             </div>
-          </div>
-        )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          {!isProcessing ? (
-            <Button
-              onClick={startReEnrichment}
-              disabled={!reviewCount || reviewCount === 0}
-              className="flex-1"
-            >
-              <PlayCircle className="mr-2 h-4 w-4" />
-              Start Re-Enrichment
-            </Button>
-          ) : (
-            <Button
-              onClick={pauseReEnrichment}
-              variant="outline"
-              disabled={isPaused}
-              className="flex-1"
-            >
-              <PauseCircle className="mr-2 h-4 w-4" />
-              {isPaused ? 'Pausing...' : 'Pause'}
-            </Button>
-          )}
-          <Button
-            onClick={resetStats}
-            variant="outline"
-            disabled={isProcessing}
-          >
-            <RotateCcw className="mr-2 h-4 w-4" />
-            Reset
-          </Button>
-        </div>
+            {/* Progress */}
+            {isProcessing && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Progress</span>
+                  <span>{processedCount} / {Math.min(maxDomains, reviewCount || 0)}</span>
+                </div>
+                <Progress value={progress} />
+                {currentDomain && (
+                  <div className="text-sm text-muted-foreground animate-pulse">
+                    {currentDomain}
+                  </div>
+                )}
+              </div>
+            )}
 
-        {/* Info Box */}
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-          <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2">
-            Enhanced Search Strategy
-          </h4>
-          <ul className="text-xs text-blue-600/80 dark:text-blue-400/80 space-y-1">
-            <li>• <strong>Retry 1:</strong> Owner/founder searches, email patterns, local business listings</li>
-            <li>• <strong>Retry 2:</strong> CEO/president searches, social media, Google Maps</li>
-            <li>• <strong>Retry 3:</strong> Email pattern matching, industry directories, chamber of commerce</li>
-            <li>• Prospects are marked "not_viable" after 3 failed attempts</li>
-            <li>• Processing 500 domains per batch with 2-minute intervals</li>
-          </ul>
-        </div>
+            {/* Error Display */}
+            {lastError && (
+              <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+                <div className="flex-1">
+                  <div className="font-semibold text-sm text-destructive">Last Error</div>
+                  <div className="text-sm text-muted-foreground">{lastError}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              <Button
+                onClick={startReEnrichment}
+                disabled={isProcessing || !reviewCount || reviewCount === 0}
+                className="flex-1"
+              >
+                <PlayCircle className="mr-2 h-4 w-4" />
+                Start Re-Enrichment
+              </Button>
+              <Button
+                onClick={pauseReEnrichment}
+                disabled={!isProcessing}
+                variant="outline"
+              >
+                <PauseCircle className="mr-2 h-4 w-4" />
+                Pause
+              </Button>
+              <Button
+                onClick={resetStats}
+                disabled={isProcessing}
+                variant="outline"
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Reset
+              </Button>
+            </div>
+
+            {/* Info */}
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 space-y-2">
+              <h4 className="font-semibold text-sm">How It Works</h4>
+              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                <li>Processes prospects in "review" status with retry count &lt; 3</li>
+                <li>Uses the proven Lovable AI enrichment pipeline (enrich-single-prospect)</li>
+                <li>Processes one domain at a time with 1.5s delay between each</li>
+                <li>Automatically stops on rate limits or credit exhaustion</li>
+                <li>Only increments retry count on actual enrichment failures</li>
+              </ul>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="results" className="space-y-4">
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm">Recent Results (Last 20)</h4>
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                {recentResults.length === 0 ? (
+                  <div className="text-sm text-muted-foreground text-center py-8">
+                    No results yet. Start processing to see results here.
+                  </div>
+                ) : (
+                  recentResults.map((result, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                    >
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">{result.domain}</div>
+                        {result.error && (
+                          <div className="text-xs text-muted-foreground">{result.error}</div>
+                        )}
+                      </div>
+                      <div
+                        className={`text-xs font-semibold px-2 py-1 rounded ${
+                          result.status === 'enriched'
+                            ? 'bg-green-500/20 text-green-600'
+                            : result.status === 'not_viable'
+                            ? 'bg-orange-500/20 text-orange-600'
+                            : result.status === 'failed'
+                            ? 'bg-red-500/20 text-red-600'
+                            : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
+                        {result.status}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
