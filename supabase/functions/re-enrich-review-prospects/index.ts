@@ -20,8 +20,8 @@ serve(async (req) => {
     const { prospect_id, batch_size = 1, offset = 0 } = await req.json();
     let prospectsToProcess: any[] = [];
 
-    // Single prospect mode
     if (prospect_id) {
+      // Single prospect mode
       const { data, error } = await supabaseClient
         .from('prospect_activities')
         .select(`
@@ -75,26 +75,23 @@ serve(async (req) => {
     let marked_not_viable = 0;
     const results: any[] = [];
 
-    // Process each prospect one-by-one
     for (const prospect of prospectsToProcess) {
       const domain = prospect.reports?.domain || 'unknown';
       console.log(`Processing ${domain} (prospect_id: ${prospect.id})`);
 
       try {
-        // Update last enrichment attempt
         await supabaseClient
           .from('prospect_activities')
           .update({ last_enrichment_attempt: new Date().toISOString() })
           .eq('id', prospect.id);
 
-        // Call the enrich-single-prospect function
         const { data: enrichData, error: enrichError } = await supabaseClient.functions.invoke(
           'enrich-single-prospect',
           { body: { prospect_id: prospect.id } }
         );
 
         if (enrichError) {
-          // Check for rate limit errors (429)
+          // CRITICAL: Check for rate limit errors (429) - stop immediately, don't increment retry
           if (enrichError.message?.includes('429') || enrichError.message?.includes('rate limit')) {
             console.error(`Rate limit hit for ${domain}`);
             results.push({ domain, status: 'rate_limit', error: enrichError.message });
@@ -115,7 +112,7 @@ serve(async (req) => {
             );
           }
 
-          // Check for credit exhaustion (402)
+          // CRITICAL: Check for credit exhaustion (402) - stop immediately, don't increment retry
           if (enrichError.message?.includes('402') || enrichError.message?.includes('credits')) {
             console.error(`Credits exhausted for ${domain}`);
             results.push({ domain, status: 'no_credits', error: enrichError.message });
@@ -170,7 +167,7 @@ serve(async (req) => {
 
         console.log(`✓ Processed ${domain}: ${updatedProspect?.status}`);
 
-        // Delay between prospects to avoid rate limits
+        // Safety delay between prospects (1.5 seconds)
         if (prospectsToProcess.indexOf(prospect) < prospectsToProcess.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 1500));
         }
