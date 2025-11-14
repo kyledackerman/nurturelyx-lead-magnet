@@ -18,7 +18,6 @@ serve(async (req) => {
     );
 
     const { prospect_id, batch_size = 1, offset = 0 } = await req.json();
-
     let prospectsToProcess: any[] = [];
 
     // Single prospect mode
@@ -39,9 +38,8 @@ serve(async (req) => {
 
       if (error) throw error;
       if (data) prospectsToProcess = [data];
-    } 
-    // Batch mode
-    else {
+    } else {
+      // Batch mode
       const { data, error } = await supabaseClient
         .from('prospect_activities')
         .select(`
@@ -89,14 +87,14 @@ serve(async (req) => {
           .update({ last_enrichment_attempt: new Date().toISOString() })
           .eq('id', prospect.id);
 
-        // Call the proven enrich-single-prospect function
+        // Call the enrich-single-prospect function
         const { data: enrichData, error: enrichError } = await supabaseClient.functions.invoke(
           'enrich-single-prospect',
           { body: { prospect_id: prospect.id } }
         );
 
         if (enrichError) {
-          // Check for quota/rate limit errors
+          // Check for rate limit errors (429)
           if (enrichError.message?.includes('429') || enrichError.message?.includes('rate limit')) {
             console.error(`Rate limit hit for ${domain}`);
             results.push({ domain, status: 'rate_limit', error: enrichError.message });
@@ -117,6 +115,7 @@ serve(async (req) => {
             );
           }
 
+          // Check for credit exhaustion (402)
           if (enrichError.message?.includes('402') || enrichError.message?.includes('credits')) {
             console.error(`Credits exhausted for ${domain}`);
             results.push({ domain, status: 'no_credits', error: enrichError.message });
@@ -152,7 +151,7 @@ serve(async (req) => {
           continue;
         }
 
-        // Check final status
+        // Check final status after enrichment
         const { data: updatedProspect } = await supabaseClient
           .from('prospect_activities')
           .select('status')
@@ -166,7 +165,6 @@ serve(async (req) => {
           enriched++;
           results.push({ domain, status: 'enriched' });
         } else {
-          // Still in enriching or review
           results.push({ domain, status: updatedProspect?.status || 'unknown' });
         }
 
