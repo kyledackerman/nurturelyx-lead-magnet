@@ -15,7 +15,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ReEnrichReviewProspects } from "@/components/admin/ReEnrichReviewProspects";
 
 interface CRMHeaderProps {
   onOpenProgressDialog?: (jobId: string) => void;
@@ -32,7 +31,6 @@ export default function CRMHeader({ onOpenProgressDialog, currentView, onRefresh
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [showReEnrichDialog, setShowReEnrichDialog] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -148,18 +146,6 @@ export default function CRMHeader({ onOpenProgressDialog, currentView, onRefresh
             {onOpenProgressDialog && (
               <ActiveEnrichmentJobsIndicator onOpenProgressDialog={onOpenProgressDialog} />
             )}
-
-            {currentView === 'needs-attention' && isAdmin && (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => setShowReEnrichDialog(true)}
-                className="gap-2"
-              >
-                <Wrench className="h-4 w-4" />
-                <span className="hidden sm:inline">Re-Enrich Review Prospects</span>
-              </Button>
-            )}
             
             <Button
               variant="outline"
@@ -183,18 +169,6 @@ export default function CRMHeader({ onOpenProgressDialog, currentView, onRefresh
           </div>
         </div>
       </div>
-
-      <Dialog open={showReEnrichDialog} onOpenChange={setShowReEnrichDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Re-Enrich Review Prospects</DialogTitle>
-            <DialogDescription>
-              Process prospects in "review" status to find valid email addresses using enhanced search strategies
-            </DialogDescription>
-          </DialogHeader>
-          <ReEnrichReviewProspects />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

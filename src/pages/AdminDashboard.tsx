@@ -28,7 +28,6 @@ import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm"
 import AdminManual from "@/components/admin/AdminManual";
 import { ReportCategorizationTool } from "@/components/admin/ReportCategorizationTool";
 import { BackfillUseCasesButton } from "@/components/admin/BackfillUseCasesButton";
-import { ReEnrichReviewProspects } from "@/components/admin/ReEnrichReviewProspects";
 import { FormData, ReportData } from "@/types/report";
 import { fetchDomainData, calculateReportMetrics } from "@/services/spyfuService";
 import { reportService } from "@/services/reportService";
@@ -1714,10 +1713,6 @@ const AdminDashboard = () => {
                 <MapPin className="h-4 w-4 mr-2" />
                 Geo Search
               </TabsTrigger>
-              <TabsTrigger value="re-enrichment">
-                <Wrench className="h-4 w-4 mr-2" />
-                Re-Enrichment
-              </TabsTrigger>
               <TabsTrigger value="admin">
                 <Shield className="h-4 w-4 mr-2" />
                 Admin
@@ -1844,10 +1839,6 @@ const AdminDashboard = () => {
 
             <TabsContent value="geo-discovery" className="space-y-6">
               <GeoDomainDiscovery />
-            </TabsContent>
-
-            <TabsContent value="re-enrichment" className="space-y-6">
-              <ReEnrichReviewProspects />
             </TabsContent>
 
             <TabsContent value="admin" className="space-y-6">
