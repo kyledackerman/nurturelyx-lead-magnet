@@ -307,19 +307,17 @@ serve(async (req) => {
       }
     }
 
-    // STAGE 2: Find Owner's Contact (prioritize domain emails)
+    // STAGE 2: Find Owner's Contact (strict domain-only with context verification)
     if (ownerName) {
       stage = 'Stage 2';
       const stage2Queries = [
-        `"${ownerName}" "@${domain}"`, // PRIORITY: Owner's email at business domain
-        `"${ownerName}" ${companyName} "@${domain}"`,
+        `"${ownerName}" "@${domain}"`, // Priority: owner's email at business domain
+        `"${ownerName}" "${companyName}" email`,
+        `site:${domain} "${ownerName}" email OR contact`,
         `site:linkedin.com/in "${ownerName}" "${companyName}" email`,
-        `"${ownerName}" ${companyName} contact email`,
-        `"${ownerName}" email ${city} ${state}`,
-        `site:facebook.com "${ownerName}" ${city} email`,
-        `"${ownerName}" ${industry} contact`,
-        // Personal emails only as fallback
-        `"${ownerName}" @gmail.com OR @yahoo.com OR @hotmail.com OR @outlook.com`,
+        `"${ownerName}" "${companyName}" press release email`,
+        `"${ownerName}" "${companyName}" contact ${city}`,
+        `"${companyName}" "${ownerName}" ${industry} contact`,
       ];
 
       console.log(`[Stage 2] Searching for ${ownerName}'s contact with ${stage2Queries.length} queries...`);
@@ -337,7 +335,7 @@ serve(async (req) => {
               messages: [
                 {
                   role: 'system',
-                  content: `Extract all email addresses from search results. Return ONLY valid email addresses, one per line. If none found, return "NONE".`
+                  content: `Extract email addresses that belong to ${ownerName} at ${companyName}. ONLY return emails if you can verify they are mentioned in the same context as the company. Return valid email addresses one per line, or "NONE" if not found.`
                 },
                 {
                   role: 'user',
@@ -368,18 +366,22 @@ serve(async (req) => {
         }
       }
 
-      // Filter emails by domain - prioritize domain emails over personal
+      // Validate emails with strict context awareness
       if (foundEmails.length > 0) {
         const domainEmails = foundEmails.filter(e => isEmailForDomain(e, domain));
-        const personalEmails = foundEmails.filter(e => 
-          PERSONAL_DOMAINS.some(pd => e.toLowerCase().endsWith(`@${pd}`))
-        );
         
-        console.log(`[Stage 2 Validation] Total: ${foundEmails.length}, Domain: ${domainEmails.length}, Personal: ${personalEmails.length}`);
+        console.log(`[Stage 2 Validation] Total: ${foundEmails.length}, Domain: ${domainEmails.length}`);
         
-        // Only keep personal emails if NO domain emails found (max 2)
-        foundEmails = domainEmails.length > 0 ? domainEmails : personalEmails.slice(0, 2);
-        console.log(`[Stage 2 Validation] Keeping ${foundEmails.length} validated emails`);
+        // Only keep domain emails - reject unverified personal emails
+        // Personal emails are only valid if they appear alongside domain emails (same source/context)
+        if (domainEmails.length > 0) {
+          foundEmails = domainEmails;
+          console.log(`[Stage 2 Validation] Keeping ${domainEmails.length} domain emails`);
+        } else {
+          // If no domain emails found, likely a different person with same name
+          foundEmails = [];
+          console.log(`[Stage 2 Validation] No domain emails found, rejecting all results (likely wrong person)`);
+        }
       }
     }
 
@@ -494,9 +496,12 @@ serve(async (req) => {
             const content = aiData.choices?.[0]?.message?.content || '';
             const emails = extractEmailsFromText(content);
             
-            if (emails.length > 0) {
-              foundEmails.push(...emails);
-              console.log(`[Stage 3B] Found ${emails.length} emails`);
+            // Filter to only domain emails
+            const validEmails = emails.filter(e => isEmailForDomain(e, domain));
+            
+            if (validEmails.length > 0) {
+              foundEmails.push(...validEmails);
+              console.log(`[Stage 3B] Found ${validEmails.length} domain emails (${emails.length} total filtered)`);
             }
           } catch (error) {
             console.error(`[Stage 3B] Query error:`, error);
@@ -562,9 +567,25 @@ serve(async (req) => {
       }
     }
 
-    // Deduplicate emails
-    foundEmails = [...new Set(foundEmails)];
-
+    // Final verification: deduplicate and ensure strict domain match
+    foundEmails = [...new Set(foundEmails)]; // Remove duplicates
+    
+    const verifiedEmails = foundEmails.filter(email => {
+      const emailDomain = email.toLowerCase().split('@')[1];
+      const targetDomain = domain.toLowerCase().replace(/^www\./, '');
+      
+      // Accept if exact domain match or subdomain
+      const isDomainMatch = emailDomain === targetDomain || emailDomain.endsWith(`.${targetDomain}`);
+      
+      if (!isDomainMatch) {
+        console.log(`[Final Verification] Rejecting ${email} - domain mismatch for ${domain}`);
+      }
+      
+      return isDomainMatch;
+    });
+    
+    foundEmails = verifiedEmails;
+    console.log(`[Final Verification] ${verifiedEmails.length}/${foundEmails.length + (foundEmails.length - verifiedEmails.length)} emails passed strict domain verification`);
     console.log(`[Result] Found ${foundEmails.length} total valid emails for ${domain}`);
 
     // Update job item with results
@@ -584,13 +605,12 @@ serve(async (req) => {
 
     // Insert contacts and update status
     if (foundEmails.length > 0) {
-      // Insert contacts (max 25)
+      // Insert contacts (max 25) - only use owner name for domain emails
       for (const email of foundEmails.slice(0, 25)) {
         const emailDomain = email.split('@')[1];
         
-        // Only use owner name if email is from target domain OR is personal email
-        const useOwnerName = isEmailForDomain(email, domain) || 
-                            PERSONAL_DOMAINS.some(pd => emailDomain.toLowerCase() === pd);
+        // Only use owner name if email is from target domain (not personal emails)
+        const useOwnerName = isEmailForDomain(email, domain);
         
         const nameParts = useOwnerName && ownerName ? ownerName.split(' ') : ['', ''];
         const notes = useOwnerName && ownerName ? 'Owner/Founder' : 'Found via domain search';
