@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ReEnrichReviewProspectsV2 } from "@/components/admin/ReEnrichReviewProspectsV2";
 
 interface CRMHeaderProps {
   onOpenProgressDialog?: (jobId: string) => void;
@@ -31,6 +32,7 @@ export default function CRMHeader({ onOpenProgressDialog, currentView, onRefresh
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [showReEnrichDialog, setShowReEnrichDialog] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -146,6 +148,18 @@ export default function CRMHeader({ onOpenProgressDialog, currentView, onRefresh
             {onOpenProgressDialog && (
               <ActiveEnrichmentJobsIndicator onOpenProgressDialog={onOpenProgressDialog} />
             )}
+
+            {currentView === 'needs-attention' && isAdmin && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowReEnrichDialog(true)}
+                className="gap-2"
+              >
+                <Wrench className="h-4 w-4" />
+                <span className="hidden sm:inline">Re-Enrich V2</span>
+              </Button>
+            )}
             
             <Button
               variant="outline"
@@ -169,6 +183,18 @@ export default function CRMHeader({ onOpenProgressDialog, currentView, onRefresh
           </div>
         </div>
       </div>
+
+      <Dialog open={showReEnrichDialog} onOpenChange={setShowReEnrichDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Re-Enrich Review Prospects V2</DialogTitle>
+            <DialogDescription>
+              Advanced 3-stage re-enrichment process for prospects in review status
+            </DialogDescription>
+          </DialogHeader>
+          <ReEnrichReviewProspectsV2 />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

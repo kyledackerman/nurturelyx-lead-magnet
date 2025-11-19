@@ -176,3 +176,6 @@ verify_jwt = true
 
 [functions.re-enrich-review-prospects]
 verify_jwt = true
+
+[functions.re-enrich-review-prospects-v2]
+verify_jwt = true
