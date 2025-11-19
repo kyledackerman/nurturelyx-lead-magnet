@@ -39,10 +39,78 @@ export function ReEnrichReviewProspectsV2() {
   const [results, setResults] = useState<ProcessResult[]>([]);
   const [showHistory, setShowHistory] = useState(false);
 
+  // Auto-resume on mount: Check for existing running or paused jobs
   useEffect(() => {
     fetchReviewCount();
-    checkForActiveJob();
+    
+    const checkAndResumeJob = async () => {
+      console.log('[ReEnrich] Checking for existing jobs on mount');
+      
+      const { data: existingJob, error } = await supabase
+        .from('re_enrichment_jobs')
+        .select('*')
+        .in('status', ['running', 'paused'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('[ReEnrich] Error checking for existing jobs:', error);
+        return;
+      }
+      
+      if (existingJob) {
+        console.log('[ReEnrich] Found existing job:', existingJob);
+        setActiveJobId(existingJob.id);
+        setJobStatus(existingJob.status as 'idle' | 'running' | 'paused' | 'completed');
+        setStats({
+          total: existingJob.total_count,
+          processed: existingJob.processed_count,
+          enriched: existingJob.enriched_count,
+          notFound: existingJob.not_found_count,
+          errors: existingJob.error_count,
+        });
+        setMaxDomains(existingJob.max_domains_to_process);
+        
+        // Auto-resume if it was running or paused
+        if (existingJob.status === 'running' || existingJob.status === 'paused') {
+          toast.info(`Resuming re-enrichment job (${existingJob.processed_count}/${existingJob.total_count} processed)`);
+          
+          // Update status to running if it was paused
+          if (existingJob.status === 'paused') {
+            await supabase
+              .from('re_enrichment_jobs')
+              .update({ status: 'running', stopped_reason: null })
+              .eq('id', existingJob.id);
+            setJobStatus('running');
+          }
+          
+          // Start processing
+          processJob(existingJob.id);
+        }
+      }
+    };
+    
+    checkAndResumeJob();
   }, []);
+
+  // Auto-pause on unmount: Save job state when modal closes
+  useEffect(() => {
+    return () => {
+      if (processing && activeJobId && jobStatus === 'running') {
+        console.log('[ReEnrich] Component unmounting, pausing job:', activeJobId);
+        
+        // Fire and forget - don't await during cleanup
+        void supabase
+          .from('re_enrichment_jobs')
+          .update({ 
+            status: 'paused', 
+            stopped_reason: 'ui_closed' 
+          })
+          .eq('id', activeJobId);
+      }
+    };
+  }, [processing, activeJobId, jobStatus]);
 
   // Realtime subscription for job updates
   useEffect(() => {
