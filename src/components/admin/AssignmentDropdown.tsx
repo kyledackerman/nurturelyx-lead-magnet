@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { User, UserCheck, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { toast } from "sonner";
 
 interface Admin {
@@ -27,13 +28,22 @@ export const AssignmentDropdown = ({
   onAssignmentChange, 
   disabled 
 }: AssignmentDropdownProps) => {
-  const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const { user } = useAuth();
+  
+  // Use shared admin users hook with caching - no duplicate API calls
+  const { admins: adminUsers, loading: adminsLoading } = useAdminUsers();
+  
+  // Map to local Admin interface
+  const admins: Admin[] = adminUsers.map(admin => ({
+    user_id: admin.id,
+    role: 'admin', // Role information available in hook if needed
+    email: admin.email,
+    display_name: admin.email?.split('@')[0]
+  }));
 
   useEffect(() => {
-    fetchAdmins();
     checkSuperAdminStatus();
   }, [user]);
 
@@ -46,27 +56,6 @@ export const AssignmentDropdown = ({
       setIsSuperAdmin(data);
     } catch (error) {
       console.error('Error checking super admin status:', error);
-    }
-  };
-
-  const fetchAdmins = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('get-admins');
-      
-      if (error) throw error;
-
-      // Map the response to our Admin interface
-      const adminList: Admin[] = (data.admins || []).map((admin: any) => ({
-        user_id: admin.id,
-        role: admin.role,
-        email: admin.email,
-        display_name: admin.email?.split('@')[0]
-      }));
-
-      setAdmins(adminList);
-    } catch (error) {
-      console.error('Error fetching admins:', error);
-      toast.error('Failed to load admin list');
     }
   };
 
