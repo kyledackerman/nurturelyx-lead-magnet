@@ -47,6 +47,24 @@ function extractEmailsFromText(text: string): string[] {
   return [...new Set(matches.filter(isValidSalesEmail))];
 }
 
+// Check if an email belongs to the target domain
+function isEmailForDomain(email: string, targetDomain: string): boolean {
+  const emailDomain = email.toLowerCase().split('@')[1];
+  const cleanTarget = targetDomain.toLowerCase().replace(/^www\./, '');
+  
+  // Exact domain match
+  if (emailDomain === cleanTarget) {
+    return true;
+  }
+  
+  // Subdomain match
+  if (emailDomain.endsWith(`.${cleanTarget}`)) {
+    return true;
+  }
+  
+  return false;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -289,20 +307,19 @@ serve(async (req) => {
       }
     }
 
-    // STAGE 2: Find Owner's Personal Contact (if name found)
+    // STAGE 2: Find Owner's Contact (prioritize domain emails)
     if (ownerName) {
       stage = 'Stage 2';
       const stage2Queries = [
-        `"${ownerName}" email ${city} ${state}`,
-        `"${ownerName}" @gmail.com OR @yahoo.com OR @hotmail.com OR @outlook.com`,
+        `"${ownerName}" "@${domain}"`, // PRIORITY: Owner's email at business domain
+        `"${ownerName}" ${companyName} "@${domain}"`,
+        `site:linkedin.com/in "${ownerName}" "${companyName}" email`,
         `"${ownerName}" ${companyName} contact email`,
-        `site:linkedin.com/in "${ownerName}" email`,
+        `"${ownerName}" email ${city} ${state}`,
         `site:facebook.com "${ownerName}" ${city} email`,
         `"${ownerName}" ${industry} contact`,
-        `"${ownerName}" speaker ${industry} email`,
-        `"${ownerName}" ${companyName} personal email`,
-        `"${ownerName}" volunteer ${city} contact`,
-        `"${ownerName}" ${industry} forum email`,
+        // Personal emails only as fallback
+        `"${ownerName}" @gmail.com OR @yahoo.com OR @hotmail.com OR @outlook.com`,
       ];
 
       console.log(`[Stage 2] Searching for ${ownerName}'s contact with ${stage2Queries.length} queries...`);
@@ -349,6 +366,20 @@ serve(async (req) => {
         } catch (error) {
           console.error(`[Stage 2] Query error:`, error);
         }
+      }
+
+      // Filter emails by domain - prioritize domain emails over personal
+      if (foundEmails.length > 0) {
+        const domainEmails = foundEmails.filter(e => isEmailForDomain(e, domain));
+        const personalEmails = foundEmails.filter(e => 
+          PERSONAL_DOMAINS.some(pd => e.toLowerCase().endsWith(`@${pd}`))
+        );
+        
+        console.log(`[Stage 2 Validation] Total: ${foundEmails.length}, Domain: ${domainEmails.length}, Personal: ${personalEmails.length}`);
+        
+        // Only keep personal emails if NO domain emails found (max 2)
+        foundEmails = domainEmails.length > 0 ? domainEmails : personalEmails.slice(0, 2);
+        console.log(`[Stage 2 Validation] Keeping ${foundEmails.length} validated emails`);
       }
     }
 
@@ -403,9 +434,12 @@ serve(async (req) => {
           const content = aiData.choices?.[0]?.message?.content || '';
           const emails = extractEmailsFromText(content);
           
-          if (emails.length > 0) {
-            foundEmails.push(...emails);
-            console.log(`[Stage 3A] Found ${emails.length} emails`);
+          // Only accept emails from target domain
+          const validEmails = emails.filter(e => isEmailForDomain(e, domain));
+          
+          if (validEmails.length > 0) {
+            foundEmails.push(...validEmails);
+            console.log(`[Stage 3A] Found ${validEmails.length} domain emails (${emails.length} total filtered)`);
           }
         } catch (error) {
           console.error(`[Stage 3A] Query error:`, error);
@@ -550,9 +584,17 @@ serve(async (req) => {
 
     // Insert contacts and update status
     if (foundEmails.length > 0) {
-      // Insert contacts
-      for (const email of foundEmails.slice(0, 25)) { // Max 25 contacts
-        const nameParts = ownerName?.split(' ') || ['', ''];
+      // Insert contacts (max 25)
+      for (const email of foundEmails.slice(0, 25)) {
+        const emailDomain = email.split('@')[1];
+        
+        // Only use owner name if email is from target domain OR is personal email
+        const useOwnerName = isEmailForDomain(email, domain) || 
+                            PERSONAL_DOMAINS.some(pd => emailDomain.toLowerCase() === pd);
+        
+        const nameParts = useOwnerName && ownerName ? ownerName.split(' ') : ['', ''];
+        const notes = useOwnerName && ownerName ? 'Owner/Founder' : 'Found via domain search';
+        
         await supabase.from('prospect_contacts').insert({
           prospect_activity_id: prospect.id,
           report_id: prospect.report_id,
@@ -560,6 +602,7 @@ serve(async (req) => {
           first_name: nameParts[0] || 'Contact',
           last_name: nameParts.slice(1).join(' ') || '',
           is_primary: foundEmails.indexOf(email) === 0,
+          notes: notes,
         });
       }
 
