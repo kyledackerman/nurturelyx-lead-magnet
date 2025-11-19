@@ -179,3 +179,6 @@ verify_jwt = true
 
 [functions.re-enrich-review-prospects-v2]
 verify_jwt = true
+
+[functions.create-re-enrichment-job]
+verify_jwt = true

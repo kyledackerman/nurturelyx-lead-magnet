@@ -63,7 +63,80 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get ONE review prospect
+    // Get job_id from request
+    const { job_id } = await req.json();
+    if (!job_id) {
+      return new Response(
+        JSON.stringify({ error: 'job_id is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Fetch job record
+    const { data: job, error: jobError } = await supabase
+      .from('re_enrichment_jobs')
+      .select('*')
+      .eq('id', job_id)
+      .single();
+
+    if (jobError || !job) {
+      return new Response(
+        JSON.stringify({ error: 'Job not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check job status
+    if (job.status === 'paused') {
+      return new Response(
+        JSON.stringify({ message: 'Job is paused', job_status: 'paused' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (job.status === 'completed') {
+      return new Response(
+        JSON.stringify({ message: 'Job already completed', job_status: 'completed' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Update job to running if queued
+    if (job.status === 'queued') {
+      await supabase
+        .from('re_enrichment_jobs')
+        .update({ status: 'running', started_at: new Date().toISOString() })
+        .eq('id', job_id);
+    }
+
+    // Check if we've hit the max
+    if (job.processed_count >= job.max_domains_to_process) {
+      await supabase
+        .from('re_enrichment_jobs')
+        .update({ 
+          status: 'completed', 
+          completed_at: new Date().toISOString(),
+          stopped_reason: 'completed'
+        })
+        .eq('id', job_id);
+      
+      return new Response(
+        JSON.stringify({ 
+          message: 'Job completed - max domains reached', 
+          job_status: 'completed',
+          job_progress: {
+            total: job.total_count,
+            processed: job.processed_count,
+            enriched: job.enriched_count,
+            notFound: job.not_found_count,
+            errors: job.error_count
+          }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get ONE review prospect at current offset
     const { data: prospects, error: fetchError } = await supabase
       .from('prospect_activities')
       .select(`
@@ -82,12 +155,34 @@ serve(async (req) => {
       .eq('status', 'review')
       .lt('enrichment_retry_count', 3)
       .is('purchased_by_ambassador', null)
+      .order('created_at', { ascending: true })
+      .range(job.current_offset, job.current_offset)
       .limit(1);
 
     if (fetchError) throw fetchError;
     if (!prospects || prospects.length === 0) {
+      // No more prospects - mark job as completed
+      await supabase
+        .from('re_enrichment_jobs')
+        .update({ 
+          status: 'completed', 
+          completed_at: new Date().toISOString(),
+          stopped_reason: 'no_more_prospects'
+        })
+        .eq('id', job_id);
+      
       return new Response(
-        JSON.stringify({ message: 'No review prospects available', processed: 0 }),
+        JSON.stringify({ 
+          message: 'No more review prospects available', 
+          job_status: 'completed',
+          job_progress: {
+            total: job.total_count,
+            processed: job.processed_count,
+            enriched: job.enriched_count,
+            notFound: job.not_found_count,
+            errors: job.error_count
+          }
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -99,6 +194,20 @@ serve(async (req) => {
     const industry = report.industry || 'general business';
     const city = report.city || '';
     const state = report.state || '';
+
+    // Create job item
+    const { data: jobItem } = await supabase
+      .from('re_enrichment_job_items')
+      .insert({
+        job_id: job_id,
+        prospect_activity_id: prospect.id,
+        domain: domain,
+        report_id: prospect.report_id,
+        status: 'processing',
+        started_at: new Date().toISOString()
+      })
+      .select()
+      .single();
 
     console.log(`[Re-Enrich V2] Processing: ${domain}`);
 
@@ -424,6 +533,21 @@ serve(async (req) => {
 
     console.log(`[Result] Found ${foundEmails.length} total valid emails for ${domain}`);
 
+    // Update job item with results
+    const emailsFound = foundEmails.length > 0;
+    await supabase
+      .from('re_enrichment_job_items')
+      .update({
+        status: emailsFound ? 'enriched' : 'not_found',
+        owner_name_found: ownerName,
+        stage_reached: stage,
+        contacts_found: foundEmails.length,
+        emails_extracted: foundEmails,
+        completed_at: new Date().toISOString(),
+        search_queries_used: stage === 'Stage 1' ? 15 : stage === 'Stage 2' ? 30 : 45
+      })
+      .eq('id', jobItem!.id);
+
     // Insert contacts and update status
     if (foundEmails.length > 0) {
       // Insert contacts
@@ -447,6 +571,7 @@ serve(async (req) => {
           contact_count: foundEmails.length,
           enrichment_locked_at: null,
           enrichment_locked_by: null,
+          last_enrichment_attempt: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
         .eq('id', prospect.id);
@@ -462,17 +587,7 @@ serve(async (req) => {
         business_context: `Re-enrichment V2: Found ${foundEmails.length} emails via ${stage} (${domain})`,
       });
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          domain,
-          ownerName,
-          emailsFound: foundEmails.length,
-          stage,
-          emails: foundEmails.slice(0, 5), // Return first 5 for display
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      console.log(`[Re-Enrich V2] ✅ Enriched ${domain} with ${foundEmails.length} emails`);
     } else {
       // No emails found, increment retry count
       const newRetryCount = (prospect.enrichment_retry_count || 0) + 1;
@@ -483,26 +598,85 @@ serve(async (req) => {
         .update({
           enrichment_retry_count: newRetryCount,
           status: newStatus,
+          last_enrichment_attempt: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
         .eq('id', prospect.id);
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          domain,
-          ownerName,
-          emailsFound: 0,
-          stage,
-          retryCount: newRetryCount,
-          markedNotViable: newRetryCount >= 3,
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      console.log(`[Re-Enrich V2] ❌ No emails found for ${domain} (Retry: ${newRetryCount}/3)`);
     }
+
+    // Update job progress
+    const { data: updatedJob } = await supabase
+      .from('re_enrichment_jobs')
+      .update({
+        processed_count: job.processed_count + 1,
+        enriched_count: emailsFound ? job.enriched_count + 1 : job.enriched_count,
+        not_found_count: !emailsFound ? job.not_found_count + 1 : job.not_found_count,
+        current_offset: job.current_offset + 1,
+        last_processed_at: new Date().toISOString()
+      })
+      .eq('id', job_id)
+      .select()
+      .single();
+
+    // Server-side delay (2 seconds)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        domain,
+        ownerName,
+        emailsFound: foundEmails.length,
+        stage,
+        processed: 1,
+        job_status: updatedJob?.status || 'running',
+        job_progress: {
+          total: updatedJob?.total_count || 0,
+          processed: updatedJob?.processed_count || 0,
+          enriched: updatedJob?.enriched_count || 0,
+          notFound: updatedJob?.not_found_count || 0,
+          errors: updatedJob?.error_count || 0,
+          currentOffset: updatedJob?.current_offset || 0
+        }
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
 
   } catch (error: any) {
     console.error('[Re-Enrich V2] Error:', error);
+    
+    // If we have a job_id, update error count
+    try {
+      const body = await req.json();
+      const job_id = body.job_id;
+      if (job_id) {
+        const supabase = createClient(
+          Deno.env.get('SUPABASE_URL')!,
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+        );
+        
+        const { data: job } = await supabase
+          .from('re_enrichment_jobs')
+          .select('error_count, processed_count, current_offset')
+          .eq('id', job_id)
+          .single();
+        
+        if (job) {
+          await supabase
+            .from('re_enrichment_jobs')
+            .update({
+              error_count: (job.error_count || 0) + 1,
+              processed_count: job.processed_count + 1,
+              current_offset: job.current_offset + 1,
+              last_processed_at: new Date().toISOString()
+            })
+            .eq('id', job_id);
+        }
+      }
+    } catch {}
+    
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
