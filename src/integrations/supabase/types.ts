@@ -1222,6 +1222,126 @@ export type Database = {
           },
         ]
       }
+      re_enrichment_job_items: {
+        Row: {
+          completed_at: string | null
+          contacts_found: number
+          domain: string
+          emails_extracted: string[] | null
+          error_message: string | null
+          id: string
+          job_id: string
+          owner_name_found: string | null
+          prospect_activity_id: string
+          report_id: string
+          search_queries_used: number
+          stage_reached: string | null
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          contacts_found?: number
+          domain: string
+          emails_extracted?: string[] | null
+          error_message?: string | null
+          id?: string
+          job_id: string
+          owner_name_found?: string | null
+          prospect_activity_id: string
+          report_id: string
+          search_queries_used?: number
+          stage_reached?: string | null
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          contacts_found?: number
+          domain?: string
+          emails_extracted?: string[] | null
+          error_message?: string | null
+          id?: string
+          job_id?: string
+          owner_name_found?: string | null
+          prospect_activity_id?: string
+          report_id?: string
+          search_queries_used?: number
+          stage_reached?: string | null
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "re_enrichment_job_items_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "re_enrichment_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "re_enrichment_job_items_prospect_activity_id_fkey"
+            columns: ["prospect_activity_id"]
+            isOneToOne: false
+            referencedRelation: "prospect_activities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      re_enrichment_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          current_offset: number
+          enriched_count: number
+          error_count: number
+          id: string
+          last_processed_at: string | null
+          max_domains_to_process: number
+          not_found_count: number
+          processed_count: number
+          started_at: string | null
+          status: string
+          stopped_reason: string | null
+          total_count: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          current_offset?: number
+          enriched_count?: number
+          error_count?: number
+          id?: string
+          last_processed_at?: string | null
+          max_domains_to_process: number
+          not_found_count?: number
+          processed_count?: number
+          started_at?: string | null
+          status?: string
+          stopped_reason?: string | null
+          total_count: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          current_offset?: number
+          enriched_count?: number
+          error_count?: number
+          id?: string
+          last_processed_at?: string | null
+          max_domains_to_process?: number
+          not_found_count?: number
+          processed_count?: number
+          started_at?: string | null
+          status?: string
+          stopped_reason?: string | null
+          total_count?: number
+        }
+        Relationships: []
+      }
       report_shares: {
         Row: {
           id: string

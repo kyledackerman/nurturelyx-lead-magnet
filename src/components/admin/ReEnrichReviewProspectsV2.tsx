@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Play, Pause, RotateCcw, Loader2 } from "lucide-react";
+import { Play, Pause, RotateCcw, Loader2, History } from "lucide-react";
+import { ReEnrichmentHistoryDialog } from "./ReEnrichmentHistoryDialog";
 
 interface ProcessResult {
   domain: string;
@@ -21,22 +22,62 @@ interface ProcessResult {
 export function ReEnrichReviewProspectsV2() {
   const [reviewCount, setReviewCount] = useState(0);
   const [maxDomains, setMaxDomains] = useState(10);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [jobStatus, setJobStatus] = useState<'idle' | 'running' | 'paused' | 'completed'>('idle');
   const [processing, setProcessing] = useState(false);
   const [paused, setPaused] = useState(false);
   const [currentDomain, setCurrentDomain] = useState<string>("");
   const [currentStage, setCurrentStage] = useState<string>("");
   const [progress, setProgress] = useState(0);
   const [stats, setStats] = useState({
+    total: 0,
     processed: 0,
     enriched: 0,
     notFound: 0,
     errors: 0,
   });
   const [results, setResults] = useState<ProcessResult[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     fetchReviewCount();
+    checkForActiveJob();
   }, []);
+
+  // Realtime subscription for job updates
+  useEffect(() => {
+    if (!activeJobId) return;
+
+    const channel = supabase
+      .channel(`re-enrichment-job-${activeJobId}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 're_enrichment_jobs',
+        filter: `id=eq.${activeJobId}`
+      }, (payload) => {
+        const job = payload.new as any;
+        setStats({
+          total: job.total_count,
+          processed: job.processed_count,
+          enriched: job.enriched_count,
+          notFound: job.not_found_count,
+          errors: job.error_count,
+        });
+        
+        if (job.status === 'completed') {
+          toast.success(`Re-enrichment completed! ${job.enriched_count} prospects enriched.`);
+          setJobStatus('completed');
+          setProcessing(false);
+        } else if (job.status === 'paused') {
+          setJobStatus('paused');
+          setProcessing(false);
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [activeJobId]);
 
   const fetchReviewCount = async () => {
     const { count } = await supabase
@@ -49,45 +90,147 @@ export function ReEnrichReviewProspectsV2() {
     setReviewCount(count || 0);
   };
 
-  const processProspects = async () => {
+  const checkForActiveJob = async () => {
+    const { data } = await supabase
+      .from('re_enrichment_jobs')
+      .select('*')
+      .in('status', ['running', 'paused', 'queued'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (data) {
+      setActiveJobId(data.id);
+      setJobStatus(data.status as any);
+      setStats({
+        total: data.total_count,
+        processed: data.processed_count,
+        enriched: data.enriched_count,
+        notFound: data.not_found_count,
+        errors: data.error_count,
+      });
+      setMaxDomains(data.max_domains_to_process);
+    }
+  };
+
+  const handleStart = async () => {
+    try {
+      // Create new job
+      const { data: job, error } = await supabase.functions.invoke('create-re-enrichment-job', {
+        body: { max_domains_to_process: maxDomains }
+      });
+
+      if (error) throw error;
+
+      setActiveJobId(job.job_id);
+      setJobStatus('running');
+      setStats({
+        total: job.total_available,
+        processed: 0,
+        enriched: 0,
+        notFound: 0,
+        errors: 0,
+      });
+      setResults([]);
+      
+      toast.success(`Starting re-enrichment for ${job.max_to_process} prospects`);
+      
+      // Start processing
+      processJob(job.job_id);
+    } catch (error: any) {
+      console.error('Error starting job:', error);
+      toast.error('Failed to start job: ' + error.message);
+    }
+  };
+
+  const handleResume = async (jobId?: string) => {
+    const resumeJobId = jobId || activeJobId;
+    if (!resumeJobId) return;
+
+    try {
+      // Update job status to running
+      await supabase
+        .from('re_enrichment_jobs')
+        .update({ status: 'running', stopped_reason: null })
+        .eq('id', resumeJobId);
+
+      setActiveJobId(resumeJobId);
+      setJobStatus('running');
+      setPaused(false);
+      
+      toast.success('Resuming re-enrichment job');
+      
+      // Continue processing
+      processJob(resumeJobId);
+    } catch (error: any) {
+      console.error('Error resuming job:', error);
+      toast.error('Failed to resume job: ' + error.message);
+    }
+  };
+
+  const handlePause = async () => {
+    if (!activeJobId) return;
+
+    setPaused(true);
+    setJobStatus('paused');
+    
+    await supabase
+      .from('re_enrichment_jobs')
+      .update({ 
+        status: 'paused', 
+        stopped_reason: 'user_paused' 
+      })
+      .eq('id', activeJobId);
+
+    toast.info("Processing will pause after current domain completes");
+  };
+
+  const processJob = async (jobId: string) => {
     setProcessing(true);
     setPaused(false);
-    setStats({ processed: 0, enriched: 0, notFound: 0, errors: 0 });
-    setResults([]);
 
-    for (let i = 0; i < maxDomains; i++) {
-      if (paused) {
-        toast.info("Processing paused");
-        break;
-      }
-
+    while (!paused && jobStatus !== 'completed') {
       try {
-        setProgress(((i + 1) / maxDomains) * 100);
         setCurrentStage("Searching...");
 
         const { data, error } = await supabase.functions.invoke('re-enrich-review-prospects-v2', {
-          body: {},
+          body: { job_id: jobId },
         });
 
         if (error) {
           // Check for rate limit or credits errors
           if (error.message?.includes('429') || error.message?.includes('rate limit')) {
-            toast.error("⚠️ Rate limit reached! Stopping processing.", {
-              description: "Please wait a few minutes before resuming.",
+            toast.error("⚠️ Rate limit reached! Job paused.", {
+              description: "Resume when ready to continue.",
               duration: 10000,
             });
+            await supabase
+              .from('re_enrichment_jobs')
+              .update({ status: 'paused', stopped_reason: 'rate_limit' })
+              .eq('id', jobId);
             break;
           }
 
           if (error.message?.includes('402') || error.message?.includes('credits')) {
-            toast.error("💳 Credits exhausted! Add credits to continue.", {
-              description: "Go to Settings → Workspace → Usage to add credits.",
+            toast.error("💳 Credits exhausted! Job paused.", {
+              description: "Add credits and resume to continue.",
               duration: 10000,
             });
+            await supabase
+              .from('re_enrichment_jobs')
+              .update({ status: 'paused', stopped_reason: 'credits_exhausted' })
+              .eq('id', jobId);
             break;
           }
 
           throw error;
+        }
+
+        // Check if job is paused or completed from server
+        if (data.job_status === 'paused' || data.job_status === 'completed') {
+          setJobStatus(data.job_status);
+          setProcessing(false);
+          break;
         }
 
         if (data.domain) {
@@ -102,222 +245,263 @@ export function ReEnrichReviewProspectsV2() {
             stage: data.stage,
           };
 
-          setResults(prev => [result, ...prev]);
+          setResults(prev => [result, ...prev].slice(0, 20));
 
           if (data.emailsFound > 0) {
-            setStats(prev => ({
-              ...prev,
-              processed: prev.processed + 1,
-              enriched: prev.enriched + 1,
-            }));
             toast.success(`✅ Found ${data.emailsFound} emails for ${data.domain}`);
-          } else {
-            setStats(prev => ({
-              ...prev,
-              processed: prev.processed + 1,
-              notFound: prev.notFound + 1,
-            }));
           }
-        } else {
-          // No more prospects
-          toast.info("No more review prospects available");
-          break;
         }
 
-        // Client-side delay (1.2 seconds)
-        await new Promise(resolve => setTimeout(resolve, 1200));
+        // Update progress from server
+        if (data.job_progress) {
+          const prog = data.job_progress;
+          setStats({
+            total: prog.total,
+            processed: prog.processed,
+            enriched: prog.enriched,
+            notFound: prog.notFound,
+            errors: prog.errors,
+          });
+          setProgress((prog.processed / prog.total) * 100);
+        }
+
+        // Client delay
+        await new Promise(r => setTimeout(r, 1200));
 
       } catch (error: any) {
-        console.error('Processing error:', error);
-        setStats(prev => ({
-          ...prev,
-          processed: prev.processed + 1,
-          errors: prev.errors + 1,
-        }));
+        console.error('Error processing prospect:', error);
+        toast.error('Error: ' + error.message);
+        setStats(prev => ({ ...prev, errors: prev.errors + 1 }));
         
-        setResults(prev => [{
-          domain: currentDomain || 'Unknown',
-          status: 'error',
-          emailsFound: 0,
-          error: error.message,
-        }, ...prev]);
-
-        toast.error(`Error processing domain: ${error.message}`);
+        // Continue to next prospect on error
+        await new Promise(r => setTimeout(r, 2000));
       }
     }
 
     setProcessing(false);
+  };
+
+  const handleReset = async () => {
+    setActiveJobId(null);
+    setJobStatus('idle');
     setCurrentDomain("");
     setCurrentStage("");
-    await fetchReviewCount();
-    toast.success("Re-enrichment batch complete!", {
-      description: `Enriched: ${stats.enriched}, Not Found: ${stats.notFound}`,
-    });
-  };
-
-  const handlePause = () => {
-    setPaused(true);
-    setProcessing(false);
-  };
-
-  const handleReset = () => {
-    setStats({ processed: 0, enriched: 0, notFound: 0, errors: 0 });
-    setResults([]);
     setProgress(0);
-    setCurrentDomain("");
-    setCurrentStage("");
-    fetchReviewCount();
+    setStats({ total: 0, processed: 0, enriched: 0, notFound: 0, errors: 0 });
+    setResults([]);
+    setPaused(false);
+    setProcessing(false);
+    await fetchReviewCount();
+    toast.success("Reset complete");
   };
+
+  const successRate = stats.processed > 0 
+    ? ((stats.enriched / stats.processed) * 100).toFixed(1)
+    : "0";
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Re-Enrich Review Prospects V2</CardTitle>
-          <CardDescription>
-            Advanced 3-stage re-enrichment: Owner Discovery → Personal Contact → Domain-Wide Boolean Search
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Re-Enrich Review Prospects V2</CardTitle>
+              <CardDescription>
+                3-stage re-enrichment with Boolean search + last-resort generic emails
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowHistory(true)}
+            >
+              <History className="h-4 w-4 mr-2" />
+              View History
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
+        <CardContent className="space-y-6">
+          {/* Controls */}
+          <div className="flex items-end gap-4">
             <div className="flex-1">
               <label className="text-sm font-medium mb-2 block">
-                Review Prospects Available: <span className="text-primary">{reviewCount}</span>
+                Max domains to process
               </label>
               <Input
                 type="number"
-                min={1}
-                max={100}
                 value={maxDomains}
                 onChange={(e) => setMaxDomains(parseInt(e.target.value) || 10)}
-                disabled={processing}
-                placeholder="Max domains to process"
+                min={1}
+                max={100000}
+                disabled={processing || jobStatus === 'running'}
               />
             </div>
             <div className="flex gap-2">
-              <Button
-                onClick={processProspects}
-                disabled={processing || reviewCount === 0}
-                className="gap-2"
-              >
-                {processing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-4 w-4" />
-                    Start
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handlePause}
-                disabled={!processing}
-                className="gap-2"
-              >
-                <Pause className="h-4 w-4" />
-                Pause
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleReset}
-                disabled={processing}
-                className="gap-2"
-              >
-                <RotateCcw className="h-4 w-4" />
+              {jobStatus === 'idle' && (
+                <Button onClick={handleStart} disabled={reviewCount === 0}>
+                  <Play className="h-4 w-4 mr-2" />
+                  Start
+                </Button>
+              )}
+              
+              {jobStatus === 'paused' && (
+                <Button onClick={() => handleResume()} variant="default">
+                  <Play className="h-4 w-4 mr-2" />
+                  Resume
+                </Button>
+              )}
+              
+              {(jobStatus === 'running' && processing) && (
+                <Button onClick={handlePause} variant="secondary">
+                  <Pause className="h-4 w-4 mr-2" />
+                  Pause
+                </Button>
+              )}
+              
+              <Button onClick={handleReset} variant="outline" disabled={processing}>
+                <RotateCcw className="h-4 w-4 mr-2" />
                 Reset
               </Button>
             </div>
           </div>
 
-          {processing && (
+          {/* Job Status Badge */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Job Status:</span>
+            <Badge variant={
+              jobStatus === 'running' ? 'default' :
+              jobStatus === 'paused' ? 'secondary' :
+              jobStatus === 'completed' ? 'outline' : 'outline'
+            } className={jobStatus === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : ''}>
+              {jobStatus.charAt(0).toUpperCase() + jobStatus.slice(1)}
+            </Badge>
+            {activeJobId && (
+              <span className="text-xs text-muted-foreground font-mono">
+                {activeJobId.slice(0, 8)}
+              </span>
+            )}
+          </div>
+
+          {/* Available Count */}
+          <div className="text-sm text-muted-foreground">
+            Available for re-enrichment: <strong>{reviewCount.toLocaleString()}</strong> prospects
+          </div>
+
+          {/* Progress */}
+          {(processing || stats.processed > 0) && (
             <div className="space-y-2">
-              <Progress value={progress} className="w-full" />
-              <div className="text-sm text-muted-foreground">
-                <div>Processing: <span className="font-medium">{currentDomain}</span></div>
-                <div>Stage: <span className="font-medium">{currentStage}</span></div>
-                <div>
-                  Progress: {stats.processed} / {maxDomains} domains
-                </div>
+              <div className="flex justify-between text-sm">
+                <span>Progress: {stats.processed}/{stats.total}</span>
+                <span className="text-muted-foreground">{progress.toFixed(1)}%</span>
               </div>
+              <Progress value={progress} />
+              
+              {processing && currentDomain && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>
+                    Processing: <strong>{currentDomain}</strong> - {currentStage}
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
-          <div className="grid grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold">{stats.processed}</div>
-                <div className="text-sm text-muted-foreground">Processed</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-green-600">{stats.enriched}</div>
-                <div className="text-sm text-muted-foreground">Enriched</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-yellow-600">{stats.notFound}</div>
-                <div className="text-sm text-muted-foreground">Not Found</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-red-600">{stats.errors}</div>
-                <div className="text-sm text-muted-foreground">Errors</div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Stats Grid */}
+          {stats.processed > 0 && (
+            <div className="grid grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Processed
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.processed}</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-green-600">
+                    Enriched
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {stats.enriched}
+                    <span className="text-sm ml-2">({successRate}%)</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-yellow-600">
+                    Not Found
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-yellow-600">{stats.notFound}</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-red-600">
+                    Errors
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">{stats.errors}</div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Recent Results */}
+          {results.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium mb-3">Recent Results (Last 20)</h3>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Domain</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Owner Name</TableHead>
+                    <TableHead>Emails Found</TableHead>
+                    <TableHead>Stage</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {results.map((result, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="font-mono text-sm">{result.domain}</TableCell>
+                      <TableCell>
+                        <Badge variant={
+                          result.status === 'enriched' ? 'outline' :
+                          result.status === 'not_found' ? 'secondary' : 'destructive'
+                        } className={result.status === 'enriched' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : ''}>
+                          {result.status.replace('_', ' ')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{result.ownerName || '-'}</TableCell>
+                      <TableCell>{result.emailsFound}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{result.stage || '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {results.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Results</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Domain</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Owner</TableHead>
-                  <TableHead>Emails</TableHead>
-                  <TableHead>Stage</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {results.slice(0, 20).map((result, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell className="font-medium">{result.domain}</TableCell>
-                    <TableCell>
-                      {result.status === 'enriched' && (
-                        <Badge variant="default">✅ Enriched</Badge>
-                      )}
-                      {result.status === 'not_found' && (
-                        <Badge variant="secondary">⏸️ Not Found</Badge>
-                      )}
-                      {result.status === 'error' && (
-                        <Badge variant="destructive">❌ Error</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>{result.ownerName || '-'}</TableCell>
-                    <TableCell>{result.emailsFound}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {result.stage || '-'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+      <ReEnrichmentHistoryDialog 
+        open={showHistory} 
+        onOpenChange={setShowHistory}
+        onResume={handleResume}
+      />
     </div>
   );
 }
