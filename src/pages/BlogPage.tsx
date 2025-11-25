@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { getAllBlogPosts } from "@/data/blogPosts";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock } from "lucide-react";
 import { MetaTags } from "@/components/seo/MetaTags";
@@ -11,10 +12,50 @@ import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
 import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
+import { toast } from "sonner";
+
+interface BlogPost {
+  slug: string;
+  title: string;
+  meta_description: string;
+  published_at: string;
+  read_time: string;
+  category: { name: string } | null;
+}
 
 export default function BlogPage() {
   usePageViewTracking('marketing');
-  const posts = getAllBlogPosts();
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select(`
+          slug,
+          title,
+          meta_description,
+          published_at,
+          read_time,
+          category:blog_categories(name)
+        `)
+        .eq('status', 'published')
+        .order('published_at', { ascending: false });
+
+      if (error) throw error;
+      setPosts(data || []);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      toast.error('Failed to load blog posts');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -36,7 +77,7 @@ export default function BlogPage() {
         items={posts.map(post => ({
           name: post.title,
           url: `/blog/${post.slug}`,
-          description: post.metaDescription,
+          description: post.meta_description,
         }))}
         listName="NurturelyX Blog Articles"
         description="Expert articles on visitor identification and lead generation"
@@ -68,33 +109,45 @@ export default function BlogPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {posts.map((post) => (
-              <article key={post.slug}>
-                <Link to={`/blog/${post.slug}`}>
-                  <Card className="h-full hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="text-sm text-primary font-semibold mb-2">{post.category}</div>
-                    <CardTitle className="text-xl hover:text-primary transition-colors">
-                      {post.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">{post.metaDescription}</p>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {new Date(post.publishedAt).toLocaleDateString()}
+            {loading ? (
+              <div className="col-span-full text-center py-12 text-muted-foreground">
+                Loading posts...
+              </div>
+            ) : posts.length === 0 ? (
+              <div className="col-span-full text-center py-12 text-muted-foreground">
+                No posts available yet.
+              </div>
+            ) : (
+              posts.map((post) => (
+                <article key={post.slug}>
+                  <Link to={`/blog/${post.slug}`}>
+                    <Card className="h-full hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <div className="text-sm text-primary font-semibold mb-2">
+                        {post.category?.name || 'Uncategorized'}
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        {post.readTime}
-                      </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              </article>
-            ))}
+                      <CardTitle className="text-xl hover:text-primary transition-colors">
+                        {post.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground mb-4">{post.meta_description}</p>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          {new Date(post.published_at).toLocaleDateString()}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          {post.read_time}
+                        </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </article>
+              ))
+            )}
           </div>
         </div>
       </main>

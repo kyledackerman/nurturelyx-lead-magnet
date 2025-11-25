@@ -35,6 +35,7 @@ import HealthcareIndustryPage from "./pages/industries/HealthcareIndustryPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
+import BlogPostEditorPage from "./pages/admin/BlogPostEditorPage";
 import IndustryReportsPage from "./pages/IndustryReportsPage";
 import TopCompaniesPage from "./pages/TopCompaniesPage";
 import SubmitSupportTicket from "./pages/SubmitSupportTicket";
@@ -109,6 +110,11 @@ const App = () => (
             <Route path="/industries/healthcare" element={<HealthcareIndustryPage />} />
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/blog/:slug" element={<BlogPostPage />} />
+            <Route path="/admin/blog/edit/:id" element={
+              <AdminAuthGuard>
+                <BlogPostEditorPage />
+              </AdminAuthGuard>
+            } />
             <Route path="/reports/:industry" element={<IndustryReportsPage />} />
             <Route path="/top-companies-losing-revenue" element={<TopCompaniesPage />} />
             

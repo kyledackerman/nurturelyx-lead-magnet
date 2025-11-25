@@ -211,6 +211,189 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_authors: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          email: string | null
+          expertise: string[] | null
+          id: string
+          job_title: string | null
+          linkedin_url: string | null
+          name: string
+          twitter_url: string | null
+          updated_at: string | null
+          website_url: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email?: string | null
+          expertise?: string[] | null
+          id?: string
+          job_title?: string | null
+          linkedin_url?: string | null
+          name: string
+          twitter_url?: string | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email?: string | null
+          expertise?: string[] | null
+          id?: string
+          job_title?: string | null
+          linkedin_url?: string | null
+          name?: string
+          twitter_url?: string | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      blog_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      blog_posts: {
+        Row: {
+          author_id: string | null
+          canonical_url: string | null
+          category_id: string | null
+          content: string
+          created_at: string | null
+          created_by: string | null
+          excerpt: string | null
+          featured_image: string | null
+          id: string
+          key_takeaways: string[] | null
+          keywords: string[] | null
+          meta_description: string | null
+          meta_title: string | null
+          og_description: string | null
+          og_image: string | null
+          og_title: string | null
+          published_at: string | null
+          read_time: string | null
+          related_articles: string[] | null
+          related_reports: string[] | null
+          series_name: string | null
+          series_order: number | null
+          series_url: string | null
+          slug: string
+          status: string
+          title: string
+          updated_at: string | null
+          updated_by: string | null
+          view_count: number | null
+        }
+        Insert: {
+          author_id?: string | null
+          canonical_url?: string | null
+          category_id?: string | null
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          key_takeaways?: string[] | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          published_at?: string | null
+          read_time?: string | null
+          related_articles?: string[] | null
+          related_reports?: string[] | null
+          series_name?: string | null
+          series_order?: number | null
+          series_url?: string | null
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string | null
+          updated_by?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          author_id?: string | null
+          canonical_url?: string | null
+          category_id?: string | null
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          key_takeaways?: string[] | null
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          published_at?: string | null
+          read_time?: string | null
+          related_articles?: string[] | null
+          related_reports?: string[] | null
+          series_name?: string | null
+          series_order?: number | null
+          series_url?: string | null
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "blog_authors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "blog_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_accounts: {
         Row: {
           assigned_csm: string | null
@@ -1490,6 +1673,57 @@ export type Database = {
           use_cases_approved?: boolean | null
           use_cases_generated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      seo_page_settings: {
+        Row: {
+          canonical_url: string | null
+          id: string
+          keywords: string[] | null
+          meta_description: string | null
+          meta_title: string | null
+          og_description: string | null
+          og_image: string | null
+          og_title: string | null
+          page_name: string
+          page_path: string
+          robots_meta: string | null
+          structured_data: Json | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          canonical_url?: string | null
+          id?: string
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          page_name: string
+          page_path: string
+          robots_meta?: string | null
+          structured_data?: Json | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          canonical_url?: string | null
+          id?: string
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          page_name?: string
+          page_path?: string
+          robots_meta?: string | null
+          structured_data?: Json | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }

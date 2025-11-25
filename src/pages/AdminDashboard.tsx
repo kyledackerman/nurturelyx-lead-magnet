@@ -29,6 +29,9 @@ import AdminManual from "@/components/admin/AdminManual";
 import { ReportCategorizationTool } from "@/components/admin/ReportCategorizationTool";
 import { BackfillUseCasesButton } from "@/components/admin/BackfillUseCasesButton";
 import { ReEnrichReviewProspectsV2 } from "@/components/admin/ReEnrichReviewProspectsV2";
+import { BlogPostsManager } from "@/components/admin/blog/BlogPostsManager";
+import { BlogCategoriesManager } from "@/components/admin/blog/BlogCategoriesManager";
+import { SEOSettingsManager } from "@/components/admin/blog/SEOSettingsManager";
 import { FormData, ReportData } from "@/types/report";
 import { fetchDomainData, calculateReportMetrics } from "@/services/spyfuService";
 import { reportService } from "@/services/reportService";
@@ -1693,7 +1696,7 @@ const AdminDashboard = () => {
 
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-9">
+            <TabsList className="grid w-full grid-cols-10">
               <TabsTrigger value="generate">
                 <FileText className="h-4 w-4 mr-2" />
                 Generate
@@ -1717,6 +1720,10 @@ const AdminDashboard = () => {
               <TabsTrigger value="re-enrichment-v2">
                 <Wrench className="h-4 w-4 mr-2" />
                 Re-Enrich V2
+              </TabsTrigger>
+              <TabsTrigger value="blog">
+                <FileText className="h-4 w-4 mr-2" />
+                Blog
               </TabsTrigger>
               <TabsTrigger value="admin">
                 <Shield className="h-4 w-4 mr-2" />
@@ -1848,6 +1855,37 @@ const AdminDashboard = () => {
 
             <TabsContent value="re-enrichment-v2" className="space-y-6">
               <ReEnrichReviewProspectsV2 />
+            </TabsContent>
+
+            <TabsContent value="blog" className="space-y-6">
+              <Tabs defaultValue="posts" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 mb-6">
+                  <TabsTrigger value="posts">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Posts
+                  </TabsTrigger>
+                  <TabsTrigger value="categories">
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Categories
+                  </TabsTrigger>
+                  <TabsTrigger value="seo">
+                    <Search className="h-4 w-4 mr-2" />
+                    SEO Settings
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="posts">
+                  <BlogPostsManager />
+                </TabsContent>
+
+                <TabsContent value="categories">
+                  <BlogCategoriesManager />
+                </TabsContent>
+
+                <TabsContent value="seo">
+                  <SEOSettingsManager />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
 
             <TabsContent value="admin" className="space-y-6">
