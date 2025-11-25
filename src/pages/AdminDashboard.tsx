@@ -20,8 +20,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon, Award, Crown, AlertTriangle, Briefcase, Flame, Filter, DollarSign, Upload, Copy, ExternalLink, Wrench, Loader2, MapPin } from "lucide-react";
+import { Search, BarChart3, Globe, Calendar, TrendingUp, Target, Eye, Shield, FileText, Share2, Clock, LayoutDashboard, Trophy, Key, ArrowRight, Users as UsersIcon, Award, Crown, AlertTriangle, Briefcase, Flame, Filter, DollarSign, Upload, Copy, ExternalLink, Wrench, Loader2, MapPin, MoreHorizontal, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { ComposedChart, Area, Line, Bar, BarChart, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminLeadCalculatorForm from "@/components/admin/AdminLeadCalculatorForm";
@@ -1696,47 +1697,61 @@ const AdminDashboard = () => {
 
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-10">
-              <TabsTrigger value="generate">
+            <TabsList className="inline-flex h-12 items-center justify-start w-full bg-muted p-1 gap-1">
+              <TabsTrigger value="generate" className="px-4">
                 <FileText className="h-4 w-4 mr-2" />
                 Generate
               </TabsTrigger>
-              <TabsTrigger value="leaderboard">
-                <Trophy className="h-4 w-4 mr-2" />
-                Leaderboard
-              </TabsTrigger>
-              <TabsTrigger value="crm">
+              <TabsTrigger value="crm" className="px-4">
                 <UsersIcon className="h-4 w-4 mr-2" />
                 CRM
               </TabsTrigger>
-              <TabsTrigger value="import">
-                <Upload className="h-4 w-4 mr-2" />
-                Import
-              </TabsTrigger>
-              <TabsTrigger value="geo-discovery">
-                <MapPin className="h-4 w-4 mr-2" />
-                Geo Search
-              </TabsTrigger>
-              <TabsTrigger value="re-enrichment-v2">
-                <Wrench className="h-4 w-4 mr-2" />
-                Re-Enrich V2
-              </TabsTrigger>
-              <TabsTrigger value="blog">
-                <FileText className="h-4 w-4 mr-2" />
-                Blog
-              </TabsTrigger>
-              <TabsTrigger value="admin">
-                <Shield className="h-4 w-4 mr-2" />
-                Admin
-              </TabsTrigger>
-              <TabsTrigger value="reports">
+              <TabsTrigger value="reports" className="px-4">
                 <FileText className="h-4 w-4 mr-2" />
                 Reports
               </TabsTrigger>
-              <TabsTrigger value="overview">
+              <TabsTrigger value="overview" className="px-4">
                 <LayoutDashboard className="h-4 w-4 mr-2" />
                 Overview
               </TabsTrigger>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant={['leaderboard', 'import', 'geo-discovery', 're-enrichment-v2', 'blog', 'admin'].includes(activeTab) ? 'default' : 'ghost'}
+                    className="px-4 h-10"
+                  >
+                    <MoreHorizontal className="h-4 w-4 mr-2" />
+                    More
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuItem onClick={() => setActiveTab('leaderboard')}>
+                    <Trophy className="h-4 w-4 mr-2" />
+                    Leaderboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setActiveTab('import')}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setActiveTab('geo-discovery')}>
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Geo Search
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setActiveTab('re-enrichment-v2')}>
+                    <Wrench className="h-4 w-4 mr-2" />
+                    Re-Enrich V2
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setActiveTab('blog')}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Blog
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setActiveTab('admin')}>
+                    <Shield className="h-4 w-4 mr-2" />
+                    Admin
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </TabsList>
 
             <TabsContent value="generate" className="space-y-6">
