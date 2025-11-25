@@ -14,12 +14,13 @@ import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 import { AuthorBio } from "@/components/blog/AuthorBio";
 import { KeyTakeaways } from "@/components/blog/KeyTakeaways";
+import { RelatedArticles } from "@/components/blog/RelatedArticles";
 
 export default function BlogPostPage() {
   usePageViewTracking('marketing');
@@ -38,7 +39,7 @@ export default function BlogPostPage() {
         .select('*, category:blog_categories(name, slug), author:blog_authors(*)')
         .eq('slug', slug)
         .eq('status', 'published')
-        .single();
+        .maybeSingle();
       if (error) throw error;
       setPost(data);
     } catch (error) {
@@ -76,16 +77,19 @@ export default function BlogPostPage() {
   }
 
   const canonicalUrl = post.canonical_url || `https://x1.nurturely.io/blog/${post.slug}`;
+  const author = post.author;
   
   // Convert read time to ISO 8601 duration (e.g., "12 min" -> "PT12M")
-  const readTimeMinutes = parseInt(post.readTime.match(/\d+/)?.[0] || "5");
+  const readTimeMinutes = parseInt(post.read_time?.match(/\d+/)?.[0] || "5");
   const timeRequired = `PT${readTimeMinutes}M`;
   
   // Calculate word count from content
   const wordCount = post.content.split(/\s+/).length;
   
   // Generate abstract from meta description
-  const abstract = post.metaDescription;
+  const abstract = post.meta_description;
+  
+  const categoryName = post.category?.name || 'Uncategorized';
 
   return (
     <>
@@ -93,8 +97,8 @@ export default function BlogPostPage() {
       
       <Helmet>
         <title>{post.title} | NurturelyX Blog</title>
-        <meta name="description" content={post.metaDescription} />
-        <meta name="keywords" content={`${post.category}, visitor identification, lead generation, B2B marketing, anonymous visitors`} />
+        <meta name="description" content={post.meta_description} />
+        <meta name="keywords" content={`${categoryName}, visitor identification, lead generation, B2B marketing, anonymous visitors`} />
         
         {/* Canonical Tag */}
         <link rel="canonical" href={`https://x1.nurturely.io/blog/${post.slug}`} />
@@ -102,55 +106,57 @@ export default function BlogPostPage() {
         {/* Open Graph Tags */}
         <meta property="og:type" content="article" />
         <meta property="og:title" content={post.title} />
-        <meta property="og:description" content={post.metaDescription} />
+        <meta property="og:description" content={post.meta_description} />
         <meta property="og:url" content={`https://x1.nurturely.io/blog/${post.slug}`} />
-        <meta property="og:image" content={post.featuredImage || 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png'} />
-        <meta property="article:published_time" content={post.publishedAt} />
-        <meta property="article:author" content={post.author} />
-        <meta property="article:section" content={post.category} />
+        <meta property="og:image" content={post.featured_image || 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png'} />
+        <meta property="article:published_time" content={post.published_at} />
+        <meta property="article:author" content={author?.name} />
+        <meta property="article:section" content={categoryName} />
         
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={post.title} />
-        <meta name="twitter:description" content={post.metaDescription} />
-        <meta name="twitter:image" content={post.featuredImage || 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png'} />
+        <meta name="twitter:description" content={post.meta_description} />
+        <meta name="twitter:image" content={post.featured_image || 'https://x1.nurturely.io/lovable-uploads/b1566634-1aeb-472d-8856-f526a0aa2392.png'} />
       </Helmet>
       
       <WebPageSchema
         name={post.title}
-        description={post.metaDescription}
+        description={post.meta_description}
         url={canonicalUrl}
-        datePublished={post.publishedAt}
-        dateModified={post.updatedAt}
-        image={post.featuredImage}
+        datePublished={post.published_at}
+        dateModified={post.updated_at}
+        image={post.featured_image}
         breadcrumbs={[
           { name: 'Home', url: '/' },
           { name: 'Blog', url: '/blog' },
-          { name: post.category, url: `/blog/category/${post.category.toLowerCase().replace(/\s+/g, '-')}` },
+          { name: categoryName, url: `/blog/category/${categoryName.toLowerCase().replace(/\s+/g, '-')}` },
           { name: post.title, url: `/blog/${post.slug}` }
         ]}
       />
       
-      <PersonSchema
-        name={author.name}
-        jobTitle={author.jobTitle}
-        url={`https://x1.nurturely.io/author/${author.id}`}
-        knowsAbout={author.expertise}
-        sameAs={author.socialLinks ? Object.values(author.socialLinks).filter(Boolean) : undefined}
-        description={author.bio}
-      />
+      {author && (
+        <PersonSchema
+          name={author.name}
+          jobTitle={author.job_title}
+          url={`https://x1.nurturely.io/author/${author.id}`}
+          knowsAbout={author.expertise || []}
+          sameAs={[author.linkedin_url, author.twitter_url, author.website_url].filter(Boolean) as string[]}
+          description={author.bio}
+        />
+      )}
       
       <ArticleSchema
         title={post.title}
-        description={post.metaDescription}
-        publishedAt={post.publishedAt}
-        updatedAt={post.updatedAt}
-        author={author.name}
-        authorUrl={`https://x1.nurturely.io/author/${author.id}`}
-        authorJobTitle={author.jobTitle}
+        description={post.meta_description}
+        publishedAt={post.published_at}
+        updatedAt={post.updated_at}
+        author={author?.name || 'Anonymous'}
+        authorUrl={author ? `https://x1.nurturely.io/author/${author.id}` : undefined}
+        authorJobTitle={author?.job_title}
         url={canonicalUrl}
-        imageUrl={post.featuredImage}
-        category={post.category}
+        imageUrl={post.featured_image}
+        category={categoryName}
         wordCount={wordCount}
         timeRequired={timeRequired}
         abstract={abstract}
@@ -162,7 +168,7 @@ export default function BlogPostPage() {
         items={[
           { name: 'Home', url: 'https://x1.nurturely.io/' },
           { name: 'Blog', url: 'https://x1.nurturely.io/blog' },
-          { name: post.category, url: `https://x1.nurturely.io/blog/category/${post.category.toLowerCase().replace(/\s+/g, '-')}` },
+          { name: categoryName, url: `https://x1.nurturely.io/blog/category/${categoryName.toLowerCase().replace(/\s+/g, '-')}` },
           { name: post.title, url: `https://x1.nurturely.io/blog/${post.slug}` }
         ]}
       />
@@ -180,28 +186,28 @@ export default function BlogPostPage() {
           <Breadcrumb
             items={[
               { label: 'Blog', href: '/blog' },
-              { label: post.category, href: `/blog/category/${post.category.toLowerCase().replace(/\s+/g, '-')}` },
+              { label: categoryName, href: `/blog/category/${categoryName.toLowerCase().replace(/\s+/g, '-')}` },
               { label: post.title, href: `/blog/${post.slug}` }
             ]}
           />
 
           <div className="mb-8">
-            <div className="text-sm text-primary font-semibold mb-2">{post.category}</div>
+            <div className="text-sm text-primary font-semibold mb-2">{categoryName}</div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">{post.title}</h1>
             <div className="flex items-center gap-4 text-muted-foreground flex-wrap">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 <span className="text-sm">
-                  {new Date(post.publishedAt).toLocaleDateString('en-US', {
+                  {new Date(post.published_at).toLocaleDateString('en-US', {
                     month: 'long',
                     day: 'numeric',
                     year: 'numeric'
                   })}
                 </span>
               </div>
-              {post.updatedAt && post.updatedAt !== post.publishedAt && (
+              {post.updated_at && post.updated_at !== post.published_at && (
                 <span className="text-xs px-2 py-1 bg-accent text-accent-foreground rounded-md font-medium">
-                  Updated: {new Date(post.updatedAt).toLocaleDateString('en-US', {
+                  Updated: {new Date(post.updated_at).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric'
@@ -210,9 +216,9 @@ export default function BlogPostPage() {
               )}
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                <span className="text-sm">{post.readTime} read</span>
+                <span className="text-sm">{post.read_time} read</span>
               </div>
-              <div className="text-sm">By {author.name}</div>
+              {author && <div className="text-sm">By {author.name}</div>}
             </div>
           </div>
 
@@ -252,7 +258,7 @@ export default function BlogPostPage() {
             </ReactMarkdown>
           </div>
 
-          <AuthorBio author={author} />
+          {author && <AuthorBio author={author} />}
 
           <InternalLinkingWidget
             title="Continue Learning"
@@ -280,7 +286,7 @@ export default function BlogPostPage() {
             ]}
           />
 
-          <RelatedArticles relatedSlugs={post.relatedArticles} />
+          {post.related_articles && <RelatedArticles relatedSlugs={post.related_articles} />}
 
           <div className="mt-12 pt-8 border-t">
             <Button asChild size="lg" className="gradient-bg">
