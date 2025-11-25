@@ -1,8 +1,9 @@
 import { useParams, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { getBlogPost, BlogPost } from "@/data/blogPosts";
+import { supabase } from "@/integrations/supabase/client";
 import { ArticleSchema } from "@/components/seo/ArticleSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { GlobalSchemas } from "@/components/seo/GlobalSchemas";
@@ -13,20 +14,49 @@ import { Breadcrumb } from "@/components/report/Breadcrumb";
 import { TableOfContents } from "@/components/blog/TableOfContents";
 import { InternalLinkingWidget } from "@/components/seo/InternalLinkingWidget";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, ArrowLeft } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { scrollToTop } from "@/lib/scroll";
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
-import { RelatedArticles } from "@/components/blog/RelatedArticles";
-import { getAuthorById } from "@/data/authors";
 import { AuthorBio } from "@/components/blog/AuthorBio";
 import { KeyTakeaways } from "@/components/blog/KeyTakeaways";
 
 export default function BlogPostPage() {
   usePageViewTracking('marketing');
   const { slug } = useParams<{ slug: string }>();
-  const post = slug ? getBlogPost(slug) : undefined;
+  const [post, setPost] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (slug) fetchPost();
+  }, [slug]);
+
+  const fetchPost = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*, category:blog_categories(name, slug), author:blog_authors(*)')
+        .eq('slug', slug)
+        .eq('status', 'published')
+        .single();
+      if (error) throw error;
+      setPost(data);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <div className="container mx-auto py-16 text-center">Loading...</div>
+        <Footer />
+      </>
+    );
+  }
 
   if (!post) {
     return (
@@ -45,8 +75,7 @@ export default function BlogPostPage() {
     );
   }
 
-  const author = getAuthorById(post.author);
-  const canonicalUrl = `https://x1.nurturely.io/blog/${post.slug}`;
+  const canonicalUrl = post.canonical_url || `https://x1.nurturely.io/blog/${post.slug}`;
   
   // Convert read time to ISO 8601 duration (e.g., "12 min" -> "PT12M")
   const readTimeMinutes = parseInt(post.readTime.match(/\d+/)?.[0] || "5");
@@ -187,9 +216,9 @@ export default function BlogPostPage() {
             </div>
           </div>
 
-          {post.keyTakeaways && <KeyTakeaways takeaways={post.keyTakeaways} />}
-
-          <TableOfContents content={post.content} />
+                {post.key_takeaways && <KeyTakeaways takeaways={post.key_takeaways} />}
+                
+                <TableOfContents content={post.content} />
 
           <div className="prose prose-lg max-w-none">
             <ReactMarkdown
